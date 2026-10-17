@@ -1,13 +1,15 @@
 [project]
 name = "videos-rodoviarios"
-version = "0.3.1"
-description = "Motor de análise e preparação de vídeos técnicos rodoviários a partir de DXF + KMZ/KML"
+version = "1.0.0"
+description = "Aplicativo Windows para análise rodoviária e geração de vídeos MP4 a partir de DXF + KMZ/KML"
 requires-python = ">=3.11"
 dependencies = [
   "ezdxf>=1.3.4",
   "shapely>=2.0.6",
   "pyproj>=3.7.0",
   "typer>=0.15.0",
+  "Pillow>=10.4.0",
+  "imageio-ffmpeg>=0.6.0",
 ]
 
 [project.optional-dependencies]
@@ -15,7 +17,7 @@ dev = ["pytest>=8.3.0", "ruff>=0.8.0"]
 
 [project.scripts]
 video-rodoviario = "videos_rodoviarios.cli:app"
-video-rodoviario-gui = "videos_rodoviarios.ui:main"
+video-rodoviario-gui = "videos_rodoviarios.ui_complete:main"
 
 [build-system]
 requires = ["hatchling"]
