@@ -1,6 +1,6 @@
 [project]
 name = "videos-rodoviarios"
-version = "0.2.0"
+version = "0.3.0"
 description = "Motor de análise e preparação de vídeos técnicos rodoviários a partir de DXF + KMZ/KML"
 requires-python = ">=3.11"
 dependencies = [
@@ -15,6 +15,7 @@ dev = ["pytest>=8.3.0", "ruff>=0.8.0"]
 
 [project.scripts]
 video-rodoviario = "videos_rodoviarios.cli:app"
+video-rodoviario-gui = "videos_rodoviarios.ui:main"
 
 [build-system]
 requires = ["hatchling"]
