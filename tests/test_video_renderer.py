@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from videos_rodoviarios.core.models import GeometryEntity, RoadAnalysis
-from videos_rodoviarios.render.video_renderer import render_video
+from videos_rodoviarios.render.final_renderer import render_video
 
 
 def test_render_video_generates_mp4(tmp_path: Path):
