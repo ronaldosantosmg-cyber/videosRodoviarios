@@ -29,6 +29,11 @@ jobs:
           pytest -q
           python -m compileall -q src
 
+      - name: Teste rápido do renderizador
+        shell: pwsh
+        run: |
+          python -c "import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())"
+
       - name: Gerar executável Windows
         shell: pwsh
         run: |
@@ -37,7 +42,9 @@ jobs:
             --collect-all ezdxf `
             --collect-all shapely `
             --collect-all pyproj `
-            src/videos_rodoviarios/ui.py
+            --collect-all imageio_ffmpeg `
+            --collect-all PIL `
+            src/videos_rodoviarios/ui_complete.py
 
       - name: Montar pacote portátil
         shell: pwsh
