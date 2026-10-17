@@ -118,7 +118,13 @@ class RoadVideoApp(tk.Tk):
         options.grid(row=1, column=0, sticky="ew", pady=(10, 0))
         ttk.Label(options, text="Precisão das curvas:").pack(side="left")
         self.tol_var = tk.StringVar(value=self.settings.get("tolerance", "0.10"))
-        ttk.Combobox(options, textvariable=self.tol_var, state="readonly", width=10, values=("0.50", "0.20", "0.10", "0.05", "0.02")).pack(side="left", padx=(6, 14))
+        ttk.Combobox(
+            options,
+            textvariable=self.tol_var,
+            state="readonly",
+            width=10,
+            values=("0.50", "0.20", "0.10", "0.05", "0.02"),
+        ).pack(side="left", padx=(6, 14))
         ttk.Label(options, text="m · menor valor = curva mais suave").pack(side="left")
 
         self.progress = ttk.Progressbar(controls, mode="indeterminate")
@@ -172,7 +178,10 @@ class RoadVideoApp(tk.Tk):
                 self.out_var.set(default_output_for(path))
 
     def _select_kmz(self) -> None:
-        path = filedialog.askopenfilename(title="Selecione o KMZ/KML", filetypes=[("KMZ/KML", "*.kmz *.kml"), ("KMZ", "*.kmz"), ("KML", "*.kml")])
+        path = filedialog.askopenfilename(
+            title="Selecione o KMZ/KML",
+            filetypes=[("KMZ/KML", "*.kmz *.kml"), ("KMZ", "*.kmz"), ("KML", "*.kml")],
+        )
         if path:
             self.kmz_var.set(path)
 
@@ -224,9 +233,10 @@ class RoadVideoApp(tk.Tk):
                 pass
             write_svg_preview(analysis, output / "preview.svg")
             self.analysis = analysis
-            self.after(0, lambda: self._analysis_done(analysis, output))
+            self.after(0, lambda a=analysis, o=output: self._analysis_done(a, o))
         except Exception as exc:
-            self.after(0, lambda: self._analysis_failed(exc))
+            error_message = str(exc)
+            self.after(0, lambda msg=error_message: self._analysis_failed(msg))
 
     def _analysis_done(self, analysis, output: Path) -> None:
         self.progress.stop()
@@ -248,31 +258,36 @@ class RoadVideoApp(tk.Tk):
         lines.append("OFFSETS DE CORTE / ATERRO")
         if analysis.offsets:
             for item in analysis.offsets:
-                lines.append(f"{item.category.upper():<7} | {item.side:<12} | mediana {item.median_m:7.2f} m | mín {item.min_m:7.2f} | máx {item.max_m:7.2f} | {item.layer}")
+                lines.append(
+                    f"{item.category.upper():<7} | {item.side:<12} | mediana {item.median_m:7.2f} m | "
+                    f"mín {item.min_m:7.2f} | máx {item.max_m:7.2f} | {item.layer}"
+                )
         else:
             lines.append("Nenhum offset de corte/aterro foi reconhecido.")
         if analysis.warnings:
             lines.append("")
             lines.append("ATENÇÕES")
-            lines.extend(f"• {w}" for w in analysis.warnings)
+            lines.extend(f"• {warning}" for warning in analysis.warnings)
 
         self.details.configure(state="normal")
         self.details.delete("1.0", "end")
         self.details.insert("1.0", "\n".join(lines))
         self.details.configure(state="disabled")
-        save_settings({
-            "dxf": self.dxf_var.get(),
-            "kmz": self.kmz_var.get(),
-            "output": self.out_var.get(),
-            "tolerance": self.tol_var.get(),
-        })
+        save_settings(
+            {
+                "dxf": self.dxf_var.get(),
+                "kmz": self.kmz_var.get(),
+                "output": self.out_var.get(),
+                "tolerance": self.tol_var.get(),
+            }
+        )
         messagebox.showinfo(APP_NAME, f"Análise concluída.\n\nResultados em:\n{output}")
 
-    def _analysis_failed(self, exc: Exception) -> None:
+    def _analysis_failed(self, message: str) -> None:
         self.progress.stop()
         self.analyze_btn.configure(state="normal")
         self.status_var.set("Falha na análise.")
-        messagebox.showerror(APP_NAME, f"Não foi possível concluir a análise:\n\n{exc}")
+        messagebox.showerror(APP_NAME, f"Não foi possível concluir a análise:\n\n{message}")
 
     def _output_path(self) -> Path:
         return Path(self.out_var.get().strip() or default_output_for(self.dxf_var.get()))
@@ -295,12 +310,14 @@ class RoadVideoApp(tk.Tk):
             open_path(path)
 
     def _on_close(self) -> None:
-        save_settings({
-            "dxf": self.dxf_var.get(),
-            "kmz": self.kmz_var.get(),
-            "output": self.out_var.get(),
-            "tolerance": self.tol_var.get(),
-        })
+        save_settings(
+            {
+                "dxf": self.dxf_var.get(),
+                "kmz": self.kmz_var.get(),
+                "output": self.out_var.get(),
+                "tolerance": self.tol_var.get(),
+            }
+        )
         self.destroy()
 
 
