@@ -1,0 +1,18 @@
+VÍDEOS RODOVIÁRIOS — GUIA RÁPIDO
+
+1. Abra VideosRodoviarios.exe.
+2. Clique em Selecionar DXF.
+3. Se houver referência geográfica, selecione KMZ/KML.
+4. Confira a pasta de saída.
+5. Clique em ANALISAR PROJETO.
+6. Aguarde a conclusão.
+7. Use Ver prévia para conferir o traçado e as classificações.
+8. Use Abrir pasta de resultados para acessar:
+   - analise.json
+   - geometrias_dxf.geojson
+   - geometrias_wgs84.geojson, quando aplicável
+   - preview.svg
+
+O aplicativo calcula a extensão do eixo principal, preserva curvas por discretização geométrica, identifica cortes, aterros, sinalização horizontal e outros elementos rodoviários por layers e calcula offsets em relação ao eixo.
+
+Não exige privilégios de administrador para executar o EXE portátil.
