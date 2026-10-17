@@ -44,7 +44,7 @@ jobs:
             --collect-all pyproj `
             --collect-all imageio_ffmpeg `
             --collect-all PIL `
-            src/videos_rodoviarios/ui_complete.py
+            src/videos_rodoviarios/app.py
 
       - name: Montar pacote portátil
         shell: pwsh
