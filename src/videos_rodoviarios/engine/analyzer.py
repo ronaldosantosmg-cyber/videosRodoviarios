@@ -11,10 +11,13 @@ from videos_rodoviarios.io.kml_reader import read_kml_context
 
 
 def _pick_centerline(entities: list[GeometryEntity]) -> GeometryEntity:
-    centers = [e for e in entities if e.category == "center"]
-    pool = centers or [e for e in entities if e.category in {"edge", "other"}]
+    valid = [e for e in entities if len(e.points) >= 2 and line_length(e) > 1e-6]
+    if not valid:
+        raise ValueError("DXF sem geometria linear válida para definir o eixo.")
+    centers = [e for e in valid if e.category == "center"]
+    pool = centers or [e for e in valid if e.category in {"edge", "other"}]
     if not pool:
-        pool = entities
+        pool = valid
     return max(pool, key=line_length)
 
 
@@ -26,8 +29,12 @@ def analyze_road(dxf_path: str | Path, kmz_path: str | Path | None = None, curve
     stations = [v for t in texts if (v := parse_station(t.text)) is not None]
     context = None
     if kmz_path:
-        context = read_kml_context(kmz_path)
-        stations.extend(context.station_values_m)
+        try:
+            context = read_kml_context(kmz_path)
+            stations.extend(context.station_values_m)
+        except Exception as exc:
+            warnings.append(f"KMZ/KML não pôde ser lido completamente: {exc}")
+            context = None
 
     stations = sorted(set(round(v, 3) for v in stations))
     km_start = stations[0] if len(stations) >= 2 else None
@@ -43,7 +50,17 @@ def analyze_road(dxf_path: str | Path, kmz_path: str | Path | None = None, curve
                 f"Extensão geométrica ({extension_m:.1f} m) difere do intervalo de estaqueamento ({delta:.1f} m) em {diff:.1f} m."
             )
 
-    offsets = [offset_info(e, center) for e in entities if e.category in {"cut", "fill"} and len(e.points) >= 2]
+    offsets = []
+    for entity in entities:
+        if entity.category not in {"cut", "fill"} or len(entity.points) < 2:
+            continue
+        try:
+            offsets.append(offset_info(entity, center))
+        except Exception as exc:
+            warnings.append(
+                f"Offset {entity.handle or '?'} da layer {entity.layer} foi ignorado sem interromper a análise: {exc}"
+            )
+
     categories = Counter(e.category for e in entities)
     layers = Counter(e.layer for e in entities)
 
