@@ -3,7 +3,11 @@ name: Build Windows
 on:
   push:
     branches: [main]
+    tags: ['REV*']
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -14,6 +18,20 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: Identificar revisão
+        id: revision
+        shell: pwsh
+        run: |
+          $meta = python -c "import sys; sys.path.insert(0, 'src'); import videos_rodoviarios as v; print(f'{v.__version__}|{v.__revision__}|{v.__revision_name__}')"
+          $parts = $meta.Trim().Split('|')
+          $version = $parts[0]
+          $revision = $parts[1]
+          $revisionName = $parts[2]
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "revision=$revision" >> $env:GITHUB_OUTPUT
+          "revision_name=$revisionName" >> $env:GITHUB_OUTPUT
+          "package=VideosRodoviarios-$revision-Windows" >> $env:GITHUB_OUTPUT
 
       - name: Instalar dependências
         shell: pwsh
@@ -46,7 +64,7 @@ jobs:
             --collect-all PIL `
             src/videos_rodoviarios/app_final.py
 
-      - name: Montar pacote portátil limpo
+      - name: Montar pacote portátil da revisão
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path pacote | Out-Null
@@ -58,18 +76,39 @@ jobs:
           Copy-Item dist/VideosRodoviarios.exe pacote/VideosRodoviarios.exe
           Copy-Item GUIA_RAPIDO.txt pacote/apoio/GUIA_RAPIDO.txt
           Copy-Item README.md pacote/apoio/README.md
+          if (Test-Path REVISOES.md) { Copy-Item REVISOES.md pacote/apoio/REVISOES.md }
           Set-Content -Path pacote/texturas/LEIA-ME.txt -Value "Texturas e materiais visuais do projeto."
           Set-Content -Path pacote/projetos_salvos/LEIA-ME.txt -Value "Projetos, analises, previas, imagens convertidas e videos gerados pelo aplicativo."
           Set-Content -Path pacote/banco_dados/LEIA-ME.txt -Value "Configuracoes e bancos de dados locais do aplicativo."
           Set-Content -Path pacote/apoio/gdal/LEIA-ME.txt -Value "Runtime GDAL portatil. Coloque aqui gdal_translate, gdalinfo, DLLs e dados do GDAL sem instalar no Windows."
           Set-Content -Path pacote/apoio/ecw/LEIA-ME.txt -Value "Componentes ECW Desktop Read-Only redistribuiveis/autorizados. O aplicativo detecta o driver automaticamente."
           Set-Content -Path pacote/apoio/ESTRUTURA.txt -Value "A raiz do aplicativo deve permanecer limpa: executavel na raiz; arquivos auxiliares ficam nestas subpastas."
-          Compress-Archive -Path pacote/* -DestinationPath VideosRodoviarios-Windows.zip -Force
+          @"
+          Produto: Vídeos Rodoviários
+          Versão: ${{ steps.revision.outputs.version }}
+          Revisão: ${{ steps.revision.outputs.revision }}
+          Nome: ${{ steps.revision.outputs.revision_name }}
+          Commit: $env:GITHUB_SHA
+          Build UTC: $(Get-Date -AsUTC -Format 'yyyy-MM-ddTHH:mm:ssZ')
+          "@ | Set-Content -Path pacote/REVISAO.txt
+          $zip = "${{ steps.revision.outputs.package }}.zip"
+          Compress-Archive -Path pacote/* -DestinationPath $zip -Force
 
-      - name: Publicar artefato
+      - name: Publicar pacote para download
         uses: actions/upload-artifact@v4
         with:
-          name: VideosRodoviarios-Windows
-          path: VideosRodoviarios-Windows.zip
+          name: ${{ steps.revision.outputs.package }}
+          path: ${{ steps.revision.outputs.package }}.zip
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 90
+
+      - name: Publicar revisão permanente no GitHub Releases
+        if: startsWith(github.ref, 'refs/tags/REV')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $zip = "${{ steps.revision.outputs.package }}.zip"
+          gh release create "${{ steps.revision.outputs.revision }}" $zip `
+            --title "${{ steps.revision.outputs.revision }} · ${{ steps.revision.outputs.revision_name }}" `
+            --notes "Pacote Windows portátil da revisão ${{ steps.revision.outputs.revision }}. Versão ${{ steps.revision.outputs.version }}."
