@@ -46,6 +46,7 @@ def render_video(
             progress(0.01, "Sem georreferenciamento UTM confiável; usando fundo técnico.")
 
     center_world = _local_to_world(center.points, transformer, zoom)
+    output_entities = [entity for entity in analysis.entities if entity.visible_in_output]
     world_entities = [
         (
             entity,
@@ -53,10 +54,12 @@ def render_video(
             if transformer
             else _local_to_world(entity.points, None, zoom),
         )
-        for entity in analysis.entities
+        for entity in output_entities
     ]
     world_texts: list[tuple[str, float, float]] = []
     for text in analysis.texts:
+        if not text.visible_in_output:
+            continue
         if transformer:
             lon, lat = transformer.transform(text.x, text.y)
             wx, wy = _lonlat_to_world_px(lon, lat, zoom)
