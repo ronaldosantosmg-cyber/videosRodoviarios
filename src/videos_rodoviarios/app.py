@@ -22,6 +22,13 @@ from videos_rodoviarios.render.video_renderer import render_video
 APP_NAME = "Vídeos Rodoviários"
 SETTINGS = settings_path()
 
+QMS_PROVIDER_CHOICES = {
+    "Esri World Imagery (satélite)": "esri_world_imagery",
+    "OpenStreetMap (mapa)": "osm_standard",
+    "Carto Light (mapa claro)": "carto_light",
+}
+QMS_PROVIDER_LABELS = {value: label for label, value in QMS_PROVIDER_CHOICES.items()}
+
 
 def load_settings() -> dict:
     ensure_app_dirs()
@@ -53,8 +60,8 @@ class RoadVideoApp(tk.Tk):
         ensure_app_dirs()
         super().__init__()
         self.title(APP_NAME)
-        self.geometry("1100x820")
-        self.minsize(940, 740)
+        self.geometry("1100x840")
+        self.minsize(940, 760)
         self.cfg = load_settings()
         self.analysis = None
         self.selected_centerline_handle: str | None = self.cfg.get("centerline_handle") or None
@@ -77,7 +84,7 @@ class RoadVideoApp(tk.Tk):
         root = ttk.Frame(self, padding=16)
         root.pack(fill="both", expand=True)
         ttk.Label(root, text="Vídeos Rodoviários", style="Title.TLabel").pack(anchor="w")
-        ttk.Label(root, text="DXF + KMZ/KML + imagem local → análise → visualização → MP4").pack(anchor="w", pady=(0, 12))
+        ttk.Label(root, text="DXF + KMZ/KML + fundo cartográfico → análise → visualização → MP4").pack(anchor="w", pady=(0, 12))
 
         files = ttk.LabelFrame(root, text="1 · Arquivos", padding=10)
         files.pack(fill="x")
@@ -104,6 +111,10 @@ class RoadVideoApp(tk.Tk):
         self.duration = tk.StringVar(value=self.cfg.get("duration", "45"))
         self.zoom = tk.StringVar(value=self.cfg.get("zoom", "17"))
         self.imagery = tk.BooleanVar(value=self.cfg.get("imagery", True))
+        saved_provider = self.cfg.get("tile_provider", "esri_world_imagery")
+        self.tile_provider = tk.StringVar(
+            value=QMS_PROVIDER_LABELS.get(saved_provider, "Esri World Imagery (satélite)")
+        )
         for label, var, values in [
             ("Resolução", self.res, ("1280x720", "1920x1080")),
             ("FPS", self.fps, ("24", "30")),
@@ -114,7 +125,23 @@ class RoadVideoApp(tk.Tk):
             frame.pack(side="left", padx=(0, 16))
             ttk.Label(frame, text=label).pack(anchor="w")
             ttk.Combobox(frame, textvariable=var, values=values, width=11, state="readonly").pack()
-        ttk.Checkbutton(opts, text="Imagem aérea Esri", variable=self.imagery).pack(side="left", padx=8)
+
+        bg = ttk.LabelFrame(root, text="3 · Imagem de fundo", padding=10)
+        bg.pack(fill="x", pady=(0, 10))
+        ttk.Checkbutton(bg, text="Usar fundo online", variable=self.imagery).pack(side="left", padx=(0, 12))
+        ttk.Label(bg, text="Fonte:").pack(side="left")
+        provider_combo = ttk.Combobox(
+            bg,
+            textvariable=self.tile_provider,
+            values=tuple(QMS_PROVIDER_CHOICES.keys()),
+            width=31,
+            state="readonly",
+        )
+        provider_combo.pack(side="left", padx=8)
+        ttk.Label(
+            bg,
+            text="O mosaico é composto em uma imagem contínua, sem grade entre tiles.",
+        ).pack(side="left", padx=8)
 
         buttons = ttk.Frame(root)
         buttons.pack(fill="x")
@@ -279,6 +306,7 @@ class RoadVideoApp(tk.Tk):
             lines.append(f"Eixo ativo: entidade {analysis.main_centerline_handle}")
         if self.local_imagery_path:
             lines.append(f"Imagem local: {self.local_imagery_path}")
+        lines.append(f"Fundo online: {self.tile_provider.get() if self.imagery.get() else 'desligado'}")
         if analysis.km_start_m is not None:
             lines.extend([
                 f"Km inicial: {format_station(analysis.km_start_m)}",
@@ -318,6 +346,11 @@ class RoadVideoApp(tk.Tk):
                 analysis = self._analyze(dxf, kmz, out)
             width, height = (int(value) for value in self.res.get().split("x"))
             target = out / "video_rodoviario.mp4"
+
+            provider_key = QMS_PROVIDER_CHOICES.get(
+                self.tile_provider.get(), "esri_world_imagery"
+            )
+            os.environ["VIDEOS_RODOVIARIOS_TILE_PROVIDER"] = provider_key
 
             def progress(value: float, text: str) -> None:
                 self.after(0, lambda v=value, t=text: self._set_progress(v, t))
@@ -374,6 +407,9 @@ class RoadVideoApp(tk.Tk):
             messagebox.showwarning(APP_NAME, "O vídeo ainda não foi gerado.")
 
     def persist(self) -> None:
+        provider_key = QMS_PROVIDER_CHOICES.get(
+            self.tile_provider.get(), "esri_world_imagery"
+        )
         save_settings({
             "dxf": self.dxf.get(),
             "kmz": self.kmz.get(),
@@ -384,6 +420,7 @@ class RoadVideoApp(tk.Tk):
             "duration": self.duration.get(),
             "zoom": self.zoom.get(),
             "imagery": self.imagery.get(),
+            "tile_provider": provider_key,
             "centerline_handle": self.selected_centerline_handle,
         })
 
