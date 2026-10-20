@@ -9,9 +9,10 @@ COLORS = {"center": "#f59e0b", "edge": "#475569", "cut": "#ef4444", "fill": "#22
 
 
 def write_svg_preview(analysis: RoadAnalysis, path: str | Path, width: int = 1600, height: int = 900) -> Path:
-    all_points = [p for e in analysis.entities for p in e.points]
+    visible_entities = [e for e in analysis.entities if e.visible_in_output]
+    all_points = [p for e in visible_entities for p in e.points]
     if not all_points:
-        raise ValueError("Sem pontos para gerar prévia.")
+        raise ValueError("Sem entidades visíveis para gerar prévia.")
     xs = [p[0] for p in all_points]
     ys = [p[1] for p in all_points]
     minx, maxx = min(xs), max(xs)
@@ -27,7 +28,7 @@ def write_svg_preview(analysis: RoadAnalysis, path: str | Path, width: int = 160
 
     parts = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">', '<rect width="100%" height="100%" fill="#0f172a"/>']
     order = {"domain": 0, "cut": 1, "fill": 1, "edge": 2, "center": 3, "marking": 4, "water": 1, "rail": 2, "oae": 4, "other": 0}
-    for e in sorted(analysis.entities, key=lambda v: order.get(v.category, 0)):
+    for e in sorted(visible_entities, key=lambda v: order.get(v.category, 0)):
         pts = " ".join(f"{x:.2f},{y:.2f}" for x, y in map(xy, e.points))
         color = COLORS.get(e.category, COLORS["other"])
         width_px = 2.6 if e.category in {"cut", "fill", "center", "marking"} else 1.4
