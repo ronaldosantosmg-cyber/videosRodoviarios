@@ -76,10 +76,9 @@ jobs:
           New-Item -ItemType Directory -Force -Path pacote/apoio/gdal | Out-Null
           New-Item -ItemType Directory -Force -Path pacote/apoio/ecw/plugins | Out-Null
           New-Item -ItemType Directory -Force -Path pacote/apoio/cache_tiles | Out-Null
-          New-Item -ItemType Directory -Force -Path pacote/apoio/runtime | Out-Null
 
           Copy-Item dist/VideosRodoviarios/VideosRodoviarios.exe pacote/VideosRodoviarios.exe
-          Copy-Item dist/VideosRodoviarios/runtime/* pacote/apoio/runtime -Recurse -Force
+          Copy-Item dist/VideosRodoviarios/runtime pacote/runtime -Recurse -Force
           Copy-Item GUIA_RAPIDO.txt pacote/apoio/GUIA_RAPIDO.txt
           Copy-Item README.md pacote/apoio/README.md
           Copy-Item SEM_ADMIN.txt pacote/apoio/SEM_ADMIN.txt
@@ -91,7 +90,7 @@ jobs:
           Set-Content -Path pacote/apoio/gdal/LEIA-ME.txt -Value "Runtime GDAL portatil. Coloque aqui gdal_translate, gdalinfo, DLLs e dados do GDAL sem instalar no Windows."
           Set-Content -Path pacote/apoio/ecw/LEIA-ME.txt -Value "Componentes ECW Desktop Read-Only redistribuiveis/autorizados. O aplicativo detecta o driver automaticamente."
           Set-Content -Path pacote/apoio/cache_tiles/LEIA-ME.txt -Value "Cache local dos mosaicos XYZ/QMS. Pode ser apagado a qualquer momento; o aplicativo recria quando necessario."
-          Set-Content -Path pacote/apoio/ESTRUTURA.txt -Value "Execução portátil: nenhum instalador, nenhuma elevação UAC e nenhum componente gravado em Program Files, Windows, System32 ou Registro. O executável fica na raiz e o runtime fica em apoio/runtime."
+          Set-Content -Path pacote/apoio/ESTRUTURA.txt -Value "Execução portátil: nenhum instalador, nenhuma elevação UAC e nenhum componente gravado em Program Files, Windows, System32 ou Registro. Por exigência do PyInstaller, a pasta runtime deve permanecer ao lado de VideosRodoviarios.exe e não pode ser movida."
 
           @"
           Produto: Vídeos Rodoviários
@@ -100,6 +99,7 @@ jobs:
           Nome: ${{ steps.revision.outputs.revision_name }}
           Perfil: Windows portátil / asInvoker / sem instalação / sem administrador
           Fundo: motor XYZ compatível com provedores QuickMapServices / mosaico contínuo sem linhas entre tiles
+          Runtime: pasta runtime obrigatoriamente ao lado do executável
           Commit: $env:GITHUB_SHA
           Build UTC: $(Get-Date -AsUTC -Format 'yyyy-MM-ddTHH:mm:ssZ')
           "@ | Set-Content -Path pacote/REVISAO.txt
@@ -107,14 +107,23 @@ jobs:
           $zip = "${{ steps.revision.outputs.package }}.zip"
           Compress-Archive -Path pacote/* -DestinationPath $zip -Force
 
-      - name: Validar pacote sem instalação
+      - name: Validar pacote e inicialização
         shell: pwsh
         run: |
           if (-not (Test-Path pacote/VideosRodoviarios.exe)) { throw "Executável ausente" }
-          if (-not (Test-Path pacote/apoio/runtime)) { throw "Runtime portátil ausente" }
+          if (-not (Test-Path pacote/runtime/python311.dll)) { throw "python311.dll ausente do caminho esperado pelo bootloader" }
+          if (-not (Test-Path pacote/runtime/VCRUNTIME140.dll)) { throw "VCRUNTIME140.dll ausente" }
           if (Test-Path pacote/setup.exe) { throw "Pacote não deve conter instalador" }
           if (Test-Path pacote/*.msi) { throw "Pacote não deve conter MSI" }
-          Write-Host "Pacote validado: execução portátil em contexto do usuário atual."
+
+          $p = Start-Process -FilePath (Resolve-Path pacote/VideosRodoviarios.exe) -WorkingDirectory (Resolve-Path pacote) -PassThru
+          Start-Sleep -Seconds 4
+          if ($p.HasExited) {
+            if ($p.ExitCode -ne 0) { throw "Executável encerrou durante o teste de abertura. Código: $($p.ExitCode)" }
+          } else {
+            Stop-Process -Id $p.Id -Force
+          }
+          Write-Host "Pacote validado: runtime no caminho esperado e executável iniciou sem falha imediata."
 
       - name: Publicar pacote para download
         uses: actions/upload-artifact@v4
