@@ -10,10 +10,17 @@ from videos_rodoviarios.io.dxf_reader import read_dxf
 from videos_rodoviarios.io.kml_reader import read_kml_context
 
 
-def _pick_centerline(entities: list[GeometryEntity]) -> GeometryEntity:
+def _pick_centerline(entities: list[GeometryEntity], preferred_handle: str | None = None) -> GeometryEntity:
     valid = [e for e in entities if len(e.points) >= 2 and line_length(e) > 1e-6]
     if not valid:
         raise ValueError("DXF sem geometria linear válida para definir o eixo.")
+
+    if preferred_handle:
+        selected = next((e for e in valid if e.handle == preferred_handle), None)
+        if selected is None:
+            raise ValueError(f"A entidade selecionada como eixo ({preferred_handle}) não existe ou não é uma geometria linear válida.")
+        return selected
+
     centers = [e for e in valid if e.category == "center"]
     pool = centers or [e for e in valid if e.category in {"edge", "other"}]
     if not pool:
@@ -21,9 +28,14 @@ def _pick_centerline(entities: list[GeometryEntity]) -> GeometryEntity:
     return max(pool, key=line_length)
 
 
-def analyze_road(dxf_path: str | Path, kmz_path: str | Path | None = None, curve_tolerance_m: float = 0.10) -> RoadAnalysis:
+def analyze_road(
+    dxf_path: str | Path,
+    kmz_path: str | Path | None = None,
+    curve_tolerance_m: float = 0.10,
+    centerline_handle: str | None = None,
+) -> RoadAnalysis:
     entities, texts, warnings = read_dxf(dxf_path, curve_tolerance_m=curve_tolerance_m)
-    center = _pick_centerline(entities)
+    center = _pick_centerline(entities, centerline_handle)
     extension_m = line_length(center)
 
     stations = [v for t in texts if (v := parse_station(t.text)) is not None]
@@ -41,8 +53,11 @@ def analyze_road(dxf_path: str | Path, kmz_path: str | Path | None = None, curve
     km_end = stations[-1] if len(stations) >= 2 else None
     delta = (km_end - km_start) if km_start is not None and km_end is not None else None
 
-    if not any(e.category == "center" for e in entities):
+    if centerline_handle:
+        warnings.append(f"Eixo definido manualmente pela entidade {center.handle} da layer {center.layer}.")
+    elif not any(e.category == "center" for e in entities):
         warnings.append("Nenhuma layer de eixo reconhecida; foi usada a geometria linear mais longa como eixo principal.")
+
     if delta is not None and extension_m > 0:
         diff = abs(delta - extension_m)
         if diff > max(50.0, extension_m * 0.03):
