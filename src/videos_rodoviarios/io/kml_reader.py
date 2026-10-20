@@ -6,6 +6,7 @@ from pathlib import Path
 from xml.etree import ElementTree as ET
 
 from videos_rodoviarios.core.models import KmlContext
+from videos_rodoviarios.geometry.crs import infer_utm_from_lonlat
 from videos_rodoviarios.geometry.stationing import parse_station
 
 
@@ -62,12 +63,15 @@ def read_kml_context(path: str | Path) -> KmlContext:
     if coordinates:
         lon = sum(c[0] for c in coordinates) / len(coordinates)
         lat = sum(c[1] for c in coordinates) / len(coordinates)
-        zone = max(1, min(60, int((lon + 180.0) // 6.0) + 1))
-        hemisphere = "N" if lat >= 0 else "S"
+        utm = infer_utm_from_lonlat(lon, lat, datum="WGS84")
+        zone = utm.zone
+        hemisphere = utm.hemisphere
+        projected_epsg = utm.epsg
     else:
         lon = lat = None
         zone = None
         hemisphere = None
+        projected_epsg = None
 
     return KmlContext(
         path=str(p),
@@ -77,5 +81,9 @@ def read_kml_context(path: str | Path) -> KmlContext:
         centroid_lat=lat,
         utm_zone=zone,
         hemisphere=hemisphere,
+        datum="WGS84",
+        geographic_epsg=4326,
+        projected_epsg=projected_epsg,
+        crs_source="kml_wgs84_inferred_utm",
         station_values_m=station_values,
     )
