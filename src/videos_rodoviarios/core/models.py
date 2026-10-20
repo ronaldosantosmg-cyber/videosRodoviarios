@@ -15,6 +15,9 @@ class GeometryEntity:
     points: list[Point]
     closed: bool = False
     source: str = "dxf"
+    visible: bool = True
+    layer_off: bool = False
+    layer_frozen: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -27,6 +30,9 @@ class TextEntity:
     text: str
     x: float
     y: float
+    visible: bool = True
+    layer_off: bool = False
+    layer_frozen: bool = False
 
 
 @dataclass(slots=True)
