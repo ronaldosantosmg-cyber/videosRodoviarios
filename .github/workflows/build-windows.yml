@@ -57,7 +57,7 @@ jobs:
         run: |
           pyinstaller --noconfirm --clean --onedir --windowed `
             --name VideosRodoviarios `
-            --contents-directory apoio/runtime `
+            --contents-directory runtime `
             --manifest build/windows_portable.manifest `
             --collect-all ezdxf `
             --collect-all shapely `
@@ -75,9 +75,11 @@ jobs:
           New-Item -ItemType Directory -Force -Path pacote/banco_dados | Out-Null
           New-Item -ItemType Directory -Force -Path pacote/apoio/gdal | Out-Null
           New-Item -ItemType Directory -Force -Path pacote/apoio/ecw/plugins | Out-Null
+          New-Item -ItemType Directory -Force -Path pacote/apoio/cache_tiles | Out-Null
+          New-Item -ItemType Directory -Force -Path pacote/apoio/runtime | Out-Null
 
           Copy-Item dist/VideosRodoviarios/VideosRodoviarios.exe pacote/VideosRodoviarios.exe
-          Copy-Item dist/VideosRodoviarios/apoio/runtime pacote/apoio/runtime -Recurse
+          Copy-Item dist/VideosRodoviarios/runtime/* pacote/apoio/runtime -Recurse -Force
           Copy-Item GUIA_RAPIDO.txt pacote/apoio/GUIA_RAPIDO.txt
           Copy-Item README.md pacote/apoio/README.md
           Copy-Item SEM_ADMIN.txt pacote/apoio/SEM_ADMIN.txt
@@ -88,6 +90,7 @@ jobs:
           Set-Content -Path pacote/banco_dados/LEIA-ME.txt -Value "Configuracoes e bancos de dados locais do aplicativo."
           Set-Content -Path pacote/apoio/gdal/LEIA-ME.txt -Value "Runtime GDAL portatil. Coloque aqui gdal_translate, gdalinfo, DLLs e dados do GDAL sem instalar no Windows."
           Set-Content -Path pacote/apoio/ecw/LEIA-ME.txt -Value "Componentes ECW Desktop Read-Only redistribuiveis/autorizados. O aplicativo detecta o driver automaticamente."
+          Set-Content -Path pacote/apoio/cache_tiles/LEIA-ME.txt -Value "Cache local dos mosaicos XYZ/QMS. Pode ser apagado a qualquer momento; o aplicativo recria quando necessario."
           Set-Content -Path pacote/apoio/ESTRUTURA.txt -Value "Execução portátil: nenhum instalador, nenhuma elevação UAC e nenhum componente gravado em Program Files, Windows, System32 ou Registro. O executável fica na raiz e o runtime fica em apoio/runtime."
 
           @"
@@ -96,6 +99,7 @@ jobs:
           Revisão: ${{ steps.revision.outputs.revision }}
           Nome: ${{ steps.revision.outputs.revision_name }}
           Perfil: Windows portátil / asInvoker / sem instalação / sem administrador
+          Fundo: motor XYZ compatível com provedores QuickMapServices / mosaico contínuo sem linhas entre tiles
           Commit: $env:GITHUB_SHA
           Build UTC: $(Get-Date -AsUTC -Format 'yyyy-MM-ddTHH:mm:ssZ')
           "@ | Set-Content -Path pacote/REVISAO.txt
