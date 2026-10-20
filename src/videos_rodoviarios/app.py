@@ -15,13 +15,16 @@ from videos_rodoviarios.export.geojson_export import write_geojson
 from videos_rodoviarios.export.json_export import write_analysis_json
 from videos_rodoviarios.export.svg_preview import write_svg_preview
 from videos_rodoviarios.geometry.stationing import format_station
+from videos_rodoviarios.io.local_imagery import prepare_local_imagery
+from videos_rodoviarios.paths import SAVED_DIR, ensure_app_dirs, settings_path
 from videos_rodoviarios.render.video_renderer import render_video
 
 APP_NAME = "Vídeos Rodoviários"
-SETTINGS = Path.home() / ".videos_rodoviarios.json"
+SETTINGS = settings_path()
 
 
 def load_settings() -> dict:
+    ensure_app_dirs()
     try:
         return json.loads(SETTINGS.read_text(encoding="utf-8"))
     except Exception:
@@ -29,6 +32,7 @@ def load_settings() -> dict:
 
 
 def save_settings(data: dict) -> None:
+    ensure_app_dirs()
     try:
         SETTINGS.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     except Exception:
@@ -46,13 +50,18 @@ def open_path(path: Path) -> None:
 
 class RoadVideoApp(tk.Tk):
     def __init__(self) -> None:
+        ensure_app_dirs()
         super().__init__()
         self.title(APP_NAME)
-        self.geometry("1040x790")
-        self.minsize(920, 720)
+        self.geometry("1100x820")
+        self.minsize(940, 740)
         self.cfg = load_settings()
         self.analysis = None
         self.selected_centerline_handle: str | None = self.cfg.get("centerline_handle") or None
+        self.local_imagery_path: Path | None = None
+        saved_image = self.cfg.get("local_imagery", "")
+        if saved_image and Path(saved_image).exists():
+            self.local_imagery_path = Path(saved_image)
         self._style()
         self._build()
 
@@ -68,17 +77,19 @@ class RoadVideoApp(tk.Tk):
         root = ttk.Frame(self, padding=16)
         root.pack(fill="both", expand=True)
         ttk.Label(root, text="Vídeos Rodoviários", style="Title.TLabel").pack(anchor="w")
-        ttk.Label(root, text="DXF + KMZ/KML → análise → imagem aérea → MP4").pack(anchor="w", pady=(0, 12))
+        ttk.Label(root, text="DXF + KMZ/KML + imagem local → análise → visualização → MP4").pack(anchor="w", pady=(0, 12))
 
         files = ttk.LabelFrame(root, text="1 · Arquivos", padding=10)
         files.pack(fill="x")
         files.columnconfigure(1, weight=1)
         self.dxf = tk.StringVar(value=self.cfg.get("dxf", ""))
         self.kmz = tk.StringVar(value=self.cfg.get("kmz", ""))
-        self.out = tk.StringVar(value=self.cfg.get("output", ""))
+        self.local_image = tk.StringVar(value=self.cfg.get("local_imagery", ""))
+        self.out = tk.StringVar(value=self.cfg.get("output", str(SAVED_DIR)))
         rows = [
             ("DXF", self.dxf, self._pick_dxf, "Selecionar DXF"),
             ("KMZ/KML", self.kmz, self._pick_kmz, "Selecionar KMZ/KML"),
+            ("Imagem local", self.local_image, self._pick_local_image, "Selecionar imagem"),
             ("Saída", self.out, self._pick_out, "Escolher pasta"),
         ]
         for row, (label, var, action, caption) in enumerate(rows):
@@ -122,7 +133,12 @@ class RoadVideoApp(tk.Tk):
         metrics = ttk.Frame(root)
         metrics.pack(fill="x", pady=10)
         self.metrics = {key: tk.StringVar(value="—") for key in ("ext", "cut", "fill", "mark")}
-        for col, (title, key) in enumerate([("Extensão", "ext"), ("Corte", "cut"), ("Aterro", "fill"), ("Sinalização", "mark")]):
+        for col, (title, key) in enumerate([
+            ("Extensão", "ext"),
+            ("Corte", "cut"),
+            ("Aterro", "fill"),
+            ("Sinalização", "mark"),
+        ]):
             metrics.columnconfigure(col, weight=1)
             card = ttk.LabelFrame(metrics, text=title, padding=8)
             card.grid(row=0, column=col, sticky="nsew", padx=3)
@@ -155,13 +171,39 @@ class RoadVideoApp(tk.Tk):
         if path:
             self.dxf.set(path)
             self.set_selected_centerline(None)
-            if not self.out.get():
-                self.out.set(str(Path(path).parent / "resultado_video_rodoviario"))
 
     def _pick_kmz(self) -> None:
         path = filedialog.askopenfilename(filetypes=[("KMZ/KML", "*.kmz *.kml")])
         if path:
             self.kmz.set(path)
+
+    def _pick_local_image(self) -> None:
+        path = filedialog.askopenfilename(
+            title="Selecione a imagem georreferenciada",
+            filetypes=[
+                ("Imagens georreferenciadas", "*.ecw *.tif *.tiff *.png *.jpg *.jpeg"),
+                ("ECW", "*.ecw"),
+                ("GeoTIFF", "*.tif *.tiff"),
+                ("Imagens", "*.png *.jpg *.jpeg"),
+            ],
+        )
+        if not path:
+            return
+        self.status.set("Preparando imagem local...")
+        try:
+            cache_dir = SAVED_DIR / "cache_imagens"
+            result = prepare_local_imagery(path, cache_dir)
+            self.local_imagery_path = result.usable_path
+            self.local_image.set(str(result.usable_path))
+            if result.converted:
+                self.status.set(f"ECW convertido para GeoTIFF: {result.usable_path.name}")
+            else:
+                self.status.set(f"Imagem local preparada: {result.usable_path.name}")
+            self.persist()
+        except Exception as exc:
+            self.local_imagery_path = None
+            self.status.set("Falha ao preparar imagem local.")
+            messagebox.showerror(APP_NAME, str(exc))
 
     def _pick_out(self) -> None:
         path = filedialog.askdirectory()
@@ -171,7 +213,7 @@ class RoadVideoApp(tk.Tk):
     def validate_inputs(self):
         dxf = Path(self.dxf.get().strip())
         kmz = Path(self.kmz.get().strip()) if self.kmz.get().strip() else None
-        out = Path(self.out.get().strip() or (dxf.parent / "resultado_video_rodoviario"))
+        out = Path(self.out.get().strip() or SAVED_DIR)
         if not dxf.exists() or dxf.suffix.lower() != ".dxf":
             messagebox.showerror(APP_NAME, "Selecione um DXF válido.")
             return None
@@ -235,8 +277,13 @@ class RoadVideoApp(tk.Tk):
         lines = [f"Extensão: {analysis.extension_m / 1000:.3f} km"]
         if analysis.main_centerline_handle:
             lines.append(f"Eixo ativo: entidade {analysis.main_centerline_handle}")
+        if self.local_imagery_path:
+            lines.append(f"Imagem local: {self.local_imagery_path}")
         if analysis.km_start_m is not None:
-            lines.extend([f"Km inicial: {format_station(analysis.km_start_m)}", f"Km final: {format_station(analysis.km_end_m)}"])
+            lines.extend([
+                f"Km inicial: {format_station(analysis.km_start_m)}",
+                f"Km final: {format_station(analysis.km_end_m)}",
+            ])
         lines.extend(["", "OFFSETS DE CORTE / ATERRO"])
         lines.extend(
             f"{item.category.upper():<6} {item.side:<12} mediana {item.median_m:7.2f} m | "
@@ -262,7 +309,12 @@ class RoadVideoApp(tk.Tk):
     def _video_worker(self, dxf: Path, kmz: Path | None, out: Path) -> None:
         try:
             analysis = self.analysis
-            if analysis is None or Path(analysis.dxf_path) != dxf or analysis.main_centerline_handle != self.selected_centerline_handle and self.selected_centerline_handle:
+            selected_changed = bool(
+                self.selected_centerline_handle
+                and analysis is not None
+                and analysis.main_centerline_handle != self.selected_centerline_handle
+            )
+            if analysis is None or Path(analysis.dxf_path) != dxf or selected_changed:
                 analysis = self._analyze(dxf, kmz, out)
             width, height = (int(value) for value in self.res.get().split("x"))
             target = out / "video_rodoviario.mp4"
@@ -302,7 +354,7 @@ class RoadVideoApp(tk.Tk):
         messagebox.showerror(APP_NAME, message)
 
     def output_dir(self) -> Path:
-        return Path(self.out.get().strip())
+        return Path(self.out.get().strip() or SAVED_DIR)
 
     def open_preview(self) -> None:
         path = self.output_dir() / "preview.svg"
@@ -325,6 +377,7 @@ class RoadVideoApp(tk.Tk):
         save_settings({
             "dxf": self.dxf.get(),
             "kmz": self.kmz.get(),
+            "local_imagery": self.local_image.get(),
             "output": self.out.get(),
             "resolution": self.res.get(),
             "fps": self.fps.get(),
