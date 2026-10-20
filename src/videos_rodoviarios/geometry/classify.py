@@ -32,11 +32,13 @@ RULES: list[tuple[str, tuple[str, ...]]] = [
         ),
     ),
     ("barrier", ("CANTEIRO", "NEWJERSEY", "NEW_JERSEY", "BARREIRA", "DEFENSA", "SEPARADOR_FISICO", "MEDIANA")),
+    ("grass", ("GRAMA", "GRAMADO", "PAISAGISMO", "AREA_VERDE", "GREEN")),
+    ("crossing", ("RETORNO", "RETORNO_X", "U_TURN", "UTURN", "INTERSECAO", "ACESSO", "ROTATORIA")),
+    ("grade_separated", ("OAE", "PONTE", "VIADUTO", "VIAD", "TUNEL", "PASSARELA", "DESNIVEL")),
     ("center", ("EIXO", "CENTERLINE", "CENTER", "ALIGNMENT", "ALINHAMENTO", "HZ_EIXO")),
     ("edge", ("BORDO", "EDGE", "PAVIM", "PLATAFORMA", "ACOSTAMENTO", "PAVEXIST", "PAVPROJ")),
     ("water", ("HIDRO", "RIO", "CORREGO", "RIBEIRAO", "DRENAGEM_NATURAL", "WATER")),
     ("rail", ("FERROVIA", "FERROV", "RAIL", "TRILHO", "EFVM")),
-    ("oae", ("OAE", "PONTE", "VIADUTO", "VIAD", "TUNEL", "PASSARELA")),
 ]
 
 
