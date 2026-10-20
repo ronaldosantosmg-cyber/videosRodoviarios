@@ -1,0 +1,5 @@
+Vídeos Rodoviários — execução portátil sem instalação
+
+Este pacote deve operar em modo de usuário comum (asInvoker), sem solicitar elevação/UAC, sem gravar em Program Files, Windows, System32 ou no Registro do Windows. Todos os arquivos de trabalho e configurações ficam nas pastas locais do pacote ou em uma pasta escolhida pelo usuário.
+
+Observação: políticas corporativas de segurança (AppLocker, WDAC, antivírus/EDR ou bloqueio de executáveis não assinados) podem impedir a execução mesmo de um aplicativo portátil. Essas políticas não devem ser contornadas pelo aplicativo.
