@@ -32,8 +32,7 @@ def _find_executable(name: str) -> Path | None:
 
 
 def _find_gdal_translate() -> Path | None:
-    names = ["gdal_translate.exe", "gdal_translate"]
-    for name in names:
+    for name in ("gdal_translate.exe", "gdal_translate"):
         exe = _find_executable(name)
         if exe:
             return exe
@@ -41,8 +40,7 @@ def _find_gdal_translate() -> Path | None:
 
 
 def _find_gdalinfo() -> Path | None:
-    names = ["gdalinfo.exe", "gdalinfo"]
-    for name in names:
+    for name in ("gdalinfo.exe", "gdalinfo"):
         exe = _find_executable(name)
         if exe:
             return exe
@@ -58,7 +56,11 @@ def portable_gdal_env() -> dict[str, str]:
 
     gdal_root = SUPPORT_DIR / "gdal"
     data_candidates = [gdal_root / "share" / "gdal", gdal_root / "gdal-data"]
-    plugin_candidates = [gdal_root / "lib" / "gdalplugins", gdal_root / "plugins", SUPPORT_DIR / "ecw" / "plugins"]
+    plugin_candidates = [
+        gdal_root / "lib" / "gdalplugins",
+        gdal_root / "plugins",
+        SUPPORT_DIR / "ecw" / "plugins",
+    ]
     for candidate in data_candidates:
         if candidate.exists():
             env["GDAL_DATA"] = str(candidate)
@@ -89,20 +91,31 @@ def ecw_driver_available() -> bool:
     return "ECW" in text.upper()
 
 
-def convert_ecw_to_geotiff(source: str | Path, output: str | Path) -> EcwConversionResult:
+def convert_ecw_to_geotiff(
+    source: str | Path,
+    output: str | Path | None = None,
+    *,
+    gdal_executable: str | Path | None = None,
+) -> EcwConversionResult:
+    """Converte ECW para GeoTIFF sem instalação.
+
+    ``gdal_executable`` é aceito para compatibilidade com testes e integrações
+    legadas. Quando omitido, o runtime portátil em ``apoio/gdal`` é usado.
+    """
     src = Path(source)
-    dst = Path(output)
     if not src.exists():
         raise FileNotFoundError(src)
     if src.suffix.lower() != ".ecw":
         raise ValueError("O arquivo informado não possui extensão .ecw.")
 
-    translate = _find_gdal_translate()
+    dst = Path(output) if output is not None else src.with_suffix(".tif")
+    translate = Path(gdal_executable) if gdal_executable else _find_gdal_translate()
     if translate is None:
         raise RuntimeError(
             "Runtime GDAL portátil não encontrado. Coloque o runtime em apoio/gdal sem instalar no Windows."
         )
-    if not ecw_driver_available():
+
+    if gdal_executable is None and not ecw_driver_available():
         raise RuntimeError(
             "O GDAL portátil foi encontrado, mas o driver ECW não está disponível. "
             "Adicione em apoio/ecw uma distribuição Desktop Read-Only autorizada que forneça o driver ECW."
