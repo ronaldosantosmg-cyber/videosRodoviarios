@@ -78,6 +78,31 @@ class EditableAlignment:
         )
         return curve
 
+    def pi_from_tangent_pair(self, first_segment_index: int, second_segment_index: int) -> int:
+        """Resolve the PI shared by two consecutive tangent segments.
+
+        Segment i connects original_points[i] -> original_points[i + 1].
+        The valid curve workflow is therefore segment i followed by segment i + 1,
+        whose shared PI is original_points[i + 1].
+        """
+        if second_segment_index != first_segment_index + 1:
+            raise ValueError("Selecione duas tangentes consecutivas que compartilhem o mesmo PI.")
+        if first_segment_index < 0 or second_segment_index >= len(self.original_points) - 1:
+            raise ValueError("As tangentes selecionadas estão fora do alinhamento.")
+        return first_segment_index + 1
+
+    def apply_radius_from_tangents(
+        self,
+        first_segment_index: int,
+        second_segment_index: int,
+        radius_m: float,
+        *,
+        samples: int = 24,
+    ) -> CurveGeometry:
+        """Create a circular curve by selecting the incoming and outgoing tangents."""
+        pi_index = self.pi_from_tangent_pair(first_segment_index, second_segment_index)
+        return self.apply_radius(pi_index, radius_m, samples=samples)
+
     def update_radius_from_drag(self, pi_index: int, handle_point: Point, *, samples: int = 24) -> CurveGeometry:
         if pi_index <= 0 or pi_index >= len(self.original_points) - 1:
             raise ValueError("Só é possível ajustar um PI interno.")
@@ -88,10 +113,15 @@ class EditableAlignment:
         return self.apply_radius(pi_index, radius, samples=samples)
 
     def remove_radius(self, pi_index: int) -> Point:
+        """Remove the curve and restore the exact original dry PI."""
         if pi_index <= 0 or pi_index >= len(self.original_points) - 1:
             raise ValueError("Só é possível restaurar um PI interno.")
         self.edits.pop(pi_index, None)
         return self.original_points[pi_index]
+
+    def remove_radius_from_tangents(self, first_segment_index: int, second_segment_index: int) -> Point:
+        pi_index = self.pi_from_tangent_pair(first_segment_index, second_segment_index)
+        return self.remove_radius(pi_index)
 
     def rendered_points(self) -> list[Point]:
         result: list[Point] = [self.original_points[0]]
