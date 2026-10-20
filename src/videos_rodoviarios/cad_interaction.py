@@ -3,10 +3,10 @@ from __future__ import annotations
 import tkinter as tk
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from tkinter import ttk
 
 
 CommandCallback = Callable[[str], None]
+CancelCallback = Callable[[], None]
 
 
 @dataclass
@@ -15,15 +15,26 @@ class CommandState:
     prompt: str = "Comando:"
     history: list[str] = field(default_factory=list)
     on_confirm: CommandCallback | None = None
-    on_cancel: Callable[[], None] | None = None
+    on_cancel: CancelCallback | None = None
+
+    @property
+    def active(self) -> bool:
+        return self.active_command is not None
 
 
 class CadInteractionController:
-    """Interação estilo CAD: linha de comando ativa, Enter confirma e Esc cancela."""
+    """Controlador único de interação CAD.
+
+    Toda ferramenta deve chamar ``begin`` ao iniciar uma operação. O Enter confirma
+    exatamente a operação ativa e o Esc cancela exatamente a operação ativa.
+    O estado é limpo antes de executar callbacks, permitindo que o callback abra a
+    próxima etapa com outro ``begin`` sem herdar estado antigo.
+    """
 
     def __init__(self, app: tk.Tk) -> None:
         self.app = app
         self.state = CommandState()
+        self.last_command: str | None = None
         self._build_console()
         self._build_context_menu()
         self._bind_global_keys()
@@ -87,6 +98,7 @@ class CadInteractionController:
 
     def _bind_global_keys(self) -> None:
         self.app.bind_all("<Return>", self._on_global_enter, add="+")
+        self.app.bind_all("<KP_Enter>", self._on_global_enter, add="+")
         self.app.bind_all("<Escape>", self._on_global_escape, add="+")
         self.app.bind_all("<Button-3>", self._on_right_click, add="+")
         self.app.bind_all("<Control-l>", lambda _e: self.focus_console(), add="+")
@@ -107,45 +119,68 @@ class CadInteractionController:
         prompt: str,
         *,
         on_confirm: CommandCallback | None = None,
-        on_cancel: Callable[[], None] | None = None,
+        on_cancel: CancelCallback | None = None,
         default: str = "",
+        focus: bool = True,
     ) -> None:
+        if self.state.active:
+            self.write(f"{self.state.active_command}: substituído por {command}.")
         self.state.active_command = command
         self.state.prompt = prompt
         self.state.on_confirm = on_confirm
         self.state.on_cancel = on_cancel
+        self.last_command = command
         self.prompt_var.set(prompt)
         self.command_var.set(default)
         self.write(f"{command}: {prompt}")
-        self.focus_console(select_all=bool(default))
+        if focus:
+            self.focus_console(select_all=bool(default))
 
-    def confirm(self) -> None:
-        value = self.command_var.get().strip()
+    def update_prompt(self, prompt: str, default: str | None = None, *, focus: bool = False) -> None:
+        self.state.prompt = prompt
+        self.prompt_var.set(prompt)
+        if default is not None:
+            self.command_var.set(default)
+        if focus:
+            self.focus_console(select_all=default is not None)
+
+    def _clear_active_state(self) -> tuple[str | None, CommandCallback | None, CancelCallback | None]:
         command = self.state.active_command
-        callback = self.state.on_confirm
-        if command:
-            shown = value or "<Enter>"
-            self.write(f"{command} > {shown}")
-        elif value:
-            self.write(f"Comando > {value}")
-
-        self.command_var.set("")
-        if callback is not None:
-            callback(value)
-        else:
-            self._execute_builtin(value)
-
-    def cancel(self) -> None:
-        command = self.state.active_command
-        callback = self.state.on_cancel
-        if command:
-            self.write(f"{command}: *Cancelado*")
+        confirm_cb = self.state.on_confirm
+        cancel_cb = self.state.on_cancel
         self.state.active_command = None
         self.state.on_confirm = None
         self.state.on_cancel = None
         self.state.prompt = "Comando:"
         self.prompt_var.set("Comando:")
+        return command, confirm_cb, cancel_cb
+
+    def confirm(self) -> None:
+        value = self.command_var.get().strip()
+        if not self.state.active:
+            self.command_var.set("")
+            if value:
+                self.write(f"Comando > {value}")
+                self._execute_builtin(value)
+            return
+
+        command, callback, _ = self._clear_active_state()
+        shown = value or "<Enter>"
+        self.write(f"{command} > {shown}")
         self.command_var.set("")
+
+        if callback is not None:
+            callback(value)
+
+    def cancel(self) -> None:
+        if not self.state.active:
+            self.command_var.set("")
+            self.prompt_var.set("Comando:")
+            return
+
+        command, _, callback = self._clear_active_state()
+        self.command_var.set("")
+        self.write(f"{command}: *Cancelado*")
         if callback is not None:
             callback()
         try:
@@ -153,15 +188,22 @@ class CadInteractionController:
         except tk.TclError:
             pass
 
+    def complete(self, message: str | None = None) -> None:
+        command, _, _ = self._clear_active_state()
+        self.command_var.set("")
+        if message:
+            self.write(message)
+        elif command:
+            self.write(f"{command}: concluído.")
+
     def repeat_last(self) -> None:
-        if self.state.active_command:
+        if self.state.active:
             self.focus_console()
             return
-        for item in reversed(self.state.history):
-            if " > " in item:
-                self.command_var.set(item.split(" > ", 1)[1])
-                self.focus_console(select_all=True)
-                return
+        if self.last_command:
+            self.command_var.set(self.last_command)
+            self.focus_console(select_all=True)
+            return
         self.focus_console()
 
     def focus_console(self, select_all: bool = False) -> None:
@@ -199,7 +241,7 @@ class CadInteractionController:
     def _on_global_enter(self, event: tk.Event) -> str | None:
         if event.widget is self.entry:
             return None
-        if self.state.active_command:
+        if self.state.active:
             self.confirm()
             return "break"
         return None
@@ -216,6 +258,9 @@ class CadInteractionController:
 
 
 def install_cad_interactions(app: tk.Tk) -> CadInteractionController:
+    existing = getattr(app, "cad", None)
+    if isinstance(existing, CadInteractionController):
+        return existing
     controller = CadInteractionController(app)
     setattr(app, "cad", controller)
     return controller
