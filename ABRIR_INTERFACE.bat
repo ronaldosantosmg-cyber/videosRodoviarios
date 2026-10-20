@@ -34,8 +34,8 @@ echo Verificando dependencias...
 "%VPY%" -m pip install -q --disable-pip-version-check -e .
 if errorlevel 1 goto :erro
 
-echo Abrindo interface...
-start "Videos Rodoviarios" "%VPY%" -m videos_rodoviarios.ui
+echo Abrindo interface principal...
+start "Videos Rodoviarios" "%VPY%" -m videos_rodoviarios.app_final
 exit /b 0
 
 :erro
