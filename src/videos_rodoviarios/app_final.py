@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from videos_rodoviarios import app
-from videos_rodoviarios.render.final_renderer import render_video
+from videos_rodoviarios.render.unreal_renderer import render_video
 
 
 def main() -> None:
