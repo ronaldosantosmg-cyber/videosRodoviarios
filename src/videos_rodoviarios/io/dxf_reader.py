@@ -38,6 +38,23 @@ def _flatten(entity, tolerance: float) -> list[tuple[float, float]]:
     return _sanitize([(float(p.x), float(p.y)) for p in pts])
 
 
+def _layer_state(doc, layer_name: str) -> tuple[bool, bool, bool]:
+    try:
+        layer = doc.layers.get(layer_name)
+    except Exception:
+        return True, False, False
+
+    try:
+        is_off = bool(layer.is_off())
+    except Exception:
+        is_off = False
+    try:
+        is_frozen = bool(layer.is_frozen())
+    except Exception:
+        is_frozen = False
+    return not (is_off or is_frozen), is_off, is_frozen
+
+
 def read_dxf(path: str | Path, curve_tolerance_m: float = 0.10) -> tuple[list[GeometryEntity], list[TextEntity], list[str]]:
     path = Path(path)
     if not path.exists():
@@ -56,6 +73,7 @@ def read_dxf(path: str | Path, curve_tolerance_m: float = 0.10) -> tuple[list[Ge
         etype = entity.dxftype()
         layer = str(getattr(entity.dxf, "layer", "0"))
         handle = str(getattr(entity.dxf, "handle", ""))
+        visible, layer_off, layer_frozen = _layer_state(doc, layer)
         if etype in SUPPORTED_CURVES:
             try:
                 points = _flatten(entity, curve_tolerance_m)
@@ -69,6 +87,9 @@ def read_dxf(path: str | Path, curve_tolerance_m: float = 0.10) -> tuple[list[Ge
                             category=classify_layer(layer),
                             points=points,
                             closed=closed,
+                            visible=visible,
+                            layer_off=layer_off,
+                            layer_frozen=layer_frozen,
                         )
                     )
                 else:
@@ -85,7 +106,18 @@ def read_dxf(path: str | Path, curve_tolerance_m: float = 0.10) -> tuple[list[Ge
                     ins = entity.dxf.insert
                 x, y = float(ins.x), float(ins.y)
                 if isfinite(x) and isfinite(y):
-                    texts.append(TextEntity(handle=handle, layer=layer, text=str(value), x=x, y=y))
+                    texts.append(
+                        TextEntity(
+                            handle=handle,
+                            layer=layer,
+                            text=str(value),
+                            x=x,
+                            y=y,
+                            visible=visible,
+                            layer_off=layer_off,
+                            layer_frozen=layer_frozen,
+                        )
+                    )
             except Exception as exc:
                 warnings.append(f"Texto {handle or '?'} ignorado: {exc}")
 
