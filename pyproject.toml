@@ -33,7 +33,6 @@ testpaths = ["tests"]
 [tool.ruff]
 line-length = 120
 target-version = "py311"
-exclude = ["src/videos_rodoviarios/ui_complete.py"]
 
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F"]
