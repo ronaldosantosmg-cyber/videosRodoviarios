@@ -76,6 +76,10 @@ class KmlContext:
     centroid_lat: float | None = None
     utm_zone: int | None = None
     hemisphere: str | None = None
+    datum: str = "WGS84"
+    geographic_epsg: int = 4326
+    projected_epsg: int | None = None
+    crs_source: str = "kml_wgs84"
     station_values_m: list[float] = field(default_factory=list)
 
 
