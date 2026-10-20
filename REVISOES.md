@@ -2,6 +2,26 @@
 
 Este arquivo registra entregas fechadas e utilizáveis do aplicativo. Cada revisão deve manter um ponto claro de retorno no histórico do Git.
 
+## Regra obrigatória de aceite
+
+Nenhuma revisão pode ser considerada fechada, marcada como release final ou apresentada como concluída se a avaliação global do aplicativo ficar abaixo de **8,0/10**.
+
+Se uma alteração causar regressão que leve a avaliação para menos de 8,0, a revisão permanece com status **EM CORREÇÃO** até que os problemas sejam resolvidos e a nota volte para 8,0 ou mais.
+
+A avaliação deve considerar, no mínimo:
+- funcionamento do fluxo principal;
+- usabilidade;
+- estabilidade e ausência de regressões conhecidas;
+- qualidade visual da prévia e do vídeo;
+- desempenho do processamento/renderização;
+- integridade de seleção, alinhamento, curvas, layers, CRS e tráfego;
+- geração e abertura do pacote Windows quando aplicável.
+
+Meta de qualidade das revisões:
+- **mínimo obrigatório para fechar:** 8,0/10;
+- **meta normal de entrega:** 9,0/10 ou superior;
+- **meta final do produto:** 9,5/10.
+
 ## REV01 — Fluxo CAD e base integrada
 
 Status: em consolidação.
@@ -19,7 +39,8 @@ Inclui a base já incorporada para:
 Critério para fechar REV01:
 - comandos acima acessíveis pelo fluxo principal da interface;
 - prévia respeitando visibilidade e congelamento de saída;
-- testes básicos de seleção, curva, CRS, layers e tráfego sem regressão conhecida.
+- testes básicos de seleção, curva, CRS, layers e tráfego sem regressão conhecida;
+- avaliação global confirmada em **8,0/10 ou superior**.
 
 ## Próximas revisões
 
