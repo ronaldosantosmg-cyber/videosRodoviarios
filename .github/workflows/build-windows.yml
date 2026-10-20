@@ -31,7 +31,7 @@ jobs:
           "version=$version" >> $env:GITHUB_OUTPUT
           "revision=$revision" >> $env:GITHUB_OUTPUT
           "revision_name=$revisionName" >> $env:GITHUB_OUTPUT
-          "package=VideosRodoviarios-$revision-Windows" >> $env:GITHUB_OUTPUT
+          "package=VideosRodoviarios-$revision-Windows-SemAdmin" >> $env:GITHUB_OUTPUT
 
       - name: Instalar dependências
         shell: pwsh
@@ -52,11 +52,13 @@ jobs:
         run: |
           python -c "import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())"
 
-      - name: Gerar executável Windows
+      - name: Gerar executável Windows portátil sem elevação
         shell: pwsh
         run: |
-          pyinstaller --noconfirm --clean --onefile --windowed `
+          pyinstaller --noconfirm --clean --onedir --windowed `
             --name VideosRodoviarios `
+            --contents-directory apoio/runtime `
+            --manifest build/windows_portable.manifest `
             --collect-all ezdxf `
             --collect-all shapely `
             --collect-all pyproj `
@@ -73,26 +75,42 @@ jobs:
           New-Item -ItemType Directory -Force -Path pacote/banco_dados | Out-Null
           New-Item -ItemType Directory -Force -Path pacote/apoio/gdal | Out-Null
           New-Item -ItemType Directory -Force -Path pacote/apoio/ecw/plugins | Out-Null
-          Copy-Item dist/VideosRodoviarios.exe pacote/VideosRodoviarios.exe
+
+          Copy-Item dist/VideosRodoviarios/VideosRodoviarios.exe pacote/VideosRodoviarios.exe
+          Copy-Item dist/VideosRodoviarios/apoio/runtime pacote/apoio/runtime -Recurse
           Copy-Item GUIA_RAPIDO.txt pacote/apoio/GUIA_RAPIDO.txt
           Copy-Item README.md pacote/apoio/README.md
+          Copy-Item SEM_ADMIN.txt pacote/apoio/SEM_ADMIN.txt
           if (Test-Path REVISOES.md) { Copy-Item REVISOES.md pacote/apoio/REVISOES.md }
+
           Set-Content -Path pacote/texturas/LEIA-ME.txt -Value "Texturas e materiais visuais do projeto."
           Set-Content -Path pacote/projetos_salvos/LEIA-ME.txt -Value "Projetos, analises, previas, imagens convertidas e videos gerados pelo aplicativo."
           Set-Content -Path pacote/banco_dados/LEIA-ME.txt -Value "Configuracoes e bancos de dados locais do aplicativo."
           Set-Content -Path pacote/apoio/gdal/LEIA-ME.txt -Value "Runtime GDAL portatil. Coloque aqui gdal_translate, gdalinfo, DLLs e dados do GDAL sem instalar no Windows."
           Set-Content -Path pacote/apoio/ecw/LEIA-ME.txt -Value "Componentes ECW Desktop Read-Only redistribuiveis/autorizados. O aplicativo detecta o driver automaticamente."
-          Set-Content -Path pacote/apoio/ESTRUTURA.txt -Value "A raiz do aplicativo deve permanecer limpa: executavel na raiz; arquivos auxiliares ficam nestas subpastas."
+          Set-Content -Path pacote/apoio/ESTRUTURA.txt -Value "Execução portátil: nenhum instalador, nenhuma elevação UAC e nenhum componente gravado em Program Files, Windows, System32 ou Registro. O executável fica na raiz e o runtime fica em apoio/runtime."
+
           @"
           Produto: Vídeos Rodoviários
           Versão: ${{ steps.revision.outputs.version }}
           Revisão: ${{ steps.revision.outputs.revision }}
           Nome: ${{ steps.revision.outputs.revision_name }}
+          Perfil: Windows portátil / asInvoker / sem instalação / sem administrador
           Commit: $env:GITHUB_SHA
           Build UTC: $(Get-Date -AsUTC -Format 'yyyy-MM-ddTHH:mm:ssZ')
           "@ | Set-Content -Path pacote/REVISAO.txt
+
           $zip = "${{ steps.revision.outputs.package }}.zip"
           Compress-Archive -Path pacote/* -DestinationPath $zip -Force
+
+      - name: Validar pacote sem instalação
+        shell: pwsh
+        run: |
+          if (-not (Test-Path pacote/VideosRodoviarios.exe)) { throw "Executável ausente" }
+          if (-not (Test-Path pacote/apoio/runtime)) { throw "Runtime portátil ausente" }
+          if (Test-Path pacote/setup.exe) { throw "Pacote não deve conter instalador" }
+          if (Test-Path pacote/*.msi) { throw "Pacote não deve conter MSI" }
+          Write-Host "Pacote validado: execução portátil em contexto do usuário atual."
 
       - name: Publicar pacote para download
         uses: actions/upload-artifact@v4
@@ -111,4 +129,4 @@ jobs:
           $zip = "${{ steps.revision.outputs.package }}.zip"
           gh release create "${{ steps.revision.outputs.revision }}" $zip `
             --title "${{ steps.revision.outputs.revision }} · ${{ steps.revision.outputs.revision_name }}" `
-            --notes "Pacote Windows portátil da revisão ${{ steps.revision.outputs.revision }}. Versão ${{ steps.revision.outputs.version }}."
+            --notes "Pacote Windows portátil, sem instalação e sem solicitação de elevação UAC, da revisão ${{ steps.revision.outputs.revision }}. Versão ${{ steps.revision.outputs.version }}."
