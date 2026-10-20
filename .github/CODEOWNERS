@@ -1,0 +1,8 @@
+# Todo o repositório exige revisão do proprietário quando a proteção de branch estiver habilitada.
+* @ronaldosantosmg-cyber
+
+# Áreas críticas
+/.github/ @ronaldosantosmg-cyber
+/src/videos_rodoviarios/render/ @ronaldosantosmg-cyber
+/src/videos_rodoviarios/io/ @ronaldosantosmg-cyber
+/src/videos_rodoviarios/core/ @ronaldosantosmg-cyber
