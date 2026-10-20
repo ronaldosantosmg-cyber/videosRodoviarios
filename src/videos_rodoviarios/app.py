@@ -52,6 +52,7 @@ class RoadVideoApp(tk.Tk):
         self.minsize(920, 720)
         self.cfg = load_settings()
         self.analysis = None
+        self.selected_centerline_handle: str | None = self.cfg.get("centerline_handle") or None
         self._style()
         self._build()
 
@@ -138,10 +139,22 @@ class RoadVideoApp(tk.Tk):
         ttk.Button(footer, text="Abrir pasta", command=self.open_folder).pack(side="left", padx=6)
         ttk.Button(footer, text="Abrir vídeo", command=self.open_video).pack(side="left")
 
+    def set_selected_centerline(self, handle: str | None) -> None:
+        self.selected_centerline_handle = handle or None
+        self.analysis = None
+        if self.selected_centerline_handle:
+            self.status.set(f"Eixo selecionado: {self.selected_centerline_handle}")
+            cad = getattr(self, "cad", None)
+            if cad is not None:
+                cad.write(f"Eixo ativo: entidade {self.selected_centerline_handle}.")
+        else:
+            self.status.set("Eixo automático.")
+
     def _pick_dxf(self) -> None:
         path = filedialog.askopenfilename(filetypes=[("DXF", "*.dxf")])
         if path:
             self.dxf.set(path)
+            self.set_selected_centerline(None)
             if not self.out.get():
                 self.out.set(str(Path(path).parent / "resultado_video_rodoviario"))
 
@@ -193,7 +206,12 @@ class RoadVideoApp(tk.Tk):
             self.after(0, lambda msg=message: self.failed(msg))
 
     def _analyze(self, dxf: Path, kmz: Path | None, out: Path):
-        analysis = analyze_road(dxf, kmz, curve_tolerance_m=0.10)
+        analysis = analyze_road(
+            dxf,
+            kmz,
+            curve_tolerance_m=0.10,
+            centerline_handle=self.selected_centerline_handle,
+        )
         out.mkdir(parents=True, exist_ok=True)
         write_analysis_json(analysis, out / "analise.json")
         write_geojson(analysis, out / "geometrias_dxf.geojson")
@@ -215,6 +233,8 @@ class RoadVideoApp(tk.Tk):
         self.metrics["fill"].set(str(analysis.category_counts.get("fill", 0)))
         self.metrics["mark"].set(str(analysis.category_counts.get("marking", 0)))
         lines = [f"Extensão: {analysis.extension_m / 1000:.3f} km"]
+        if analysis.main_centerline_handle:
+            lines.append(f"Eixo ativo: entidade {analysis.main_centerline_handle}")
         if analysis.km_start_m is not None:
             lines.extend([f"Km inicial: {format_station(analysis.km_start_m)}", f"Km final: {format_station(analysis.km_end_m)}"])
         lines.extend(["", "OFFSETS DE CORTE / ATERRO"])
@@ -242,7 +262,7 @@ class RoadVideoApp(tk.Tk):
     def _video_worker(self, dxf: Path, kmz: Path | None, out: Path) -> None:
         try:
             analysis = self.analysis
-            if analysis is None or Path(analysis.dxf_path) != dxf:
+            if analysis is None or Path(analysis.dxf_path) != dxf or analysis.main_centerline_handle != self.selected_centerline_handle and self.selected_centerline_handle:
                 analysis = self._analyze(dxf, kmz, out)
             width, height = (int(value) for value in self.res.get().split("x"))
             target = out / "video_rodoviario.mp4"
@@ -311,6 +331,7 @@ class RoadVideoApp(tk.Tk):
             "duration": self.duration.get(),
             "zoom": self.zoom.get(),
             "imagery": self.imagery.get(),
+            "centerline_handle": self.selected_centerline_handle,
         })
 
     def destroy(self) -> None:
