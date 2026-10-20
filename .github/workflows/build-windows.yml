@@ -53,13 +53,16 @@ jobs:
           New-Item -ItemType Directory -Force -Path pacote/texturas | Out-Null
           New-Item -ItemType Directory -Force -Path pacote/projetos_salvos | Out-Null
           New-Item -ItemType Directory -Force -Path pacote/banco_dados | Out-Null
-          New-Item -ItemType Directory -Force -Path pacote/apoio | Out-Null
+          New-Item -ItemType Directory -Force -Path pacote/apoio/gdal | Out-Null
+          New-Item -ItemType Directory -Force -Path pacote/apoio/ecw/plugins | Out-Null
           Copy-Item dist/VideosRodoviarios.exe pacote/VideosRodoviarios.exe
           Copy-Item GUIA_RAPIDO.txt pacote/apoio/GUIA_RAPIDO.txt
           Copy-Item README.md pacote/apoio/README.md
           Set-Content -Path pacote/texturas/LEIA-ME.txt -Value "Texturas e materiais visuais do projeto."
-          Set-Content -Path pacote/projetos_salvos/LEIA-ME.txt -Value "Projetos, analises, previas e videos gerados pelo aplicativo."
+          Set-Content -Path pacote/projetos_salvos/LEIA-ME.txt -Value "Projetos, analises, previas, imagens convertidas e videos gerados pelo aplicativo."
           Set-Content -Path pacote/banco_dados/LEIA-ME.txt -Value "Configuracoes e bancos de dados locais do aplicativo."
+          Set-Content -Path pacote/apoio/gdal/LEIA-ME.txt -Value "Runtime GDAL portatil. Coloque aqui gdal_translate, gdalinfo, DLLs e dados do GDAL sem instalar no Windows."
+          Set-Content -Path pacote/apoio/ecw/LEIA-ME.txt -Value "Componentes ECW Desktop Read-Only redistribuiveis/autorizados. O aplicativo detecta o driver automaticamente."
           Set-Content -Path pacote/apoio/ESTRUTURA.txt -Value "A raiz do aplicativo deve permanecer limpa: executavel na raiz; arquivos auxiliares ficam nestas subpastas."
           Compress-Archive -Path pacote/* -DestinationPath VideosRodoviarios-Windows.zip -Force
 
