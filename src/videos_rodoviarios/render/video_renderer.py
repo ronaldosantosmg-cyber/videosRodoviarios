@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import math
 import os
-import subprocess
 import urllib.request
 from io import BytesIO
 from pathlib import Path
@@ -20,8 +19,6 @@ from videos_rodoviarios.paths import SUPPORT_DIR
 Progress = Callable[[float, str], None]
 TILE_SIZE = 256
 
-# Catálogo leve inspirado no uso de provedores XYZ do QuickMapServices.
-# Não depende de QGIS e funciona no pacote Python/Windows portátil.
 QMS_PROVIDERS: dict[str, str] = {
     "esri_world_imagery": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     "osm_standard": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -128,12 +125,7 @@ def _background(
     zoom: int,
     imagery: bool,
 ) -> Image.Image:
-    """Gera fundo contínuo em um único mosaico, evitando linhas entre tiles.
-
-    Os tiles são colados em coordenadas inteiras dentro de um mosaico maior e
-    só depois o quadro é recortado. Assim não existem arredondamentos distintos
-    em cada tile, que eram a principal origem das linhas de emenda.
-    """
+    """Gera fundo contínuo em um único mosaico, evitando linhas entre tiles."""
     if not imagery:
         return Image.new("RGB", (width, height), (47, 54, 58))
 
@@ -157,9 +149,6 @@ def _background(
     origin_y = ty0 * TILE_SIZE
     offset_x = left - origin_x
     offset_y = top - origin_y
-
-    # O recorte único mantém a continuidade visual. Uma margem de 2 px evita
-    # qualquer artefato residual no limite do frame durante movimentos suaves.
     pad = 2
     crop_box = (
         max(0, int(math.floor(offset_x)) - pad),
@@ -168,7 +157,6 @@ def _background(
         min(mosaic.height, int(math.ceil(offset_y + height)) + pad),
     )
     cropped = mosaic.crop(crop_box)
-
     target_w = width + 2 * pad
     target_h = height + 2 * pad
     if cropped.size != (target_w, target_h):
@@ -310,66 +298,40 @@ def render_video(
         if getattr(entity, "visible_in_output", True)
     ]
 
-    total_frames = max(48, int(fps * duration_s))
+    total_frames = max(2, int(fps * duration_s))
     route_samples = _sample_line(center_world, total_frames)
     cache = TileCache()
     if progress and imagery:
         progress(0.01, f"Fundo QMS: {cache.provider}; cache local e mosaico contínuo ativos.")
 
-    ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
-    cmd = [
-        ffmpeg,
-        "-y",
-        "-f",
-        "rawvideo",
-        "-vcodec",
-        "rawvideo",
-        "-pix_fmt",
-        "rgb24",
-        "-s",
-        f"{width}x{height}",
-        "-r",
-        str(fps),
-        "-i",
-        "-",
-        "-an",
-        "-c:v",
-        "libx264",
-        "-preset",
-        "medium",
-        "-crf",
-        "19",
-        "-pix_fmt",
-        "yuv420p",
-        "-movflags",
-        "+faststart",
+    writer = imageio_ffmpeg.write_frames(
         str(output),
-    ]
-
-    proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
-    assert proc.stdin is not None
+        (width, height),
+        pix_fmt_in="rgb24",
+        pix_fmt_out="yuv420p",
+        fps=fps,
+        codec="libx264",
+        quality=7,
+        macro_block_size=2,
+        ffmpeg_log_level="error",
+        output_params=["-movflags", "+faststart"],
+    )
+    writer.send(None)
     try:
         for i, (cx, cy) in enumerate(route_samples):
             frame = _background(cache, cx, cy, width, height, zoom, imagery)
             _draw_scene(frame, analysis, (cx, cy), world_entities, center_world, i, total_frames)
-            proc.stdin.write(frame.tobytes())
+            writer.send(frame.tobytes())
             if progress and (i % max(1, fps // 2) == 0 or i == total_frames - 1):
                 progress(
                     (i + 1) / total_frames,
                     f"Renderizando vídeo: {int((i + 1) * 100 / total_frames)}%",
                 )
-        proc.stdin.close()
-        code = proc.wait()
-        if code != 0:
-            err = proc.stderr.read().decode("utf-8", errors="ignore") if proc.stderr else ""
-            raise RuntimeError(f"FFmpeg falhou ao gerar o MP4. {err[-1200:]}")
-    except Exception:
-        try:
-            proc.kill()
-        except Exception:
-            pass
-        raise
+    finally:
+        writer.close()
 
+    if not output.exists() or output.stat().st_size < 1000:
+        raise RuntimeError("O codificador não produziu um MP4 válido.")
     if progress:
         progress(1.0, f"Vídeo concluído: {output.name}")
     return output
