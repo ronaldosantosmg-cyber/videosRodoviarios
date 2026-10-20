@@ -18,6 +18,16 @@ class GeometryEntity:
     visible: bool = True
     layer_off: bool = False
     layer_frozen: bool = False
+    user_hidden: bool = False
+    output_frozen: bool = False
+
+    @property
+    def visible_in_viewport(self) -> bool:
+        return self.visible and not self.layer_off and not self.layer_frozen and not self.user_hidden
+
+    @property
+    def visible_in_output(self) -> bool:
+        return self.visible_in_viewport and not self.output_frozen
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -33,6 +43,16 @@ class TextEntity:
     visible: bool = True
     layer_off: bool = False
     layer_frozen: bool = False
+    user_hidden: bool = False
+    output_frozen: bool = False
+
+    @property
+    def visible_in_viewport(self) -> bool:
+        return self.visible and not self.layer_off and not self.layer_frozen and not self.user_hidden
+
+    @property
+    def visible_in_output(self) -> bool:
+        return self.visible_in_viewport and not self.output_frozen
 
 
 @dataclass(slots=True)
