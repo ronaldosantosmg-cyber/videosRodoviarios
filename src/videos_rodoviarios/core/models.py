@@ -5,7 +5,7 @@ from videos_rodoviarios.core.scene import SceneObject,TrafficFlow
 Point=tuple[float,float]
 @dataclass(slots=True)
 class GeometryEntity:
- handle:str;dxftype:str;layer:str;category:str;points:list[Point];closed:bool=False;source:str="dxf";visible:bool=True;layer_off:bool=False;layer_frozen:bool=False;user_hidden:bool=False;output_frozen:bool=False;video_hidden:bool=False
+ handle:str;dxftype:str;layer:str;category:str;points:list[Point];closed:bool=False;source:str="dxf";visible:bool=True;layer_off:bool=False;layer_frozen:bool=False;user_hidden:bool=False;output_frozen:bool=False;video_hidden:bool=False;color_rgb:tuple[int,int,int]|None=None;lineweight:int|None=None;linetype:str="CONTINUOUS";hatch_pattern:str|None=None;block_name:str|None=None
  @property
  def visible_in_viewport(self)->bool:return self.visible and not self.layer_off and not self.layer_frozen and not self.user_hidden
  @property
@@ -13,7 +13,7 @@ class GeometryEntity:
  def to_dict(self)->dict[str,Any]:return asdict(self)
 @dataclass(slots=True)
 class TextEntity:
- handle:str;layer:str;text:str;x:float;y:float;visible:bool=True;layer_off:bool=False;layer_frozen:bool=False;user_hidden:bool=False;output_frozen:bool=False;video_hidden:bool=False
+ handle:str;layer:str;text:str;x:float;y:float;visible:bool=True;layer_off:bool=False;layer_frozen:bool=False;user_hidden:bool=False;output_frozen:bool=False;video_hidden:bool=False;height:float=2.5;rotation:float=0.0;color_rgb:tuple[int,int,int]|None=None;style:str=""
  @property
  def visible_in_viewport(self)->bool:return self.visible and not self.layer_off and not self.layer_frozen and not self.user_hidden
  @property
