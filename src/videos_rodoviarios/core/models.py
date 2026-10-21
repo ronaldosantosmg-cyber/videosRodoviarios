@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from videos_rodoviarios.core.scene import SceneObject, TrafficFlow
+
 Point = tuple[float, float]
 
 
@@ -99,6 +101,8 @@ class RoadAnalysis:
     offsets: list[OffsetInfo]
     warnings: list[str] = field(default_factory=list)
     kml_context: KmlContext | None = None
+    scene_objects: list[SceneObject] = field(default_factory=list)
+    traffic_flows: list[TrafficFlow] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
