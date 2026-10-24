@@ -1,0 +1,6 @@
+RodoviaStudio_1_39_atualizacao.zip
+a3cfbbf7b71dd11b391fc170cde108d609642f778ec0aa91bab46fe30a082bba
+size_bytes=1454023
+version=1.39
+source=arquivo enviado no ChatGPT em 2026-10-23
+status=ZIP binario aguardando upload direto no GitHub; checksum registrado para validacao de integridade.
