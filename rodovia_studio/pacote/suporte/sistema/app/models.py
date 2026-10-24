@@ -219,9 +219,9 @@ class RouteAlignment(BaseModel):
     lane_change_sections: list[LaneChangeSection] = Field(default_factory=list,max_length=200)
     @model_validator(mode='after')
     def disable_micro_route(self):
-        # Rotas explícitas menores que 50 m permanecem no projeto para revisão, mas nunca recebem veículos.
+        # O limite de circulação pertence ao projeto; não altera a opção manual da rota.
         L=sum(math.hypot(b.x-a.x,b.y-a.y) for a,b in zip(self.points,self.points[1:]))
-        if not math.isfinite(L) or L < 50.0:self.enabled=False
+        if not math.isfinite(L) or L <= 0.0:self.enabled=False
         return self
 
 class AdvanceZone(BaseModel):

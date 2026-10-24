@@ -3,6 +3,7 @@ import math
 
 
 def flow_diagnostics(network):
+    minimum=float(getattr(network,'min_route',50))
     used={int(e) for p in network.paths for e in p.get('edges',[])}
     short=set(getattr(network,'short_ignored',set()))
     by_base={}
@@ -16,7 +17,7 @@ def flow_diagnostics(network):
         active=[i for i,e in edges if not e.get('disabled') and i not in short]
         if not finite or length<=0:status,message='problem','Geometria inválida ou de comprimento nulo.'
         elif raw.get('disabled'):status,message='problem','Fluxo desativado; veículos não circulam neste trecho.'
-        elif length<50:status,message='adjustment','Trecho menor que 50 m; ajuste a rota antes de habilitar veículos.'
+        elif length<minimum:status,message='adjustment',f'Fluxo abaixo de {minimum:g} m; circulação desligada pelo limite do projeto.'
         elif any(i in getattr(network,'rejected_edge_ids',set()) for i,_ in edges):status,message='problem','Trajetória recusada pela análise de frente/traseira, esterçamento ou continuidade.'
         elif not active:status,message='problem','Sem faixa habilitada para circulação.'
         elif not any(i in used for i in active):status,message='adjustment','Trecho sem itinerário utilizável; revise as ligações e o sentido.'

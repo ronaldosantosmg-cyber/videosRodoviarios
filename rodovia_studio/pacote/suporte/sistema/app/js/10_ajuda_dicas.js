@@ -19,7 +19,7 @@ const HELP={
  poiKm:'Km oficial da intervenção (usado quando o modo é Manual).',poiX:'Coordenada X (Este) no CRS do projeto. Use a ferramenta Intervenção para preencher.',poiY:'Coordenada Y (Norte) no CRS do projeto.',
  encoder:'Automática: testa a NVIDIA (NVENC) e usa a CPU se falhar. Somente CPU: mais compatível.',
  cpu_preset:'veryfast: mais rápido; fast: original, um pouco mais eficiente em tamanho.',
- width:'Resolução do vídeo. 720p é bom para testes; 1440p para a versão final; 4K (3840) para telões (bem mais lento e arquivo maior).',video_quality:'Padrão: igual às versões anteriores. Alta: imagem de fundo mais nítida, veículos sem serrilhado e menos compressão (recomendado). Máxima: além disso monta cada quadro 1,5× maior e reduz (bordas e textos lisos), detalhe a 0,1 m e imagem Esri nível 20 onde houver — cerca de 2,5× mais lento.',fps:'Quadros por segundo (30 é mais fluido).',
+ width:'Resolução do vídeo. 720p é bom para testes; 1440p para a versão final; 4K (3840) para telões (bem mais lento e arquivo maior).',video_quality:'Padrão: qualidade básica, com menor custo de geração. Alta: imagem de fundo mais nítida, veículos sem serrilhado e menos compressão (recomendado). Máxima: além disso monta cada quadro 1,5× maior e reduz (bordas e textos lisos), detalhe a 0,1 m e imagem Esri nível 20 onde houver — cerca de 2,5× mais lento.',fps:'Quadros por segundo (30 é mais fluido).',
  duration_s:'Duração do vídeo. Abaixo de 45 s, o modo curto usa vista estável (ver opção abaixo).',
  view_width_m:'Largura do terreno mostrada pela câmera durante o percurso (menor = mais perto).',
  imagery_pixels:'Resolução do mosaico de imagem. 8192 = mais nítido, mais memória e tempo.',

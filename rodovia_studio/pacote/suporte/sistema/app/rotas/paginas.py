@@ -45,9 +45,9 @@ def estilo_css():
     """1.31: estilos da interface (antes dentro do index.html), com as cores principais em variáveis."""
     return FileResponse(BASE/'app/estilo.css',media_type='text/css',headers={'Cache-Control':'no-store'})
 @router.get('/api/health')
-def health():
+def health(request:Request):
     import imageio_ffmpeg
-    return {'status':'ok','version':VERSION,'ffmpeg':Path(imageio_ffmpeg.get_ffmpeg_exe()).is_file(),'data':str(store.ROOT)}
+    return {'status':'ok','version':VERSION,'ffmpeg':Path(imageio_ffmpeg.get_ffmpeg_exe()).is_file(),'data':str(store.ROOT),'startup_seconds':getattr(request.app.state,'startup_seconds',None)}
 
 @router.get('/marca/icone.png',include_in_schema=False)
 def app_icon():
@@ -75,3 +75,8 @@ def about():
             if f.exists():launcher=f.read_text(encoding='utf-8').strip()[:80];break
     except Exception:pass
     return {'app':VERSION,'schema':SCHEMA_VERSION,'launcher':launcher,'pastas':{'projetos':str(store.ROOT),'videos':str(store.videos_root()),'sistema':str(store.system_root() or '')},'python':platform.python_version(),'system':platform.platform()}
+
+@router.get('/api/capacidades')
+def local_capabilities():
+    from ..capabilities import inspect_local
+    return inspect_local()

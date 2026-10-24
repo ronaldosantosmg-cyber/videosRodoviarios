@@ -107,7 +107,7 @@ def raw_paths(settings):
         if not getattr(r,'enabled',True):continue
         pts=np.array([[p.x,p.y] for p in r.points],dtype=float)
         route_len=float(np.sum(np.linalg.norm(np.diff(pts,axis=0),axis=1))) if len(pts)>1 else 0.0
-        if not np.isfinite(route_len) or route_len < 50.0:continue
+        if not np.isfinite(route_len) or route_len < float(getattr(settings,'min_route_segment_m',50)):continue
         for ln in build_lanes(r):
             out.append({'points':ln['points'],'halfwidth':float(r.lane_width_m)/2,'source':f"{r.name} · {'sentido do desenho' if ln['dir']=='f' else 'sentido oposto'} · faixa {ln['lane']+1}",
                         'level':int(r.level),'kind':'main','manual':True,'fixed':True,'nopaint':True,'free':bool(r.outside_pavement),'speed_kmh':r.speed_kmh,

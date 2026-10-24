@@ -2,10 +2,15 @@
 const MARK_KEYS=['custom_axis','pavement_areas','shoulder_marks','pois','exclusions','traffic_paths','chainage','dxf_alignment','direction_marks','flow_overrides','oae_marks','no_connection_zones','cabin','highlights','clean_areas','cities','lane_blocks','crossing_zones','crosswalks','hatch_areas','signs','lane_zones','accesses','lane_ranges'];
 let M=emptyMarks(),undoStack=[],redoStack=[];
 function emptyMarks(){return {custom_axis:null,pavement_areas:[],shoulder_marks:[],lane_ranges:[],accesses:[],crosswalks:[],hatch_areas:[],signs:[],lane_zones:[],lane_blocks:[],crossing_zones:[],clean_areas:[],cities:[],highlights:[],pois:[],exclusions:[],traffic_paths:[],chainage:{mode:'auto',start:null,end:null,direction:1,calibrate:false},dxf_alignment:{mode:'translation',pairs:[],applied:false},direction_marks:[],flow_overrides:[],oae_marks:[],no_connection_zones:[],cabin:{enabled:false,start:null,duration_s:20,eye_height_m:1.25,fov_deg:72,pitch_deg:4,smoothing_s:1.2,speed_kmh:null,hood:true}}}
-function checkpoint(){undoStack.push(JSON.stringify(M));if(undoStack.length>200)undoStack.shift();redoStack=[];updateUndo()}
+function pushHistory(stack,snapshot){stack.push(snapshot);let size=stack.reduce((n,s)=>n+s.length,0);while(stack.length>1&&(stack.length>200||size>32*1024*1024))size-=stack.shift().length}
+function checkpoint(){pushHistory(undoStack,JSON.stringify(M));redoStack=[];updateUndo()}
 function changed(text){refreshLists();draw();scheduleSave();if(text)msg(text)}
-function undo(){if(!undoStack.length)return;redoStack.push(JSON.stringify(M));M=JSON.parse(undoStack.pop());draft=null;selected=null;changed('Desfeito.');updateUndo()}
-function redo(){if(!redoStack.length)return;undoStack.push(JSON.stringify(M));M=JSON.parse(redoStack.pop());draft=null;changed('Refeito.');updateUndo()}
+function restoreMarks(snapshot,message){M=JSON.parse(snapshot);draft=null;selected=null;drag=null;axisCache=null;snapIndex=null;exactSnap=null;
+ if(typeof cadCmd!=='undefined')cadCmd=null;if(typeof rsDraft!=='undefined')rsDraft=null;if(typeof routeSig!=='undefined')routeSig='';
+ if(typeof sel!=='undefined'&&sel&&!objOf(sel))sel=null;if(typeof selSet!=='undefined')selSet=selSet.filter(s=>objOf(s));
+ changed(message);showProps();refreshRouteLanes(true);updateUndo()}
+function undo(){const current=JSON.stringify(M);while(undoStack.length){const snapshot=undoStack.pop();if(snapshot===current)continue;pushHistory(redoStack,current);restoreMarks(snapshot,'Desfeito.');return}updateUndo()}
+function redo(){const current=JSON.stringify(M);while(redoStack.length){const snapshot=redoStack.pop();if(snapshot===current)continue;pushHistory(undoStack,current);restoreMarks(snapshot,'Refeito.');return}updateUndo()}
 function updateUndo(){$('undo').disabled=!undoStack.length;$('redo').disabled=!redoStack.length}
 let saveTimer=null;
 let savePending=false;

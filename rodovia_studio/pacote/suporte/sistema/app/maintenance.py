@@ -7,7 +7,7 @@ TEMP_FILES={'video.partial.mp4','upload.dxf.tmp','upload.kmz.tmp'}
 
 def candidates(root):
     root=Path(root).resolve()
-    if (root/'_ladrilhos').is_dir():yield root/'_ladrilhos'
+    if (root/'_ladrilhos').is_dir() and not (root/'_ladrilhos').is_symlink():yield root/'_ladrilhos'
     for project in root.iterdir() if root.exists() else []:
         if project.name=='_ladrilhos':continue
         if project.is_symlink() or not project.is_dir():continue
@@ -70,9 +70,11 @@ def _items(cat,root,install=None,videos=None,now=None):
     elif cat=='registros':
         for pr in _projects(root):
             for n in ('ffmpeg.log','worker.log','error.log'):
-                if (pr/n).is_file():out.append(pr/n)
+                if (pr/n).is_file() and now-(pr/n).stat().st_mtime>30*_DAY:out.append(pr/n)
             lg=pr/'logs'
-            if lg.is_dir():out+=[f for f in lg.glob('*.1.jsonl')]+[f for f in lg.glob('*.jsonl') if now-f.stat().st_mtime>30*_DAY]
+            if lg.is_dir():out+=[f for f in lg.glob('*.jsonl') if now-f.stat().st_mtime>30*_DAY]
+            snapshots=lg/'execucoes'
+            if snapshots.is_dir():out+=[f for f in snapshots.glob('*.json') if now-f.stat().st_mtime>30*_DAY]
         if install is not None:
             for lg in [install/'sistema'/'logs',install/'suporte'/'logs']:
                 if lg.is_dir():out+=[f for f in lg.glob('*.log') if now-f.stat().st_mtime>30*_DAY]
@@ -99,9 +101,27 @@ def _items(cat,root,install=None,videos=None,now=None):
             if not v.is_file() or not j.is_file():continue
             try:
                 import json as _j;info=_j.loads(j.read_text(encoding='utf-8'));arq=info.get('arquivo');pasta=info.get('pasta_videos')
-                if arq and pasta and (_P(pasta)/arq).is_file() and (_P(pasta)/arq).stat().st_size==v.stat().st_size:out.append(v)
+                target=_P(pasta)/arq if arq and pasta else None
+                if target is not None and _safe_cleanup_path(target,[videos]) and target.is_file() and target.stat().st_size==v.stat().st_size:
+                    import hashlib
+                    with v.open('rb') as left,target.open('rb') as right:
+                        if hashlib.file_digest(left,'sha256').digest()==hashlib.file_digest(right,'sha256').digest():out.append(v)
             except (OSError,ValueError):continue
-    return out
+    return [p for p in out if _safe_cleanup_path(p,[root,install,videos])]
+
+def _safe_cleanup_path(path,roots):
+    path=_P(path).absolute()
+    for base in roots:
+        if base is None:continue
+        base=_P(base).absolute()
+        if path==base or not path.is_relative_to(base):continue
+        chain=path
+        while chain!=base:
+            if chain.is_symlink():break
+            chain=chain.parent
+        else:
+            return path.resolve().is_relative_to(base.resolve())
+    return False
 
 def survey(root,install=None,videos=None):
     """Tamanho e quantidade de cada categoria (nada é apagado)."""

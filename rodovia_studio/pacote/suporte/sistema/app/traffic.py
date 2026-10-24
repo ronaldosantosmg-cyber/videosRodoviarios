@@ -218,7 +218,7 @@ class TrafficNetwork:
             self.warnings.append(f'Nenhuma rota segura permaneceu após excluir trechos menores que {self.min_route:g} m; tráfego não foi habilitado nesses trechos.')
         if self.rejected_connectors:self.warnings.append(f'{sum(self.rejected_connectors.values())} tentativa(s) de ligação recusada(s) por geometria ou sentido incompatível. Consulte o diagnóstico de circulação.')
         self.finalize_signage()
-        self.report={'directed_edges':len(self.edges),'connections':sum(map(len,self.connections.values())),'itineraries':len(self.paths),'coverage':dict(collections.Counter(e['kind'] for e in self.edges)),'used_kinds':dict(collections.Counter(k for p in self.paths for k in p['kinds'])),'warnings':self.warnings,'signage':getattr(self,'report_signage',{}),'motion_rejected_paths':len(self.rejected_paths),'motion_rejected_connections':dict(self.rejected_connectors),'motion_scope':'Geometria e restrições disponíveis no projeto; sem certificação CONTRAN.'}
+        self.report={'directed_edges':len(self.edges),'connections':sum(map(len,self.connections.values())),'itineraries':len(self.paths),'coverage':dict(collections.Counter(e['kind'] for e in self.edges)),'used_kinds':dict(collections.Counter(k for p in self.paths for k in p['kinds'])),'warnings':self.warnings,'signage':getattr(self,'report_signage',{}),'minimum_flow_length_m':self.min_route,'short_segments_ignored':len(self.short_ignored),'motion_rejected_paths':len(self.rejected_paths),'motion_rejected_connections':dict(self.rejected_connectors),'motion_scope':'Geometria e restrições disponíveis no projeto; sem certificação CONTRAN.'}
     def axis_offset(self,p):
         idx=self.tree.query(p)[1];t=self.axis_t[idx];return float(np.dot(np.asarray(p)-self.dense[idx],np.array([t[1],-t[0]])))
     def inside(self,q):return contains_xy(self.paved,q[:,0],q[:,1])
@@ -613,7 +613,6 @@ class TrafficNetwork:
         out=set()
         for i,e in enumerate(self.edges):
             L,keep=self.origin_info.get(e.get('origin'),(e['length'],False))
-            if keep or e.get('ring') or e.get('route'):continue
             if L<min_len:out.add(i)
         return out
     def make_itineraries(self,min_len=0.):
@@ -686,7 +685,7 @@ class TrafficNetwork:
                 for cand in (lambda:steady_path(P,self.allowed),lambda:sample(drop_backtracks(P),STEP)):
                     q,dq=cand()
                     if q is not None and len(q)>=10 and valid_centers(self.allowed,q).all():p,d=q,dq;break
-            if len(p)<10 or d[-1]<60 or not valid_centers(self.allowed,p).all():continue
+            if len(p)<10 or d[-1]<max(1.,min_len) or not valid_centers(self.allowed,p).all():continue
             audit=analyze_motion(p,allowed=self.allowed)
             if not audit['ok']:
                 self.rejected_paths.append({'edges':list(seq),'audit':audit})

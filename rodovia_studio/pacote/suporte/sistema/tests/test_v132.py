@@ -134,10 +134,11 @@ def test_cleanup_categories(tmp_path):
     (vid/'Proj').mkdir();(vid/'Proj/p_v01.mp4').write_bytes(b'v'*25);(p/'video.mp4').write_bytes(b'v'*25)
     (p/'video.json').write_text(json.dumps({'arquivo':'p_v01.mp4','pasta_videos':str(vid/'Proj')}))
     S_=({c['id']:c for c in survey(root,inst,vid)})
-    assert S_['caches']['bytes']==350 and S_['temporarios']['bytes']==75 and S_['registros']['bytes']==27 and S_['copias_config']['itens']==2
+    assert S_['caches']['bytes']==350 and S_['temporarios']['bytes']==75 and S_['registros']['bytes']==11 and S_['copias_config']['itens']==2
     assert S_['lixeira']['bytes']==130 and S_['atualizacoes']['itens']==4 and S_['copias_video']['bytes']==25 and not S_['copias_video']['padrao']
-    r=clean_categories(root,[k for k,v in S_.items() if v['padrao']],inst,vid);assert not r['errors'] and r['bytes']==350+75+27+6+130+16+8
+    r=clean_categories(root,[k for k,v in S_.items() if v['padrao']],inst,vid);assert not r['errors'] and r['bytes']==350+75+11+6+130+16+8
     for f,t in keep.items():assert (p/f).read_bytes()==t
+    assert (p/'ffmpeg.log').exists() and (p/'logs/execucao.1.jsonl').exists()
     assert (p/'video.mp4').exists() and (vid/'Proj/p_v01.mp4').exists() and len(list(p.glob('config_antes_*.json')))==3
     assert sorted(x.name for x in b.iterdir())==['antes_v1_32_0_x','antes_v1_33_0_x'] and [z.name for z in ap.iterdir()]==['RodoviaStudio_1_32_atualizacao.zip']
     assert clean_categories(root,['copias_video'],inst,vid)['bytes']==25 and not (p/'video.mp4').exists() and (vid/'Proj/p_v01.mp4').exists()

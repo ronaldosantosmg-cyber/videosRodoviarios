@@ -8,13 +8,22 @@ from .render import Scene,render,ASSETS
 from PIL import Image
 
 def run(jid):
-    j=store.job(jid);d=store.directory(j['project']);s=Settings.model_validate(json.loads((d/'config.json').read_text(encoding='utf-8')))
+    j=store.job(jid);d=store.directory(j['project'])
     from .execlog import JobLog
-    jl=JobLog(d,jid,j['kind'],s)   # 1.26: registro de execução do projeto
+    jl=JobLog(d,jid,j['kind'])   # 1.26: registro de execução do projeto
     def status(p,msg):store.update(jid,progress=float(p),message=msg);jl.status(p,msg)
     def cancel():return store.job(jid)['state']=='cancel_requested'
     end_message='Concluído'
     try:
+        s=Settings.model_validate(json.loads((d/'config.json').read_text(encoding='utf-8')))
+        jl.capture(s)
+        if j.get('created'):
+            from datetime import datetime,timezone
+            try:
+                wait=max(0,(datetime.now(timezone.utc)-datetime.fromisoformat(j['created']).replace(tzinfo=timezone.utc)).total_seconds())
+                from .execlog import write
+                write(d,'execucao','inicio',tarefa=jid,tipo=j['kind'],espera_s=round(wait,3))
+            except (ValueError,TypeError):pass
         if j['kind']=='analyze':
             unmapped=[];hp={};items,axis,_,_,r=analyze(d,s,preview=unmapped,hatch_preview=hp);store.write_json(d/'analysis.json',r)
             try:(d/'hachuras_previa.json').write_text(json.dumps({k:v['p'] for k,v in hp.items()},separators=(',',':')),encoding='utf-8')

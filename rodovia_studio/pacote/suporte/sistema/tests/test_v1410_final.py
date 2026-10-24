@@ -13,8 +13,8 @@ def test_short_routes_blocked_frontend_and_backend():
     js=(ROOT/'app/js/32_rotas.js').read_text(encoding='utf-8')
     py=(ROOT/'app/routes.py').read_text(encoding='utf-8')
     tr=(ROOT/'app/traffic.py').read_text(encoding='utf-8')
-    assert 'routeLen<50' in js and 'Rota descartada' in js
-    assert 'route_len < 50.0' in py
+    assert 'minFlowLength()' in js and 'sem veículos' in js
+    assert 'min_route_segment_m' in py and 'route_len <' in py
     assert 'self.make_itineraries(0.)' not in tr
 
 def test_models_reject_non_finite_and_invalid_route_inputs():
@@ -60,9 +60,9 @@ def test_empty_and_zero_inputs_do_not_create_nonfinite_route_geometry():
         with pytest.raises(ValidationError):RouteAlignment(**d)
 
 
-def test_legacy_short_route_is_disabled_on_model_load():
+def test_short_route_geometry_keeps_manual_enable_flag_on_load():
     from app.models import RouteAlignment
     r=RouteAlignment(points=[{"x":0,"y":0},{"x":49.9,"y":0}],enabled=True)
-    assert r.enabled is False
+    assert r.enabled is True
     r2=RouteAlignment(points=[{"x":0,"y":0},{"x":50,"y":0}],enabled=True)
     assert r2.enabled is True

@@ -107,7 +107,12 @@ function movablePoints(){const out=[];const add=(p,set,name)=>{if(p&&isFinite(p.
 function hitMovable(c,maxPx=12*DPR()){let best=null;for(const m of movablePoints()){const [x,y]=W2C(m.p);const d=Math.hypot(x-c.cx,y-c.cy);if(d<=maxPx&&(!best||d<best.d))best={...m,d}}return best}
 function hitAnchor(c){for(const p of M.pois)if(p.anchor){const [x,y]=W2C(p.anchor);if(Math.hypot(x-c.cx,y-c.cy)<10)return p}return null}
 
-canvas.addEventListener('wheel',e=>{if(!ready())return;e.preventDefault();const [x,y]=evtCanvas(e);const k=Math.pow(1.0015,-e.deltaY);const s=Math.min(useGeo()?240:60,Math.max(minScale(),view.s*k));const f=s/view.s;view.ox=x-(x-view.ox)*f;view.oy=y-(y-view.oy)*f;view.s=s;draw()},{passive:false});
+function maxViewScale(){const resolution=Math.abs(mpp());return Number.isFinite(resolution)&&resolution>0?Math.min(1e7,Math.max(useGeo()?240:60,resolution*(window.devicePixelRatio||1)/.001)):(useGeo()?240:60)}
+canvas.addEventListener('wheel',e=>{if(!ready())return;e.preventDefault();if(!Number.isFinite(e.deltaY))return;
+ if(!Number.isFinite(view.s)||view.s<=0){fitView();return}const [x,y]=evtCanvas(e);if(!Number.isFinite(x)||!Number.isFinite(y))return;
+ const unit=e.deltaMode===1?16:e.deltaMode===2?Math.max(1,canvas.clientHeight):1;
+ const delta=Math.max(-Math.log(4),Math.min(Math.log(4),-e.deltaY*unit*.0015));const s=Math.min(maxViewScale(),Math.max(minScale(),view.s*Math.exp(delta)));const f=s/view.s;
+ view.ox=x-(x-view.ox)*f;view.oy=y-(y-view.oy)*f;view.s=s;draw()},{passive:false});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 canvas.addEventListener('pointerdown',e=>{if(!ready())return;const c=canvasPt(e);canvas.focus({preventScroll:true});canvas.setPointerCapture(e.pointerId);
  if(e.button===1||e.button===2||tool==='pan'||spaceDown){drag={type:'pan',x:c.cx,y:c.cy,ox:view.ox,oy:view.oy};canvas.style.cursor='grabbing';return}

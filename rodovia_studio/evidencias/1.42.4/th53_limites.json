@@ -1,0 +1,30 @@
+{
+  "arquivo": "DUPLICAÇÃO TH53.dxf",
+  "configuration": "Mapeamento padrão; sem projeto salvo/KMZ; sem confirmação do CRS nem certificação de todos os conflitos.",
+  "checks": [
+    {
+      "minimum_m": 50,
+      "itineraries": 4,
+      "short_segments_ignored": 99,
+      "path_audits_ok": 4,
+      "vehicles_30s": 25,
+      "rear_collisions": 0
+    },
+    {
+      "minimum_m": 120,
+      "itineraries": 4,
+      "short_segments_ignored": 105,
+      "path_audits_ok": 4,
+      "vehicles_30s": 25,
+      "rear_collisions": 0
+    },
+    {
+      "minimum_m": 200,
+      "itineraries": 4,
+      "short_segments_ignored": 108,
+      "path_audits_ok": 4,
+      "vehicles_30s": 25,
+      "rear_collisions": 0
+    }
+  ]
+}

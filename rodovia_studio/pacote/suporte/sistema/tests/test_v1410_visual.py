@@ -32,7 +32,7 @@ def test_short_route_is_visually_disabled_and_safe():
         select_route(page,40)
         txt=page.locator("#propPanel").inner_text()
         assert "Rota não habilitada para veículos" in txt and "50 m" in txt
-        assert page.evaluate("M.route_alignments[0].enabled") is False
+        assert page.evaluate("M.route_alignments[0].enabled") is True
         screenshot(page,"1410_02_rota_curta_bloqueada")
     run_page(f)
 

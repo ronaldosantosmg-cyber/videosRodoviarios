@@ -81,3 +81,10 @@ def logs_prompt(pid):
 def logs_zip(pid):
     from ..execlog import bundle
     return Response(bundle(store.directory(pid),pid),media_type='application/zip',headers={'Content-Disposition':'attachment; filename="registros_rodovia_studio.zip"'})
+
+@router.get('/api/projects/{pid}/catalogo_uso')
+def usage_catalog(pid):
+    from ..execlog import read
+    from ..usage_catalog import summarize
+    d=store.directory(pid)
+    return summarize(read(d,'execucao',3000),read(d,'erros',1000))

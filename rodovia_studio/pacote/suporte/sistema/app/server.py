@@ -51,6 +51,16 @@ async def lifespan(app):
     with store.connect() as c:c.execute("UPDATE jobs SET state='interrupted',message='Aplicação reiniciada. Inicie a tarefa novamente.' WHERE state IN ('running','cancel_requested')")
     thread=threading.Thread(target=dispatcher,daemon=True);thread.start()
     try:
+        started=float(os.environ.get('RODOVIA_BOOT_MONOTONIC',time.monotonic()))
+        elapsed=time.monotonic()-started
+        import math
+        if math.isfinite(elapsed) and elapsed>=0:
+            app.state.startup_seconds=round(elapsed,3)
+            from .execlog import write
+            system=store.ROOT/'_sistema';system.mkdir(exist_ok=True)
+            write(system,'execucao','inicializacao',duracao_s=app.state.startup_seconds,versao=VERSION)
+    except (ValueError,OSError):pass
+    try:
         yield
     finally:
         stop.set();thread.join(timeout=5)

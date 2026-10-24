@@ -46,7 +46,7 @@ window.addEventListener('unhandledrejection',e=>reportClient(e.reason&&e.reason.
 estender('msg',_m=>function(s,error=false){_m(s,error);if(error)reportClient(s,'',`mensagem ao usuário (ferramenta ${tool})`)},'registros: execução, erros, prompt para IA; erros da tela');
 
 // ---------- ajudas dos campos novos ----------
-Object.assign(HELP,{callout_layout:'Automáticas: as caixas de chamada procuram uma posição livre e não ficam umas sobre as outras; aceitam imagem, estilo e janela de tempo. Clássico: desenho anterior (projetos antigos começam assim).',
+Object.assign(HELP,{callout_layout:'Automáticas: as caixas de chamada procuram uma posição livre e não ficam umas sobre as outras; aceitam imagem, estilo e janela de tempo. Clássico: disposição fixa das caixas de chamada.',
  sessList:'Sessões guardam onde você estava: vista, ferramenta, camadas visíveis, painéis abertos e seleção. Não alteram as marcações.',sessAuto:'Ao abrir o projeto, volta para a última vista e ferramenta usadas.',
  layoutWide:'Usa toda a largura da tela; arraste o divisor entre o painel e o editor para ajustar.',layoutCompact:'Menos espaçamento: cabe mais coisa na tela.'});
 try{for(const id of ['callout_layout','sessList','sessAuto']){const el=$(id);if(!el)continue;const lab=el.closest('label');if(!lab||lab.querySelector(':scope > .help'))continue;const b=document.createElement('span');b.className='help';b.tabIndex=0;b.textContent='?';b.dataset.help=HELP[id];b.setAttribute('aria-label','Ajuda: '+HELP[id]);const fi=lab.querySelector('input,select');if(fi&&fi.type==='checkbox')lab.appendChild(b);else lab.insertBefore(b,fi)}}catch{}
@@ -55,3 +55,6 @@ estender('refreshLists',_rl=>function(){_rl();const box=$('markList');if(!box||!
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-gsel]');if(!b)return;const i=Number(b.dataset.gsel),g=M.gantries[i];if(!g)return;sel={key:'gantries',i};selSet=[];showProps();zoomTo({x:(g.a.x+g.b.x)/2,y:(g.a.y+g.b.y)/2});msg(`Selecionado: ${g.name}. Edite no painel de propriedades.`)});
 buildToolbar();
 
+
+// Catálogo local de falhas e duração, também incluído no prompt IA.
+{const copy=$('logCopy');if(copy){const button=document.createElement('button');button.type='button';button.id='logInsights';button.textContent='Desempenho e melhorias';copy.before(button);button.onclick=guard(async()=>{requireProject();const data=await api(`/api/projects/${pid}/catalogo_uso`);$('logView').textContent=JSON.stringify(data,null,2);$('logTitle').textContent='Catálogo de uso: desempenho e melhorias';})}}

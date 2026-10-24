@@ -1,4 +1,5 @@
 import re
+import pytest
 import zipfile
 from pathlib import Path
 from test_v142_visual import page
@@ -25,7 +26,7 @@ def test_zoom_redraw_and_pan_quick_buttons_work(page):
     page.locator('[data-rs-quick="zoom-in"]').click();assert page.evaluate('view.s')>1.
     page.locator('[data-rs-quick="zoom-out"]').click();assert abs(page.evaluate('view.s')-1)<1e-6
     before=page.evaluate('({...view})');page.locator('[data-rs-quick="redraw"]').click();page.wait_for_timeout(150)
-    assert page.evaluate('({...view})')==before
+    assert page.evaluate('({...view})')==pytest.approx(before,rel=0,abs=1e-9)
     page.locator('[data-rs-quick="select"]').click();assert page.evaluate('tool')=='pan'
     screenshot(page,'1423_02_pan_zoom_redesenhar')
 

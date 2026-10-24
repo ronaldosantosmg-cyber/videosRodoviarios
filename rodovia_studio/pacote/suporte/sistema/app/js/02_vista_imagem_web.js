@@ -5,6 +5,7 @@ function resizeCanvas(){const r=canvas.getBoundingClientRect(),d=window.devicePi
  const cx=(canvas.width/2-view.ox)/view.s,cy=(canvas.height/2-view.oy)/view.s;canvas.width=w;canvas.height=h;view.s*=k;view.ox=w/2-cx*view.s;view.oy=h/2-cy*view.s}draw()}
 function fitView(){if(!ready()){draw();return}let x0=0,y0=0,x1,y1;[x1,y1]=imgSize();
  if(useGeo()&&analysis?.bounds){const [[a,b],[c,d]]=analysis.bounds;const q=[[a,b],[c,b],[a,d],[c,d]].map(([x,y])=>worldToImg({x,y}));x0=Math.min(...q.map(v=>v[0]));x1=Math.max(...q.map(v=>v[0]));y0=Math.min(...q.map(v=>v[1]));y1=Math.max(...q.map(v=>v[1]));const m=.06*Math.max(x1-x0,y1-y0);x0-=m;x1+=m;y0-=m;y1+=m}
+ if(![x0,y0,x1,y1].every(Number.isFinite)||x1<=x0||y1<=y0)return msg('Não foi possível enquadrar: limites da geometria inválidos.',true);
  const s=Math.min(canvas.width/(x1-x0),canvas.height/(y1-y0));view={s,ox:(canvas.width-(x1-x0)*s)/2-x0*s,oy:(canvas.height-(y1-y0)*s)/2-y0*s};draw()}
 const mpp=()=>useGeo()?geo.mpp_crs:meta.width_m/meta.screen_width; // metros (CRS) por pixel do espaço de imagem
 function worldToImg(p){if(useGeo()){const [mx,my]=toMerc(p.x,p.y);return [(mx-geo.m0x)/geo.R0,(geo.m0y-my)/geo.R0]}const dx=p.x-meta.camera[0],dy=p.y-meta.camera[1],m=mpp();return [(dx*meta.right[0]+dy*meta.right[1])/m+meta.screen_width/2,meta.screen_height/2-(dx*meta.up[0]+dy*meta.up[1])/m]}

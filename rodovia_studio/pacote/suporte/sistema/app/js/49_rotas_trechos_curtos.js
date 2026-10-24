@@ -1,2 +1,6 @@
-// 1.39: trechos curtos (< 50 m) ignorados nas rotas dos veículos (sem ziguezague nos encontros).
+// Limite por projeto; os dados originais nunca são apagados por este filtro.
 fields.push('min_route_segment_m');numeric.push('min_route_segment_m');
+function minFlowLength(){const raw=$('min_route_segment_m')?.value;const value=raw!==''&&raw!=null?Number(raw):Number(cfg?.min_route_segment_m??50);return Number.isFinite(value)&&value>=0&&value<=500?value:50}
+estender('fill',previous=>function(s){previous(s);const el=$('min_route_segment_m');if(!el)return;const value=Number(s.min_route_segment_m??50);for(const opt of [...el.options])if(opt.dataset.legacy)opt.remove();if(Number.isFinite(value)&&value>=0&&value<=500&&!Array.from(el.options).some(o=>Number(o.value)===value)){const opt=document.createElement('option');opt.value=String(value);opt.textContent=value+' m (valor do projeto anterior)';opt.dataset.legacy='1';el.appendChild(opt)}el.value=String(Number.isFinite(value)?value:50)},'Limite de fluxo: preservar configuração e valores legados');
+let flowLimitTimer=null;
+$('min_route_segment_m')?.addEventListener('change',()=>{const minimum=minFlowLength();cfg.min_route_segment_m=minimum;changed(`Fluxos abaixo de ${minimum} m serão desligados. A geometria será preservada.`);clearTimeout(flowLimitTimer);flowLimitTimer=setTimeout(()=>{if(pid&&ready()&&!task)$('updFlows')?.click();else if(pid)msg('Limite salvo. Atualize os fluxos após a tarefa em andamento.');},600)});

@@ -1,8 +1,10 @@
 """1.33: tempos legíveis — até 60 s em segundos; acima, em minutos (e horas acima de 60 min)."""
+import math
+
 def tempo(s):
     try:s=float(s)
-    except (TypeError,ValueError):return str(s)
-    if s!=s:return '—'
+    except (TypeError,ValueError,OverflowError):return '—'
+    if not math.isfinite(s):return '—'
     s=max(0,int(round(s)))
     if s<60:return f'{s} s'
     if s<3600:

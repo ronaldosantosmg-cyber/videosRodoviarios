@@ -1,5 +1,7 @@
 """Test the encoder, not merely its presence in the FFmpeg build."""
-import os,subprocess
+import os,subprocess,time,copy
+
+_ENCODER_FAILURES={}
 from pathlib import Path
 import imageio_ffmpeg
 
@@ -28,7 +30,15 @@ def options(encoder,cpu_preset='veryfast',quality='padrao'):
     return ['-c:v','libx264','-preset',preset or cpu_preset,'-threads',threads,'-crf',crf,'-profile:v','high','-maxrate',maxrate,'-bufsize',buf]
 
 def select_encoder(ff,width,height,fps,mode='auto',cpu_preset='veryfast',runner=None,quality='padrao'):
+    injected=runner is not None
     runner=runner or subprocess.run
+    cache_key=None
+    if not injected and mode!='cpu':
+        try:
+            f=Path(ff);st=f.stat();cache_key=(str(f.resolve()),st.st_mtime_ns,st.st_size,width,height,fps,mode,cpu_preset,quality)
+            cached=_ENCODER_FAILURES.get(cache_key)
+            if cached and time.monotonic()-cached[0]<60:return copy.deepcopy(cached[1])
+        except OSError:pass
     q=QUALITY.get(quality,QUALITY['padrao'])
     reason='CPU selecionada na configuração.'
     if mode!='cpu':
@@ -39,7 +49,11 @@ def select_encoder(ff,width,height,fps,mode='auto',cpu_preset='veryfast',runner=
             err=r.stderr.decode(errors='replace') if isinstance(r.stderr,bytes) else str(r.stderr)
             reason='NVENC indisponível; usando CPU. '+err.strip()[-700:]
         except (OSError,subprocess.TimeoutExpired) as e:reason='Teste NVENC não concluído; usando CPU. '+str(e)[:300]
-    return {'encoder':'libx264','label':'CPU / H.264','reason':reason,'args':options('libx264',cpu_preset,quality),'quality':{'crf':int(q['x264'][1]),**({'nivel':quality} if quality!='padrao' else {})}}
+    result={'encoder':'libx264','label':'CPU / H.264','reason':reason,'args':options('libx264',cpu_preset,quality),'quality':{'crf':int(q['x264'][1]),**({'nivel':quality} if quality!='padrao' else {})}}
+    if cache_key is not None:
+        if len(_ENCODER_FAILURES)>=32:_ENCODER_FAILURES.pop(next(iter(_ENCODER_FAILURES)))
+        _ENCODER_FAILURES[cache_key]=(time.monotonic(),copy.deepcopy(result))
+    return result
 
 
 def validate_mp4(ff,path,frames,width,height,fps,timeout=3600):

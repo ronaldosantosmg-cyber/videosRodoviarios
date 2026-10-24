@@ -141,15 +141,45 @@ function quickTools(rail){
   const group=document.createElement('div');group.className='rsQuickGroup';group.setAttribute('role','group');group.setAttribute('aria-label',label);
   for(const [id,text,fn] of items){const btn=document.createElement('button');btn.type='button';btn.dataset.rsQuick=id;btn.title=text;btn.setAttribute('aria-label',text);btn.innerHTML=`${icoPara(text)}<span>${esc(text)}</span>`;btn.onclick=()=>call(fn);group.appendChild(btn)}
   if(label==='Editar')for(const id of ['redo','undo']){const button=$(id);if(button)group.prepend(button)}
+  if(label==='Fluxos'){const control=$('min_route_segment_m')?.closest('label');if(control){control.classList.add('rsFlowLimit');group.appendChild(control)}}
   bar.appendChild(group);
  }
+}
+// Acesso visível às ferramentas, separado do menu completo em cascata.
+function commandRibbon(rail){
+ if($('rsToolRibbon'))return;
+ const ribbon=document.createElement('div');ribbon.id='rsToolRibbon';ribbon.setAttribute('aria-label','Ferramentas de edição');
+ const tabs=document.createElement('div');tabs.id='rsToolTabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Grupos de comandos');ribbon.appendChild(tabs);
+ const groups=[{label:'Todas',tools:[],commands:[]},{label:'Edição',tools:['move','insertcontrol','exedit','inspect'],commands:['MOVER','GIRAR','COPIAR','ESCALA','ESPELHAR','OFFSET','APAGAR','DIST']}];
+ let g=0;for(const t of TOOLS){if(t==='|'){g++;continue}let group=groups[g+2];if(!group){group={label:TOOL_GROUPS[g]||'Outras ferramentas',tools:[],commands:[]};groups[g+2]=group}group.tools.push(t[0])}
+ const panels=[];
+ const activate=(n,focus=false)=>{groups.forEach((group,i)=>{const tab=tabs.children[i];tab.setAttribute('aria-selected',String(i===n));tab.tabIndex=i===n?0:-1;panels[i].hidden=i!==n});if(focus){tabs.children[n].focus();tabs.children[n].scrollIntoView({block:'nearest',inline:'nearest'})}};
+ groups.forEach((group,i)=>{
+  const tab=document.createElement('button');tab.type='button';tab.id='rsToolTab'+i;tab.textContent=group.label;tab.setAttribute('role','tab');tab.setAttribute('aria-controls','rsToolPanel'+i);tab.onclick=()=>activate(i);tabs.appendChild(tab);
+  const panel=document.createElement('div');panel.id='rsToolPanel'+i;panel.className='rsToolPanel';panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby',tab.id);panel.tabIndex=0;panels.push(panel);ribbon.appendChild(panel);
+  for(const command of group.commands){const b=document.createElement('button');b.type='button';b.dataset.rsCommand=command;const name=({OFFSET:'Paralela',DIST:'Medir distância'})[command]||command.charAt(0)+command.slice(1).toLowerCase();b.innerHTML=(icoPara(name)||toolIcon('chain'))+'<span>'+esc(name)+'</span>';b.setAttribute('aria-label',name);b.title=name+' — '+command;b.onclick=()=>call(()=>runCommand(command));panel.appendChild(b)}
+  for(const id of group.tools){const toolDef=TOOLS.find(t=>Array.isArray(t)&&t[0]===id);if(!toolDef)continue;const b=document.createElement('button');b.type='button';b.dataset.rsTool=id;b.title=toolLabel(toolDef)+' — '+toolDef[2];b.setAttribute('aria-label',toolLabel(toolDef));b.innerHTML=(toolIcon(id)||icoPara(toolLabel(toolDef))||icoSvg('grips'))+'<span>'+esc(toolLabel(toolDef))+'</span>';b.onclick=()=>call(()=>setTool(id));panel.appendChild(b)}
+ });
+ const all=document.createElement('div');all.className='rsAllGroups';panels[0].appendChild(all);
+ for(let i=1;i<panels.length;i++){const group=document.createElement('div');group.className='rsAllGroup';group.setAttribute('role','group');group.setAttribute('aria-label',groups[i].label);for(const original of panels[i].querySelectorAll('button')){const copy=original.cloneNode(true);copy.onclick=original.onclick;group.appendChild(copy)}all.appendChild(group)}
+ ribbon.classList.add('rsIconMode');
+ const help=document.createElement('div');help.id='rsToolHelp';help.setAttribute('role','tooltip');help.hidden=true;document.body.appendChild(help);
+ const hideHelp=()=>{help.hidden=true};
+ for(const b of ribbon.querySelectorAll('[data-rs-tool],[data-rs-command]')){
+  const text=b.title;b.dataset.rsHelp=text;b.removeAttribute('title');b.setAttribute('aria-describedby',help.id);
+  const show=()=>{help.textContent=text;help.hidden=false;const r=b.getBoundingClientRect();const w=help.offsetWidth,h=help.offsetHeight;help.style.left=Math.max(6,Math.min(innerWidth-w-6,r.left))+'px';help.style.top=(r.bottom+h+8<innerHeight?r.bottom+6:Math.max(6,r.top-h-6))+'px'};
+  b.addEventListener('pointerenter',show);b.addEventListener('pointerleave',hideHelp);b.addEventListener('focus',show);b.addEventListener('blur',hideHelp);
+ }
+ ribbon.addEventListener('click',hideHelp);ribbon.addEventListener('keydown',e=>{if(e.key==='Escape')hideHelp()});window.addEventListener('resize',hideHelp);window.addEventListener('scroll',hideHelp,true);
+ tabs.addEventListener('keydown',e=>{const current=[...tabs.children].indexOf(document.activeElement);if(current<0)return;let n=current;if(e.key==='ArrowRight')n=(current+1)%groups.length;else if(e.key==='ArrowLeft')n=(current+groups.length-1)%groups.length;else if(e.key==='Home')n=0;else if(e.key==='End')n=groups.length-1;else return;e.preventDefault();activate(n,true)});
+ rail.prepend(ribbon);activate(0);
 }
 function dockCommands(){
  const title=document.querySelector('.dwTitleBar');if(title)$('menuBar').before(title);
  let rail=$('rsCommandRail');if(!rail){rail=document.createElement('div');rail.id='rsCommandRail';rail.setAttribute('aria-label','Acesso rápido e opções da ferramenta');$('menuBar').after(rail)}
- quickTools(rail);
+ quickTools(rail);commandRibbon(rail);
  for(const el of [$('toolOptions'),$('selBar')])if(el&&el.parentNode!==rail)rail.appendChild(el);
- const tb=$('toolbar');if(tb)tb.hidden=true;
+ const tb=$('toolbar');if(tb){tb.hidden=true;$('toolLabels')?.remove()}
  let footer=$('rsStudyFooter');if(!footer){footer=document.createElement('div');footer.id='rsStudyFooter';footer.setAttribute('aria-label','Comando, coordenadas e diagnóstico de fluxos');$('bottomBar').before(footer)}
  if(!$('rsActiveTool')){const head=document.createElement('div');head.id='rsActiveTool';head.setAttribute('role','status');footer.appendChild(head)}
  for(const el of [document.querySelector('.dwCursor'),$('dwCommandDrawer')])if(el&&el.parentNode!==footer)footer.appendChild(el);
@@ -166,7 +196,7 @@ function foregroundFlows(){
  for(const seg of editor?.segments||[])line(seg.points,seg,seg.forward,seg.both,seg.disabled);
  for(const route of M.traffic_paths||[])line(route.points,route.enabled===false?{disabled:true}:(editor?.segments||[]).find(s=>s.source===route.name),true,false,route.enabled===false);
  for(const route of M.route_alignments||[]){
-  const calculated=(editor?.segments||[]).filter(s=>s.route===route.id);const status=route.enabled===false?{disabled:true}:calculated.find(s=>s.technical_status==='problem')||calculated.find(s=>s.technical_status==='adjustment')||calculated[0];
+  const calculated=(editor?.segments||[]).filter(s=>s.route===route.id);const status=route.enabled===false?{disabled:true}:polyLen(route.points)<minFlowLength()?{technical_status:'adjustment'}:calculated.find(s=>s.technical_status==='problem')||calculated.find(s=>s.technical_status==='adjustment')||calculated[0];
   line(route.points,status,true,false,true);
  }
  for(const lane of routeLanes||[]){const route=M.route_alignments?.[lane.route];const calculated=(editor?.segments||[]).find(s=>s.route===route?.id);line(lane.points,lane.enabled===false?{disabled:true}:calculated,true,false)}
@@ -179,6 +209,7 @@ function foregroundFlows(){
  ctx.restore();
 }
 function sync(){
+ document.querySelectorAll('[data-rs-tool]').forEach(b=>{const on=b.dataset.rsTool===tool;b.setAttribute('aria-pressed',String(on));b.classList.toggle('on',on)});
  const quick=$('rsQuickTools')?.querySelector('[data-rs-quick="flows"]');if(quick){quick.setAttribute('aria-pressed',String(flowEditing()));quick.classList.toggle('on',flowEditing())}
  const active=TOOLS.find(t=>Array.isArray(t)&&t[0]===tool);
  if($('rsActiveTool'))$('rsActiveTool').textContent='Comando: '+(active?toolLabel(active).replace(/^[^\p{L}\p{N}]+/u,''):'Selecionar')+' · Enter conclui · Esc cancela';

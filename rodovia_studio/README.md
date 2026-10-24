@@ -5,7 +5,7 @@ SHA-256: `33fec6d47baf56c56d9ab6b6f5b6c3b9a553c075f0af0727986ade3ceeb12db6`.
 
 Os fontes editáveis ficam em `pacote/suporte/sistema`; o formato do pacote continua compatível com a instalação existente. O código `src/videos_rodoviarios` na raiz do repositório é um aplicativo anterior, separado deste Studio.
 
-A revisão atual é **1.42.3**, para que uma instalação 1.42 reconheça a atualização. A branch de desenvolvimento é separada da `main`. O ZIP original fica preservado.
+A revisão atual é **1.42.4**, para que uma instalação 1.42 reconheça a atualização. A branch de desenvolvimento é separada da `main`. O ZIP original fica preservado.
 
 ## Desenvolvimento e validação
 

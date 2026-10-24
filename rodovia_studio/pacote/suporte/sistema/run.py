@@ -1,5 +1,6 @@
 import socket,threading,webbrowser,os,sys,json,urllib.request,traceback,time
 from pathlib import Path
+os.environ['RODOVIA_BOOT_MONOTONIC']=str(time.monotonic())
 import uvicorn
 BASE=Path(__file__).resolve().parent
 
