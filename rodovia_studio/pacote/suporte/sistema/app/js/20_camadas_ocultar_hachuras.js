@@ -38,5 +38,5 @@ function showGeom(name,P,text){if(layerShow&&layerShow.name===name){layerShow=nu
  if(ready()){const c={x:(x0+x1)/2,y:(y0+y1)/2};const [ix,iy]=worldToImg(c);const span=Math.max(40,Math.hypot(x1-x0,y1-y0));view.s=Math.max(minScale(),Math.min(useGeo()?240:60,canvas.width*mpp()/span*.8));view.ox=canvas.width/2-ix*view.s;view.oy=canvas.height/2-iy*view.s;draw()}msg(text)}
 document.addEventListener('click',guard(async e=>{const b=e.target.closest&&e.target.closest('[data-hatchshow]');if(!b)return;e.preventDefault();requireProject();if(!hatchPrev)hatchPrev=await api(`/api/projects/${pid}/hachuras_previa`);
  const sig=b.dataset.hatchshow;showGeom('hatch:'+sig,hatchPrev[sig],`Hachuras “${sig}” destacadas em magenta. Clique “Ver” de novo para apagar.`)}));
-estender('load',_l=>async id=>{hatchPrev=null;imgCache.clear();await _l(id);try{hatchUi()}catch{}},'hachuras: confiança, motivo, indicação pela cor e “Ver”');
+estender('load',_l=>async (id,options={})=>{hatchPrev=null;imgCache.clear();const loaded=await _l(id,options);if(loaded===false||pid!==id)return false;if(options.resultsOnly)return loaded;try{hatchUi()}catch{};return loaded},'hachuras: confiança, motivo, indicação pela cor e “Ver”');
 

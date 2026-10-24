@@ -14,20 +14,8 @@ PREVIEW_SECONDS=60.
 
 
 def revision(directory,settings=None):
-    d=Path(directory);h=hashlib.sha256()
-    cfg=Settings.model_validate_json((d/'config.json').read_text()) if (d/'config.json').exists() else settings
-    if cfg is None:raise ValueError('Configuração do projeto ausente.')
-    h.update(json.dumps(cfg.model_dump(),sort_keys=True,allow_nan=False).encode())
-    for f in sorted(d.rglob('*')):
-        relative=f.relative_to(d)
-        if not f.is_file() or f.is_symlink():continue
-        if relative.parts[0] not in ('input.dxf','input.kmz','elevacao','camadas'):continue
-        if f.suffix not in ('.dxf','.kmz','.tif','.tiff','.prj','.tfw','.jgw','.png','.json','.npy'):continue
-        if f.name in ('grade.npy','grade.json'):continue
-        stat=f.stat();h.update(relative.as_posix().encode());h.update(str((stat.st_size,stat.st_mtime_ns)).encode())
-    for name in ('scene3d.py','traffic.py','simulation.py','routes.py','geometry.py','models.py','render.py','flow_diagnostics.py','signage.py','vehicle_motion.py','transport.py','transport_models.py','transport_render.py','transport_cabin.py','cabin.py','kmz_validation.py'):
-        h.update((Path(__file__).parent/name).read_bytes())
-    return h.hexdigest()
+    from .dependencies import revisions
+    return revisions(directory,settings)['scene3d']
 
 
 def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
@@ -168,7 +156,7 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
     if cancel():raise InterruptedError('Construção 3D cancelada.')
     data={'format':'rodovia-scene3d-1','revision':key,'origin_crs':origin.tolist(),'crs':settings.crs,'coordinates_confirmed':settings.coordinates_confirmed,'span_m':span,'meshes':meshes,'terrain':terrain,'markings':markings,'diagnostics':diagnostics,'vehicles':list(tracks.values())+list(train_tracks.values()),'transport':transport_data,'duration_s':duration,'source_duration_s':settings.duration_s,'simulation_report':sim.report() if sim else None,'warnings':warnings[-25:],'scope':'Visualização de projeto e tráfego. Diagnósticos técnicos não integram a captura de apresentação.'}
     if not np.isfinite(origin).all():raise ValueError('Origem 3D inválida.')
-    if key!=revision(d,settings):raise ValueError('O projeto mudou durante o processamento. Reconstrua o 3D.')
+    if key!=revision(d):raise ValueError('O projeto mudou durante o processamento. Reconstrua o 3D.')
     encoded=json.dumps(data,ensure_ascii=False,allow_nan=False,separators=(',',':')).encode()
     if len(encoded)>32*1024*1024:raise ValueError('Cena acima de 32 MB. Divida o projeto para a vista 3D.')
     write_json(d/'analysis.json',scene.report)

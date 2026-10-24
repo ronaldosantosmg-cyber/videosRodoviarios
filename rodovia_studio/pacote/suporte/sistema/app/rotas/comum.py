@@ -40,7 +40,8 @@ def _files_info(d):
     return out
 
 def _config(pid):
-    d=store.directory(pid);return d,Settings.model_validate(json.loads((d/'config.json').read_text(encoding='utf-8')))
+    from ..project_state import read_config
+    d=store.directory(pid);return d,Settings.model_validate(read_config(d))
 def _save_config(pid,s):
     d=store.directory(pid);store.write_json(d/'config.json',s.model_dump() if hasattr(s,'model_dump') else s)
 async def _receive(file,dest,limit):

@@ -22,7 +22,7 @@ document.addEventListener('click',guard(async e=>{const b=e.target.closest&&e.ta
  for(const t of [dz,document.body]){t?.addEventListener('dragover',e=>{if([...(e.dataTransfer?.types||[])].includes('Files'))over(e)});}
  document.body.addEventListener('dragleave',e=>{if(e.target===document.body||e.target===dz)dz.classList.remove('over')});
  document.body.addEventListener('drop',guard(async e=>{if(!e.dataTransfer?.files?.length)return;const fs=[...e.dataTransfer.files].filter(f=>/\.(dxf|kmz|kml|dwg)$/i.test(f.name));if(!fs.length)return;e.preventDefault();dz.classList.remove('over');if(!pid)return msg('Crie ou abra um projeto antes de soltar os arquivos.',true);await sendFiles(fs)}))}
-estender('load',_l=>async id=>{await _l(id);try{const r=await api('/api/projects/'+id);filesUi(r.files_info)}catch{}},'arquivos do projeto: DXF e KMZ/KML enviados na hora, com nome, tamanho');
+estender('load',_l=>async (id,...args)=>{const loaded=await _l(id,...args);if(loaded===false||pid!==id)return false;try{const r=await api('/api/projects/'+id);if(pid===id)filesUi(r.files_info)}catch{}},'arquivos do projeto: DXF e KMZ/KML enviados na hora, com nome, tamanho');
 
 // ---------- aparência: taludes, canteiro, água e sinalização ----------
 MARK_KEYS.push('texture_areas');estender('emptyMarks',_em=>function(){return {..._em(),texture_areas:[]}},'aparência: taludes, canteiro, água e sinalização');if(!M.texture_areas)M.texture_areas=[];

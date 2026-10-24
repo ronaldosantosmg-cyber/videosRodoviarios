@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.6",
-  "description": "Ferrovia com 5–100 vagões, semáforos e onda verde, filas, KMZ com anexos e demanda/capacidade por faixa."
+  "version": "1.42.7",
+  "description": "Gravação com revisão e recuperação, importação transacional e sincronização dos resultados por dependências."
 }

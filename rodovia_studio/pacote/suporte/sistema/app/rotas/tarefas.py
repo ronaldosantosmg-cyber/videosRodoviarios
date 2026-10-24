@@ -58,6 +58,8 @@ def cancel(jid):
 def preview_file(pid):
     file=store.directory(pid)/'preview.png'
     if not file.is_file():raise HTTPException(404,'Gere uma prévia primeiro.')
+    from ..artifacts import require_current
+    require_current(file.parent,'preview')
     return FileResponse(file,media_type='image/png',headers={'Cache-Control':'no-store'})
 @router.get('/api/projects/{pid}/video.mp4')
 def video_file(pid):

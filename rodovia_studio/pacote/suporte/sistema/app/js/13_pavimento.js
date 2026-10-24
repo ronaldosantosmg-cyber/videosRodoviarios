@@ -34,5 +34,5 @@ $('pavStyles')?.addEventListener('change',e=>{const tr=e.target.closest('tr[data
  if(v.pattern==='auto')delete st[r];else st[r]={...v,fill:v.fill.toLowerCase()===PAV_DEF[r][0]?'':v.fill,hatch:v.hatch.toLowerCase()===PAV_DEF[r][1]?'':v.hatch};
  cfg.pavement_styles=st;drawSwatch(tr);scheduleSave();msg(`Representação de “${ROLE_LABEL[r]}”: ${PAT_LABEL[v.pattern]}. Gere a prévia para ver no vídeo.`)});
 $('pavStyles')?.addEventListener('input',e=>{const tr=e.target.closest('tr[data-role]');if(tr)drawSwatch(tr)});
-estender('load',_l3=>async id=>{await _l3(id);try{pavStylesUi()}catch{}},'1.21: representação do pavimento (escolha e alteração)');
+estender('load',_l3=>async (id,options={})=>{const loaded=await _l3(id,options);if(loaded===false||pid!==id)return false;if(options.resultsOnly)return loaded;try{pavStylesUi()}catch{};return loaded},'1.21: representação do pavimento (escolha e alteração)');
 

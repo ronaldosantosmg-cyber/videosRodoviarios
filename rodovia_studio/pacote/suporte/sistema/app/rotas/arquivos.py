@@ -39,7 +39,7 @@ async def upload(pid,file:UploadFile=File(...)):
             try:dxf=await asyncio.to_thread(converter,bruto,orig)
             except LookupError as e:raise HTTPException(424,str(e))
             except ValueError as e:raise HTTPException(422,str(e))
-            (d/'input.dwg').write_bytes(bruto);tmp.write_bytes(dxf)
+            dwg_tmp=tmp.with_name(tmp.name+'.dwg');dwg_tmp.write_bytes(bruto);tmp.write_bytes(dxf)
         if ext=='.dxf':
             head=tmp.open('rb').read(4096)
             if head.startswith(b'AutoCAD Binary DXF'):pass
@@ -47,11 +47,16 @@ async def upload(pid,file:UploadFile=File(...)):
         if ext=='.kmz':
             from ..kmz_validation import validate
             await asyncio.to_thread(validate,tmp)
-        tmp.replace(d/('input'+ext));(d/'analysis.json').unlink(missing_ok=True)
-        config=json.loads((d/'config.json').read_text(encoding='utf-8'));config['coordinates_confirmed']=False;store.write_json(d/'config.json',config)
-        meta=_files_meta(d);meta[ext[1:]]={'name':Path(orig).name or ('input'+ext),'bytes':n,'sent':time.strftime('%Y-%m-%d %H:%M'),**({'convertido':'DWG'} if dwg else {})};store.write_json(d/'arquivos.json',meta)
-        if not dwg and ext=='.dxf':(d/'input.dwg').unlink(missing_ok=True)
-    finally:tmp.unlink(missing_ok=True);await file.close()
+        from ..project_state import import_files
+        meta=_files_meta(d);meta[ext[1:]]={'name':Path(orig).name or ('input'+ext),'bytes':n,'sent':time.strftime('%Y-%m-%d %H:%M'),**({'convertido':'DWG'} if dwg else {})}
+        replacements={'input'+ext:tmp}
+        if ext=='.dxf':replacements['input.dwg']=dwg_tmp if dwg else None
+        await asyncio.to_thread(import_files,d,replacements,meta)
+
+    finally:
+        tmp.unlink(missing_ok=True)
+        tmp.with_name(tmp.name+'.dwg').unlink(missing_ok=True)
+        await file.close()
     return {'ok':True,'bytes':n,'type':ext,'files':_files_info(d)}
 
 @router.get('/api/dwg')

@@ -64,6 +64,7 @@ function init(){
  const originalResize=resizeCanvas;resizeCanvas=function(...args){if(!active)return originalResize(...args)};
  const originalLoad=load;load=async function(id,...args){if((active||pending)&&id!==pid)close();return originalLoad(id,...args)};
  const originalChanged=changed;changed=function(...args){const result=originalChanged(...args);if(active&&viewer){stale=true;viewer.pause();say('Projeto alterado. Reconstrua a cena 3D para atualizar a visualização.');sync()}return result};
+ window.addEventListener('rodovia:project-state',e=>{if(!active||!viewer||e.detail.project!==currentPid)return;const key=e.detail.revisions?.scene3d;if(key){stale=savePending||viewer.data.revision!==key;if(stale){viewer.pause();say('Cena 3D desatualizada. Reconstrua para usar os resultados atuais.')}else say('Cena 3D sincronizada com o projeto.');sync()}});
  sync();window.Rodovia3D=Object.freeze({open,close,stats:()=>viewer?{...viewer.stats(),stale,project:currentPid,context:state.context}:{ready:false,pending},setTime:t=>viewer?.setTime(t),setDiagnostics:b=>viewer?.setDiagnostics(b)});
 }
 queueMicrotask(init);

@@ -33,13 +33,13 @@ function T10(u,v){return [1,u,v,u*u,u*v,v*v,u*u*u,u*u*v,u*v*v,v*v*v]}
 function dot10(t,c){let r=0;for(let i=0;i<10;i++)r+=t[i]*c[i];return r}
 function toMerc(x,y){const t=T10((x-geo.c[0])/geo.s[0],(y-geo.c[1])/geo.s[1]);return [dot10(t,geo.fx),dot10(t,geo.fy)]}
 function toCrs(mx,my){const t=T10((mx-geo.mc[0])/geo.ms[0],(my-geo.mc[1])/geo.ms[1]);return [dot10(t,geo.ix),dot10(t,geo.iy)]}
-async function loadGeo(){const keep=geoPid===pid&&geo;geo=null;vec=null;vecPaths=null;axisCache=null;
- if(!analysis){geoPid=pid;return}
- try{geo=await api('/api/projects/'+pid+'/geo')}catch(e){geo=null;$('baseInfo')&&($('baseInfo').textContent='Imagem web indisponível: '+e.message)}
- if(geo){try{vec=await api('/api/projects/'+pid+'/vectors.json')}catch{vec=null}buildVectorPaths()}
- localInfo=null;localTiles.clear();if(geo&&cfg?.local_imagery?.image){try{localInfo=await api(`/api/projects/${pid}/local/info`)}catch{localInfo=null}}
- try{await localUi()}catch{}
- if(!keep&&geoPid!==pid)tileState={ok:0,fail:0};geoPid=pid}
+async function loadGeo(){const id=pid,context=projectSession.context,keep=geoPid===id&&geo,current=()=>pid===id&&projectSession.context===context;let nextGeo=null,nextVec=null,nextLocal=null;
+ if(analysis){try{nextGeo=await api('/api/projects/'+id+'/geo')}catch(e){if(current()&&$('baseInfo'))$('baseInfo').textContent='Imagem web indisponível: '+e.message}
+ if(nextGeo){try{nextVec=await api('/api/projects/'+id+'/vectors.json')}catch{}}
+ if(nextGeo&&cfg?.local_imagery?.image){try{nextLocal=await api(`/api/projects/${id}/local/info`)}catch{}}}
+ if(!current())return;geo=nextGeo;vec=nextVec;vecPaths=null;axisCache=null;localInfo=nextLocal;localTiles.clear();if(geo)buildVectorPaths();
+ try{await localUi()}catch{}if(!current())return;if(!keep&&geoPid!==id)tileState={ok:0,fail:0};geoPid=id}
+
 function buildVectorPaths(){vecPaths={};if(!vec||!geo)return;const L=vec.layers||{};
  for(const [role,list] of Object.entries(L)){if(!list.length)continue;const path=new Path2D(),fill=new Path2D();let nf=0;
   for(const r of list){r.p.forEach((q,i)=>{const [x,y]=worldToImg({x:q[0],y:q[1]});if(i){path.lineTo(x,y);if(r.c)fill.lineTo(x,y)}else{path.moveTo(x,y);if(r.c){fill.moveTo(x,y);nf++}}});if(r.c){path.closePath();fill.closePath()}}

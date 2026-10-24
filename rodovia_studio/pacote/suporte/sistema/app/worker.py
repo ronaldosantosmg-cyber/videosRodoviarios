@@ -13,9 +13,16 @@ def run(jid):
     jl=JobLog(d,jid,j['kind'])   # 1.26: registro de execução do projeto
     def status(p,msg):store.update(jid,progress=float(p),message=msg);jl.status(p,msg)
     def cancel():return store.job(jid)['state']=='cancel_requested'
-    end_message='Concluído'
+    end_message='Concluído';ticket=None
     try:
-        s=Settings.model_validate(json.loads((d/'config.json').read_text(encoding='utf-8')))
+        from .project_state import read_config,locked
+        from .artifacts import begin,finish
+        with locked(d):
+            s=Settings.model_validate(read_config(d))
+            from .artifacts import status as artifact_status
+            current=artifact_status(d)
+            reusable=j['kind']=='analyze' and all(current[k]['state']=='ready' for k in ('analysis','editor','vectors'))
+            ticket=None if reusable else begin(d,jid,j['kind'],s)
         jl.capture(s)
         if j.get('created'):
             from datetime import datetime,timezone
@@ -24,7 +31,10 @@ def run(jid):
                 from .execlog import write
                 write(d,'execucao','inicio',tarefa=jid,tipo=j['kind'],espera_s=round(wait,3))
             except (ValueError,TypeError):pass
-        if j['kind']=='scene3d':
+        if reusable:
+            end_message='Fluxos e geometria já estão atualizados; nenhum recálculo necessário'
+            status(1,end_message)
+        elif j['kind']=='scene3d':
             from .scene3d import build
             build(d,s,status,cancel);end_message='Cena 3D pronta'
         elif j['kind']=='analyze':
@@ -167,8 +177,11 @@ def run(jid):
                     end_message+=f' · guardado em videos\\{saved.parent.name}\\{saved.name}'
             except Exception as exc:
                 end_message+=' · aviso: o vídeo não foi copiado para a pasta de vídeos ('+str(exc)[:120]+')'
+        finish(d,ticket)
         store.update(jid,state='done',progress=1,message=end_message);jl.done(end_message)
     except BaseException as e:
+        from .artifacts import finish
+        finish(d,ticket,False)
         (d/'video.partial.mp4').unlink(missing_ok=True)
         tb=traceback.format_exc();(d/'error.log').write_text(tb,encoding='utf-8')
         if isinstance(e,InterruptedError):jl.done('Cancelado: '+str(e))

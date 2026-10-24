@@ -92,4 +92,4 @@ itemFaixa('Fluxos','Rotas',['Rota de veículos','🛣',()=>setTool('route'),1]);
 {const F=RIBBON.find(t=>t[0]==='Fluxos');const k=F[1].findIndex(g=>g[0]==='Rotas');F[1].splice(1,0,...F[1].splice(k,1))}   // grupo logo após Tráfego
 comando(['ROTA','RT','ROUTE'],()=>setTool('route'),'Rota de veículos (pista simples, dupla ou sentido único)');
 comando(['TRECHO','TR'],()=>setTool('routesec'),'Trecho da rota com outro tipo de pista');
-estender('load',anterior=>async id=>{routeSig='';routeLanes=[];rsDraft=null;await anterior(id);refreshRouteLanes(true)},'rotas: faixas recalculadas ao abrir');
+estender('load',anterior=>async (id,options={})=>{if(!options.resultsOnly){routeSig='';routeLanes=[];rsDraft=null}const loaded=await anterior(id,options);if(loaded===false||pid!==id)return false;refreshRouteLanes(true);return loaded},'rotas: faixas recalculadas ao abrir');

@@ -37,7 +37,7 @@ async function advInfo(){const el=$('advInfo');if(!el||!pid||!analysis)return;tr
  el.textContent=`Percurso de ${(r.comprimento_m/1000).toLocaleString('pt-BR',{maximumFractionDigits:2})} km em ${tempo(r.percurso_s)} ≈ ${r.velocidade_kmh.toLocaleString('pt-BR')} km/h sobre a imagem`+(mode==='velocidade'?` · duração do vídeo: ${r.duracao_s.toLocaleString('pt-BR')} s`:'')+(zs?` · ${zs} trecho(s) com velocidade própria`:'')+(r.aproximado?' (com paradas nas obras; valor aproximado)':'');
  $('duration_s').disabled=mode==='velocidade';if(mode==='velocidade')$('duration_s').value=r.duracao_s}catch(e){el.textContent=e.message}}
 for(const id of ['advance_mode','advance_speed_kmh','duration_s','camera_mode'])$(id)?.addEventListener('change',()=>{advInfo()});
-estender('load',_l=>async id=>{await _l(id);try{advInfo()}catch{}},'velocidade de avanço da apresentação');
+estender('load',_l=>async (id,options={})=>{const loaded=await _l(id,options);if(loaded===false||pid!==id)return false;if(options.resultsOnly)return loaded;try{advInfo()}catch{};return loaded},'velocidade de avanço da apresentação');
 
 // ---------- menu do botão direito: largura fixa e só os comandos da seleção ----------
 estender('openCanvasMenu',_o=>function(x,y,w){const r=canvas.getBoundingClientRect();const c={cx:(x-r.left)*canvas.width/r.width,cy:(y-r.top)*canvas.height/r.height,w};

@@ -137,7 +137,7 @@ $('texEditor')?.addEventListener('input',e=>{const card=e.target.closest('[data-
 $('texEditor')?.addEventListener('change',e=>{const card=e.target.closest('[data-tex]');if(!card||!pid)return;const v=texVals(card),k=card.dataset.tex;const tp={...(cfg.texture_params||{})};
  if(v.grao===1&&v.tom===1&&v.remendos===1&&v.fissuras===1&&v.brilho===0)delete tp[k];else tp[k]=v;cfg.texture_params=tp;scheduleSave();msg(`Textura de “${TEX_LABEL[k]}” ajustada. Gere a prévia para ver no vídeo.`)});
 $('texEditor')?.addEventListener('click',e=>{if(e.target.dataset.texreset===undefined)return;const card=e.target.closest('[data-tex]');card.querySelectorAll('input[data-f]').forEach(i=>{i.value=i.dataset.f==='brilho'?0:1;i.previousElementSibling.textContent=Number(i.value).toFixed(2)});texPrev(card);const tp={...(cfg.texture_params||{})};delete tp[card.dataset.tex];cfg.texture_params=tp;scheduleSave()});
-estender('load',_l7=>async id=>{await _l7(id);try{texUi()}catch{}},'editor de texturas');
+estender('load',_l7=>async (id,options={})=>{const loaded=await _l7(id,options);if(loaded===false||pid!==id)return false;if(options.resultsOnly)return loaded;try{texUi()}catch{};return loaded},'editor de texturas');
 
 // ---------- desenho dos extras ----------
 estender('draw',_d2=>function(){_d2();if(!ready())return;try{drawSelSet();drawSelSeg();drawBox();drawHud()}catch(err){}},'desenho dos extras');

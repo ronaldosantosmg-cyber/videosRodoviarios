@@ -40,7 +40,7 @@ def replace(src,dst,attempts=25):
         except PermissionError:
             if k==attempts-1:raise PermissionError(f'Arquivo em uso: {Path(dst).name}. Feche-o (player, OneDrive) e tente novamente.')
             time.sleep(.2)
-def write_json(file,data):
+def _atomic_write_json(file,data):
     """Grava JSON atomicamente e só substitui o arquivo válido anterior depois de reler o temporário.
 
     Mantém exatamente o mesmo formato/pasta das versões-base; a blindagem acontece somente durante a troca.
@@ -63,3 +63,11 @@ def job(jid):
     with connect() as c:r=c.execute('SELECT * FROM jobs WHERE id=?',(jid,)).fetchone()
     if not r:raise FileNotFoundError('Tarefa não encontrada.')
     return dict(r)
+
+
+def write_json(file,data):
+    file=Path(file)
+    if file.name=='config.json':
+        from .project_state import save_config
+        return save_config(file.parent,data)
+    return _atomic_write_json(file,data)

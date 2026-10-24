@@ -14,7 +14,11 @@ function redo(){const current=JSON.stringify(M);while(redoStack.length){const sn
 function updateUndo(){$('undo').disabled=!undoStack.length;$('redo').disabled=!redoStack.length}
 let saveTimer=null;
 let savePending=false;
-function scheduleSave(){if(!pid)return;savePending=true;$('saveState').textContent='alterações não salvas…';clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{try{await save();savePending=false;$('saveState').textContent='salvo na configuração'}catch(e){$('saveState').textContent='não salvo: '+e.message;msg('A alteração NÃO foi salva: '+e.message+' Corrija o valor ou use Desfazer.',true)}},900)}
+// Uma fila por projeto impede que uma resposta antiga confirme uma edição nova.
+const projectSession={revision:null,epoch:0,context:0,loadIntent:0,queue:Promise.resolve(),artifacts:{}};
+window.RodoviaProjectState=Object.freeze({get snapshot(){return {project:pid,revision:projectSession.revision,epoch:projectSession.epoch,dirty:savePending,artifacts:structuredClone(projectSession.artifacts),undo:undoStack.length,redo:redoStack.length}}});
+function scheduleSave(){if(!pid)return;projectSession.epoch++;savePending=true;$('saveState').textContent='alterações não salvas…';clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{try{await save()}catch(e){$('saveState').textContent='não salvo: '+e.message;msg('A alteração NÃO foi salva: '+e.message+' Corrija o valor ou use Desfazer.',true)}},900)}
+
 
 /* ---------- Configuração ---------- */
 const fields=['name','origin','destination','work_year','crs','units_to_m','imagery','width','fps','duration_s','view_width_m','imagery_pixels','traffic_speed_kmh','preview_mode','preview_time_s','encoder','cpu_preset','short_video_mode','visual_quality','water_texture_opacity','water_names_opacity','render_workers','render_profile','signage_style','flow_arrows','flow_arrow_spacing_m','cities_radius_km','imagery_detail','traffic_model','traffic_density','traffic_capacity_vphpl','median_crossing','day_night','night_start_s','night_transition_s','night_darkness','signage_detail','lane_width_m','dxf_signage','texture_style','earthwork_look','detail_resolution_m','lane_arrow_repeat','arrow_min_gap_m','layer_split','lanes_per_direction','style_profile','camera_mode','vehicle_paths','direction_reference','pavement_material','existing_material','shoulder_material','joint_spacing_m','project_contrast','render_engine'];
@@ -29,15 +33,41 @@ function collect(){let s={...cfg};for(const k of fields){const el=$(k);if(el)s[k
  for(const k of MARK_KEYS)s[k]=JSON.parse(JSON.stringify(M[k]));M.dxf_alignment.mode=$('alignMode').value;s.dxf_alignment.mode=M.dxf_alignment.mode;
  s.layers={};document.querySelectorAll('#layers select').forEach(el=>{if(el.value)(s.layers[el.value]??=[]).push(el.dataset.layer)});if(!analysis)s.layers=cfg.layers||{};
  s.route_directions={...(cfg.route_directions||{})};document.querySelectorAll('#routes select').forEach(el=>s.route_directions[el.dataset.route]=el.value);return s}
-async function save(){requireProject();const s=collect();await api('/api/projects/'+pid+'/config',json('PUT',s));cfg=s;savePending=false;announce({t:'saved'});$('configDownload').href='/api/projects/'+pid+'/config.json';$('configDownload').hidden=false}
+async function save(){
+ requireProject();const id=pid,context=projectSession.context,epoch=projectSession.epoch,s=collect(),payload=JSON.stringify(s);clearTimeout(saveTimer);
+ const pending=projectSession.queue.catch(()=>{}).then(async()=>{
+   if(pid!==id||projectSession.context!==context)throw Error('O projeto mudou antes da gravação.');
+   const options=json('PUT',s);if(projectSession.revision)options.headers['If-Match']=projectSession.revision;
+   const result=await api('/api/projects/'+id+'/config',options);
+   if(pid!==id||projectSession.context!==context)return result;
+   projectSession.revision=result.config_revision||result.revision||projectSession.revision;projectSession.artifacts=result.artifacts||{};
+   const unchanged=projectSession.epoch===epoch&&JSON.stringify(collect())===payload;
+   if(unchanged){cfg=result.config||s;savePending=false;$('saveState').textContent='salvo na configuração';announce({t:'saved'})}
+   else{savePending=true;$('saveState').textContent='alterações posteriores aguardam gravação…'}
+   window.dispatchEvent(new CustomEvent('rodovia:project-state',{detail:{project:id,...result}}));$('configDownload').href='/api/projects/'+id+'/config.json';$('configDownload').hidden=false;return result;
+ });projectSession.queue=pending;
+ try{return await pending}catch(e){if(pid===id&&projectSession.context===context){savePending=true;$('saveState').textContent='não salvo: '+e.message}throw e}
+}
+
 async function list(){const rows=await api('/api/projects');$('projects').innerHTML='<option value="">Selecione…</option>'+rows.map(r=>`<option value="${r.id}">${esc(r.name)} · ${esc(r.created)}</option>`).join('');$('projects').value=pid}
 function showLayers(){if(!analysis)return;$('layers').innerHTML=analysis.layers.map(l=>{let current=Object.entries(cfg.layers||{}).find(([k,v])=>v.includes(l.name))?.[0]||(!Object.keys(cfg.layers||{}).length?l.suggested_role:'');return `<tr><td>${esc(l.name)}<br><small>${l.count} entidades</small></td><td><select data-layer="${esc(l.name)}"><option value="">Ignorar</option>${Object.entries(roles).map(([k,v])=>`<option value="${k}" ${k===current?'selected':''}>${v}</option>`).join('')}</select></td><td><button class="mini" data-showlayer="${esc(l.name)}" title="Destacar esta camada no editor">Ver</button></td></tr>`}).join('');showRoleColors();
  $('routes').innerHTML=analysis.routes.map(r=>`<tr><td>Eixo ${r.id} · ${r.length_m.toFixed(1)} m<br>${esc(r.layer)}</td><td><select data-route="${r.id}">${[['auto','Automático'],['forward','Crescente (km)'],['reverse','Decrescente (km)'],['off','Sem veículos']].map(([k,v])=>`<option value="${k}" ${(cfg.route_directions||{})[r.id]===k?'selected':''}>${v}</option>`).join('')}</select></td></tr>`).join('');
  $('warnings').textContent=(analysis.warnings||[]).join('\n');$('geom').textContent=`Comprimento geométrico: ${(analysis.geometric_length_m/1000).toFixed(3)} km. A extensão de referência permanece independente.`+(analysis.georef_check?` Conferência DXF × KMZ (${analysis.georef_check.points} pontos ao longo do eixo): desvio mediano ${analysis.georef_check.median_m.toFixed(2)} m, 95% até ${analysis.georef_check.p95_m.toFixed(2)} m, máximo ${analysis.georef_check.max_m.toFixed(2)} m.`:' Sem KMZ: a posição não foi conferida contra outra referência.')}
-async function load(id){pid=id;localStorage.setItem('rodovia_project',pid);const r=await api('/api/projects/'+pid);fill(r.config);lastRender=r.render_info||null;analysis=r.analysis||null;meta=r.preview||null;
- $('fileState').textContent=`DXF: ${r.files.dxf?'carregado':'ausente'} · KMZ: ${r.files.kmz?'carregado':'ausente'}`;showLayers();$('projects').value=pid;$('configDownload').href='/api/projects/'+pid+'/config.json';$('configDownload').hidden=false;
- editor=null;if(r.editor_ready||meta)try{editor=await api('/api/projects/'+pid+'/editor.json')}catch{}
- const same=geoPid===pid;await loadGeo();
- if(meta)await loadImage(same&&useGeo());else{baseImage=null;if(!same||!ready())fitView();else draw()}refreshLists();baseUi()}
-async function loadImage(keepView=false){if(!meta)return;const im=new Image();await new Promise((resolve,reject)=>{im.onload=resolve;im.onerror=()=>reject(Error('Não foi possível carregar a prévia.'));im.src='/api/projects/'+pid+'/preview.png?v='+Date.now()});baseImage=im;if(keepView)draw();else fitView();}
+async function load(id,options={}){
+ const intent=++projectSession.loadIntent,resultsOnly=!!options.resultsOnly&&pid===id;
+ if(!resultsOnly&&pid&&savePending)await save();
+ const openingFingerprint=!resultsOnly&&pid?JSON.stringify(collect()):null;
+ const r=await api('/api/projects/'+id);if(intent!==projectSession.loadIntent)return false;
+ if(!resultsOnly&&pid&&(savePending||JSON.stringify(collect())!==openingFingerprint)){savePending=true;throw Error('Existem novas alterações feitas durante a abertura. Salve-as antes de trocar de projeto.')}
 
+ if(!resultsOnly){clearTimeout(saveTimer);pid=id;projectSession.context++;projectSession.epoch=0;savePending=false;localStorage.setItem('rodovia_project',pid);fill(r.config);projectSession.revision=r.config_revision||null}
+ projectSession.artifacts=r.artifacts||{};lastRender=r.render_info||null;analysis=r.analysis||null;meta=r.preview||null;
+ $('fileState').textContent=`DXF: ${r.files.dxf?'carregado':'ausente'} · KMZ: ${r.files.kmz?'carregado':'ausente'}`;if(!resultsOnly)showLayers();$('projects').value=pid;$('configDownload').href='/api/projects/'+pid+'/config.json';$('configDownload').hidden=false;
+ let nextEditor=null;if(r.editor_ready||meta)try{nextEditor=await api('/api/projects/'+id+'/editor.json')}catch{}
+ if(intent!==projectSession.loadIntent||pid!==id)return false;editor=nextEditor;
+ const same=geoPid===pid;await loadGeo();if(intent!==projectSession.loadIntent||pid!==id)return false;
+ if(meta)await loadImage(same&&useGeo());else{baseImage=null;if(!same||!ready())fitView();else draw()}
+ if(intent!==projectSession.loadIntent||pid!==id)return false;refreshLists();baseUi();
+ window.dispatchEvent(new CustomEvent('rodovia:project-state',{detail:{project:id,...r}}));if(r.recovery)msg(r.recovery.message);return true;
+}
+async function loadImage(keepView=false){if(!meta)return;const id=pid,context=projectSession.context,im=new Image();await new Promise((resolve,reject)=>{im.onload=resolve;im.onerror=()=>reject(Error('Não foi possível carregar a prévia.'));im.src='/api/projects/'+id+'/preview.png?v='+Date.now()});if(pid!==id||projectSession.context!==context)return;baseImage=im;if(keepView)draw();else fitView();}

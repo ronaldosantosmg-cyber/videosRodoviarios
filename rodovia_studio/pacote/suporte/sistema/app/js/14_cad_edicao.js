@@ -141,7 +141,7 @@ estender('cursorInfo',_ci=>function(w){_ci(w);if(!w)return;const c=$('cursor');c
 // ---------- salvar / salvar como / excluir ----------
 $('saveProject')?.addEventListener('click',guard(async()=>{requireProject();await save();$('saveState').textContent='salvo '+new Date().toLocaleTimeString();msg('Projeto salvo.')}));
 $('saveAsProject')?.addEventListener('click',guard(async()=>{requireProject();await save();const name=prompt('Nome da cópia do projeto:',(cfg.name||'Projeto')+' (cópia)');if(!name)return;const r=await api(`/api/projects/${pid}/save_as`,json('POST',{name}));await list();await load(r.id);msg(`Projeto salvo como “${r.name}”. Você está trabalhando na cópia.`)}));
-estender('load',_l4=>async id=>{snapIndex=null;sel=null;showProps();await _l4(id)},'salvar / salvar como / excluir');
+estender('load',_l4=>async (id,options={})=>{if(!options.resultsOnly){snapIndex=null;sel=null;showProps();}const loaded=await _l4(id,options);if(loaded===false||pid!==id)return false;if(options.resultsOnly)return loaded;;return loaded},'salvar / salvar como / excluir');
 estender('loadGeo',_lg=>async(...a)=>{snapIndex=null;return _lg(...a)},'salvar / salvar como / excluir');
 buildToolbar();
 

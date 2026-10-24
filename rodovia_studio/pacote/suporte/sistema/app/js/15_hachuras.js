@@ -10,5 +10,5 @@ function aciHex(t){const n=parseInt(String(t).replace(/\D/g,''));const T={1:'#ff
 $('hatchList')?.addEventListener('change',e=>{const tr=e.target.closest('tr[data-sig]');if(!tr||!pid)return;const sig=tr.dataset.sig,role=tr.querySelector('[data-hk=role]').value,material=tr.querySelector('[data-hk=material]').value;
  const hr={...(cfg.hatch_roles||{})};if(!role)delete hr[sig];else hr[sig]={role,material};cfg.hatch_roles=hr;scheduleSave();msg('Tipo da hachura definido. Clique “Analisar arquivos” para aplicar.')});
 $('hatchList')?.addEventListener('click',e=>{if(e.target.id!=='hatchSuggest')return;const hr={...(cfg.hatch_roles||{})};let n=0;for(const h of analysis?.hatches||[]){if(h.suggested_role&&!hr[h.sig]){hr[h.sig]={role:h.suggested_role,material:h.suggested_material||'auto'};n++}}cfg.hatch_roles=hr;scheduleSave();hatchUi();msg(`${n} sugestão(ões) aplicadas. Clique “Analisar arquivos”.`)});
-estender('load',_l6=>async id=>{await _l6(id);try{hatchUi()}catch{}},'1.24: hachuras do DXF');
+estender('load',_l6=>async (id,options={})=>{const loaded=await _l6(id,options);if(loaded===false||pid!==id)return false;if(options.resultsOnly)return loaded;try{hatchUi()}catch{};return loaded},'1.24: hachuras do DXF');
 

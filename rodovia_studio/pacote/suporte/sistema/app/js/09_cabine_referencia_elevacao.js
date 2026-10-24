@@ -3,7 +3,7 @@ const CAB={cabinEnabled:'enabled',cabinDuration:'duration_s',cabinHeight:'eye_he
 function cabinUi(){const c=M.cabin||{};for(const [id,k] of Object.entries(CAB)){const el=$(id);if(el.type==='checkbox')el.checked=k==='hood'?c[k]!==false:!!c[k];else el.value=c[k]??''}$('cabinState').textContent=c.start?`Início: X ${c.start.x.toFixed(1)} Y ${c.start.y.toFixed(1)}`+(editor?` · km ${formatKm(kmOf(c.start)?.km)}`:''):'Início não definido.';
  const img=$('cabinPreview');if(pid&&c.enabled){img.src=`/api/projects/${pid}/preview_cabin.png?v=${Date.now()}`;img.onload=()=>img.hidden=false;img.onerror=()=>img.hidden=true}else img.hidden=true}
 for(const [id,k] of Object.entries(CAB))$(id).addEventListener('change',()=>{const el=$(id);checkpoint();M.cabin={...M.cabin,[k]:el.type==='checkbox'?el.checked:(el.value===''?null:Number(el.value))};changed();cabinUi()});
-const _loadD=load;load=async id=>{await _loadD(id);cabinUi()};
+const _loadD=load;load=async (id,options={})=>{const loaded=await _loadD(id,options);if(loaded===false||pid!==id)return false;if(options.resultsOnly)return loaded;cabinUi();return loaded};
 
 /* ---------- Ficha técnica de referência ---------- */
 const fmtv=v=>v==null?'—':typeof v==='number'?(Math.abs(v)>=1000?v.toLocaleString('pt-BR'):String(v).replace('.',',')):esc(v);
@@ -11,7 +11,7 @@ async function showReference(){try{const r=await api('/api/reference/profile');c
 async function showComparison(){if(!pid)return;try{const c=await api(`/api/projects/${pid}/comparison`);if(!c.rows.length){$('compareTable').innerHTML='';return}$('compareTable').innerHTML=`<table><tr><th>Item</th><th>Referência</th><th>Vídeo gerado</th><th>Diferença</th></tr>${c.rows.map(r=>`<tr><td>${esc(r.label)}</td><td>${fmtv(r.reference)}</td><td>${fmtv(r.current)}</td><td>${r.delta_pct==null?'':(r.delta_pct>0?'+':'')+String(r.delta_pct).replace('.',',')+'%'}</td></tr>`).join('')}</table>`+(c.reference_status!=='completa'?'<p class="muted">A referência ainda não tem métricas de imagem: use “Medir referência…” enquanto o vídeo existir.</p>':'')}catch{$('compareTable').innerHTML=''}}
 $('compareRun').onclick=guard(async()=>{requireProject();clearTimeout(saveTimer);await save();const r=await api(`/api/projects/${pid}/compare`,{method:'POST'});await poll(r.id);await showComparison()});
 $('refProfile').onclick=guard(async()=>{requireProject();if(!confirm('Medir o vídeo de referência, gravar a ficha técnica e REMOVER o arquivo referencia.mp4 (456 MB) da pasta do aplicativo? A remoção só acontece se a ficha for gravada.'))return;const r=await api(`/api/projects/${pid}/reference_profile?remove=true`,{method:'POST'});await poll(r.id);await showReference()});
-const _loadR=load;load=async id=>{await _loadR(id);showComparison()};
+const _loadR=load;load=async (id,options={})=>{const loaded=await _loadR(id,options);if(loaded===false||pid!==id)return false;if(options.resultsOnly)return loaded;showComparison();return loaded};
 showReference();
 
 /* ---------- 1.7: elevação ---------- */
@@ -20,5 +20,5 @@ function elUi(){const e=cfg.elevation||{};for(const [id,k] of Object.entries(EL)
 for(const [id,k] of Object.entries(EL))$(id).addEventListener('change',()=>{const el=$(id);cfg.elevation={...(cfg.elevation||{}),[k]:el.type==='checkbox'?el.checked:el.type==='number'?Number(el.value):el.value};elUi();scheduleSave()});
 $('elUpload').onclick=guard(async()=>{requireProject();const fs=$('elFiles').files;if(!fs.length)throw Error('Selecione o MDT.');clearTimeout(saveTimer);await save();const d=new FormData();for(const f of fs)d.append('files',f);d.append('crs',$('elCrs').value);const r=await api(`/api/projects/${pid}/elevation`,{method:'POST',body:d});await load(pid);msg('MDT local aceito. Clique “Atualizar fluxos”.')});
 let zTimer=null,zLast='';canvas.addEventListener('pointermove',e=>{if(!ready()||!pid||!(cfg.elevation&&cfg.elevation.source!=='none'))return;clearTimeout(zTimer);zTimer=setTimeout(async()=>{const w=lastWorld;if(!w)return;try{const r=await api(`/api/projects/${pid}/elevation_at?x=${w.x}&y=${w.y}`);if(r.z!=null){const c=$('cursor');c.textContent=c.textContent.replace(/ · cota .*$/,'')+` · cota ${r.z.toFixed(1)} m`}}catch{}},150)});
-const _loadE=load;load=async id=>{await _loadE(id);elUi()};
+const _loadE=load;load=async (id,options={})=>{const loaded=await _loadE(id,options);if(loaded===false||pid!==id)return false;if(options.resultsOnly)return loaded;elUi();return loaded};
 

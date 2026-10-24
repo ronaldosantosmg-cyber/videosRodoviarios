@@ -23,7 +23,7 @@ $('sessDel')?.addEventListener('click',guard(async()=>{const name=$('sessList').
 function autoSession(){if(!pid||!ready())return;clearTimeout(sessTimer);sessTimer=setTimeout(()=>saveSession('(última)',true).then(()=>{lastAutoSession=sessionState()}).catch(()=>{}),4000)}
 canvas.addEventListener('wheel',autoSession,{passive:true});canvas.addEventListener('pointerup',autoSession);
 window.addEventListener('beforeunload',()=>{if(!pid||!ready())return;try{navigator.sendBeacon&&fetch(`/api/projects/${pid}/sessoes/${encodeURIComponent('(última)')}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({state:sessionState()}),keepalive:true})}catch{}});
-estender('load',_l=>async id=>{await _l(id);const S=await sessionsUi();if($('sessAuto')?.checked&&lastAutoSession){restoreSession(lastAutoSession);msg('Sessão anterior retomada (vista e ferramenta).')}},'sessões de trabalho');
+estender('load',_l=>async (id,options={})=>{const loaded=await _l(id,options);if(loaded===false||pid!==id)return false;if(options.resultsOnly)return loaded;const S=await sessionsUi();if($('sessAuto')?.checked&&lastAutoSession){restoreSession(lastAutoSession);msg('Sessão anterior retomada (vista e ferramenta).')};return loaded},'sessões de trabalho');
 
 // ---------- regenerar prévia ----------
 $('regenPreview')?.addEventListener('click',guard(async()=>{requireProject();if(!analysis)throw Error('Analise os arquivos primeiro.');const mode=$('preview_mode').value;msg(`Regenerando a prévia (${$('preview_mode').selectedOptions[0]?.textContent||mode})…`);await start('preview');msg('Prévia regenerada.')}));

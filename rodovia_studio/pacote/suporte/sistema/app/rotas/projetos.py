@@ -127,19 +127,23 @@ def project_rename(pid,body:RenameBody):
 def example():raise HTTPException(410,'O exemplo histórico foi arquivado. Crie um projeto identificado e envie seu DXF/KMZ.')
 @router.get('/api/projects/{pid}')
 def get_project(pid):
-    d=store.directory(pid);r={'id':pid,'config':Settings.model_validate_json((d/'config.json').read_text(encoding='utf-8')).model_dump(),'files':{'dxf':(d/'input.dxf').exists(),'kmz':(d/'input.kmz').exists()},'files_info':_files_info(d)}
+    from ..project_state import state
+    d=store.directory(pid);snapshot=state(d);r={**snapshot,'id':pid,'config':Settings.model_validate(snapshot['config']).model_dump(),'files':{'dxf':(d/'input.dxf').exists(),'kmz':(d/'input.kmz').exists()},'files_info':_files_info(d)}
     if (d/'analysis.json').exists():r['analysis']=json.loads((d/'analysis.json').read_text(encoding='utf-8'))
     if (d/'video.json').exists():r['render_info']=json.loads((d/'video.json').read_text(encoding='utf-8'))
-    if (d/'preview.json').exists():r['preview']=json.loads((d/'preview.json').read_text(encoding='utf-8'))
+    if snapshot['artifacts']['preview']['state'] in ('ready','unverified') and (d/'preview.json').exists():r['preview']=json.loads((d/'preview.json').read_text(encoding='utf-8'))
     r['editor_ready']=(d/'editor.json').exists()
     return r
 @router.put('/api/projects/{pid}/config')
-def config(pid,s:Settings):
+def config(pid,s:Settings,request:Request):
     # 1.28: a configuração pode ser salva com uma tarefa em andamento (a tarefa já leu a configuração ao começar).
     # Antes a gravação era recusada e a edição feita durante a tarefa se perdia ao recarregar.
-    d=store.directory(pid);store.write_json(d/'config.json',s.model_dump())
+    from ..project_state import save_config,state,Conflict
+    d=store.directory(pid)
+    try:result=save_config(d,s,request.headers.get('if-match'))
+    except Conflict as e:raise HTTPException(409,str(e))
     with store.connect() as c:c.execute('UPDATE projects SET name=? WHERE id=?',(s.name,pid))
-    return {'ok':True}
+    return {'ok':True,**result,**state(d)}
 @router.get('/api/projects/{pid}/config.json')
 def config_file(pid):return FileResponse(store.directory(pid)/'config.json',filename='configuracao_rodovia.json')
 
@@ -178,3 +182,24 @@ async def import_markings(pid,file:UploadFile=File(...)):
     if not counts:raise HTTPException(422,'Nenhuma marcação do Rodovia Studio encontrada no arquivo.')
     s=Settings.model_validate(cfg);_save_config(pid,s)
     return {'imported':counts}
+
+
+@router.get('/api/projects/{pid}/history')
+def project_history(pid):
+    from ..project_state import history
+    return history(store.directory(pid))
+
+class RestoreBody(_BM):
+    revision:str=Field(pattern=r'^[0-9a-f]{64}$')
+
+@router.post('/api/projects/{pid}/history/restore')
+def project_restore(pid,body:RestoreBody,request:Request):
+    from ..project_state import restore,state,Conflict
+    idle(pid);d=store.directory(pid)
+    if not request.headers.get('if-match'):raise HTTPException(428,'Reabra o projeto antes de recuperar uma revisão.')
+    try:restore(d,body.revision,request.headers['if-match'])
+    except Conflict as e:raise HTTPException(409,str(e))
+    except (ValueError,OSError) as e:raise HTTPException(422,str(e))
+    result=state(d)
+    with store.connect() as c:c.execute('UPDATE projects SET name=? WHERE id=?',(result['config'].get('name',''),pid))
+    return result

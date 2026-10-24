@@ -52,7 +52,7 @@ function trackPointer(){
   canvas.addEventListener('pointerleave',()=>{S.inside=false},{passive:true});
 }
 function wrapAsyncReload(){
-  if(typeof load==='function'&&!load.__rs1403){const prev=load;const fn=async function(id){const st=capture(),same=st.pid&&String(st.pid)===String(id);const r=await prev(id);if(same)requestAnimationFrame(()=>restore(st));return r};fn.__rs1403=true;load=fn}
+  if(typeof load==='function'&&!load.__rs1403){const prev=load;const fn=async function(id,...args){const st=capture(),same=st.pid&&String(st.pid)===String(id);const r=await prev(id,...args);if(r!==false&&same&&pid===id&&!args[0]?.resultsOnly)requestAnimationFrame(()=>{if(pid===id)restore(st)});return r};fn.__rs1403=true;load=fn}
   if(typeof regenScreen==='function'&&!regenScreen.__rs1403){const prev=regenScreen;const fn=function(...a){const st=capture();const r=prev(...a);requestAnimationFrame(()=>restore(st,{selection:true,anchor:true}));return r};fn.__rs1403=true;regenScreen=fn}
   if(typeof resizeCanvas==='function'&&!resizeCanvas.__rs1403){const prev=resizeCanvas;const fn=function(...a){const st=capture();const r=prev(...a);requestAnimationFrame(()=>restore(st,{selection:true,anchor:true}));return r};fn.__rs1403=true;resizeCanvas=fn}
 }

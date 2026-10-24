@@ -30,11 +30,14 @@ def routes_preview(body:RoutesBody):
 def editor_file(pid):
     path=store.directory(pid)/'editor.json'
     if not path.exists():raise HTTPException(404,'Gere uma prévia para carregar o editor.')
-    from ..scene3d import revision
+    from ..dependencies import revisions
     try:
-        if json.loads(path.read_text()).get('engine_revision')!=revision(path.parent):raise HTTPException(409,'Editor desatualizado. Recalcule os fluxos.')
+        data=json.loads(path.read_text())
+        if data.get('engine_revision')!=revisions(path.parent)['editor']:raise HTTPException(409,'Editor desatualizado. Recalcule os fluxos.')
     except (ValueError,OSError):raise HTTPException(409,'Editor inválido. Recalcule os fluxos.')
-    return FileResponse(path,media_type='application/json',headers={'Cache-Control':'no-store'})
+    from ..artifacts import require_current
+    require_current(path.parent,'editor')
+    return JSONResponse(data,headers={'Cache-Control':'no-store'})
 
 @router.post('/api/projects/{pid}/validate_path')
 def validate_path(pid,body:dict):
@@ -171,6 +174,8 @@ def project_snap(pid,x0:float,y0:float,x1:float,y1:float):
 def project_vectors(pid):
     f=store.directory(pid)/'vectors.json'
     if not f.exists():raise HTTPException(404,'Analise os arquivos para gerar os vetores do editor.')
+    from ..artifacts import require_current
+    require_current(f.parent,'vectors')
     return FileResponse(f,media_type='application/json',headers={'Cache-Control':'no-store'})
 
 # ---------------- 1.10: cidades próximas ----------------
@@ -197,7 +202,9 @@ def scene3d_file(pid):
         data=json.loads(f.read_text(encoding='utf-8'))
         if data.get('revision')!=revision(d):raise HTTPException(409,'Cena desatualizada. Reconstrua o 3D.')
     except (ValueError,OSError):raise HTTPException(409,'Cena inválida. Reconstrua o 3D.')
-    return FileResponse(f,media_type='application/json',headers={'Cache-Control':'no-store'})
+    from ..artifacts import require_current
+    require_current(d,'scene3d')
+    return JSONResponse(data,headers={'Cache-Control':'no-store'})
 
 from typing import Literal
 class Camera3D(_BM):

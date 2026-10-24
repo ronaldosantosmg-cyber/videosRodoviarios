@@ -18,8 +18,8 @@ function previewVisible(){return !useGeo()||baseMode==='preview'}
 scheduleViewPreview=function(){previewStale=true;draw();if(!autoPrev||!pid||!ready()||!previewVisible())return;clearTimeout(prevTimer);prevTimer=setTimeout(runViewPreview,2500)};
 $('baseMode')?.addEventListener('change',()=>{if(previewStale&&autoPrev&&previewVisible()){clearTimeout(prevTimer);prevTimer=setTimeout(runViewPreview,300)}});
 // Recarregar o mesmo projeto (ao terminar uma tarefa) não apaga o histórico de desfazer nem a seleção.
-estender('load',_l=>async id=>{const same=id===pid&&!!pid;const u=undoStack.slice(),r=redoStack.slice(),S=sel,SS=selSet.slice(),seg=selSeg;await _l(id);
- if(same){undoStack=u;redoStack=r;updateUndo();if(S&&objOf(S)){sel=S;selSet=SS.filter(x=>objOf(x));showProps()}if(seg&&segById(seg.id)){selSeg=seg;showSegProps()}draw()}},'Recarregar o mesmo projeto (ao terminar uma tarefa) não apaga o histór');
+estender('load',_l=>async (id,options={})=>{const same=id===pid&&!!pid;const u=undoStack.slice(),r=redoStack.slice(),S=sel,SS=selSet.slice(),seg=selSeg;const loaded=await _l(id,options);if(loaded===false||pid!==id)return false;if(options.resultsOnly||options.resetHistory)return loaded;
+ if(same){undoStack=u;redoStack=r;updateUndo();if(S&&objOf(S)){sel=S;selSet=SS.filter(x=>objOf(x));showProps()}if(seg&&segById(seg.id)){selSeg=seg;showSegProps()}draw()}return loaded},'Recarregar o mesmo projeto (ao terminar uma tarefa) não apaga o histór');
 async function runViewPreview(){if(!autoPrev||!pid||!ready())return;if(task||drag||draft||cadCmd){prevQueued=true;clearTimeout(prevTimer);prevTimer=setTimeout(runViewPreview,1500);return}
  prevQueued=false;try{const c=C2W(canvas.width/2,canvas.height/2),a=C2W(0,canvas.height/2),b=C2W(canvas.width,canvas.height/2);cfg.preview_center=c;cfg.preview_width_m=Math.max(5,Math.min(50000,Math.hypot(b.x-a.x,b.y-a.y)));$('preview_mode').value='custom';
   msg('Aplicando as alterações à prévia desta vista…');await start('preview');previewStale=false;draw();msg('Prévia atualizada com as alterações.')}catch(e){msg('A prévia não foi atualizada: '+e.message,true)}}
