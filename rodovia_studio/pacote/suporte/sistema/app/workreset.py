@@ -12,7 +12,7 @@ GROUPS={
     'obras':('Intervenções, PER, destaques, interdições e cabine',['pois','works','highlights','lane_blocks','cabin']),
     'sinalizacao':('Placas, faixas de pedestre, zebrados e áreas sem sinalização',['signs','crosswalks','hatch_areas','clean_areas']),
     'geometria':('Acessos, 3ª faixa, faixas por trecho, OAE e exclusões',['accesses','lane_ranges','lane_zones','oae_marks','exclusions']),
-    'fluxos':('Fluxos manuais, sentidos, inversões, sem conexão e travessias',['traffic_paths','direction_marks','flow_overrides','no_connection_zones','crossing_zones','route_directions','route_alignments']),
+    'fluxos':('Fluxos manuais, sentidos, inversões, sem conexão e travessias',['traffic_paths','direction_marks','flow_overrides','no_connection_zones','crossing_zones','route_directions','route_alignments','railways','traffic_signals','signal_links']),
     'cidades':('Cidades marcadas',['cities']),
 }
 DEFAULT=('obras','sinalizacao')

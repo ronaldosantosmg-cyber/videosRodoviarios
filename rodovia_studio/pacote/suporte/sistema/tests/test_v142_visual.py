@@ -41,7 +41,7 @@ def test_model_menu_cascades_and_selects_tool(page):
     page.get_by_role('menuitem',name='Modelar',exact=True).click()
     assert page.locator('.rsCascade').count()==1
     root=page.locator('.rsCascade').first
-    assert root.get_by_role('menuitem').count()<=6
+    assert root.get_by_role('menuitem').count()<=7
     root.get_by_role('menuitem',name='Tráfego e ligações',exact=True).hover()
     assert page.locator('.rsCascade').count()==2
     submenu=page.locator('.rsCascade').nth(1)

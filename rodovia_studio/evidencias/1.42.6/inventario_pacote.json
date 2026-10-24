@@ -1,0 +1,11 @@
+{
+  "version": "1.42.6",
+  "bytes": 8593628,
+  "sha256": "e3e959db6cef9a8fd5c8cbadad87c71614e5d19fc7bff81f3bec333143a8d316",
+  "files": 289,
+  "runtime_transport_modules": true,
+  "installed_test_files": 0,
+  "embedded_user_projects_or_videos": false,
+  "zip_integrity": true,
+  "dnit_normative_validation": false
+}

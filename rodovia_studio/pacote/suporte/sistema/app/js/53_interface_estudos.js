@@ -16,6 +16,7 @@ function modelGroups(){
   ['Traçado e referências',['align','route','chain','chainend','pair','imgadjust']],
   ['Pavimento e superfícies',['pavarea','pavpick','shoulder','hatch','cleanarea','exvert','exlasso','exedit']],
   ['Tráfego e ligações',['flowadd','flowrev','flowoff','linkforce','noconn','noconnarea','dir','arrowrot','lanes','lanerange','block','crossok','crossno']],
+  ['Ferrovia e semáforos',['railway','traffic_signal','signal_link']],
   ['Sinalização e estruturas',['sign','crosswalk','gantry','oae','oaepoly','access']],
   ['Apresentação e ambiente',['highlight','poi','city','advzone','veg','pedpath']]
  ].map(([t,ids])=>({t,sub:ids.map(id=>{known.add(id);return toolItem(id)}).filter(Boolean)}));

@@ -415,6 +415,9 @@ class Scene:
                 if sp.white:self.marking_colors[mw]=hx(sp.white)
                 if sp.yellow:self.marking_colors[my]=hx(sp.yellow)
             self.paint_items=[(c,r,rings,tuple(int(v) for v in (hx(sp.white) if sp.white and tuple(col)==signage.WHITE else hx(sp.yellow) if sp.yellow and tuple(col)==signage.YELLOW else col))) for c,r,rings,col in self.paint_items]
+        if getattr(self.s,'railways',[]) or getattr(self.s,'traffic_signals',[]):
+            from .transport import Transport
+            controls=Transport(self.s,self.network).report();self.report['transport_controls']=controls;self.report['warnings'].extend(controls['warnings'])
         self.report['traffic_network']=self.network.report
         self.report['warnings'].extend(self.network.warnings)
         (self.directory/'traffic_network.json').write_text(json.dumps(self.network.report,ensure_ascii=False,indent=2),encoding='utf-8')
@@ -829,7 +832,8 @@ class Scene:
 
     def traffic(self,status=lambda *a:None):
         """1.12: simulação sem colisões (calculada uma vez); 'anterior' mantém o movimento da 1.11."""
-        if getattr(self.s,'traffic_model','simulado')!='simulado' or not self.s.traffic:return None
+        controls=any(r.enabled for r in getattr(self.s,'railways',[])) or any(s.enabled for s in getattr(self.s,'traffic_signals',[]))
+        if not self.s.traffic or (getattr(self.s,'traffic_model','simulado')!='simulado' and not controls):return None
         if getattr(self,'_sim',None) is None:
             from .simulation import TrafficSim
             mix=getattr(self.s,'vehicle_mix','classico')   # 1.37: frota variada
@@ -971,6 +975,8 @@ class Scene:
         if ad is not None:
             antes=self.draw_base(cam,width,-1.);x=int(round(ad*self.W));im[:,x:]=antes[:,x:]
         if getattr(self.s,'lane_blocks',None) and width<3000:self.draw_blocks(im,t,cam,width)
+        from . import transport_render
+        transport_render.draw_static(self,im,cam,width)
         if self.s.traffic and width<3000 and self.reveal_opacity>.9 and self.enhanced:self.draw_vehicles(im,t,cam,width,progress)
         elif self.s.traffic and width<3000 and self.reveal_opacity>.9:
             for pt,tan,k,identity in ((a,b,c,d) for a,b,c,d,_ in self.traffic_iter(t)):
@@ -990,6 +996,7 @@ class Scene:
             if getattr(self.s,'vegetation_points',None) or getattr(self.s,'vegetation_areas',None):vida.draw_vegetation(self,im,cam,width,progress,hv,fv)
             if getattr(self.s,'pedestrians',False):vida.draw_pedestrians(self,im,t,cam,width,progress,hv,fv)
         if self._night>0 and getattr(self,'_matte',None) is None:self.apply_night(im,cam,width,progress)
+        transport_render.draw_dynamic(self,im,t,cam,width)
         if getattr(self.s,'weather','limpo')!='limpo' and getattr(self,'_matte',None) is None:   # 1.36: clima
             v=getattr(self,'_via',None) if not (key and key in self.static) else getattr(self,'_via_static',None);via=None
             if v is not None:via=np.zeros((self.H,self.W),bool);y0v,sv,av=v;via[y0v:y0v+sv.shape[0]]=(sv>0)&(sv!=6)&(sv!=7)&av

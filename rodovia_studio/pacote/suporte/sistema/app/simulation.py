@@ -83,7 +83,10 @@ class TrafficSim:
         self.capacity_model=bool(getattr(s,'queue_capacity_model',True))
         self.heavy_reaction=bool(getattr(s,'heavy_vehicle_reaction',True))
         self.blocks=[Block(b) for b in getattr(s,'lane_blocks',[]) if len(b.points)>=3]
-        self.prepare();self.run(status)
+        self.prepare();
+        from .transport import Transport
+        self.transport=Transport(settings,network);self.control_stops=0
+        self.run(status)
 
     # ---------- preparação ----------
     def prepare(self):
@@ -122,14 +125,21 @@ class TrafficSim:
                     if sp:z.append((a,b,float(sp)))
             self.speedz.append(z);self.curve_env.append(curve_envelope(path['p'],path['d'],lateral_acc=LAT_ACC if curve else 4.0))
         self.rate=[];self.capacity_rate=[]
+        explicit_demand=getattr(self.s,'traffic_demand_vphpl',None)
         for path in P:
-            L=float(path['length']);count=max(1,min(16,int(L/350)));self.rate.append(self.density*count/(L/self.v0+5))
+            L=float(path['length']);count=max(1,min(16,int(L/350)));self.rate.append(self.density*count/(L/self.v0+5) if explicit_demand is None else float(explicit_demand)/3600/len(self.siblings[self.entry[len(self.rate)]]))
             # Cada path explícito representa uma faixa. A capacidade é por faixa e não altera a geometria.
             # Ramos/dispositivos recebem capacidade um pouco menor que a pista principal.
             k=str(path.get('kind') or (path.get('kinds') or ['main'])[0]).lower()
             factor=.78 if k in ('device','return') else .88 if k=='marginal' else 1.0
             self.capacity_rate.append(max(1e-6,self.capacity_vphpl*factor/3600.))
 
+        self.entry_demand_study=[]
+        if explicit_demand is not None:
+            for entry,path_ids in self.siblings.items():
+                factors=[TYPE_DYN.get(self.vtype(P[i]['kinds'],(i,j,0)),TYPE_DYN['car'])['pcu'] for i in path_ids for j in range(128)]
+                mean_pcu=float(np.mean(factors));demand=sum(self.rate[i] for i in path_ids)*3600;capacity=min(self.capacity_rate[i] for i in path_ids)*3600
+                self.entry_demand_study.append({'entry':str(entry),'demand_vehicles_h':round(demand,3),'mean_pcu_per_vehicle':round(mean_pcu,4),'demand_pcu_h':round(demand*mean_pcu,3),'capacity_pcu_h':round(capacity,3),'ratio':round(demand*mean_pcu/max(capacity,1e-6),3)})
         # Faixas irmãs: somente rotas explícitas do mesmo alinhamento e mesmo sentido podem trocar entre si.
         groups=collections.defaultdict(dict)
         for i,path in enumerate(P):
@@ -277,7 +287,7 @@ class TrafficSim:
     def run(self,status):
         rng=np.random.default_rng(1729);n=len(self.paths);t0=-WARMUP;steps=int(math.ceil((self.duration-t0)/DT))+2
         nextspawn=[t0+rng.exponential(1/max(r,1e-6)) if r>0 else math.inf for r in self.rate];pending=[0]*n;V=[]
-        last_admit=[-math.inf]*n;queue_area=[0.0]*n;max_queue_lane=[0]*n;queue_discharged=[0]*n
+        last_admit=collections.defaultdict(lambda:-math.inf);queue_area=[0.0]*n;max_queue_lane=[0]*n;queue_discharged=[0]*n
         self.info={};frames=[];vid=0;first=int(round(-t0/DT))
         self.collisions=0;self.min_gap=math.inf;self.max_queue=0;self.rerouted=0;self.spawned=0
         self.safety_interventions=0;self.lane_changes=0;self.lc_blocked_rules=0;self.lc_blocked_safety=0
@@ -296,15 +306,16 @@ class TrafficSim:
                 Lv=_LEN[vt];v0=self.v0*SPEED_FACTOR[vt]*(.92+.16*rng.random())
                 new={'id':vid,'p':j,'s':0.,'v':0.,'L':Lv,'v0':v0,'t':vt,'li':0,'lc':None,'lc_cooldown':-math.inf}
                 dyn=TYPE_DYN.get(vt,TYPE_DYN['car'])
+                if not self.transport.admission_allowed(j,t,Lv):continue
                 if self.capacity_model:
                     # Capacidade da faixa: a fila permanece na entrada e é descarregada por headway equivalente PCU.
                     min_headway=self.admission_headway(j,vt)
-                    if t-last_admit[j] < min_headway:continue
+                    if t-last_admit[self.entry[j]] < min_headway:continue
                 gap,vl=self.leader(new,occ)
                 behind=[w for o,w,wp,ws in occ.get(self.link_of[j][0][0],[]) if o<Lv+IDM['s0']]
                 if gap<IDM['s0']+1 or behind:continue
                 new['v']=min(.9*v0,math.sqrt(max(0.,2*IDM['b']*(gap-IDM['s0'])))+vl*.5) if gap<math.inf else .9*v0
-                V.append(new);self.info[vid]=(j,vt,ident);vid+=1;pending[i]-=1;self.spawned+=1;last_admit[j]=t;queue_discharged[j]+=1;occ=self.occupancy(V)
+                V.append(new);self.info[vid]=(j,vt,ident);vid+=1;pending[i]-=1;self.spawned+=1;last_admit[self.entry[j]]=t;queue_discharged[j]+=1;occ=self.occupancy(V)
             self.max_queue=max(self.max_queue,sum(pending))
             for qi,q in enumerate(pending):
                 queue_area[qi]+=q*DT;max_queue_lane[qi]=max(max_queue_lane[qi],q)
@@ -314,6 +325,10 @@ class TrafficSim:
             for v,a in zip(V,acc):
                 nv=max(0.,v['v']+a*DT);ds=max(0.,(v['v']+nv)/2*DT)
                 gap,_=self.leader(v,occ,look=max(30.,ds+10.))
+                control=min(self.transport.stop_gap(v,t,gap),self.transport.stop_gap(v,t+DT,gap))
+                if control<math.inf:
+                    if ds>max(0.,control-self.HARD_GAP):self.control_stops+=1
+                    gap=min(gap,control)
                 if math.isfinite(gap):
                     safe=max(0.,gap-self.HARD_GAP)
                     if ds>safe+1e-9:
@@ -400,7 +415,7 @@ class TrafficSim:
             if not bl.active(t):continue
             if bl.mode=='partial' and a-40<=s<=b:v0=min(v0,bl.speed);T=max(T,2.4)
             elif bl.mode=='total' and s<a:v['_stop']=a-2-v['L']/2-s
-        gap,vl,lead=self.leader_state(v,occ);stop=v.pop('_stop',math.inf)
+        gap,vl,lead=self.leader_state(v,occ);stop=min(v.pop('_stop',math.inf),self.transport.stop_gap(v,t,gap))
         if self.heavy_reaction and lead is not None and TYPE_DYN.get(lead.get('t'),{}).get('heavy'):
             # Reação a pesados: seguidor abre headway e aceita menor velocidade até existir ultrapassagem segura.
             T=max(T,2.05 if v.get('t') not in ('truck','bus','carreta') else 2.35);s0=max(s0,3.2)
@@ -458,12 +473,13 @@ class TrafficSim:
             out.append({'id':int(vid),'front':(pos+tan*length/2).tolist(),'rear':(pos-tan*length/2).tolist(),'heading':tan.tolist()})
         return out
     def report(self):
+        ratio=max([row['ratio'] for row in self.entry_demand_study],default=None)
         return {'model':'microssimulacao','vehicles':self.spawned,'rear_collisions':self.collisions,
                 'min_gap_m':None if self.min_gap==math.inf else round(self.min_gap,2),'max_waiting_at_entries':self.max_queue,
-                'rerouted':self.rerouted,'blocks':len(self.blocks),'density':self.density,'lane_changes':self.lane_changes,
+                'transport_controls':self.transport.report(),'control_stop_interventions':self.control_stops,'rerouted':self.rerouted,'blocks':len(self.blocks),'density':self.density,'lane_changes':self.lane_changes,
                 'lane_change_blocked_rule':self.lc_blocked_rules,'lane_change_blocked_safety':self.lc_blocked_safety,
                 'safety_interventions':self.safety_interventions,'collision_free':self.collisions==0,
-                'capacity_vph_per_lane':round(self.capacity_vphpl),'motion_blocked_vehicles':self.motion_blocked,'lane_change_blocked_geometry':self.lc_blocked_geometry,'motion_profiles':{f'{p}:{v}':a for (p,v),a in self.motion_cache.items()},
+                'demand_vph_per_lane':getattr(self.s,'traffic_demand_vphpl',None),'capacity_vph_per_lane':round(self.capacity_vphpl),'entry_demand_study':self.entry_demand_study,'saturation_indicator':{'status':'sobressaturado — indicativo de F' if ratio is not None and ratio>1 else 'nível de serviço não determinado','demand_capacity_ratio':ratio,'scope':'Estimativa com fatores de equivalência internos; não é classificação DNIT/HCM. Depende de tipo de via, velocidade, densidade, atrasos e método aplicável.'},'motion_blocked_vehicles':self.motion_blocked,'lane_change_blocked_geometry':self.lc_blocked_geometry,'motion_profiles':{f'{p}:{v}':a for (p,v),a in self.motion_cache.items()},
                 'max_queue_by_lane':list(getattr(self,'max_queue_lane',[])),
                 'current_queue_by_lane':list(getattr(self,'current_queue',[])),
                 'queue_vehicle_seconds_by_lane':[round(x,1) for x in getattr(self,'queue_area_vehicle_s',[])],

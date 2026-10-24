@@ -17,7 +17,7 @@ function axisSub(sa,sb){const d=axisData();if(sa>sb)[sa,sb]=[sb,sa];const out=[a
 function distSeg(p,a,b){const vx=b.x-a.x,vy=b.y-a.y,L2=vx*vx+vy*vy||1e-9;let t=((p.x-a.x)*vx+(p.y-a.y)*vy)/L2;t=Math.max(0,Math.min(1,t));return Math.hypot(p.x-a.x-t*vx,p.y-a.y-t*vy)}
 function distPolyline(p,pts){let d=Infinity;for(let i=0;i<pts.length-1;i++)d=Math.min(d,distSeg(p,pts[i],pts[i+1]));return d}
 const P=a=>({x:a[0],y:a[1]});
-function nearestSegment(p,maxM=8){if(!editor)return null;let best=null;for(const s of editor.segments){const pts=s.points.map(P),d=distPolyline(p,pts);if(d<=maxM&&(!best||d<best.d))best={d,seg:s}}return best&&best.seg}
+function nearestSegment(p,maxM=Math.min(30,Math.max(.25,10/Math.max(pxPerM(),1e-9)))){if(!editor)return null;let best=null;for(const s of editor.segments){const pts=s.points.map(P),d=distPolyline(p,pts);if(d<=maxM&&(!best||d<best.d))best={d,seg:s}}return best&&best.seg}
 function simplify(pts,tol){if(pts.length<3)return pts;let dmax=0,idx=0;for(let i=1;i<pts.length-1;i++){const d=distSeg(pts[i],pts[0],pts[pts.length-1]);if(d>dmax){dmax=d;idx=i}}if(dmax>tol){const a=simplify(pts.slice(0,idx+1),tol),b=simplify(pts.slice(idx),tol);return a.slice(0,-1).concat(b)}return [pts[0],pts[pts.length-1]]}
 function invAlign(p){const r=editor&&editor.alignment;if(!r||!M.dxf_alignment.applied)return p;const k=r.a*r.a+r.b*r.b,ia=r.a/k,ib=-r.b/k,x=p.x-r.tx,y=p.y-r.ty;return {x:ia*x-ib*y,y:ib*x+ia*y}}
 function fwdAlign(p,r){return {x:r.a*p.x-r.b*p.y+r.tx,y:r.b*p.x+r.a*p.y+r.ty}}

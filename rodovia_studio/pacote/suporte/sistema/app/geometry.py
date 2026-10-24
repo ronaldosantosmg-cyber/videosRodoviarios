@@ -30,21 +30,25 @@ def walk(es, depth=0, parent_layer=None):
 
 def read_kmz(path,crs):
     if not path or not Path(path).exists(): return [],[]
-    z=zipfile.ZipFile(path)
-    names=[n for n in z.namelist() if n.lower().endswith('.kml')]
-    if not names: raise ValueError('KMZ sem documento KML.')
-    if sum(i.file_size for i in z.infolist())>100*1024*1024: raise ValueError('KMZ descompactado excede 100 MB.')
-    tr=Transformer.from_crs(4326,crs,always_xy=True);lines=[];pois=[]
-    for name in names:
-        root=ET.fromstring(z.read(name));ns={'k':'http://www.opengis.net/kml/2.2'}
-        for pm in root.findall('.//k:Placemark',ns):
-            title=pm.findtext('k:name',default='Referência KMZ',namespaces=ns)
-            for co in pm.findall('.//k:coordinates',ns):
-                rows=[tuple(map(float,v.split(',')[:2])) for v in (co.text or '').split()]
-                if not rows: continue
-                lon,lat=np.array(rows).T;x,y=tr.transform(lon,lat);p=np.column_stack([x,y])
-                if len(p)==1: pois.append({'id':f'kmz-{len(pois)}','title':title[:100],'subtitle':'Referência do KMZ','kind':'outro','x':float(x[0]),'y':float(y[0])})
-                else: lines.append(p)
+    from .kmz_validation import documents
+    tr=Transformer.from_crs(4326,crs,always_xy=True);lines=[];pois=[];total=0
+    local=lambda element:element.tag.rsplit('}',1)[-1]
+    for name,root in documents(path):
+        for pm in (element for element in root.iter() if local(element)=='Placemark'):
+            title=next((node.text or 'Referência KMZ' for node in pm if local(node)=='name'),'Referência KMZ')
+            for co in (node for node in pm.iter() if local(node)=='coordinates'):
+                values=(co.text or '').split();total+=len(values)
+                if total>1000000:raise ValueError('KML excede um milhão de coordenadas. Divida o trecho.')
+                try:rows=[tuple(map(float,v.split(',')[:2])) for v in values]
+                except (ValueError,TypeError) as exc:raise ValueError('KML contém coordenadas numéricas inválidas.') from exc
+                if not rows:continue
+                if any(len(row)!=2 for row in rows):raise ValueError('KML contém coordenadas incompletas.')
+                coords=np.asarray(rows,float)
+                if not np.isfinite(coords).all() or np.any(np.abs(coords[:,0])>180) or np.any(np.abs(coords[:,1])>90):raise ValueError('KML contém longitude/latitude fora do intervalo ou não finitas.')
+                lon,lat=coords.T;x,y=tr.transform(lon,lat);p=np.column_stack([x,y])
+                if not np.isfinite(p).all():raise ValueError('KML não pode ser transformado para o CRS escolhido.')
+                if len(p)==1:pois.append({'id':f'kmz-{len(pois)}','title':title[:100],'subtitle':'Referência do KMZ','kind':'outro','x':float(x[0]),'y':float(y[0])})
+                else:lines.append(p)
     return lines,pois
 
 def convert(e,layer,role,units,entities,warnings,extra=None):

@@ -9,7 +9,7 @@ function filesUi(info){filesInfo=info||filesInfo;const I=filesInfo||{};for(const
 async function sendFiles(list){requireProject();const files=[...list];if(!files.length)return;const ok=[],bad=[];
  for(const f of files){const ext=(f.name.split('.').pop()||'').toLowerCase();if(!['dxf','kmz','kml','dwg'].includes(ext)){bad.push(`${f.name}: tipo não aceito`);continue}
   msg(`Enviando ${f.name} (${fmtBytes(f.size)})…`);const d=new FormData();d.append('file',f);try{const r=await api('/api/projects/'+pid+'/files',{method:'POST',body:d});ok.push(f.name);filesUi(r.files)}catch(e){bad.push(`${f.name}: ${e.message}`)}}
- analysis=null;
+ if(ok.length){analysis=null;editor=null;axisCache=null;draw()}
  if(ok.length)msg(`${ok.join(' e ')} carregado(s). ${filesInfo?.dxf&&filesInfo?.kmz?'DXF e KMZ prontos.':filesInfo?.dxf?'Falta o KMZ/KML (opcional).':'Falta o DXF.'} Clique “Analisar arquivos”.`+(bad.length?' Problemas: '+bad.join('; '):''),!!bad.length);
  else if(bad.length)msg('Nenhum arquivo enviado: '+bad.join('; '),true);
  try{$('analyze').classList.add('attention')}catch{}}

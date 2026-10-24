@@ -613,7 +613,15 @@ class LaneRange(BaseModel):
     end: Point
     lanes: int = Field(default=3,ge=1,le=6)
 
+from .transport_models import Railway,TrafficSignal,SignalLink,validate_network
+
 class Settings(BaseModel):
+    railways:list[Railway]=Field(default_factory=list,max_length=50)
+    traffic_signals:list[TrafficSignal]=Field(default_factory=list,max_length=100)
+    signal_links:list[SignalLink]=Field(default_factory=list,max_length=100)
+    @model_validator(mode="after")
+    def transport_network(self):return validate_network(self)
+
     model_config=ConfigDict(allow_inf_nan=False)
     schema_version: int = SCHEMA_VERSION
     name: str = Field(default='Novo trecho', min_length=1, max_length=100)
@@ -704,7 +712,8 @@ class Settings(BaseModel):
     traffic_model: Literal['simulado','anterior'] = 'simulado'
     traffic_density: float = Field(default=1.0,ge=.2,le=8)
     # 1.40.5: capacidade e reação a veículos pesados. Mantidos neutros para projetos antigos.
-    traffic_capacity_vphpl: float = Field(default=1900,ge=300,le=3000)
+    traffic_capacity_vphpl: float = Field(default=1900,gt=0,le=20000)
+    traffic_demand_vphpl: float | None = Field(default=None,gt=0,le=20000)
     queue_capacity_model: bool = True
     heavy_vehicle_reaction: bool = True
     median_crossing: Literal['returns','marked','free'] = 'returns'

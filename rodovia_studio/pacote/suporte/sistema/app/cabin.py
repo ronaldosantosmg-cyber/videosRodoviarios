@@ -51,8 +51,14 @@ class CabinView:
             n=max(64,sc.n//k);self.levels.append((cv2.resize(sc.map,(n,n),interpolation=cv2.INTER_AREA),cv2.resize(np.asarray(sc.overlay),(n,n),interpolation=cv2.INTER_AREA),sc.n/n))
         self.hood=self._hood() if c.hood else None
         self.vehicle_ids=set()
+        from .transport_cabin import prepare_camera
+        prepare_camera(self)
     def state(self,t):
-        d=min(self.path['length'],self.d0+self.speed*max(0.,t));j=min(len(self.path['p'])-1,int(np.searchsorted(self.path['d'],d)))
+        d=min(self.path['length'],self.d0+self.speed*max(0.,t))
+        if hasattr(self,'control_clock'):d=float(np.interp(max(0.,t)/.2,np.arange(len(self.control_clock)),self.control_clock))
+        if hasattr(self,'control_clock'):
+            index=min(len(self.control_clock)-2,max(0,int(max(0.,t)/.2)));self.display_speed=max(0.,float(self.control_clock[index+1]-self.control_clock[index])/.2)
+        j=min(len(self.path['p'])-1,int(np.searchsorted(self.path['d'],d)))
         return self.path['p'][j],self.heading[j],float(self.height[j]),d
     def basis(self,pos,head,h):
         th=math.radians(self.c.pitch_deg);f3=np.array([head[0],head[1],0.]);z=np.array([0,0,1.])
@@ -222,18 +228,22 @@ class CabinView:
         if self.terrain is not None:
             if not hasattr(sc,'marking_centers_c'):sc.marking_centers_c=sc.markings.mean(1) if len(sc.markings) else np.empty((0,2))
             im=self.terrain_frame(pos,head,h,t);self.terrain_overlays(im,pos,t)
+            from .transport_cabin import draw
+            draw(self,im,cam,pos,t)
             if self.hood is not None:
                 a=self.hood[:,:,3:].astype(np.float32)/255;im[:]=(im*(1-a)+self.hood[:,:,:3]*a).astype(np.uint8)
             from .chainage import fmt
             km=sc.stationing.km(pos);g=self.terrain.raw_at(*pos)
-            sc.chrome(im,'Vista da cabine',f'km {fmt(km)} • {self.speed*3.6:.0f} km/h'+(f' • cota {g:.0f} m' if g is not None else '')+' • relevo do MDT',())
+            sc.chrome(im,'Vista da cabine',f'km {fmt(km)} • {getattr(self,"display_speed",self.speed)*3.6:.0f} km/h'+(f' • cota {g:.0f} m' if g is not None else '')+' • relevo do MDT',())
             return im,{'mode':'cabin','terrain':True,'camera':[*pos.tolist(),h],'heading':head.tolist(),'distance_m':d,'km_m':km,'path':self.i}
         if not hasattr(sc,'marking_centers_c'):sc.marking_centers_c=sc.markings.mean(1) if len(sc.markings) else np.empty((0,2))
         im=self.ground(cam,h);self.draw_markings(im,cam,pos)
+        from .transport_cabin import draw
+        draw(self,im,cam,pos,t)
         if sc.s.traffic:self.draw_vehicles(im,cam,pos,t)
         if self.hood is not None:
             a=self.hood[:,:,3:].astype(np.float32)/255;im[:]=(im*(1-a)+self.hood[:,:,:3]*a).astype(np.uint8)
         km=sc.stationing.km(pos)
         from .chainage import fmt
-        sc.chrome(im,'Vista da cabine',f'km {fmt(km)} • {self.speed*3.6:.0f} km/h • ilustrativo, terreno plano',())
+        sc.chrome(im,'Vista da cabine',f'km {fmt(km)} • {getattr(self,"display_speed",self.speed)*3.6:.0f} km/h • ilustrativo, terreno plano',())
         return im,{'mode':'cabin','camera':cam[0].tolist(),'heading':head.tolist(),'distance_m':d,'km_m':km,'path':self.i}

@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.5",
-  "description": "Ícones técnicos, vista WebGL/3D local, prévia MP4, projeto identificado e remoção automática de minirrotas."
+  "version": "1.42.6",
+  "description": "Ferrovia com 5–100 vagões, semáforos e onda verde, filas, KMZ com anexos e demanda/capacidade por faixa."
 }

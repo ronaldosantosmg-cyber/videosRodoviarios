@@ -1,0 +1,10 @@
+{
+  "consulta_normativa_verificada": false,
+  "motivo": "Acesso HTTPS ao domínio oficial bloqueado pelo proxy do ambiente: CONNECT 403 Forbidden.",
+  "url_tentada": "https://www.gov.br/dnit/pt-br/assuntos/planejamento-e-pesquisa/ipr/coletanea-de-manuais/vigentes/723_manual_estudos_trafego.pdf",
+  "dominio_adicionado_ao_rascunho": "www.gov.br",
+  "configuracao_salva": true,
+  "requer_revisar_salvar_publicar_ambiente": true,
+  "efeito_no_produto": "Capacidade e demanda positivas configuráveis; indicador de saturação com equivalências internas, sem tabela ou classificação DNIT/HCM certificada.",
+  "kmz_th53_original_fornecido": false
+}

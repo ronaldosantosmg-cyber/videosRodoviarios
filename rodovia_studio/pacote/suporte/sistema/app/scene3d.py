@@ -25,7 +25,7 @@ def revision(directory,settings=None):
         if f.suffix not in ('.dxf','.kmz','.tif','.tiff','.prj','.tfw','.jgw','.png','.json','.npy'):continue
         if f.name in ('grade.npy','grade.json'):continue
         stat=f.stat();h.update(relative.as_posix().encode());h.update(str((stat.st_size,stat.st_mtime_ns)).encode())
-    for name in ('scene3d.py','traffic.py','simulation.py','routes.py','geometry.py','models.py','render.py','flow_diagnostics.py','signage.py','vehicle_motion.py'):
+    for name in ('scene3d.py','traffic.py','simulation.py','routes.py','geometry.py','models.py','render.py','flow_diagnostics.py','signage.py','vehicle_motion.py','transport.py','transport_models.py','transport_render.py','transport_cabin.py','cabin.py','kmz_validation.py'):
         h.update((Path(__file__).parent/name).read_bytes())
     return h.hexdigest()
 
@@ -122,9 +122,51 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
                 q=local(np.array([pos]),.07)[0];samples+=1
                 if samples>MAX_TRAFFIC_SAMPLES:raise ValueError('Tráfego excede o orçamento da prévia 3D. Reduza a densidade ou a duração.')
                 tracks[vid]['samples'].append([round(float(t),4),*q.tolist(),float(heading[0]),0.,-float(heading[1])])
-    if any(e.get('level') for e in scene.network.edges) or scene.oae:warnings.append('As cotas de OAE e os gabaritos verticais exigem conferência técnica; esta vista não certifica cruzamentos em desnível.')
+    from .transport import Transport,timings,AMBER,CLEARANCE,at
+    from .transport_render import geometry as transport_geometry
+    transport=sim.transport if sim else Transport(settings,scene.network);tg=transport_geometry(transport)
+    for role,polys,lift in [('rail_ballast',tg['beds'],.07),('crosswalk',tg['crosswalks'],.15)]:
+        positions=[]
+        for poly in polys:
+            positions.extend(local(poly[[0,1,2,0,2,3]],lift).ravel().tolist())
+        if positions:meshes.append({'id':role,'role':role,'layer':'Transportes','name':'Lastro ferroviário' if role=='rail_ballast' else 'Faixa de pedestres','positions':positions})
+    transport_lines=[{'p':local(row['points'],.22 if row['kind']=='rail' else .16).ravel().tolist(),'kind':row['kind']} for row in tg['lines']]
+    train_tracks={}
+    for t in np.r_[np.arange(0,duration,.2),duration]:
+        for part in transport.train_parts(float(t)):
+            key_part=part['id']
+            if key_part not in train_tracks:
+                train_tracks[key_part]={'id':1000000+len(train_tracks),'type':'rail_locomotive' if part['locomotive'] else 'rail_wagon','length':part['length'],'width':part['width'],'wheelbase':part['length']*.65,'color':'#e2af2c' if part['locomotive'] else '#789eae' if part['model']=='passageiros' else '#955f42','samples':[]}
+            samples+=1
+            if samples>MAX_TRAFFIC_SAMPLES:raise ValueError('Trens e veículos excedem o limite da prévia 3D. Reduza a duração / densidade ou divida o projeto.')
+            q=local(np.array([part['p']]),.25)[0];h=part['heading'];train_tracks[key_part]['samples'].append([round(float(t),4),*q.tolist(),float(h[0]),0.,-float(h[1])])
+    heads=[{'p':local(np.array([h['point']]),.25)[0].tolist(),'signal':h['signal'],'axis':h['axis'],'kind':'signal'} for h in tg['heads']]
+    rail_stops=[];seen=set()
+    for stops in transport.stops:
+        for stop in stops:
+            if stop['kind']!='rail':continue
+            point,_=at(stop['rail']['p'],stop['rail']['d'],stop['rail_s']);key_stop=tuple(np.round(point,2))
+            if key_stop in seen:continue
+            seen.add(key_stop);rail_stops.append(stop);heads.append({'p':local(np.array([point+np.array([4.,4.])]),.25)[0].tolist(),'kind':'rail','rail_index':len(rail_stops)-1})
+    clock=set(np.round(np.arange(0,duration,.1),6).tolist()+[duration])
+    for signal in transport.signals:
+        greens,walk,cycle=timings(signal);offset=transport.offsets[signal.id];clearance=signal.clearance_s
+        boundaries=[0,greens[0],greens[0]+AMBER,greens[0]+AMBER+clearance,greens[0]+AMBER+clearance+greens[1],sum(greens)+2*AMBER+clearance,sum(greens)+2*(AMBER+clearance)]
+        for k in range(math.floor(-offset/cycle)-1,math.ceil((duration-offset)/cycle)+1):
+            for boundary in boundaries:
+                t=offset+k*cycle+boundary
+                if 0<=t<=duration:clock.add(round(t,6))
+    signal_ids=[s.id for s in transport.signals];states=[];codes={'red':0,'amber':1,'green':2,'off':-1}
+    for t in sorted(clock):
+        colors=[]
+        for signal in transport.signals:
+            a,b,walk=transport.signal_state(signal,t+1e-7);colors.extend([codes[a],codes[b],int(walk)])
+        states.append([t,colors,[transport.rail_stop_closed(stop,t) for stop in rail_stops]])
+    if sum(len(row['p'])//3 for row in transport_lines)>MAX_VERTICES or len(heads)>1000:raise ValueError('Transportes excedem o limite de detalhe. Divida o projeto em trechos.')
+    transport_data={'lines':transport_lines,'heads':heads,'signal_ids':signal_ids,'states':states,'report':transport.report()}
+    if any(e.get('level') for e in scene.network.edges) or scene.oae or any(r.level for r in settings.railways) or any(r.level for r in settings.traffic_signals):warnings.append('As cotas de OAE e os gabaritos verticais exigem conferência técnica; esta vista não certifica cruzamentos em desnível.')
     if cancel():raise InterruptedError('Construção 3D cancelada.')
-    data={'format':'rodovia-scene3d-1','revision':key,'origin_crs':origin.tolist(),'crs':settings.crs,'coordinates_confirmed':settings.coordinates_confirmed,'span_m':span,'meshes':meshes,'terrain':terrain,'markings':markings,'diagnostics':diagnostics,'vehicles':list(tracks.values()),'duration_s':duration,'source_duration_s':settings.duration_s,'simulation_report':sim.report() if sim else None,'warnings':warnings[-25:],'scope':'Visualização de projeto e tráfego. Diagnósticos técnicos não integram a captura de apresentação.'}
+    data={'format':'rodovia-scene3d-1','revision':key,'origin_crs':origin.tolist(),'crs':settings.crs,'coordinates_confirmed':settings.coordinates_confirmed,'span_m':span,'meshes':meshes,'terrain':terrain,'markings':markings,'diagnostics':diagnostics,'vehicles':list(tracks.values())+list(train_tracks.values()),'transport':transport_data,'duration_s':duration,'source_duration_s':settings.duration_s,'simulation_report':sim.report() if sim else None,'warnings':warnings[-25:],'scope':'Visualização de projeto e tráfego. Diagnósticos técnicos não integram a captura de apresentação.'}
     if not np.isfinite(origin).all():raise ValueError('Origem 3D inválida.')
     if key!=revision(d,settings):raise ValueError('O projeto mudou durante o processamento. Reconstrua o 3D.')
     encoded=json.dumps(data,ensure_ascii=False,allow_nan=False,separators=(',',':')).encode()

@@ -260,3 +260,7 @@ def capture3d_status(pid,jid,request:Request):
     s=session(jid,request.headers.get('X-Rodovia-Capture'))
     if s.pid!=pid:raise HTTPException(403,'Projeto de exportação inválido.')
     return {'ready':s.ready,'ended':s.ended,'accepted':s.count,'frames':s.frames,'job':store.job(jid)}
+
+@router.post('/api/transport/validate')
+def transport_validate(body:Settings):
+    return {key:[row.model_dump() for row in getattr(body,key)] for key in ('railways','traffic_signals','signal_links')}

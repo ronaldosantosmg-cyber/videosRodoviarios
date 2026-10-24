@@ -20,7 +20,7 @@ async def upload(pid,file:UploadFile=File(...)):
     orig=(file.filename or '')[-200:];kml=ext=='.kml';dwg=ext=='.dwg'
     if dwg:ext='.dxf'   # 1.37: DWG é convertido em DXF (ODA File Converter)
     if kml:ext='.kmz'
-    d=store.directory(pid);tmp=d/('upload'+ext+'.tmp');n=0
+    d=store.directory(pid);tmp=d/('upload_'+uuid.uuid4().hex+ext+'.tmp');n=0
     try:
         with tmp.open('wb') as fo:
             while chunk:=await file.read(1024*1024):
@@ -45,10 +45,8 @@ async def upload(pid,file:UploadFile=File(...)):
             if head.startswith(b'AutoCAD Binary DXF'):pass
             elif b'SECTION' not in head.upper() and b'HEADER' not in head.upper():raise ValueError('O arquivo não parece um DXF (texto ou binário). Confira se não é DWG renomeado.')
         if ext=='.kmz':
-            try:
-                with zipfile.ZipFile(tmp) as z:
-                    if sum(v.file_size for v in z.infolist())>100*1024*1024 or not any(v.filename.lower().endswith('.kml') for v in z.infolist()):raise ValueError('KMZ inválido ou excessivamente grande.')
-            except zipfile.BadZipFile:raise ValueError('KMZ não é um arquivo ZIP válido.')
+            from ..kmz_validation import validate
+            await asyncio.to_thread(validate,tmp)
         tmp.replace(d/('input'+ext));(d/'analysis.json').unlink(missing_ok=True)
         config=json.loads((d/'config.json').read_text(encoding='utf-8'));config['coordinates_confirmed']=False;store.write_json(d/'config.json',config)
         meta=_files_meta(d);meta[ext[1:]]={'name':Path(orig).name or ('input'+ext),'bytes':n,'sent':time.strftime('%Y-%m-%d %H:%M'),**({'convertido':'DWG'} if dwg else {})};store.write_json(d/'arquivos.json',meta)
