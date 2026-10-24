@@ -1,0 +1,21 @@
+Rodovia Studio 1.40 — Desktop Workspace
+
+RODOVIA STUDIO
+
+Para usar: dê dois cliques no arquivo da pasta principal
+           ("Rodovia Studio.exe", ou "ABRIR RODOVIA STUDIO" enquanto o .exe não existir).
+
+Pasta principal (1.32):
+  Rodovia Studio.exe / ABRIR RODOVIA STUDIO   o único arquivo: abre o aplicativo
+  projetos\       seus projetos e arquivos CAD/KMZ
+  videos\         vídeos gerados, uma subpasta por projeto; cada geração é um arquivo novo
+  atualizacoes\   salve aqui os ZIPs de atualização (os aplicados vão para "aplicadas")
+  sistema\        programa, Python portátil, documentação, backups, logs e os auxiliares:
+                  ATUALIZAR RODOVIA STUDIO, COMPILAR INICIADOR, este LEIA-ME e uma reserva do ABRIR
+
+Atualizar: no aplicativo, Arquivo > Atualizar o Rodovia Studio (ou o ícone perto do relógio, quando
+aberto pelo .exe). Também funciona o sistema\ATUALIZAR RODOVIA STUDIO.
+Limpar resíduos: Arquivo > Limpar memória (caches, temporários, registros antigos, lixeira).
+
+No aplicativo, use o botão "Como usar" e os "?" ao lado de cada campo.
+Notas de versão: sistema\documentacao\ATUALIZACAO_1_32.md

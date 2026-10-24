@@ -1,0 +1,24 @@
+/* ---------- Fase D: vista da cabine ---------- */
+const CAB={cabinEnabled:'enabled',cabinDuration:'duration_s',cabinHeight:'eye_height_m',cabinFov:'fov_deg',cabinPitch:'pitch_deg',cabinSmooth:'smoothing_s',cabinSpeed:'speed_kmh',cabinHood:'hood'};
+function cabinUi(){const c=M.cabin||{};for(const [id,k] of Object.entries(CAB)){const el=$(id);if(el.type==='checkbox')el.checked=k==='hood'?c[k]!==false:!!c[k];else el.value=c[k]??''}$('cabinState').textContent=c.start?`Início: X ${c.start.x.toFixed(1)} Y ${c.start.y.toFixed(1)}`+(editor?` · km ${formatKm(kmOf(c.start)?.km)}`:''):'Início não definido.';
+ const img=$('cabinPreview');if(pid&&c.enabled){img.src=`/api/projects/${pid}/preview_cabin.png?v=${Date.now()}`;img.onload=()=>img.hidden=false;img.onerror=()=>img.hidden=true}else img.hidden=true}
+for(const [id,k] of Object.entries(CAB))$(id).addEventListener('change',()=>{const el=$(id);checkpoint();M.cabin={...M.cabin,[k]:el.type==='checkbox'?el.checked:(el.value===''?null:Number(el.value))};changed();cabinUi()});
+const _loadD=load;load=async id=>{await _loadD(id);cabinUi()};
+
+/* ---------- Ficha técnica de referência ---------- */
+const fmtv=v=>v==null?'—':typeof v==='number'?(Math.abs(v)>=1000?v.toLocaleString('pt-BR'):String(v).replace('.',',')):esc(v);
+async function showReference(){try{const r=await api('/api/reference/profile');const f=r.file||{};$('refInfo').innerHTML=`${esc(r.label||'Referência')} · ${f.width}×${f.height} · ${fmtv(f.fps)} q/s · ${fmtv(f.duration_s)} s · ${fmtv(f.bitrate_avg_mbps)} Mbit/s · ficha ${r.status==='completa'?'completa':'parcial (métricas de imagem ainda não medidas)'}`+(r.video_present?' · o arquivo referencia.mp4 ainda está na pasta':'');$('refProfile').hidden=!r.video_present}catch(e){$('refInfo').textContent=e.message}}
+async function showComparison(){if(!pid)return;try{const c=await api(`/api/projects/${pid}/comparison`);if(!c.rows.length){$('compareTable').innerHTML='';return}$('compareTable').innerHTML=`<table><tr><th>Item</th><th>Referência</th><th>Vídeo gerado</th><th>Diferença</th></tr>${c.rows.map(r=>`<tr><td>${esc(r.label)}</td><td>${fmtv(r.reference)}</td><td>${fmtv(r.current)}</td><td>${r.delta_pct==null?'':(r.delta_pct>0?'+':'')+String(r.delta_pct).replace('.',',')+'%'}</td></tr>`).join('')}</table>`+(c.reference_status!=='completa'?'<p class="muted">A referência ainda não tem métricas de imagem: use “Medir referência…” enquanto o vídeo existir.</p>':'')}catch{$('compareTable').innerHTML=''}}
+$('compareRun').onclick=guard(async()=>{requireProject();clearTimeout(saveTimer);await save();const r=await api(`/api/projects/${pid}/compare`,{method:'POST'});await poll(r.id);await showComparison()});
+$('refProfile').onclick=guard(async()=>{requireProject();if(!confirm('Medir o vídeo de referência, gravar a ficha técnica e REMOVER o arquivo referencia.mp4 (456 MB) da pasta do aplicativo? A remoção só acontece se a ficha for gravada.'))return;const r=await api(`/api/projects/${pid}/reference_profile?remove=true`,{method:'POST'});await poll(r.id);await showReference()});
+const _loadR=load;load=async id=>{await _loadR(id);showComparison()};
+showReference();
+
+/* ---------- 1.7: elevação ---------- */
+const EL={elSource:'source',elExag:'exaggeration',elHill:'hillshade',elHillOp:'hillshade_opacity',elCont:'contours',elInt:'contour_interval_m',elLevel:'level_road'};
+function elUi(){const e=cfg.elevation||{};for(const [id,k] of Object.entries(EL)){const el=$(id);if(el.type==='checkbox')el.checked=k==='level_road'?e[k]!==false:!!e[k];else el.value=e[k]??el.value}$('elInfo').textContent=e.source==='local'?(e.file?'MDT local: '+e.file+(e.crs?' · '+e.crs:''):'Envie o MDT local.'):e.source==='web'?'Elevação web: requer internet na primeira geração; depois usa o cache do projeto.':''}
+for(const [id,k] of Object.entries(EL))$(id).addEventListener('change',()=>{const el=$(id);cfg.elevation={...(cfg.elevation||{}),[k]:el.type==='checkbox'?el.checked:el.type==='number'?Number(el.value):el.value};elUi();scheduleSave()});
+$('elUpload').onclick=guard(async()=>{requireProject();const fs=$('elFiles').files;if(!fs.length)throw Error('Selecione o MDT.');clearTimeout(saveTimer);await save();const d=new FormData();for(const f of fs)d.append('files',f);d.append('crs',$('elCrs').value);const r=await api(`/api/projects/${pid}/elevation`,{method:'POST',body:d});await load(pid);msg('MDT local aceito. Clique “Atualizar fluxos”.')});
+let zTimer=null,zLast='';canvas.addEventListener('pointermove',e=>{if(!ready()||!pid||!(cfg.elevation&&cfg.elevation.source!=='none'))return;clearTimeout(zTimer);zTimer=setTimeout(async()=>{const w=lastWorld;if(!w)return;try{const r=await api(`/api/projects/${pid}/elevation_at?x=${w.x}&y=${w.y}`);if(r.z!=null){const c=$('cursor');c.textContent=c.textContent.replace(/ · cota .*$/,'')+` · cota ${r.z.toFixed(1)} m`}}catch{}},150)});
+const _loadE=load;load=async id=>{await _loadE(id);elUi()};
+

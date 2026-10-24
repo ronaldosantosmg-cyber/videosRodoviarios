@@ -1,0 +1,567 @@
+{
+  "version": "1.42",
+  "schema_version": 33,
+  "reference_video_sha256": "1d8cc8267015132a80ec4363bb1e5a66f39361d2a7e897ba509c7974f97e488b",
+  "reference_note": "O vídeo TH57 aprovado foi substituído pela ficha técnica assets/th57/referencia_ficha.json (dados do arquivo e métricas de imagem para comparação). SHA-256 histórico mantido.",
+  "phases": {
+    "1.3": "A — editor interativo e circulação",
+    "1.4": "B — camadas, imagem local, exportação/importação",
+    "1.5": "C — qualidade visual",
+    "1.6": "D — vista da cabine",
+    "1.7": "Tela cheia, processos paralelos, perfil rápido, elevação (MDT local/web), ficha técnica no lugar do vídeo TH57",
+    "1.8": "Como usar e dicas nos campos; estaqueamento automático/manual com fim, sentido e ajuste proporcional; destaques com linha de chamada; instalação organizada e atualizador",
+    "1.9": "Editor sobre imagem web Esri (ladrilhos com cache) com DXF/KMZ simplificado, camadas e fundo selecionável; marcações e pares de controle sem prévia",
+    "1.10": "Sinalização limpa e área sem sinalização; setas por km/conflito; marcos de km; seta de sentido; grama do canteiro; cidades próximas; proteções contra entradas degeneradas",
+    "1.11": "Marca GeoRas; editor com fluxos/sinalização sem prévia e imagem web direta; detalhe em alta resolução no vídeo (Esri nível 19 e texturas 0,2 m); OAE por vértices com sentido",
+    "1.12": "Sinalização limpa em todo o modelo; setas em todas as faixas; mão de direção em ilhas; tráfego simulado sem colisão, engarrafamento, interdições, desvios e travessia do canteiro",
+    "1.13": "Transição dia/noite com faróis, lanternas e sinalização refletiva; duas janelas sincronizadas (configuração | visualização e resultados)",
+    "1.14": "Camadas sem regras fixas: perfis reutilizáveis, novos tipos (bordo, hidrografia, talude), prévia por camada, cores por tipo; setas giráveis que reorientam o fluxo",
+    "1.15": "Sinalização completa: faixas pela largura e por trecho, setas por faixa pelo itinerário, retenção/PARE e dê a preferência, zebrados (gore e manual), faixas de pedestre, placas verticais, sinalização do DXF",
+    "1.16": "Texturas realistas (agregado, remendos, fissuras, trilhas de roda, acostamento), taludes com aparência de terreno, cor da imagem detalhada casada com o mosaico, detalhe a 0,1 m",
+    "1.17": "Imagem georreferenciada local de alta resolução: GeoTIFF/COG por blocos, JPEG2000 (GeoJP2/GML/.j2w), mosaico, ECW/MrSID via GDAL do QGIS, detalhe do vídeo, mosaico base e editor (ladrilhos Web Mercator)",
+    "1.18": "Faixas por sentido (padrão 2 + acostamento) e 3ª faixa por início/fim; setas sem excesso; camada 0 separada por cor/tipo com avisos; km digitado em planta; vão da passarela no editor; acesso com tapers de entrada e saída",
+    "1.19": "Enter encerra comandos; mover pontos; imagens locais com prioridade e ajuste por grips; prévia com zoom forte (recorte visível, detalhe 5 cm, grão fino); menus com ícones; limpar trabalho/retirar projeto; fontes web Esri Wayback, XYZ e WMS; atualizador com caminhos longos",
+    "1.20": "Veículos em linha reta (sem recuos nas emendas, suavização dentro da pista); sentido pelo eixo sem seta; áreas de pista nova/existente/acostamento desenhadas ou selecionadas; acostamento por início/fim/largura; perfil Apresentação técnica (hachuras, voo contínuo, indicador de progresso); conferência DXF×KMZ, blocos vazios da imagem e conferência completa do MP4",
+    "1.21": "Pavimento rígido (concreto, juntas transversais a cada 5 m) ou flexível por tipo, camada e área; representação do pavimento escolhida e alterável; vídeo técnico ou artístico; contraste projeto × imagem",
+    "1.22": "Edição tipo CAD: seleção com grips, propriedades com Enter, linha de comando com coordenadas absolutas/relativas, snap e orto, alinhamento por cliques, salvar/salvar como/excluir",
+    "1.23": "Iniciador Rodovia Studio.exe (C#, compilado no Windows do usuário sem administrador) com atualização automática, janela própria e ícone na bandeja; programa continua em arquivos separados; campos vazios recusados no editor",
+    "1.24": "Leitor ECW interno (GDAL+plugin ECW no Python portátil, conferência da georreferência); Enter aceita e Esc com confirmação; seleção janela/crossing; COPIAR/GIRAR/ESCALA/ESPELHAR/OFFSET; snap exato; info na tela; menus recolhíveis; seleção de fluxos; texturas editáveis; leitura automática dos hatches do DXF; motor de montagem otimizado",
+    "1.25": "Catálogo QuickMapServices: busca pela área do trecho, teste de nitidez/falhas no centro do trecho, uso como fonte XYZ/WMS (quadkey, WMS 1.1.1/PNG, {-y}), recusa de sistemas não Web Mercator e confirmação para provedores com termos restritivos",
+    "1.26": "Pórticos (dois apoios + imagem na chamada); caixas de chamada sem sobreposição, com estilo, imagem e janela de tempo; ocultar/congelar camada; hachuras MPOLYGON/padrões/cor; alinhamento por linha do desenho e seleção contínua; menu de contexto estilo Windows com ajuda; ATRIB/PINTAR e novos comandos; tela ampla com divisor; PAN/ZOOM agrupado; sessões; regenerar prévia; registros e prompt para IA",
+    "1.27": "Edição direta (arrastar, alça de giro, mini-barra, setas); áreas do desenho com troca de textura/nome/tipo e textura própria por área; caixas de chamada com linha ajustável; menu do botão direito só da seleção (largura fixa); fluxos: ligações proibir/forçar, velocidade por trecho, editar traçado, redução nas curvas; velocidade de avanço da apresentação e trechos; barra de menus/status; iniciador 1.1 com janela própria (WebView2)",
+    "1.28": "Edição durante tarefas salva (sem perder alterações); desfazer e seleção mantidos ao recarregar; menu fecha ao clicar na tela; comandos concluídos limpam a seleção; pedido do comando na mensagem; prévia refeita sozinha quando visível; aviso de prévia desatualizada",
+    "1.29": "Opções válidas por tipo (corrige erro do modo da interdição) e correção antes de salvar; nomes válidos; DXF e KMZ/KML enviados na hora (com nome, retirar, arrastar); aparência de taludes/canteiro por região, água e sinalização (cores, desgaste, opacidade); faixa de opções do Windows; editor ocupando a tela com propriedades à direita",
+    "1.30": "Abrir projeto (miniaturas, busca, Ctrl+O), renomear, modelos de projeto (salvar, novo a partir de, aplicar); rotas de veículos com vários alinhamentos e trechos de pista simples, dupla por sentido ou sentido único; propriedades em grupos recolhíveis; gerenciador de camadas com ações em grupo e edição final; pincel de textura",
+    "1.31": "Reorganização do código sem funções novas: interface em 37 arquivos por assunto (app/js) com pontos de extensão registrados (estender) e registros de ferramentas/comandos/faixa; estilos em app/estilo.css com variáveis; servidor dividido em app/rotas/<assunto>.py; testes de estrutura (ESLint, nomes indefinidos, rotas); ARQUITETURA.md",
+    "1.32": "Pasta principal só com o arquivo principal (auxiliares em sistema/, programa em sistema/programa); vídeos guardados em videos/<projeto>, um por geração; Limpar memória por categoria; qualidade Alta/Máxima (nitidez da imagem aérea, veículos sem serrilhado, menos compressão, superamostragem 1,5×, detalhe 0,1 m e Esri nível 20) e 4K; atualizar pelo aplicativo; iniciador 1.2; janelas no padrão do Windows",
+    "1.33": "Mais área para o desenho: barra da direita em abas (recolhe numa faixa de ícones, reabre ao selecionar, abas em janelas flutuantes), área máxima (F10), mensagens/progresso/tempo/Cancelar na barra de status, tempos acima de 60 s em minutos, Gerar vídeo e registros na faixa de opções",
+    "1.34": "Painéis por menu (barra de ícones, fixar/desafixar, fechar), visual do Windows 11 com tema claro/escuro/igual ao Windows, quadro de progresso em tarefas e downloads, comandos contínuos (Enter/Esc, repetir em outro objeto, ferramenta continua), Shift/Esc no arraste, texturas artístico-realistas (padrão novo; esquema 27), tela sem referências a versões anteriores e ao TH57",
+    "1.35": "Obras do PER (26 tipos, lista com propriedades, marcar início e fim no desenho, importar Excel/CSV/MS Project XML com conferência, modelo e exportação Excel, faixa colorida no vídeo, linha do tempo pelo cronograma; esquema 28); destaques com 18 categorias novas e nome que não some ao trocar a categoria; seleção precisa (escala do Windows, prioridade, alternância, realce); menus Windows com ícones de linha e submenu ao lado; tela simplificada",
+    "1.36": "Estilo Twinmotion (parte 1): câmera por pontos-chave (voo entre vistas marcadas no editor), clima (nublado, chuva com pista molhada, neblina), sombras pela hora do sol e comparação antes/depois com divisória no final do vídeo; tudo desligado por padrão",
+    "1.37": "Abrir DWG (convertido em DXF pelo ODA File Converter instalado no computador); vegetação (árvore avulsa, pincel e área; ipê, eucalipto, palmeira, arbusto, cerca-viva) com sombra pelo sol; pedestres em faixas, passarelas e caminhos; frota variada (motos, vans, picapes, carretas); esquema 29",
+    "1.38": "Instalador do leitor ECW corrigido: só rodas prontas (nunca compila o GDAL), proxy do Windows, download direto das rodas (GitHub de C. Gohlke e PyPI) com os certificados do Windows guardadas em pacotes_ecw, e mensagem de erro clara com os 2 arquivos e a pasta",
+    "1.39": "Bordas pretas/brancas da imagem local: transparentes só no branco 255/preto 0 ligados à beira da imagem (antes ≥253/≤3 em toda a imagem); opção Anterior mantida; tráfego: trechos curtos (< 50 m) fora das rotas, com atalho suave (sem ziguezague); esquema 30",
+    "1.40": "Desktop Workspace: área do projeto dominante; painéis laterais ocultos por padrão e sempre encaixados, redimensionando o desenho; linha de comando em gaveta; faixa recolhida; F11 para foco no projeto; remoção de comandos repetidos do cabeçalho.",
+    "1.40.3": "Interação e Camadas: ordem visual explícita de imagens sobrepostas; preservação de viewport/cursor/seleção em regeneração e resize; Alt+clique/Tab para objetos sobrepostos; painéis/tela cheia sem reenquadramento automático.",
+    "1.40.4": "Microssimulação de tráfego: barreira preventiva anticolisão; mudança de faixa apenas entre faixas adjacentes do mesmo sentido; ultrapassagem controlada por trechos permitidos/proibidos na rota; manobra inteira validada; raios apenas diagnosticados.",
+    "1.40.5": "Robustez e Tráfego Pesado: dinâmica específica para caminhões/ônibus/carretas; reação dos seguidores; filas por capacidade da faixa; salvamento JSON atômico validado; módulos JS isolados; verificações de sintaxe e operações protegidas.",
+    "1.40.6": "Qualidade visual automatizada: harness Playwright offline com interface real, testes de layout/viewport/painéis/gaveta/modo Projeto e screenshots de regressão; fallback explícito quando navegação localhost é bloqueada; remoção de referência específica em placeholder de modelo.",
+    "1.40.7": "Base persistente de GeoTIFFs processados, temporários de sessão descartáveis e testes visuais ampliados.",
+    "1.40.8": "KMZ protegido e rastreável: valida leitura, registra uso efetivo (eixo, georreferenciamento, POIs/referência) e alerta antes de retirar arquivo necessário.",
+    "1.40.9": "Validação ampliada de usabilidade e funcionalidades: matriz visual responsiva, stress de interação, KMZ, imagens, rotas, robustez e salvamento.",
+    "1.42": "Atualização autocontida: ZIP oficial somente em atualizacoes/, distribuição interna sem busca na raiz, detecção automática durante execução, fechamento controlado e aviso para reabrir; splash mostra versão, fabricante Ronaldo Santos e logotipo animado."
+  },
+  "automated_tests_passed": 306,
+  "test_environment": "Linux, Python 3.13; shapely 2.1.2/GEOS 3.13.1 e pyproj 3.7.2/PROJ 9.6.2 compilados no ambiente (as versões fixadas para Windows são shapely 2.2.0 e pyproj 3.8.0); interface verificada em Chromium (Playwright)",
+  "windows_launcher_executed": false,
+  "new_dependencies": {
+    "tifffile": "2026.10.15 (py3-none-any; já instalada como dependência do scikit-image no runtime do usuário)"
+  },
+  "gpu_detection": "Teste real de encoder na máquina de destino, com fallback CPU",
+  "th57_regression": {
+    "1280x720_frames_0_96s": {
+      "identical_frames_s": [
+        14,
+        40,
+        96
+      ],
+      "ms_per_frame_1_2": 157.4,
+      "ms_per_frame_1_3": 158.1
+    },
+    "2560x1440_classic_vs_1_2_identical_s": [
+      14,
+      40,
+      96
+    ],
+    "2560x1440_block60_ms_per_frame": {
+      "classic": 528.7,
+      "enhanced": 756.0,
+      "note": "Montagem dos quadros, CPU deste ambiente, ambos com cache geométrico; não mede codificação nem o computador do usuário."
+    },
+    "cabin_2560x1440_ms_per_frame": 1198
+  },
+  "full_202s_export_generated": false,
+  "v1_7_measurements": {
+    "th57_1280x720_20s_libx264_assembly_encode_s": {
+      "1_process": 89.4,
+      "2_processes": 73.4,
+      "fast_profile_1_process": 59.6
+    },
+    "cores": 2,
+    "frames_identical_across_processes": true,
+    "mp4_bitwise_identical": false,
+    "cabin_terrain_ms_per_frame_1440p": 950
+  },
+  "layout": {
+    "main_launcher": "Rodovia Studio.exe (ou ABRIR RODOVIA STUDIO.cmd)",
+    "updater": "sistema/ATUALIZAR RODOVIA STUDIO.cmd",
+    "projects": "projetos",
+    "videos": "videos",
+    "updates": "atualizacoes",
+    "support": "sistema/{programa,documentacao,backups,logs}"
+  },
+  "windows_scripts_executed": false,
+  "v1_9": {
+    "crs_web_mercator_max_error_m": "<0.005 (testado 300 m, 20x10 km, 50x30 km)",
+    "th57_vectors_vertices": 32682,
+    "th57_vectors_kB": 954,
+    "th57_analysis_s": 15.4,
+    "esri_tiles_loaded_in_test_environment": false,
+    "renderer_files_changed": false
+  },
+  "v1_10": {
+    "th57_markings_previous": 26972,
+    "th57_markings_clean": 19192,
+    "th57_arrows_dense": 388,
+    "th57_arrows_km_conflicts": 154,
+    "previous_options_identical_to_1_9_frames_s": [
+      14,
+      40,
+      96
+    ],
+    "osm_cities_downloaded_in_test_environment": false
+  },
+  "v1_11": {
+    "th57_2560_ms_per_frame_detail_off": 713,
+    "th57_2560_ms_per_frame_detail_textures_on": 1102,
+    "detail_off_identical_to_1_10_frames_s": [
+      14,
+      40,
+      96
+    ],
+    "detail_resolution_m": 0.2,
+    "esri_level19_downloaded_in_test_environment": false,
+    "developer": "GeoRas Consultoria Ltda"
+  },
+  "v1_12": {
+    "th57_density1": {
+      "vehicles": 1051,
+      "rear_collisions": 0,
+      "min_gap_m": 4.85,
+      "sim_s": 0.4
+    },
+    "th57_density4_partial_block": {
+      "vehicles": 3764,
+      "rear_collisions": 0,
+      "min_gap_m": 3.6,
+      "sim_s": 2.5
+    }
+  },
+  "v1_13": {
+    "th57_1920_ms_per_frame_day": 673,
+    "th57_1920_ms_per_frame_night": 652
+  },
+  "v1_14": {
+    "th57_identical_to_1_13_frames_s": [
+      14,
+      40,
+      96
+    ]
+  },
+  "v1_15": {
+    "basic_mode_identical_to_1_14_frames_s": [
+      14,
+      40,
+      96
+    ],
+    "basic_mode_identical_trevo_view": true,
+    "th57_full": {
+      "arrows": 497,
+      "arrow_kinds": {
+        "S": 493,
+        "SR": 3,
+        "SL": 1
+      },
+      "filled_paint": 6,
+      "auto_signs": 1,
+      "line_segments": 21575
+    },
+    "th57_1920_ms_per_frame_40_96s": {
+      "basic": [
+        796,
+        739
+      ],
+      "full": [
+        806,
+        762
+      ]
+    },
+    "th57_scene_prepare_s": {
+      "basic": 34.5,
+      "full": 38.2
+    }
+  },
+  "v1_16": {
+    "anterior_identical_to_1_15_frames_s": [
+      14,
+      40,
+      96
+    ],
+    "anterior_identical_trevo_view": true,
+    "th57_1920_ms_close_views_40m_120m_260m": {
+      "anterior": [
+        263,
+        295,
+        320
+      ],
+      "realistic": [
+        306,
+        317,
+        385
+      ],
+      "realistic_natural_earthworks": [
+        360,
+        343,
+        439
+      ]
+    },
+    "th57_1920_ms_video_frames_40_96s_mean": {
+      "anterior": 591,
+      "realistic": 573,
+      "realistic_natural": 601
+    },
+    "note": "Medidas com ladrilhos de detalhe já em cache; a primeira geração dos ladrilhos é mais lenta e fica em disco.",
+    "real_imagery_color_match_verified": false
+  },
+  "v1_17": {
+    "default_identical_to_1_16_frames_s": [
+      14,
+      40,
+      96
+    ],
+    "synthetic_geotiff_12000px_0_05m_569MB": {
+      "detail_tile_1024_s": {
+        "0.2m": [
+          0.19,
+          0.17,
+          0.17,
+          0.16
+        ],
+        "0.1m": [
+          0.2,
+          0.19,
+          0.21,
+          0.17
+        ]
+      },
+      "base_4096_s": 4.4
+    },
+    "georeference_error_synthetic_px": "<1,5 px a 0,05 m (teste)",
+    "ecw_conversion_tested": "com gdal_translate simulado; QGIS/ECW real não testado",
+    "esri_with_local_blend_tested": false
+  },
+  "v1_18": {
+    "compat_options_identical_to_1_17_frames_s": [
+      14,
+      40,
+      96
+    ],
+    "compat_options": {
+      "lanes_per_direction": 0,
+      "lane_arrow_repeat": "all",
+      "arrow_min_gap_m": 0
+    },
+    "th57_arrows": {
+      "1.17": 497,
+      "1.18": 259
+    }
+  },
+  "v1_19": {
+    "default_identical_to_1_18_package_frames_s": [
+      14,
+      40,
+      96
+    ],
+    "default_identical_trevo_view": true,
+    "th57_1280_close_views_s": {
+      "90m": 4.8,
+      "30m": 1.9,
+      "10m": 0.3,
+      "5m": 0.3
+    },
+    "local_adjust_synthetic_error_px": "<1,5 px a 0,05 m",
+    "web_tiles_mosaic_synthetic_error_px": "<3 px a 0,5 m",
+    "wayback_xyz_wms_downloaded_in_test_environment": false,
+    "preview_zoom_bug_reproduced": false,
+    "updater_executed_on_windows": false,
+    "longest_extracted_path_chars_with_installed_1_18_updater": "~221 (calculado para a pasta do usuário)"
+  },
+  "v1_20": {
+    "compat_identical_to_1_19_frames_s": [
+      14,
+      40,
+      96
+    ],
+    "compat_identical_trevo_view": true,
+    "compat_options": {
+      "vehicle_paths": "anterior",
+      "direction_reference": "anterior"
+    },
+    "th57_paths": {
+      "backtrack_points": {
+        "1.19": 338,
+        "1.20": 0
+      },
+      "curvature_flips_per_100m": {
+        "1.19": 1.1,
+        "1.20": 0.0
+      },
+      "hf_lateral_rms_m": {
+        "1.19": 0.2,
+        "1.20": 0.11
+      },
+      "itineraries": 50
+    },
+    "th57_sim_202s": {
+      "1.19": {
+        "vehicles": 993,
+        "rear_collisions": 0,
+        "min_gap_m": 4.45
+      },
+      "1.20": {
+        "vehicles": 1014,
+        "rear_collisions": 0,
+        "min_gap_m": 4.66
+      }
+    },
+    "th57_axis_direction_changed_segments": 1,
+    "mp4_validation_s_20s_1440p24": 6.3,
+    "block_rendering_8s": false
+  },
+  "v1_21": {
+    "default_identical_to_1_20_package_frames_s": [
+      14,
+      40,
+      96
+    ],
+    "default_identical_trevo_view": true,
+    "joint_spacing_default_m": 5
+  },
+  "v1_22": {
+    "snap_default": "off",
+    "grip_coordinate_precision_m": 0.001
+  },
+  "v1_23": {
+    "launcher_compiled_in_test_environment": false,
+    "launcher_language": "C# 5 / .NET Framework 4 (csc.exe do Windows)",
+    "launcher_version": "1.0"
+  },
+  "v1_24": {
+    "anterior_identical_to_1_23_frames_s": [
+      14,
+      40,
+      96
+    ],
+    "anterior_identical_trevo_view": true,
+    "optimized_vs_1_23_mean_abs_diff": 1.61,
+    "optimized_vs_1_23_max_abs_diff": 54,
+    "th57_1920_ms_per_frame_warm": {
+      "anterior": [
+        658,
+        694,
+        677,
+        594
+      ],
+      "otimizado": [
+        524,
+        511,
+        493,
+        443
+      ]
+    },
+    "ecw_real_tested": false,
+    "windows_tested": false,
+    "block_rendering_8s": false
+  },
+  "v1_25": {
+    "qms_api_format_checked": "2026-10-21 (serviços 1300, 5976, 1576)",
+    "qms_live_from_app_tested": false,
+    "real_tiles_downloaded_in_test_environment": false,
+    "sample_reference_zoom": 19,
+    "render_changed": false
+  },
+  "v1_26": {
+    "default_identical_to_1_25_frames_s": [
+      14,
+      40,
+      96
+    ],
+    "default_identical_trevo_view": true,
+    "anterior_engine_identical_to_1_23": true,
+    "windows_tested": false,
+    "cabin_view_gantry": false
+  },
+  "components": {
+    "app": "1.42",
+    "schema": 30,
+    "launcher": "1.3"
+  },
+  "v1_27": {
+    "default_identical_to_1_26_frames_s": [
+      14,
+      40,
+      96
+    ],
+    "anterior_engine_identical_to_1_23": true,
+    "th57_curve_speed_120s": {
+      "limited_fraction": 0.213,
+      "mean_mps": {
+        "off": 17.6,
+        "on": 17.1
+      },
+      "p5_mps": {
+        "off": 14.6,
+        "on": 13.2
+      },
+      "rear_collisions": 0
+    },
+    "launcher_compiled": false,
+    "webview2_tested": false
+  },
+  "v1_30": {
+    "default_identical_to_1_29_frames_s": [
+      14,
+      40,
+      96
+    ],
+    "default_identical_trevo_view": true,
+    "windows_tested": false
+  },
+  "v1_31": {
+    "default_identical_to_1_30_frames_s": [
+      14,
+      40,
+      96
+    ],
+    "default_identical_trevo_view": true,
+    "api_routes_same_as_1_30": 109,
+    "ui_screenshots_identical_to_1_30": "sim, salvo rolagem da coluna e datas",
+    "windows_tested": false
+  },
+  "v1_32": {
+    "padrao_identical_to_1_31_frames_s": [
+      14,
+      40,
+      96
+    ],
+    "padrao_identical_trevo_view": true,
+    "th57_1280_s_per_frame": {
+      "padrao": 0.38,
+      "alta": 0.44,
+      "maxima": 1.02
+    },
+    "laplacian_var": {
+      "padrao": 1383,
+      "alta": 2017,
+      "maxima": 1672
+    },
+    "x264_psnr_db": {
+      "padrao": 37.6,
+      "alta": 39.1,
+      "maxima": 39.6
+    },
+    "esri_level20_tested": false,
+    "windows_tested": false
+  },
+  "v1_33": {
+    "padrao_identical_to_1_32_frames_s": [
+      14,
+      40,
+      96
+    ],
+    "padrao_identical_trevo_view": true,
+    "ui_checked_chromium": true,
+    "windows_tested": false
+  },
+  "v1_34": {
+    "existing_projects_identical_to_1_33_frames_s": [
+      14,
+      40,
+      96
+    ],
+    "identical_trevo_view": true,
+    "artistico_s_per_frame": [
+      0.17,
+      0.43,
+      0.4
+    ],
+    "realistic_s_per_frame": [
+      0.17,
+      0.4,
+      0.35
+    ],
+    "artistico_mean_diff_close_view_60m": 3.8,
+    "windows_tested": false
+  },
+  "v1_35": {
+    "existing_projects_identical_to_1_34_frames_s": [
+      14,
+      40,
+      96
+    ],
+    "identical_trevo_view": true,
+    "msproject_real_file_tested": false,
+    "windows_tested": false
+  },
+  "v1_36": {
+    "existing_projects_identical_to_1_35_frames_s": [
+      14,
+      40,
+      96
+    ],
+    "identical_trevo_view": true,
+    "windows_tested": false
+  },
+  "v1_37": {
+    "existing_projects_identical_to_1_36_frames_s": [
+      14,
+      40,
+      96
+    ],
+    "identical_trevo_view": true,
+    "oda_converter_real_tested": false,
+    "windows_tested": false
+  },
+  "notes": "1.42: o pacote de atualização fica exclusivamente em atualizacoes/; o iniciador detecta pacotes pendentes, encerra a sessão do Rodovia Studio de forma controlada, valida/aplica com rollback e informa para reabrir. Splash com versão, fabricante Ronaldo Santos e logotipo animado. Mantém proteções de KMZ, GeoTIFF, rotas <50 m e robustez numérica.",
+  "v1_40_7_validation": {
+    "technical_tests": 28,
+    "workflow_tests": 7,
+    "visual_tests": 9,
+    "python_compileall": "ok",
+    "javascript_node_check": "ok",
+    "logo_protected": true,
+    "imagery_cache_reuse": true,
+    "session_temp_cleanup": true,
+    "kmz_kept_as_optional_technical_input": true
+  },
+  "v1_40_8_validation": {
+    "kmz_trace_tests": 5,
+    "regression_tests": 25,
+    "python_compileall": "ok",
+    "javascript_node_check": "ok",
+    "kmz_invalid_fails_closed": true,
+    "kmz_axis_fallback_tracked": true,
+    "kmz_georef_and_pois_tracked": true,
+    "kmz_removal_dependency_warning": true
+  },
+  "v1_40_9_validation": {
+    "functional_tests": 8,
+    "visual_tests": 12,
+    "responsive_matrix": [
+      "1920x1080",
+      "1600x900",
+      "1366x768",
+      "1280x720",
+      "1024x768"
+    ],
+    "python_compileall": "ok",
+    "javascript_node_check": "ok",
+    "fixes_found": [
+      "exclusive_panels_up_to_1400px",
+      "selection_bar_safe_without_graphic_metadata"
+    ],
+    "recent_regression_tests": 38,
+    "visual_regression_tests": 22,
+    "workflow_tests": 7
+  }
+}

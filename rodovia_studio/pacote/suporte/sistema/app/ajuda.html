@@ -1,0 +1,269 @@
+<h2>Como usar o Rodovia Studio</h2>
+<p class="muted">Passo a passo do projeto ao vídeo. Passe o mouse (ou toque) nos <span class="help">?</span> ao lado dos campos para ver a explicação de cada um.</p>
+
+<h3>1. Projeto e arquivos</h3>
+<ol>
+<li><b>Novo projeto</b> (ou <b>Abrir projeto</b> para continuar um salvo).</li>
+<li>Selecione o DXF (e o KMZ, se houver) e clique <b>Enviar arquivos</b>. DWG precisa ser salvo como DXF.</li>
+<li><b>Analisar arquivos</b>: lista as camadas do DXF e sugere a função de cada uma.</li>
+</ol>
+
+<h3>2. Configuração</h3>
+<ul>
+<li><b>CRS</b>: sistema projetado do DXF (ex.: EPSG:31983 — SIRGAS 2000 / UTM 23S). <b>Fator de unidade</b>: 1 se o desenho está em metros.</li>
+<li><b>Km inicial/final</b>: aceita 325+850 ou 325,850. A <b>extensão de referência</b> é a do contrato e aparece no rodapé.</li>
+<li><b>Camadas e sentidos</b>: confira a função de cada camada (pavimento, canteiro, OAE…) e o fluxo de cada eixo.</li>
+<li>Marque <b>Conferi CRS, unidades e alinhamento</b> depois de olhar a prévia.</li>
+</ul>
+
+<h3>Usar com outro modelo (outro DXF/KMZ)</h3>
+<ol>
+<li>Crie um projeto, envie o DXF/KMZ e clique <b>Analisar arquivos</b>.</li>
+<li>Em <b>Configuração → Camadas e sentidos</b>, escolha um <b>perfil de camadas</b> e clique <b>Aplicar perfil</b>. O perfil “Padrão” reconhece nomes comuns (EIXO, PAVIMENTO, ACOST, BORDO, OAE, CANTEIRO, DOMÍNIO, HIDRO…). Nada é fixo: confira a lista e mude o tipo de qualquer camada.</li>
+<li>Não sabe o que é uma camada? Clique <b>Ver</b>: ela fica destacada em magenta no editor.</li>
+<li>Tipos disponíveis: Eixo, Pista projetada, Pista existente, Acostamento, Bordo (linha de borda), Canteiro, Barreira, OAE, Corte, Aterro, Talude (corte/aterro pela proximidade), Faixa de domínio e Hidrografia. Camadas sem tipo são ignoradas.</li>
+<li><b>Salvar como perfil</b> guarda o mapeamento para os próximos projetos com o mesmo padrão CAD. Em <b>Editar regras</b>, generalize com * e ? (ex.: <code>*EIXO* =&gt; axis</code>, <code>FD_* =&gt; domain</code>).</li>
+<li><b>Cores por tipo</b> ajusta a cor de cada tipo na prévia e no vídeo.</li>
+<li>Clique <b>Analisar arquivos</b> de novo para aplicar.</li>
+</ol>
+<h3>3. Editor (imagem web ou prévia)</h3>
+<ul>
+<li><b>Imagem web</b>: depois de <b>Analisar arquivos</b>, o editor abre sobre a imagem de satélite <b>Esri World Imagery</b>, nítida em qualquer zoom, com o <b>DXF/KMZ simplificado</b> por cima (pavimento, canteiro, OAE, corte/aterro, domínio, eixos…). Não precisa gerar prévia para marcar início/fim do km, destaques, OAE, exclusões e <b>pares de controle</b>.</li>
+<li><b>Fundo de edição</b>: Imagem web + vetores, Prévia renderizada (a imagem do vídeo) ou Só vetores. As marcações são as mesmas em qualquer fundo. <b>Camadas</b> liga/desliga cada classe; os controles deslizantes ajustam a transparência da imagem e dos vetores.</li>
+<li>Os ladrilhos baixados ficam guardados (pasta <b>projetos\_ladrilhos</b>) e funcionam sem internet nas áreas já vistas. Sem internet e sem cache, o editor avisa no rodapé e continua com os vetores.</li>
+<li><b>Fluxos e sinalização sem prévia</b>: a análise já calcula as trajetórias com setas de sentido, a pintura de faixas e as setas do vídeo, desenhadas como vetores nítidos em qualquer zoom (camadas “Trajetórias e sentidos”, “Sinalização do vídeo” e “Setas de fluxo do vídeo”). Depois de inverter/desativar/incluir fluxos ou mudar o sentido de uma OAE, clique <b>⟳ Atualizar fluxos</b> (segundos, sem gerar a prévia).</li><li>Se o computador não conseguir baixar a imagem web pelo aplicativo (proxy da empresa), o navegador busca direto no Esri.</li>
+<li><b>Gerar / atualizar prévia</b> cria a imagem do vídeo. Roda do mouse = zoom; arrastar = mover; <b>Ajustar</b> encaixa. <b>F</b> = tela cheia; <b>L</b> = painel de marcações; <b>Ctrl+Z / Ctrl+Y</b> = desfazer/refazer.</li>
+<li>A ferramenta ativa fica destacada e a instrução dela aparece abaixo da barra. Tudo é salvo automaticamente na configuração, em coordenadas — o DXF nunca é alterado.</li>
+</ul>
+<table>
+<tr><td><b>📏 Início do km</b></td><td>Clique no eixo onde vale o km inicial. <b>Clique e arraste</b> ao longo do eixo para dizer em que sentido o km cresce.</td></tr>
+<tr><td><b>🏁 Fim do km</b></td><td>Clique onde vale o km final. Com início e fim, o sentido é automático. Com <b>Ajuste proporcional</b>, a diferença entre o km final informado e a distância medida é distribuída ao longo do trecho (útil quando os marcos oficiais não batem com a geometria).</td></tr>
+<tr><td><b>Modo do estaqueamento</b></td><td><b>Automático</b>: km a partir do início do eixo, no sentido do eixo. <b>Manual</b>: pelos pontos marcados. <b>Desligado</b>: só o km digitado. Em “Marcações do projeto” há <b>Inverter sentido</b> e <b>Usar km final medido</b>.</td></tr>
+<tr><td><b>⭐ Destaque</b></td><td>Ponto especial para mostrar no vídeo: edificação, interferência, poste, rede, drenagem, acesso… Clique no ponto; <b>clique e arraste</b> para posicionar a caixa de informação com linha de chamada. A caixa aparece suavemente quando a câmera passa pelo local. Marque <b>parada da câmera</b> para que o vídeo pare nele com o nome no cabeçalho.</td></tr>
+<tr><td><b>📍 Intervenção</b></td><td>Preenche X/Y do formulário da seção 4 (obras do vídeo, com chamada no cabeçalho).</td></tr>
+<tr><td><b>↘ Linha de chamada</b></td><td>Ponto de ancoragem da caixa de cada intervenção.</td></tr>
+<tr><td><b>🌉 OAE</b></td><td>Clique início e fim sobre o eixo; ajuste nome, nível e largura na lista.</td></tr>
+<tr><td><b>🌉 OAE (vértices)</b></td><td>Clique os vértices do tabuleiro (mínimo 4; polígono irregular permitido, ex.: ponte esconsa): comece por uma cabeceira, siga por um lado e volte pelo outro; Enter conclui. Escolha o <b>sentido</b> (dois sentidos, crescente, decrescente): os veículos sobre a OAE seguem esse sentido. Ajuste com <b>Editar vértices</b> (Shift+clique remove um vértice).</td></tr>
+<tr><td><b>↻ Girar seta</b></td><td>Clique numa seta de fluxo para invertê-la (ou arraste para apontá-la); a seta se alinha à faixa e o fluxo daquele trecho da via passa a segui-la. Clique <b>⟳ Atualizar fluxos</b>.</td></tr>
+<tr><td><b>➜ Sentido</b></td><td>Arraste sobre a pista no sentido do tráfego.</td></tr>
+<tr><td><b>⇄ / ⦸ / ✚ Fluxos</b></td><td>Inverter, desativar ou incluir trajetórias de veículos (a inclusão é validada: dentro do pavimento e fora de canteiros/barreiras/exclusões).</td></tr>
+<tr><td><b>✕ / ⬚ Sem conexão</b></td><td>Cruzamento em desnível: o tráfego não troca de via ali.</td></tr>
+<tr><td><b>⬠ / ✎ / ◇ Exclusões</b></td><td>Áreas de limpeza por vértices ou laço; editar vértices (Shift+clique remove).</td></tr>
+<tr><td><b>🧽 Sem sinalização</b></td><td>Desenhe (laço) a área onde pinturas de faixa e setas não devem aparecer no vídeo — use para apagar sobras. O pavimento continua. Ajuste com <b>Editar vértices</b>; exclua pela lista.</td></tr>
+<tr><td><b>🏙 Cidade</b></td><td>Clique para marcar uma cidade com o nome digitado. Na lista, <b>Buscar cidades próximas</b> traz os nomes do OpenStreetMap (internet na primeira vez; depois fica guardado). Renomeie, oculte ou exclua.</td></tr>
+<tr><td><b>⊕ Par de controle</b></td><td>Ajuste do DXF sobre a imagem: clique um ponto nos vetores do DXF e depois o mesmo ponto na imagem web. Com a imagem web, <b>Aplicar ao DXF</b> só reanalisa (rápido) e os vetores se deslocam.</td></tr>
+<tr><td><b>🚗 Cabine</b></td><td>Escolhe o veículo/trecho da vista em primeira pessoa.</td></tr>
+</table>
+
+<h3>4. Intervenções</h3>
+<p>Nome, categoria, subtítulo e km (calculado pelo estaqueamento ou manual). Aparecem em posição fixa no cabeçalho durante as cenas de detalhe.</p>
+
+<h3>5. Vídeo</h3>
+<ul>
+<li><b>Aceleração Automática</b>: testa a placa NVIDIA (NVENC) e usa a CPU se necessário.</li>
+<li><b>Processos de montagem Automático</b>: usa os núcleos e a memória livres do PC. <b>Perfil Rápido</b>: rascunho mais veloz.</li>
+<li><b>Detalhe em alta resolução</b>: quando a câmera se aproxima, o vídeo usa imagem Esri de ~0,3 m e o desenho do projeto (pavimento, canteiro, taludes, OAE) a 0,2 m por pixel — bordas e hachuras nítidas. A imagem detalhada é baixada antes da montagem e guardada; sem internet, o vídeo usa o mosaico base e mantém as texturas nítidas. Desligue em “Imagem detalhada” / “Texturas em alta resolução”.</li>
+<li><b>Qualidade visual</b> Aprimorada ou Anterior (mais rápida). Faróis, água e vista da cabine também ficam aqui.</li>
+<li><b>Sinalização, setas e anotações</b>: pintura <b>Limpa</b> (padrão) remove sobras nas junções; setas de fluxo <b>a cada km e nos pontos de conflito</b>; marcos do km inicial e final; seta no topo com o sentido do estaqueamento; grama nos canteiros; nomes das cidades (com seta na borda quando estão fora do quadro). Cada item pode ser desligado; “Anterior” reproduz o visual clássico.</li>
+</ul>
+
+<h3>Camadas, imagem local, elevação e intercâmbio</h3>
+<ul>
+<li>DXF adicionais com estilo e classe; imagem local GeoTIFF/arquivo de mundo; MDT local ou web.</li>
+<li>Exportação GeoJSON, KML/KMZ, DXF, CSV, pacote .zip do projeto e sequência PNG.</li>
+</ul>
+
+<h3>Tráfego, interdições e canteiro</h3>
+<ul>
+<li><b>Movimento simulado</b>: os veículos mantêm distância (sem batida traseira), cedem passagem nas convergências e formam fila. <b>Densidade</b> acima de 3 simula engarrafamento.</li>
+<li><b>Ignorar trechos curtos nas rotas</b> (padrão 50 m): ramos curtos que o programa encontra nos encontros e cruzamentos não entram nas rotas dos veículos; quem chegava a eles segue direto por uma curva suave dentro da pista, sem ziguezague. Não vale para o eixo principal, os trechos desenhados por você, as faixas de rota e o anel das rotatórias. 0 usa todos os trechos.</li>
+<li><b>🚧 Interdição</b>: área por vértices; <b>parcial</b> (reduz a velocidade e cria retenção) ou <b>total</b> (veículos param antes; usam rota alternativa quando existe). Defina início e fim em segundos do vídeo.</li>
+<li><b>↶ Travessia permitida / ⛔ proibida</b>: onde os veículos podem (ou não) passar de uma pista para a outra do canteiro. Por padrão só em retornos em desnível, rotatórias e aberturas de retorno.</li>
+</ul>
+<h3>Dia e noite</h3>
+<p>Em Exportar vídeo → Dia e noite: <b>Transição</b> (escurece no instante escolhido) ou <b>Noite</b>. À noite acendem faróis e lanternas e a pintura brilha como tinta refletiva.</p>
+<h3>Duas janelas</h3>
+<p><b>🗗 Duas janelas</b> abre a visualização e os resultados (editor, progresso, vídeo) numa segunda janela — por exemplo no outro monitor — e deixa a configuração na atual. As duas ficam sincronizadas: campos alterados na configuração chegam à visualização e marcações feitas no editor chegam à configuração; um processamento iniciado numa aparece na outra. <b>▣ Janela única</b> volta ao modo normal. Se o navegador bloquear a nova janela, permita pop-ups para 127.0.0.1.</p>
+<h3>Sinalização completa</h3>
+<p>Em <b>Sinalização horizontal e vertical</b>: <b>Completa</b> (padrão) ou <b>Básica</b>. Na completa:</p>
+<ul><li><b>Divisórias de faixa</b> pela largura real da pista dividida pela <b>Largura da faixa</b> (3,5 m); alargamentos e tapers não criam faixas. Num trecho com outro número de faixas, use a ferramenta <b>☰ Faixas por trecho</b>.</li>
+<li><b>Setas por faixa</b>: uma seta em cada faixa do mesmo sentido; antes de saídas e acessos a seta mostra as opções (reta e direita, reta e esquerda). A ferramenta ↻ Girar seta continua valendo para qualquer seta.</li>
+<li><b>Retenção e PARE</b> onde um acesso entra em nível numa via de maior prioridade, e <b>linha de dê a preferência</b> nas entradas de rotatória, com as placas R-1 e R-2.</li>
+<li><b>Zebrados automáticos</b> no gore entre dois ramos com tráfego, antes do nariz. Onde o automático não reconhece, desenhe com <b>▨ Zebrado</b> (cor, ângulo e espaçamento na lista).</li>
+<li><b>🚶 Faixa de pedestre</b>: clique num bordo e no outro. <b>🛑 Placa</b>: escolha o tipo (PARE, dê a preferência, velocidade, advertência, obras, indicação, serviço) e o texto.</li>
+<li><b>Sinalização do DXF</b>: camadas do tipo <i>Sinalização horizontal</i> (polilinhas e hachuras) e <i>Sinalização vertical</i> (blocos, pontos e textos) entram no vídeo e, por padrão, substituem a gerada. Textos de pintura precisam ser convertidos em polilinha/hachura no CAD.</li>
+<li><b>🧽 Sem sinalização</b> também remove zebrados, retenções e placas automáticas da área.</li></ul>
+<h3>Texturas</h3>
+<p>Em Exportar vídeo: <b>Texturas</b> realistas (padrão) ou anteriores. As realistas acrescentam o agregado do asfalto; na pista existente, remendos, fissuras (visíveis de perto) e trilhas de roda; acostamento mais claro; e, com imagem aérea real, a cor da imagem detalhada é ajustada à do mosaico para não haver salto ao aproximar. <b>Aparência dos taludes</b>: hachura de projeto (padrão) ou terreno (solo no corte, grama no aterro, com contorno fino). <b>Resolução do detalhe</b>: 0,2 m ou 0,1 m por pixel (bordas mais nítidas em vídeo 4K; gera mais ladrilhos e é mais lento).</p>
+<h3>Imagem local de alta resolução</h3>
+<p>Em Camadas, imagem local e intercâmbio → <b>Imagem georreferenciada local</b>: envie GeoTIFF/COG, JPEG2000 (.jp2 com georreferência interna ou .j2w) ou JPG/PNG/TIF com arquivo de mundo e .prj. Com <b>Acrescentar ao mosaico</b>, várias imagens se juntam (a primeira tem prioridade). <b>Bordas pretas/brancas</b>: ficam transparentes só os pixels branco puro (255) ou preto puro (0) ligados à beira da imagem; a imagem começa no primeiro pixel abaixo de 255 (ou acima de 0). Branco puro no meio da imagem (telhado, pintura, nuvem) continua visível. A opção “Anterior” repete o comportamento antigo (≥253 e ≤3 em toda a imagem). A imagem entra no fundo do vídeo, na aproximação (detalhe, até 0,1 m) e no editor, onde dá para aproximar como no Google Earth; fora dela continua a Esri. Ajuste brilho, contraste e saturação na mesma seção.</p>
+<p><b>ECW e MrSID</b>: o formato é fechado. Envie o arquivo e clique <b>Converter ECW/MrSID com o QGIS</b>: o programa usa o GDAL do QGIS instalado no computador (com suporte a ECW) para gerar um GeoTIFF em blocos, uma única vez. Sem QGIS, converta no próprio QGIS (Raster → Conversão → Converter, opções TILED=YES e COMPRESS=DEFLATE) e envie o GeoTIFF. Arquivos grandes: prefira GeoTIFF em blocos com Deflate ou COG — são lidos aos pedaços, sem carregar tudo na memória.</p>
+<h3>Faixas, setas, camadas, km, passarela e acessos</h3>
+<ul><li><b>Faixas por sentido</b> (Configuração → sinalização): padrão 2; o que sobra da largura da pista vira acostamento, com a linha contínua de bordo da faixa. <b>➕ 3ª faixa (início/fim)</b>: clique o início e o fim sobre a pista; entre os dois km vale o número de faixas informado. <b>☰ Faixas por trecho</b> continua para áreas desenhadas.</li>
+<li><b>Setas</b>: no máximo uma a cada 25 m no mesmo sentido (ajustável; 0 = sem afastamento mínimo) e repetidas em cada faixa só antes de saídas e acessos. As setas dos anéis de rotatória são mantidas.</li>
+<li><b>Camada única</b>: se o DXF estiver todo na layer 0 (ou numa só camada), ela é separada automaticamente por cor e tipo de entidade (ex.: “0 · cor 8 · HATCH”). Indique o tipo de cada grupo na lista e use “Ver”. Avisos indicam mapeamentos suspeitos (pavimento sem áreas fechadas, eixo com muitas entidades, pintura com áreas grandes demais).</li>
+<li><b>Km em planta</b>: nas ferramentas Início do km e Fim do km, digite o km do ponto antes de clicar (o fim liga o ajuste proporcional).</li>
+<li><b>↔ Vão da passarela</b>: clique na passarela e arraste — comprimento e ângulo acompanham o mouse (Shift: só o comprimento).</li>
+<li><b>🛣 Acesso com taper</b>: clique junto ao bordo da pista e siga pelo eixo do acesso; são gerados o pavimento, os tapers de entrada (antes) e saída (depois), a sinalização e os fluxos. Depois clique “Analisar arquivos” ou gere a prévia.</li></ul>
+
+<h3>Comandos, imagens, fontes web e limpeza</h3>
+<ul><li><b>Enter</b> conclui o comando em andamento e volta para <b>Navegar</b>, liberando outro comando em outro lugar. <b>Esc</b> cancela.</li>
+<li><b>Mudar o ponto de início</b>: com a ferramenta Placa, arraste uma placa existente; em Vão da passarela, arraste o centro para mudar a passarela de lugar; em Linha de chamada, arraste a âncora (ponta) ou o marcador da obra (início). A ferramenta <b>Mover ponto</b> move qualquer ponto marcado. Tudo tem desfazer/refazer.</li>
+<li><b>Imagens locais</b>: na lista, ▲/▼ mudam a prioridade (a de cima fica por cima nas sobreposições; onde nenhuma cobre, vale a imagem web). <b>Ajustar</b> abre a ferramenta <b>Ajustar imagem local</b>: arraste dentro da imagem para deslocar, arraste um canto para girar e escalar (Shift: só girar; Ctrl: só escalar), setas do teclado deslocam 5 cm (Shift: 50 cm). Há desfazer, refazer e “Posição original”. O arquivo não é alterado; o ajuste fica na configuração, no CRS do projeto.</li>
+<li><b>Fonte da imagem web</b> (Configuração): Esri atual, <b>Esri Wayback</b> (carregue a lista e escolha a data) ou um serviço <b>XYZ/WMS</b> autorizado. Vale para o editor, o mosaico do vídeo e a aproximação.</li>
+<li><b>Prévia de perto</b>: “Detalhar vista atual” aceita vistas de até 5 m; abaixo de 3,5 cm por pixel a prévia usa ladrilhos de 5 cm e grão fino nas texturas.</li>
+<li><b>Limpar trabalho</b> (seção 1): remove as marcações escolhidas (obras, sinalização, geometria, fluxos, cidades) e mantém as características do segmento. Antes é salva uma cópia; “Desfazer limpeza” volta. <b>Retirar projeto</b> move a pasta para <b>projetos\_lixeira</b>.</li>
+<li><b>Barra de ferramentas</b>: grupos com ícones; “Mostrar nomes” exibe o nome de cada ferramenta.</li></ul>
+
+<h3>Veículos, sentido, áreas de pista e apresentação técnica</h3>
+<ul><li><b>Veículos em linha reta</b>: as trajetórias não recuam mais nas emendas dos trechos e são suavizadas onde o veículo continua inteiro dentro da pista (Exportar vídeo → Trajetória dos veículos; “Clássico” reproduz o comportamento anterior).</li>
+<li><b>Sentido sem seta</b>: nos trechos paralelos ao eixo, vale a mão de direção pelo eixo do projeto — à direita do eixo, km crescente; à esquerda, decrescente. Setas marcadas, sentido de OAE, rotatórias e “Sentidos de circulação” continuam com prioridade.</li>
+<li><b>▦ Área de pista (desenhar)</b> e <b>⬚ Área de pista (selecionar)</b>: escolha pista nova, pista existente ou acostamento; desenhe os vértices (Enter conclui) ou clique dentro de uma área fechada do desenho. A área recebe a hachura do tipo e prevalece sobre a classificação do DXF ali. Edite vértices, tipo, nome e “ativa” na lista.</li>
+<li><b>⇥ Acostamento (início/fim)</b>: informe a largura, clique o início e o fim junto ao bordo da pista; a faixa é criada ao longo do bordo.</li>
+<li><b>Perfil “Apresentação técnica”</b> (Exportar vídeo): 2560×1440, 24 q/s, 96 s, pista nova escura com hachura dourada, existente cinza-azulada, acostamento próprio, voo contínuo até o fim do segmento, sem setas de fluxo e sem veículos, e indicador de progresso da revelação. Cada item pode ser ajustado depois.</li>
+<li><b>Conferências</b>: a análise compara o eixo do DXF com a linha do KMZ em 25 pontos (desvio mediano, 95% e máximo); blocos da imagem aérea sem imagem são avisados; depois de gravar, o MP4 é decodificado por inteiro e conferido (quadros, resolução, codec, taxa, faststart).</li></ul>
+
+<h3>Pavimento rígido e flexível, vídeo técnico ou artístico e contraste</h3>
+<ul><li><b>Pista nova, pista existente e acostamento</b> (Exportar vídeo → Perfil): escolha <b>flexível (asfalto)</b> ou <b>rígido (concreto)</b>. Camadas com RIGIDO, CONCRETO, CCP ou PCC no nome são lidas como concreto; FLEXIVEL, ASFALTO, CBUQ, CAUQ ou TSD como asfalto. Nas áreas de pista do editor, escolha o material da área.</li>
+<li><b>Concreto</b>: placas com <b>juntas transversais a cada 5 m</b> (ajustável de 2 a 10 m), perpendiculares a cada pista ou ramo (radiais nas curvas) e alinhadas nas duas pistas pela estaca do eixo.</li>
+<li><b>Montagem do vídeo</b>: <b>Artístico</b> (texturas realistas de asfalto e concreto, placas com leve variação de tom e juntas seladas) ou <b>Técnico</b> (hachuras limpas de desenho: asfalto com hachura dourada/cinza-azulada, concreto claro com juntas em traço e pontilhado). “Aplicar também as texturas” mantém o visual técnico anterior.</li>
+<li><b>Contraste projeto × imagem</b>: escurece e tira a cor da imagem aérea (0 a 100%) para o projeto se destacar; o projeto não é alterado.</li></ul>
+
+<h3>Edição tipo CAD</h3>
+<ul><li><b>Selecionar</b>: com Navegar, clique num objeto (placa, área, acesso, faixa, alinhamento…). Aparecem os <b>grips</b> (quadrados azuis) e o painel <b>Propriedades</b>. Arraste um grip para mudar o vértice; arraste o objeto para movê-lo; <b>Delete</b> apaga. Desfazer/refazer valem para tudo.</li>
+<li><b>Propriedades</b>: altere nome, textos, números, tipo, material e as <b>coordenadas X/Y de cada grip</b> (3 casas = milímetro) e pressione <b>Enter</b> para confirmar (Esc desfaz a digitação).</li>
+<li><b>Linha de comando</b> (abaixo da tela): com a tela em foco, basta digitar. Comandos: MOVER (M), APAGAR (E/DEL), PROPRIEDADES (PR), ALINHAMENTO (AL), DIST (DI), ID, PLACA, AREA, ACOSTAMENTO, ACESSO, KMINI, KMFIM, PASSARELA, CHAMADA, DESTAQUE, OAE, FAIXA, ZOOM, SALVAR, SNAP, ORTO. Pontos podem ser digitados: <code>X,Y</code> (absoluto) ou <code>@dx,dy</code> (relativo ao último ponto). <b>Enter</b> vazio conclui o comando.</li>
+<li><b>Snap</b> (F3; desligado por padrão, a escolha fica lembrada): atrai o cursor para vértices e pontos médios do desenho, para os grips das marcações e para o eixo; o tipo aparece junto ao cursor. <b>Orto</b> (F8): trava o próximo ponto na horizontal ou vertical a partir do anterior.</li>
+<li><b>Precisão</b>: o cursor mostra X/Y com 3 casas (mm), distância e azimute a partir do último ponto; o zoom chega a cerca de 1 mm por pixel.</li>
+<li><b>⟋ Alinhamento (cliques)</b>: clique dois ou mais pontos sobre o eixo da via (o snap ajuda) e Enter. Ao analisar, ele vira o eixo de referência (estaqueamento, câmera e sentido), com curva suave passando pelos pontos (pode ser desligada nas Propriedades: smooth). O DXF não muda.</li>
+<li><b>Salvar projeto</b> (Ctrl+S), <b>Salvar como…</b> (cópia com outro nome, sem caches) e <b>Excluir projeto</b> (vai para projetos\_lixeira) ficam na seção 1.</li></ul>
+
+<h3>Rodovia Studio.exe</h3>
+<ul><li>Na pasta principal, dê dois cliques em <b>COMPILAR INICIADOR.cmd</b> (uma vez): ele cria <b>Rodovia Studio.exe</b> com o compilador que já vem no Windows, sem administrador, e um atalho na Área de Trabalho.</li>
+<li>O .exe prepara o ambiente na primeira vez, <b>aplica sozinho</b> o ZIP de atualização que estiver em “atualizacoes” (ou Downloads), inicia o aplicativo sem janela preta e abre numa janela própria do Edge/Chrome. Ele fica no ícone perto do relógio: Abrir, Pasta de projetos, Procurar e aplicar atualização, Reiniciar, Ver registro e Encerrar.</li>
+<li>O programa (comandos, telas, motor do vídeo) continua em arquivos separados em suporte\sistema e é trocado pelos ZIPs — o .exe não precisa mudar. Se um dia o iniciador mudar, um aviso pede para executar COMPILAR INICIADOR.cmd de novo.</li>
+<li>“ABRIR RODOVIA STUDIO.cmd” continua funcionando como alternativa.</li></ul>
+
+<h3>Leitor ECW interno</h3>
+<ul><li>Em <b>Camadas, imagem local e intercâmbio → Imagem georreferenciada local</b>, clique <b>Instalar leitor ECW interno (uma vez)</b>. O aplicativo instala no próprio Python (sem administrador e sem QGIS) o GDAL para Python e o plugin ECW.</li>
+<li>Depois, envie o .ecw (ou .jp2/.sid): a conversão para GeoTIFF em blocos começa sozinha. Antes de aceitar o resultado, o programa confere que o tamanho, a origem, o pixel, o sistema de coordenadas e os quatro cantos são idênticos ao original; também grava .tfw e .prj. A conferência fica em imagem_local\&lt;nome&gt;_conferencia.json.</li>
+<li>O instalador usa só pacotes prontos (nunca tenta compilar o GDAL) e o proxy do Windows. Se o índice de pacotes estiver bloqueado, baixa os 2 arquivos diretamente (GitHub de Christoph Gohlke e PyPI) e os guarda em <b>sistema\programa\pacotes_ecw</b>.</li>
+<li>Se ainda falhar (rede da empresa), a mensagem mostra os 2 endereços: baixe no navegador <b>gdal-3.11.4-cp312-cp312-win_amd64.whl</b> e <b>gdal_ecw-3.11.3-py3-none-win_amd64.whl</b>, copie para <b>sistema\programa\pacotes_ecw</b> e clique de novo em Instalar. O registro da tentativa fica em sistema\programa\pacotes_ecw_log.txt.</li>
+<li>Se aparecer “Can't load requested DLL”, o Windows precisa do Microsoft Visual C++ 2015-2022 (x64) — pedido à TI.</li></ul>
+
+<h3>Comandos, seleção e informação na tela</h3>
+<ul><li><b>Enter</b> finaliza e aceita em todas as funções (desenho, opções da ferramenta, propriedades, formulários). <b>Esc</b> com um comando em andamento abre a caixa de confirmação: <i>Continuar</i> mantém, <i>Cancelar</i> (ou Enter) sai.</li>
+<li><b>Seleção</b>: clique; <b>Shift+clique</b> acrescenta/retira; <b>Ctrl+arrastar</b> da esquerda para a direita = janela (só o que está inteiro dentro), da direita para a esquerda = crossing (o que toca). SELTUDO seleciona tudo; Delete apaga os selecionados.</li>
+<li><b>Comandos</b> na linha de comando: COPIAR (CO), MOVER (M), GIRAR (RO, ângulo anti-horário), ESCALA (SC, fator), ESPELHAR (MI, cria cópias), OFFSET (OF, distância e lado), U / REFAZER, TELACHEIA (TC), PAINEL (PN). Pontos por clique, X,Y ou @dx,dy.</li>
+<li><b>Snap exato</b>: com a vista menor que 1,2 km, o snap usa os vértices e pontos médios originais do DXF (dica “(exato)”).</li>
+<li><b>Atalhos</b>: Ctrl+Shift+F tela cheia e Ctrl+Shift+L painel funcionam também com a tela em foco.</li>
+<li><b>Info na tela</b>: perto do cursor aparecem comando, distância/azimute, área parcial e km; o painel mostra comprimento, área, perímetro e km do objeto.</li>
+<li><b>Menus</b>: use a barra de seções no topo; clique no título de uma seção para recolher/expandir.</li></ul>
+<h3>Fluxos, texturas, hachuras e vídeo</h3>
+<ul><li>Clique numa trajetória para selecionar o fluxo: inverter, desligar/religar. Com “Atualizar fluxos sozinho”, o recálculo é automático.</li>
+<li><b>Texturas</b> (Perfil de vídeo): grão, tom, remendos, fissuras e brilho por superfície, com amostra ao vivo.</li>
+<li><b>Hachuras do DXF</b>: após analisar, a lista mostra cada tipo (camada | padrão | cor) com sugestão de papel e material; troque o que precisar ou clique “Usar todas as sugestões” e analise de novo.</li>
+<li><b>Motor de montagem</b> (Perfil de vídeo): “otimizado” (padrão, mais rápido) ou “anterior” (idêntico às versões anteriores).</li></ul>
+
+<h3>Catálogo QuickMapServices</h3>
+<ul><li>Em <b>2. Configuração → Fonte da imagem web</b>, use o painel <b>Catálogo QuickMapServices</b>: digite o que procura (ex.: ortofoto, satellite) e pressione Enter ou <b>Buscar</b>. Deixe marcado “Só os que cobrem o trecho”.</li>
+<li><b>Testar no trecho</b> baixa uma amostra do centro do trecho e mostra a nitidez e as falhas; <b>Testar os 8 primeiros</b> compara e ordena pela nitidez. Confira as miniaturas — o catálogo não informa a data da imagem.</li>
+<li><b>Usar</b> aplica o serviço ao editor, ao mosaico e à aproximação do vídeo, com o crédito da fonte. Serviços que não estão em Web Mercator (EPSG:3857) não podem ser usados. Para Google, Bing, Yandex e semelhantes é pedida a confirmação de autorização, porque os termos desses provedores costumam proibir esse uso.</li>
+<li><b>Detalhes e termos</b> mostra licença e crédito. Depois de usar, gere a prévia para atualizar o mosaico do vídeo.</li></ul>
+
+<h3>Pórticos e caixas de chamada</h3>
+<ul><li><b>Pórtico</b> (barra Áreas e sinalização ou comando PT): clique no primeiro apoio e no segundo; no painel de propriedades use <b>Enviar imagem…</b> com a arte da placa. No vídeo aparecem a viga, os pilares, a sombra e a caixa com a imagem.</li>
+<li>As caixas de chamada procuram uma posição livre (sem sobrepor). <b>Posicionar caixa</b> fixa o lugar; <b>Caixa automática</b> volta ao automático. Estilo (cartão, compacto, etiqueta), tamanho do texto, linha reta/cotovelo e “Mostrar a partir de / até (s)” ficam nas propriedades.</li></ul>
+<h3>Camadas, hachuras e alinhamento</h3>
+<ul><li>Na lista de camadas: 👁 <b>oculta</b> (some no editor e no vídeo) e ❄ <b>congela</b> (travada no editor; no vídeo aparece pronta desde o início). Também pelo botão direito sobre uma linha, ou OC, CG, ISOLAR, MOSTRAR.</li>
+<li>Hachuras: a lista mostra a sugestão com a confiança e o motivo; “talvez …” é só indicação pela cor. “Ver” destaca as hachuras no editor.</li>
+<li>Alinhamento (AL): escolha <b>Cliques</b>, <b>Selecionar uma linha do desenho</b> ou <b>Seleção contínua</b>. Enter confirma, Esc cancela, Backspace desfaz o último trecho.</li></ul>
+<h3>Menu do botão direito, comandos e tela</h3>
+<ul><li>Clique com o <b>botão direito</b> (sem arrastar) na tela: o menu muda conforme a seleção e a camada sob o cursor; o rodapé explica cada item. Setas + Enter também funcionam; Esc fecha.</li>
+<li><b>ATRIB</b>: com vários objetos selecionados, altere os atributos em comum de uma vez. <b>PINTAR</b>: copia o estilo do selecionado para os que você clicar. Digite <b>?</b> para a lista de comandos; ↑/↓ percorre o histórico; Enter vazio repete o último.</li>
+<li><b>Tela ampla</b> (topo): arraste o divisor entre o painel e o editor. <b>Compacto</b> reduz espaçamentos.</li>
+<li><b>Sessões</b>: salve a vista e os painéis com nome e restaure depois; “Retomar ao abrir” volta para onde você parou. <b>⟳ Regenerar prévia</b> (RP) e REGEN (tela).</li></ul>
+<h3>Registros e prompt para IA</h3>
+<ul><li>Em <b>Registros e suporte</b>: veja a execução (etapas com tempo) e os erros (com o detalhe técnico), baixe tudo em .zip ou exporte o <b>prompt para IA</b>, que descreve a versão, o ambiente, os arquivos, a configuração, as etapas e os erros e explica como reproduzir o vídeo. Revise antes de compartilhar fora da empresa.</li></ul>
+
+<h3>Selecionar e editar</h3>
+<ul><li><b>Clique e arraste</b> um objeto para movê-lo (não é preciso clicar antes). Grips destacados: arraste um grip para mudar um vértice. A <b>alça redonda</b> acima da seleção gira (Shift: 15° em 15°). <b>Setas</b> deslocam 0,10 m (Shift 1 m, Ctrl 0,01 m); Delete apaga. A <b>mini-barra</b> junto da seleção tem mover, girar, copiar, textura, nome, propriedades e apagar.</li>
+<li><b>Áreas do desenho</b>: clique sobre a pista (Alt+clique se houver fluxo por cima) e use o <b>botão direito</b>: Trocar textura…, Trocar nome…, Trocar tipo, Tornar editável. O DXF não muda: é criada uma área de pista com os mesmos vértices.</li>
+<li><b>Caixa de chamada</b>: arraste o losango amarelo (a linha aumenta ou diminui) ou digite o comprimento e a direção nas propriedades.</li>
+<li>O <b>botão direito</b> mostra só os comandos do que está selecionado; sem seleção, os comandos gerais.</li></ul>
+<h3>Fluxos e velocidade de avanço</h3>
+<ul><li>Selecione uma trajetória: saídas em verde, chegadas em azul. Clique numa ligação para <b>proibir</b> (ou permitir de novo). <b>Forçar ligação</b> (ferramenta) liga duas pontas de trechos. Informe a <b>velocidade</b> do trecho em km/h; <b>Editar traçado</b> cria um fluxo com grips.</li>
+<li>Perfil de vídeo: <b>Avanço da câmera</b> pela duração ou pela <b>velocidade de avanço</b> (a duração é calculada). A ferramenta <b>Velocidade de avanço (trecho)</b> deixa a câmera mais lenta (ou mais rápida) num trecho do eixo.</li>
+<li><b>Janela própria</b>: execute COMPILAR INICIADOR.cmd depois de atualizar; o Rodovia Studio.exe 1.1 abre numa janela do Windows (WebView2). Ajuda › Sobre mostra as versões.</li></ul>
+
+<h3>Alterações e prévia</h3>
+<ul><li>Toda alteração é salva na hora (também durante a análise ou a prévia). Ao concluir um comando, a seleção, os grips e a mini-barra somem; arrastar com o mouse mantém a seleção.</li>
+<li>Com o fundo “Prévia renderizada”, a prévia desta vista é refeita sozinha 2,5 s depois da última alteração (opção no painel de propriedades). Com a imagem web, a faixa amarela lembra de clicar ⟳ Regenerar prévia; o vídeo sempre usa o que está salvo.</li></ul>
+
+<h3>Faixa de opções, arquivos e aparência</h3>
+<ul><li><b>Faixa de opções</b> (topo): Arquivo, Início, Inserir, Editar, Aparência, Fluxos, Vídeo, Exibir, Ajuda. Duplo clique numa aba ou Ctrl+F1 recolhe a faixa.</li>
+<li><b>Arquivos do projeto</b>: use <b>Escolher DXF…</b> e <b>Escolher KMZ/KML…</b> (ou arraste os arquivos para a caixa). Cada arquivo é enviado na hora e aparece com nome, tamanho e data; <b>Retirar</b> tira do projeto sem mexer no arquivo do seu computador.</li>
+<li><b>Aparência</b>: botão direito sobre uma área do desenho de talude, canteiro, água ou sinalização abre o ajuste certo (textura da região ou de todo o projeto, cor, desgaste da tinta, ondulação da água). Também na aba Aparência.</li>
+<li>Nomes não podem ficar vazios nem ter só símbolos; as opções de cada objeto são só as válidas para o tipo (ex.: interdição: Parcial ou Total).</li></ul>
+
+<h3>Projetos, modelos, rotas, camadas e pincel</h3>
+<ul><li><b>Abrir projeto</b> (Arquivo › Abrir projeto…, Ctrl+O ou comando ABRIR): lista com miniatura da prévia, datas e arquivos; procure pelo nome, origem, destino ou nome do arquivo. Duplo clique abre. Na mesma janela: Renomear, Duplicar, Salvar como modelo, Excluir (vai para _lixeira) e Novo projeto.</li>
+<li><b>Renomear projeto</b>: Arquivo › Renomear projeto… (ou comando RENOMEAR). O nome muda na lista e na configuração.</li>
+<li><b>Modelos</b>: Arquivo › Salvar como modelo… guarda as configurações do projeto (vídeo, aparência, sinalização, texturas, funções das camadas) e, se marcado, também as marcações. <b>Novo a partir de modelo…</b> cria um projeto com elas (envie depois o DXF/KMZ). <b>Aplicar ao projeto aberto</b> troca só as configurações; marcações, km, arquivos e camadas do projeto ficam, e uma cópia da configuração anterior é guardada na pasta do projeto.</li>
+<li><b>Rotas de veículos</b> (Fluxos › Rota de veículos, comando ROTA): desenhe o alinhamento por cliques, por uma linha do desenho ou por seleção contínua e pressione Enter. Escolha o tipo: <b>pista simples</b> (um sentido de cada lado), <b>pista dupla</b> (faixas por sentido e canteiro) ou <b>sentido único</b>. O sentido em que você desenha fica à direita do alinhamento. Pode haver várias rotas.</li>
+<li><b>Trecho da rota</b> (comando TRECHO): clique o início e o fim sobre a rota (linha laranja) para mudar o tipo de pista só naquele trecho — por exemplo, simples → dupla com 2 faixas por sentido. As faixas fazem transição suave; uma faixa que acaba converge para a vizinha. Os trechos também ficam numa tabela no painel de propriedades da rota (início, fim, tipo, faixas, canteiro). Clique <b>Atualizar fluxos</b> para os veículos usarem as rotas. As faixas das rotas não recebem pintura.</li>
+<li><b>Painel de propriedades em grupos</b> (Identificação, Aparência e dimensões, Vídeo e tráfego, Outros, Grips): clique no título para expandir ou recolher; <b>Expandir tudo</b>/<b>Recolher tudo</b> no topo. O aplicativo lembra a escolha. Exibir › Expandir/Recolher painéis faz o mesmo com as seções da coluna esquerda.</li>
+<li><b>Gerenciador de camadas</b> (Aparência › Gerenciador de camadas, comando CAMADAS ou LA): janela grande (pode ser redimensionada) com filtro (aceita * como curinga), função, número de entidades, Visível e Congelada. Marque várias camadas e use Mostrar, Ocultar, Congelar, Descongelar, Isolar ou <b>Congelar as demais (edição final)</b>, que trava tudo menos as marcadas. Desfazer volta a última ação.</li>
+<li><b>Pincel de textura</b> (Editar › Pincel de textura, comando PINCEL ou PI): com uma área selecionada, ela é a origem; sem seleção, clique primeiro na área de origem (área de pista, região de textura ou área do desenho). Depois clique em quantas áreas quiser: cada uma recebe a mesma textura (e o tipo/material, entre áreas de pista). Uma área do desenho clicada vira uma área com a textura, sem alterar o DXF. <b>Esc</b> ou Enter encerra; Ctrl+Z desfaz uma aplicação por vez.</li></ul>
+
+<h3>Pastas, vídeos, limpeza e qualidade</h3>
+<ul><li><b>Pasta principal</b>: só o arquivo que abre o programa (<b>Rodovia Studio.exe</b>, ou <b>ABRIR RODOVIA STUDIO</b> enquanto o .exe não existir) e as pastas <b>projetos</b>, <b>videos</b>, <b>atualizacoes</b> e <b>sistema</b>. Atualizar, compilar o .exe, o LEIA-ME e os registros ficam em <b>sistema</b>.</li>
+<li><b>Vídeos</b>: cada geração vira um arquivo novo em <b>videos\&lt;nome do projeto&gt;</b> (ex.: <i>Trecho_2026-10-22_14h05_v03.mp4</i>) com uma ficha .json da configuração usada; nada é substituído. <b>Arquivo › Vídeos gerados</b> (ou a aba Vídeo) mostra a lista para assistir, baixar, apagar ou abrir a pasta.</li>
+<li><b>Limpar memória</b> (Arquivo › Limpar memória): mostra o espaço de cada tipo de resíduo — caches de imagem e geometria, temporários, registros antigos, cópias antigas da configuração, lixeira, atualizações antigas — e apaga o que você marcar. Projetos, arquivos enviados e vídeos guardados não são tocados.</li>
+<li><b>Qualidade do vídeo</b> (Configuração): <b>Alta</b> deixa a imagem de fundo mais nítida, os veículos sem serrilhado e o vídeo menos comprimido; <b>Máxima</b> também monta cada quadro 1,5× maior e reduz (bordas e textos lisos), usa detalhe a 0,1 m e imagem Esri nível 20 onde existir (mais lenta). Projetos novos começam em Alta; os anteriores ficam em Padrão (vídeo igual ao de antes) até você trocar. Há também a resolução 4K (3840 × 2160).</li>
+<li><b>Atualizar</b>: Arquivo › Atualizar o Rodovia Studio procura o ZIP na pasta “atualizacoes” e em Downloads, fecha o programa, atualiza e abre de novo.</li></ul>
+
+<h3>Área de trabalho</h3>
+<ul><li><b>Barra da direita em abas</b>: Propriedades ☰, Marcações 📌, Ajuste DXF × imagem ⌖, Conexões de tráfego ⤳ e Avisos ⚠ (com o número de avisos). Clique numa aba para abrir; clique de novo (ou em ⯈) para <b>recolher</b> a barra numa faixa de ícones e dar a largura ao desenho. <b>Exibir › Barra lateral</b>, o botão “Barra lateral” do editor ou Ctrl+Shift+L também recolhem/expandem.</li>
+<li><b>Ao editar, a barra volta sozinha</b>: selecionar um objeto abre a aba Propriedades mesmo com a barra recolhida; ao desmarcar, ela volta como estava.</li>
+<li><b>Janelas flutuantes</b>: ⧉ destaca a aba aberta numa janela que pode ser arrastada pelo título e redimensionada pelo canto; ⇲ ou × devolve para a barra. A posição e o tamanho ficam lembrados.</li>
+<li><b>Área máxima</b> (F10, botão “Área máxima” ou Exibir › Área de trabalho): esconde a coluna da esquerda e recolhe a barra da direita. Abrir uma seção pela faixa de opções (ex.: Vídeo › Configurar vídeo) traz a coluna de volta até você clicar no desenho. F10 de novo restaura.</li>
+<li><b>Barra de status (rodapé)</b>: à direita ficam a mensagem, a barra de progresso, a porcentagem, o tempo decorrido e o que falta, e o botão Cancelar (só durante uma tarefa). Clique na mensagem para lê-la inteira. Tempos acima de 60 s aparecem em minutos (ex.: 2 min 05 s).</li>
+<li><b>Gerar vídeo e registros nos menus</b>: Início › Vídeo › Gerar vídeo (ou a aba Vídeo, comando VIDEO). Na aba Vídeo › Suporte: Ver registros, Exportar prompt para IA, Baixar registros (.zip) e Detalhes do erro (também no menu Arquivo). Ao terminar um vídeo, a lista de Vídeos gerados abre sozinha.</li></ul>
+
+<h3>Painéis, tema e comandos</h3>
+<ul><li><b>Painéis por menu</b> (tela ampla): a coluna da esquerda virou uma barra de ícones — Projeto, Configuração, Camadas, Vídeo, Manutenção, Intervenções e Vista (prévia, fundo de edição e sessões). Clique num ícone para abrir o painel; clique de novo, ou em <b>×</b>, para fechar. Os dados não se perdem ao fechar e as tarefas continuam.</li>
+<li><b>📌 Fixar / desafixar</b>: desafixado, o painel abre <b>por cima do desenho</b> (o desenho não muda de tamanho) e fecha quando você volta a navegar no desenho; fixado, ele fica encaixado ao lado e o desenho se ajusta. A barra da direita também tem 📌. Abrir uma seção pela faixa de opções abre o painel dela. Quem preferir a coluna antiga: <b>Exibir › Área de trabalho › Coluna clássica</b>.</li>
+<li><b>Tema</b> (Exibir › Tema): <b>Igual ao Windows</b> (segue o modo claro/escuro do Windows e muda junto), <b>Claro</b> ou <b>Escuro</b>, com as cores, as fontes (Segoe UI) e os botões do Windows 11. A tela de desenho continua escura nos dois, como num CAD.</li>
+<li><b>Progresso</b>: ao gerar vídeo, prévia, análise ou exportação, e ao baixar arquivos (registros, prompt para IA, vídeos, exportações), um quadro no canto inferior direito mostra o que está sendo feito, a barra, a porcentagem, o tempo e <b>Cancelar</b>. “–” esconde o quadro (o progresso continua no rodapé).</li>
+<li><b>Comandos contínuos</b>: <b>Enter</b> confirma e <b>Esc</b> cancela em todos os comandos. Depois de MOVER, COPIAR, GIRAR, ESCALA, ESPELHAR, OFFSET ou APAGAR, o comando pede o <b>próximo objeto</b>: clique nele e o mesmo comando se repete. Enter (sem nada digitado), Esc ou um clique no vazio encerram. Nas ferramentas de desenho, Enter conclui o objeto e a ferramenta continua pronta para o próximo; Enter de novo encerra.</li>
+<li><b>Arrastar</b>: segure <b>Shift</b> para mover só na horizontal ou na vertical (ou ligue Orto); <b>Esc</b> durante o arraste devolve o objeto ao lugar.</li>
+<li><b>Texturas “Artístico realista”</b> (Exportar vídeo › Texturas; padrão dos projetos novos): grão fino em vez de manchas no asfalto e no concreto, bordas da pista com leve sujeira, cor do asfalto variando em grande escala, pedriscos de perto, grama em manchas e mais seca junto à pista, pedras no talude de corte. Projetos anteriores continuam com as texturas que tinham.</li></ul>
+
+<h3>Obras do PER e cronograma</h3>
+<ul><li><b>Painel Obras</b> (ícone 🏠 à esquerda, ou Início › Obras do PER): lista das obras do km inicial ao final — duplicação, faixa adicional, via marginal, iluminação, passarela, OAE e alargamento, interseção, retorno, acesso, acostamento, pavimento, drenagem, contenção, sinalização, defensa, ciclovia, calçada, pedágio, posto, cerca, passagem de fauna, baia de ônibus, travessia e outras.</li>
+<li><b>Marcar no desenho</b>: clique o <b>início</b> e o <b>fim</b> da obra sobre o eixo; a janela pede nome, tipo, lado e as datas (opcionais). A ferramenta continua para a próxima; Esc encerra. Duplo clique numa obra da lista (ou ✎) abre as propriedades; 🗑 exclui (Ctrl+Z desfaz).</li>
+<li><b>Importar Excel / cronograma</b>: planilha Excel (.xlsx) ou CSV com as colunas <b>Obra</b>, <b>Km inicial</b>, <b>Km final</b> (opcionais: Tipo, Lado, Início, Término, % concluído, Ano PER, Tabela PER) — baixe o <b>Modelo Excel</b> — ou o cronograma do <b>MS Project salvo como XML</b> (Arquivo › Salvar como › XML no Project). O km vem do nome da tarefa (“Duplicação km 325+850 a 326+200”) ou de um campo personalizado com “km” no nome; tarefas sem km aparecem para você digitar o km. Antes de gravar, a janela mostra tudo para conferência: acrescentar, substituir ou só atualizar datas e % das obras de mesmo nome. O tipo da obra é reconhecido pelo texto (duplicação, marginal, iluminação…).</li>
+<li><b>No vídeo</b>: cada obra aparece como uma faixa colorida (cor do tipo) do km inicial ao final, de um lado ou dos dois, além da caixa de chamada. Com <b>Linha do tempo pelo cronograma</b> ligada, o vídeo percorre as datas (do primeiro início ao último término, ou as datas que você escolher): obra prevista em tracejado, em execução crescendo do km inicial ao final conforme o prazo decorrido, concluída cheia; um quadro mostra o mês e quantas obras estão em execução e concluídas.</li></ul>
+
+<h3>Seleção, propriedades e menus</h3>
+<ul><li><b>Seleção precisa</b>: o objeto sob o mouse fica realçado (amarelo) antes do clique; pontos têm prioridade sobre linhas e áreas, e a área menor sobre a maior. Com objetos sobrepostos, clique de novo no mesmo lugar para alternar entre eles. As tolerâncias acompanham a escala do Windows (125 %, 150 %).</li>
+<li><b>Propriedades</b>: o valor digitado vale ao sair do campo (como no Windows); trocar uma lista (ex.: categoria) não apaga mais o nome digitado.</li>
+<li><b>Destaques</b>: novas categorias — rede de água/esgoto, gasoduto, fibra/telefonia, linha de transmissão, árvore, cerca/muro, placa/outdoor, desapropriação, ocupação na faixa, escola, saúde, comércio, curso d’água, risco geotécnico, patrimônio, ponto de ônibus, travessia de pedestres, ponto crítico de acidentes.</li>
+<li><b>Menus como no Windows</b>: ícones de linha no menu do botão direito, na mini-barra e na faixa de opções; submenus abrem ao lado.</li>
+<li><b>Tela simplificada</b>: as ferramentas ficam numa linha (os grupos abrem uma lista ao clicar); o que já está na faixa de opções saiu do cabeçalho e dos painéis. Exibir › Área de trabalho › Coluna clássica mostra tudo como antes.</li></ul>
+
+<h3>Câmera, clima, sol e antes/depois</h3>
+<ul><li><b>Pontos-chave da câmera</b> (painel Vídeo › Câmera, clima, sol e antes/depois; Vídeo › Ambiente; comando PC): enquadre o desenho como quer ver no vídeo e clique <b>Adicionar a vista atual</b>. Repita para as próximas vistas. Com “Pontos-chave marcados” em Voo da câmera, o vídeo para em cada vista o tempo escolhido e voa suavemente até a próxima (afastando um pouco nos deslocamentos longos, como um drone). O título de cada vista aparece no cabeçalho. ⌖ vai até a vista, ⟲ troca pela vista atual, ↑↓ mudam a ordem. No editor, as vistas aparecem numeradas, com o caminho tracejado.</li>
+<li><b>Clima</b>: nublado (cores mais apagadas), chuva (gotas animadas e pista molhada, com poças) ou neblina, com intensidade ajustável. O cabeçalho e o rodapé não mudam.</li>
+<li><b>Sombras pela hora do sol</b>: as sombras dos veículos e das OAE seguem o sol — longas para oeste de manhã, curtas e para o sul ao meio-dia, longas para leste à tarde.</li>
+<li><b>Antes/depois</b>: nos últimos segundos do vídeo, uma divisória atravessa a tela: à esquerda o projeto (DEPOIS), à direita só a imagem aérea (ANTES).</li></ul>
+
+<h3>DWG, vegetação, pedestres e veículos</h3>
+<ul><li><b>Abrir DWG</b>: o botão “Escolher DXF/DWG…” (ou arrastar o arquivo) aceita DWG. O programa converte o DWG em DXF com o <b>ODA File Converter</b> — gratuito, da Open Design Alliance, instalado uma vez no computador — e segue como com um DXF. O DWG original não é alterado. Sem o conversor, aparece a orientação para instalar (ou use, no AutoCAD/Civil 3D, Salvar como › DXF).</li>
+<li><b>Vegetação</b> (ferramenta 🌳, comando ARVORE): árvore, ipê amarelo, eucalipto, palmeira, arbusto e cerca-viva. Três modos: <b>árvore avulsa</b> (clique), <b>pincel</b> (arraste: planta ao longo do caminho, no espaçamento escolhido; Ctrl+Z desfaz o traço) e <b>área</b> (clique os vértices e Enter: plantas espalhadas pela densidade, sem entrar na pista). No vídeo, as copas têm sombra que segue o sol.</li>
+<li><b>Pedestres</b>: pessoas atravessam as faixas de pedestre, sobem e descem as passarelas e andam nos caminhos marcados (ferramenta 🚶 Caminho de pedestres). Aparecem com a câmera próxima.</li>
+<li><b>Frota variada</b>: carros, picapes, vans, motos, caminhões, carretas e ônibus. “Clássica” mantém carros, caminhões e ônibus como antes. Os dois ficam no painel Vídeo › Câmera, clima, sol, vida e antes/depois.</li></ul>
+
+<h3>Atualizar o aplicativo</h3>
+<p>Salve o ZIP da atualização na pasta <b>atualizacoes</b> (ou em Downloads) e dê dois cliques em <b>ATUALIZAR RODOVIA STUDIO</b>. Os arquivos substituídos vão para <b>sistema\backups</b>; projetos e vídeos ficam em <b>projetos</b>.</p>
