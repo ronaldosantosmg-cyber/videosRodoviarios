@@ -1,20 +1,256 @@
 /* =====================================================================================================
-   1.40 — Desktop Workspace: viewport dominante, painéis encaixados e linha de comando em gaveta.
+   Rodovia Studio 1.40 — Desktop Workspace
+   Objetivo: viewport dominante, painéis encaixados, hierarquia visual limpa e comportamento previsível.
    ===================================================================================================== */
-body.desktop140.wide:not([data-janela=config]):not([data-janela=visual]){padding:0;gap:0}
-body.desktop140 .dwTitleBar{min-height:38px;padding:4px 10px;margin:0;border-radius:0;border-left:0;border-right:0;display:flex;align-items:center;gap:10px}
-body.desktop140 .dwTitleBar .brand{min-width:0;display:flex;align-items:center;gap:8px}.desktop140 .dwTitleBar .brand h1{font-size:15px;margin:0;white-space:nowrap}.desktop140 .dwTitleBar .appicon{width:24px;height:24px}.desktop140 .dwTitleBar>.row{margin-left:auto;gap:5px;flex-wrap:nowrap}.desktop140 .dwHide,.desktop140 .dwRare{display:none!important}
-body.desktop140.wide main{flex:1;min-height:0;margin:0!important;max-width:none!important;width:100%!important;padding:0 6px 4px!important}
-body.desktop140.wide #editorSection{height:100%;min-height:0;margin:0!important;border-radius:6px;padding:6px!important;display:flex;flex-direction:column;overflow:hidden}
-body.desktop140.wide #editorSection>h2{display:none}.desktop140 #editorSection .editorBody{flex:1;min-height:0}.desktop140 #editorSection .editorMain{min-width:0;min-height:0}.desktop140 #editorSection .canvasWrap{flex:1;min-height:240px;max-height:none!important;height:auto!important;aspect-ratio:auto!important}
-body.desktop140.paineis main{grid-template-columns:46px 0 0 minmax(0,1fr)!important}.desktop140.paineis.pnAberto.pnFixado main{grid-template-columns:46px min(var(--dwPanel,420px),32vw) 6px minmax(0,1fr)!important}
-.desktop140 .atividades{border-radius:6px;padding:4px 2px;gap:2px}.desktop140 .atividades button{padding:5px 1px!important}.desktop140 .atividades .pnRot{display:none}.desktop140 .atividades .pnIco{width:30px;height:30px}
-.desktop140.paineis.pnAberto:not(.pnFixado) main>div.pnArea{position:static!important;left:auto!important;top:auto!important;bottom:auto!important;width:auto!important;box-shadow:none!important;border-radius:6px!important}.desktop140.paineis.pnAberto:not(.pnFixado) main{grid-template-columns:46px min(var(--dwPanel,420px),32vw) 6px minmax(0,1fr)!important}.desktop140.paineis.pnAberto:not(.pnFixado) main>.splitter{display:block!important}
-.desktop140 .editorSide.dock:not(.recolhida){width:min(var(--dwPanel,360px),32vw)!important;max-width:32vw}.desktop140 .editorSide.dock.sobreposta{position:static!important;width:min(var(--dwPanel,360px),32vw)!important;overflow:hidden!important}.desktop140 .editorSide.dock.sobreposta .dockHead{flex-direction:row;height:auto}.desktop140 .editorSide.dock.sobreposta .dockItems{position:static!important;width:auto!important;box-shadow:none!important;border-radius:0 0 8px 8px}.desktop140 .editorBody.dockRecolhida{grid-template-columns:minmax(0,1fr) 38px!important}
-.desktop140 .dockHead{min-height:34px}.desktop140 .dockTitle{font-size:12px}.desktop140 .dockBtn[data-dk="pin"],.desktop140 #pnFixar{display:none!important}
-.desktop140 .dwSecondary{display:none!important}.desktop140 .dwCursor{min-height:26px;margin:2px 0!important}.desktop140 .dwCursor button{padding:3px 8px!important}
-.desktop140 .cmdRow{margin:0;border:0;padding:4px;background:transparent}.desktop140 .cmdRow #cmdLine{min-height:30px}.desktop140 .cmdPrompt{white-space:nowrap}
-.dwCommandDrawer{position:fixed;left:52px;right:0;bottom:28px;z-index:2405;background:var(--panel);border:1px solid var(--cromo-borda);border-bottom:0;box-shadow:0 -10px 28px #0006;max-height:min(260px,42vh);overflow:auto}.dwCmdHead{height:30px;display:flex;align-items:center;padding:0 6px 0 10px;border-bottom:1px solid var(--cromo-borda);background:var(--cromo);font:600 12px "Segoe UI",system-ui,sans-serif}.dwCmdHead button{padding:1px 8px!important;border:0!important;background:transparent!important;color:var(--texto)!important;font-size:14px!important}.dwCmdBody{padding:4px 8px}.dwCmdLauncher{flex:none!important;display:inline-flex!important;align-items:center!important;gap:5px!important;height:22px!important;min-width:70px!important;padding:0 8px!important;margin:0!important;border:0!important;border-right:1px solid var(--cromo-borda)!important;border-radius:0!important;background:transparent!important;color:var(--texto)!important;font:12px "Segoe UI",system-ui,sans-serif!important}.dwCmdLauncher:hover{background:var(--cromo-hover)!important}.dwCmdLauncher>span:first-child{font-family:Consolas,monospace;color:var(--accent);font-weight:700}
-body.desktop140.dwCmdOpen #editorSection .canvasWrap{min-height:180px}
-body.desktop140.dwProjectFocus .dwTitleBar{display:none!important}body.desktop140.dwProjectFocus #menuBar .rbBody{display:none!important}body.desktop140.dwProjectFocus #menuBar .rbTabs{min-height:28px}body.desktop140.dwProjectFocus main{padding:0!important}body.desktop140.dwProjectFocus #editorSection{border:0;border-radius:0;padding:2px!important}body.desktop140.dwProjectFocus #atividades{display:none!important}body.desktop140.dwProjectFocus.paineis main{grid-template-columns:minmax(0,1fr)!important}body.desktop140.dwProjectFocus.paineis main>div.pnDireita{grid-column:1!important;padding:0!important}body.desktop140.dwProjectFocus .editorSide{display:none!important}body.desktop140.dwProjectFocus .editorBody{grid-template-columns:minmax(0,1fr)!important}.desktop140.dwProjectFocus .dwCursor{opacity:.75}
-@media(max-width:1050px){.desktop140 .dwCmdLaunchText{display:none}.desktop140 .dwTitleBar #health{display:none}.desktop140.paineis.pnAberto.pnFixado main,.desktop140.paineis.pnAberto:not(.pnFixado) main{grid-template-columns:42px min(340px,36vw) 5px minmax(0,1fr)!important}.desktop140 .editorSide.dock:not(.recolhida){max-width:36vw}}
+
+:root{
+  --dwPanel:380px;
+  --dwViewportMin:560px;
+  --dwRail:46px;
+  --dwSplitter:6px;
+  --dwRadius:6px;
+  --dwTitleH:38px;
+  --dwCmdMax:min(260px,36vh);
+}
+
+body.desktop140.wide:not([data-janela=config]):not([data-janela=visual]){
+  padding:0;
+  gap:0;
+  min-width:900px;
+}
+
+body.desktop140 .dwTitleBar{
+  min-height:var(--dwTitleH);
+  padding:4px 10px;
+  margin:0;
+  border-radius:0;
+  border-left:0;
+  border-right:0;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+body.desktop140 .dwTitleBar .brand{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+body.desktop140 .dwTitleBar .brand h1{
+  font-size:15px;
+  margin:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+body.desktop140 .dwTitleBar .appicon{width:24px;height:24px}
+body.desktop140 .dwTitleBar>.row{margin-left:auto;gap:5px;flex-wrap:nowrap}
+body.desktop140 .dwHide,
+body.desktop140 .dwRare{display:none!important}
+
+body.desktop140.wide main{
+  flex:1;
+  min-height:0;
+  margin:0!important;
+  max-width:none!important;
+  width:100%!important;
+  padding:0 6px 4px!important;
+}
+
+body.desktop140.wide #editorSection{
+  height:100%;
+  min-height:0;
+  margin:0!important;
+  border-radius:var(--dwRadius);
+  padding:6px!important;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+body.desktop140.wide #editorSection>h2{display:none}
+.desktop140 #editorSection .editorBody{flex:1;min-height:0;min-width:0}
+.desktop140 #editorSection .editorMain{min-width:0;min-height:0}
+.desktop140 #editorSection .canvasWrap{
+  flex:1;
+  min-width:var(--dwViewportMin);
+  min-height:240px;
+  max-height:none!important;
+  height:auto!important;
+  aspect-ratio:auto!important;
+}
+
+/* Navegação e painel de projeto: nunca sobrepõem o viewport. */
+body.desktop140.paineis main{
+  grid-template-columns:var(--dwRail) 0 0 minmax(var(--dwViewportMin),1fr)!important;
+}
+
+.desktop140.paineis.pnAberto.pnFixado main,
+.desktop140.paineis.pnAberto:not(.pnFixado) main{
+  grid-template-columns:var(--dwRail) min(var(--dwPanel),32vw) var(--dwSplitter) minmax(var(--dwViewportMin),1fr)!important;
+}
+
+.desktop140 .atividades{
+  border-radius:var(--dwRadius);
+  padding:4px 2px;
+  gap:2px;
+}
+.desktop140 .atividades button{padding:5px 1px!important}
+.desktop140 .atividades .pnRot{display:none}
+.desktop140 .atividades .pnIco{width:30px;height:30px}
+
+.desktop140.paineis.pnAberto:not(.pnFixado) main>div.pnArea{
+  position:static!important;
+  inset:auto!important;
+  width:auto!important;
+  box-shadow:none!important;
+  border-radius:var(--dwRadius)!important;
+}
+.desktop140.paineis.pnAberto:not(.pnFixado) main>.splitter{display:block!important}
+
+/* Painel contextual direito também redimensiona a área central. */
+.desktop140 .editorSide.dock:not(.recolhida),
+.desktop140 .editorSide.dock.sobreposta{
+  position:static!important;
+  width:min(var(--dwPanel),32vw)!important;
+  max-width:32vw;
+  min-width:280px;
+  overflow:hidden!important;
+  box-shadow:none!important;
+}
+
+.desktop140 .editorSide.dock.sobreposta .dockHead{flex-direction:row;height:auto}
+.desktop140 .editorSide.dock.sobreposta .dockItems{
+  position:static!important;
+  width:auto!important;
+  box-shadow:none!important;
+  border-radius:0 0 var(--dwRadius) var(--dwRadius);
+}
+.desktop140 .editorBody.dockRecolhida{grid-template-columns:minmax(var(--dwViewportMin),1fr) 38px!important}
+.desktop140 .dockHead{min-height:34px}
+.desktop140 .dockTitle{font-size:12px}
+.desktop140 .dockBtn[data-dk="pin"],
+.desktop140 #pnFixar{display:none!important}
+
+/* Informações secundárias saem do caminho do usuário e permanecem acessíveis pelos menus. */
+.desktop140 .dwSecondary{display:none!important}
+.desktop140 .dwCursor{min-height:26px;margin:2px 0!important}
+.desktop140 .dwCursor button{padding:3px 8px!important}
+
+/* Linha de comando: encaixada no fluxo da janela; nunca sobrepõe o desenho. */
+.desktop140 .cmdRow{
+  margin:0;
+  border:0;
+  padding:4px;
+  background:transparent;
+}
+.desktop140 .cmdRow #cmdLine{min-height:30px}
+.desktop140 .cmdPrompt{white-space:nowrap}
+
+.dwCommandDrawer{
+  position:relative;
+  flex:0 0 auto;
+  width:100%;
+  z-index:40;
+  background:var(--panel);
+  border-top:1px solid var(--cromo-borda);
+  border-bottom:1px solid var(--cromo-borda);
+  box-shadow:0 -6px 18px #0003;
+  max-height:var(--dwCmdMax);
+  overflow:auto;
+}
+
+.dwCommandDrawer[hidden]{display:none!important}
+
+.dwCmdHead{
+  height:30px;
+  display:flex;
+  align-items:center;
+  padding:0 6px 0 10px;
+  border-bottom:1px solid var(--cromo-borda);
+  background:var(--cromo);
+  font:600 12px "Segoe UI",system-ui,sans-serif;
+  position:sticky;
+  top:0;
+  z-index:1;
+}
+
+.dwCmdTitle{white-space:nowrap}
+.dwCmdHead .dwIconButton{
+  width:28px;
+  height:26px;
+  display:grid;
+  place-items:center;
+  padding:0!important;
+  border:0!important;
+  border-radius:4px!important;
+  background:transparent!important;
+  color:var(--texto)!important;
+  font-size:14px!important;
+}
+.dwCmdHead .dwIconButton:hover{background:var(--cromo-hover)!important}
+.dwCmdBody{padding:4px 8px}
+
+.dwCmdLauncher{
+  flex:none!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:5px!important;
+  height:22px!important;
+  min-width:70px!important;
+  padding:0 8px!important;
+  margin:0!important;
+  border:0!important;
+  border-right:1px solid var(--cromo-borda)!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:var(--texto)!important;
+  font:12px "Segoe UI",system-ui,sans-serif!important;
+}
+.dwCmdLauncher:hover,
+.dwCmdLauncher[aria-expanded="true"]{background:var(--cromo-hover)!important}
+.dwCmdLauncher>span:first-child{font-family:Consolas,monospace;color:var(--accent);font-weight:700}
+
+/* Modo Projeto: apenas o necessário para editar/inspecionar a rodovia. */
+body.desktop140.dwProjectFocus .dwTitleBar{display:none!important}
+body.desktop140.dwProjectFocus #menuBar .rbBody{display:none!important}
+body.desktop140.dwProjectFocus #menuBar .rbTabs{min-height:28px}
+body.desktop140.dwProjectFocus main{padding:0!important}
+body.desktop140.dwProjectFocus #editorSection{border:0;border-radius:0;padding:2px!important}
+body.desktop140.dwProjectFocus #atividades{display:none!important}
+body.desktop140.dwProjectFocus.paineis main{grid-template-columns:minmax(var(--dwViewportMin),1fr)!important}
+body.desktop140.dwProjectFocus.paineis main>div.pnDireita{grid-column:1!important;padding:0!important}
+body.desktop140.dwProjectFocus .editorSide{display:none!important}
+body.desktop140.dwProjectFocus .editorBody{grid-template-columns:minmax(var(--dwViewportMin),1fr)!important}
+.desktop140.dwProjectFocus .dwCursor{opacity:.75}
+
+/* Feedback de foco para operação por teclado. */
+.desktop140 :where(button,[role="button"],input,select,textarea):focus-visible{
+  outline:2px solid var(--accent)!important;
+  outline-offset:2px;
+}
+
+@media(max-width:1200px){
+  :root{--dwRail:42px}
+  .desktop140.paineis.pnAberto.pnFixado main,
+  .desktop140.paineis.pnAberto:not(.pnFixado) main{
+    grid-template-columns:var(--dwRail) min(var(--dwPanel),35vw) 5px minmax(420px,1fr)!important;
+  }
+  .desktop140 .editorSide.dock:not(.recolhida),
+  .desktop140 .editorSide.dock.sobreposta{max-width:35vw}
+}
+
+@media(max-width:1050px){
+  .desktop140 .dwCmdLaunchText{display:none}
+  .desktop140 .dwTitleBar #health{display:none}
+  .desktop140 .dwTitleBar .brand h1{max-width:260px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .desktop140 *,
+  .desktop140 *::before,
+  .desktop140 *::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}
+}
