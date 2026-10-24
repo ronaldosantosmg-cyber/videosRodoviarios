@@ -26,7 +26,7 @@ namespace RodoviaStudioLauncher
 {
     static class Program
     {
-        public const string Version = "1.3";
+        public const string Version = "1.4";
 
         [STAThread]
         static void Main(string[] args)
@@ -68,6 +68,7 @@ namespace RodoviaStudioLauncher
         int frame;
         public AnimatedLogo(Icon icon)
         {
+            SetStyle(ControlStyles.SupportsTransparentBackColor, true);
             DoubleBuffered = true;
             BackColor = Color.Transparent;
             source = icon == null ? SystemIcons.Application.ToBitmap() : icon.ToBitmap();
@@ -163,6 +164,7 @@ namespace RodoviaStudioLauncher
         bool stopping, updateInProgress;
         System.Windows.Forms.Timer updateWatcher;
         string lastUpdateSignature = "";
+        string controlToken = "";
 
         public bool FindRoot()
         {
@@ -373,12 +375,78 @@ namespace RodoviaStudioLauncher
             {
                 if (stopping || updateInProgress) return;
                 string sig = PendingUpdateSignature();
+                if (File.Exists(Path.Combine(Logs, "solicitar_atualizacao.json")))
+                {
+                    string request = File.ReadAllText(Path.Combine(Logs, "solicitar_atualizacao.json"));
+                    File.Delete(Path.Combine(Logs, "solicitar_atualizacao.json"));
+                    if (request.Contains("restaurar")) { RestoreNow(); return; }
+                    lastUpdateSignature = "";
+                }
                 if (sig.Length == 0) { lastUpdateSignature = ""; return; }
                 if (sig == lastUpdateSignature) return;
-                lastUpdateSignature = sig;
                 AutoApplyPendingUpdate();
             };
             updateWatcher.Start();
+        }
+
+        bool PrepareUpdateSession()
+        {
+            if (server == null || server.HasExited) return !Healthy();
+            try
+            {
+                HttpWebRequest ready = (HttpWebRequest)WebRequest.Create(Url + "/api/atualizacao/pronto");
+                ready.Timeout = 3000; ready.Proxy = null;
+                using (WebResponse response = ready.GetResponse()) { }
+#if WEBVIEW2
+                if (!WebViewHost.PrepareUpdate()) return false;
+#else
+                // Sem janela incorporada não há como confirmar o salvamento da página.
+                Notify("Atualização adiada", "Use a janela própria do Rodovia Studio para salvar e atualizar com segurança.");
+                return false;
+#endif
+                HttpWebRequest close = (HttpWebRequest)WebRequest.Create(Url + "/api/sessao/encerrar");
+                close.Method = "POST"; close.ContentLength = 0; close.Timeout = 5000; close.Proxy = null;
+                close.Headers["X-Rodovia-Control"] = controlToken;
+                using (WebResponse response = close.GetResponse()) { }
+                stopping = true;
+                DateTime limit = DateTime.UtcNow.AddSeconds(90);
+                while (!server.HasExited && DateTime.UtcNow < limit) { Application.DoEvents(); Thread.Sleep(100); }
+                if (!server.HasExited)
+                {
+                    Log("iniciador.log", "Atualização adiada: servidor não concluiu o encerramento controlado.");
+                    stopping = false; return false;
+                }
+                server.Dispose(); server = null;
+                try { File.Delete(PortFile); } catch { }
+#if WEBVIEW2
+                WebViewHost.CloseAll();
+#endif
+                stopping = false; return true;
+            }
+            catch (Exception ex)
+            {
+                Log("iniciador.log", "Atualização adiada: " + ex.Message);
+                stopping = false; return false;
+            }
+        }
+
+        void RestoreNow()
+        {
+            if (updateInProgress) return;
+            updateInProgress = true;
+            try
+            {
+                if (!PrepareUpdateSession()) return;
+                ProcessStartInfo si = new ProcessStartInfo("powershell.exe",
+                    "-NoProfile -ExecutionPolicy Bypass -File \"" + Path.Combine(Sys, "atualizar.ps1") + "\" -Raiz \"" + Root + "\" -RestaurarAnterior");
+                si.WorkingDirectory = Root; si.UseShellExecute = false;
+                Process p = Process.Start(si);
+                while (!p.WaitForExit(200)) Application.DoEvents();
+                if (p.ExitCode != 0) { if (StartServer()) OpenWindow(); return; }
+                Info("Versão anterior restabelecida. Reabra o Rodovia Studio."); Quit();
+            }
+            catch (Exception ex) { Log("iniciador.log", ex.ToString()); if (server == null && StartServer()) OpenWindow(); }
+            finally { updateInProgress = false; }
         }
 
         void AutoApplyPendingUpdate()
@@ -389,10 +457,8 @@ namespace RodoviaStudioLauncher
             try
             {
                 Notify("Atualização encontrada", "O Rodovia Studio vai encerrar sua sessão, validar o pacote e aplicar a atualização.");
-#if WEBVIEW2
-                WebViewHost.CloseAll();
-#endif
-                StopServer(); stopping = false;
+                if (!PrepareUpdateSession()) return;
+                lastUpdateSignature = PendingUpdateSignature();
                 bool applied = ApplyUpdates(false);
                 if (applied)
                 {
@@ -431,6 +497,8 @@ namespace RodoviaStudioLauncher
             si.RedirectStandardError = true;
             si.StandardOutputEncoding = Encoding.UTF8;
             si.StandardErrorEncoding = Encoding.UTF8;
+            controlToken = Guid.NewGuid().ToString("N");
+            si.EnvironmentVariables["RODOVIA_CONTROL_TOKEN"] = controlToken;
             si.EnvironmentVariables["RODOVIA_NO_BROWSER"] = "1";
             si.EnvironmentVariables["RODOVIA_PORT_FILE"] = PortFile;
             si.EnvironmentVariables["PYTHONIOENCODING"] = "utf-8";
@@ -543,7 +611,7 @@ namespace RodoviaStudioLauncher
             t.Interval = 5000;
             t.Tick += delegate
             {
-                if (stopping || server == null) return;
+                if (stopping || updateInProgress || server == null) return;
                 if (server.HasExited)
                 {
                     t.Stop();
@@ -568,21 +636,10 @@ namespace RodoviaStudioLauncher
 
         void UpdateNow()
         {
-            if (!HasUpdateZip()) { Info("Nenhum ZIP de atualização pendente.\n\nColoque RodoviaStudio_<versão>_atualizacao.zip na pasta \"atualizacoes\"."); return; }
-            if (MessageBox.Show("O Rodovia Studio encerrará a sessão atual, aplicará o pacote de \"atualizacoes\" e pedirá para ser reaberto.\n\nSe houver vídeo sendo gerado, ele será interrompido.\n\nContinuar?", "Rodovia Studio", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
-#if WEBVIEW2
-            WebViewHost.CloseAll();
-#endif
-            StopServer(); stopping = false;
-            bool applied = ApplyUpdates(true);
-            if (applied)
-            {
-                FindRoot();
-                Info("Atualização aplicada com sucesso.\n\nReabra o Rodovia Studio para usar a versão " + InstalledAppVersion() + ".");
-                Quit();
-                return;
-            }
-            if (StartServer()) OpenWindow(); else Quit();
+            if (updateInProgress) return;
+            if (!HasUpdateZip()) { Info("Nenhum ZIP de atualização pendente em atualizacoes/."); return; }
+            if (MessageBox.Show("Salvar o projeto e aplicar a atualização? Tarefas em andamento adiam a operação.", "Rodovia Studio", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
+            AutoApplyPendingUpdate();
         }
 
         void Restart()
@@ -647,7 +704,7 @@ namespace RodoviaStudioLauncher
     static class WebViewHost
     {
         static string dir;
-        static Form window;   // tipo Form: carregar esta classe não exige as DLLs do WebView2
+        static AppWindow window;   // acesso ao salvamento controlado da janela incorporada
 
         public static Assembly Resolve(object sender, ResolveEventArgs args)
         {
@@ -686,6 +743,12 @@ namespace RodoviaStudioLauncher
             window = new AppWindow(url, Path.Combine(sys, "webview2"), Path.Combine(sys, "webview2_dados"), Path.Combine(logs, "janela.txt"), icon);
             window.Show();
             return true;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static bool PrepareUpdate()
+        {
+            return window != null && !window.IsDisposed && window.PrepareUpdate();
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -748,6 +811,25 @@ namespace RodoviaStudioLauncher
                 try { Process.Start(url); } catch { }
                 Close();
             }
+        }
+
+        public bool PrepareUpdate()
+        {
+            if (web == null || web.CoreWebView2 == null) return false;
+            var begin = web.CoreWebView2.ExecuteScriptAsync("window.__rodoviaUpdateReady=null; Promise.resolve().then(()=>window.rodoviaPrepararAtualizacao()).then(v=>window.__rodoviaUpdateReady=v===true).catch(()=>window.__rodoviaUpdateReady=false);");
+            DateTime limit = DateTime.UtcNow.AddSeconds(30);
+            while (!begin.IsCompleted && DateTime.UtcNow < limit) { Application.DoEvents(); Thread.Sleep(20); }
+            if (!begin.IsCompleted || begin.IsFaulted) return false;
+            while (DateTime.UtcNow < limit)
+            {
+                var result = web.CoreWebView2.ExecuteScriptAsync("window.__rodoviaUpdateReady");
+                while (!result.IsCompleted && DateTime.UtcNow < limit) { Application.DoEvents(); Thread.Sleep(20); }
+                if (!result.IsCompleted || result.IsFaulted) return false;
+                if (result.Result == "true") return true;
+                if (result.Result == "false") return false;
+                Application.DoEvents(); Thread.Sleep(50);
+            }
+            return false;
         }
 
         void RestorePlace()

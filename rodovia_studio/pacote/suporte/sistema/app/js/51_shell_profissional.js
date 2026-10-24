@@ -7,7 +7,7 @@
 const PS={
   hubs:[
     {id:'project',rotulo:'Projeto',ico:'▣',hint:'Arquivos, configuração e dados do projeto'},
-    {id:'layers',rotulo:'Layers',ico:'☷',hint:'Camadas, imagem local e intercâmbio'},
+    {id:'layers',rotulo:'Camadas',ico:'☷',hint:'Camadas, imagem local e intercâmbio'},
     {id:'props',rotulo:'Propriedades',ico:'☰',hint:'Propriedades do objeto selecionado'},
     {id:'video',rotulo:'Vídeo',ico:'🎬',hint:'Configuração, prévia e renderização'}
   ],
@@ -16,7 +16,7 @@ const PS={
 function psFindSection(test){return pnItens.find(i=>test(i.t||'',i.el))||null}
 function psOpenHub(id){
   if(id==='props'){
-    try{abrirAba('prop',false)}catch{}
+    try{abrirAba('prop',true)}catch{}
     const p=$('propPanel');if(p?.hidden)msg('Propriedades: selecione um objeto no desenho para editar.');
     return;
   }
@@ -62,7 +62,7 @@ function psRibbon(){
       ]],
       ['Dados',[
         ['Configuração','⚙',()=>openSection('2. Configuração')],
-        ['Layers','☷',()=>psOpenHub('layers')],
+        ['Camadas','☷',()=>psOpenHub('layers')],
         ['Obras do PER','🏗',()=>openSection('Obras do PER')]
       ]]
     ]],
@@ -84,7 +84,7 @@ function psRibbon(){
       ['Aparência',[
         ['Textura','▦',()=>openTexDialog(),1],
         ['Pincel','🖌',()=>typeof startBrush==='function'?startBrush():runCommand('PINCEL')],
-        ['Gerenciador de layers','☷',()=>typeof openLayerManager==='function'?openLayerManager():psOpenHub('layers')]
+        ['Gerenciador de camadas','☷',()=>typeof openLayerManager==='function'?openLayerManager():psOpenHub('layers')]
       ]],
       ['Histórico',[
         ['Desfazer','↶',()=>undo(),1],['Refazer','↷',()=>redo(),1],['Apagar','🗑',()=>deleteSel()]

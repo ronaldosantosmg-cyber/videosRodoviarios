@@ -25,8 +25,11 @@ def organizar_pasta():
     try:
         if BASE.name=='programa' and BASE.parent.name=='sistema':
             import atualizador
+            atualizador.recover_pending(BASE.parents[1],say=print)
             atualizador.organize_root(BASE.parents[1],say=print)
-    except Exception as e:print('Aviso: não foi possível organizar a pasta principal:',e)
+    except Exception as e:
+        print('Não foi possível preparar a instalação com segurança:',e)
+        raise SystemExit(1)
 
 if __name__=='__main__':
     organizar_pasta()
@@ -44,7 +47,11 @@ if __name__=='__main__':
     # 1.23: o Rodovia Studio.exe abre a janela por conta própria (RODOVIA_NO_BROWSER).
     if not os.environ.get('RODOVIA_NO_BROWSER'):threading.Timer(1.5,lambda:webbrowser.open(f'http://127.0.0.1:{port}')).start()
     print(f'Rodovia Studio: http://127.0.0.1:{port}\nMantenha esta janela aberta durante a geração. Ctrl+C encerra o aplicativo.')
-    try:uvicorn.run('app.server:app',host='127.0.0.1',port=port,log_level='info')
+    try:
+        from app.server import app
+        server=uvicorn.Server(uvicorn.Config(app,host='127.0.0.1',port=port,log_level='info'))
+        app.state.request_shutdown=lambda:setattr(server,'should_exit',True)
+        server.run()
     except Exception:
         # Registra a causa no log de instalação para diagnóstico.
         with open(BASE/'servidor_erro.log','a',encoding='utf-8') as f:f.write(time.strftime('%Y-%m-%d %H:%M:%S ')+traceback.format_exc()+'\n')

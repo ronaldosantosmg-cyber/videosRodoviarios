@@ -14,14 +14,14 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from . import store
 from .models import Settings
 from .render import ASSETS
-from .rotas.comum import BASE,VERSION,idle,enqueue,stop,dispatch_lock
+from .rotas.comum import BASE,VERSION,idle,enqueue,stop,dispatch_lock,maintenance_pending
 def dispatcher():
     while not stop.is_set():
         with store.connect() as c:r=c.execute("SELECT * FROM jobs WHERE state='queued' ORDER BY created,rowid LIMIT 1").fetchone()
         if not r:stop.wait(.4);continue
         j=dict(r)
         with dispatch_lock:
-            if store.job(j['id'])['state']!='queued':continue
+            if maintenance_pending.is_set() or store.job(j['id'])['state']!='queued':continue
             store.update(j['id'],state='running',message='Iniciando')
         # Erros que derrubam o processo (memória, DLL, importação) ficam em worker.log do projeto.
         try:wlog=open(store.ROOT/j['project']/'worker.log','ab')
@@ -44,7 +44,7 @@ def dispatcher():
         if state in ['running','cancel_requested']:store.update(j['id'],state='interrupted',message='Processo interrompido. Consulte o log e gere novamente.')
 @asynccontextmanager
 async def lifespan(app):
-    stop.clear()
+    stop.clear();maintenance_pending.clear()
     from .imagery_cache import session_temp,prune_orphan_temps,cleanup_session
     # 1.40.7: descarta resíduos de sessões anteriores e cria um temporário exclusivo desta execução.
     prune_orphan_temps(max_age_seconds=0);session_temp()

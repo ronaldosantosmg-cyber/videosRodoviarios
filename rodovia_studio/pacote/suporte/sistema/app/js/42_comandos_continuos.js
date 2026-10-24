@@ -33,7 +33,7 @@ estender('escapeCommand',anterior=>async function(){
  if(drag&&['mmove','rot','label','grip','objmove','move','vertex','span','anchor','imgadj'].includes(drag.type)){const d=drag;drag=null;if(d.moved!==false)undo();else{undoStack.pop();updateUndo()}draw();msg('Arraste cancelado: o objeto voltou ao lugar.');return}
  cmdEscapando=true;try{return await anterior()}finally{cmdEscapando=false;if(!cadCmd)cmdRep=null}},'comandos contínuos: Esc cancela');
 // Enter/Esc com o comando esperando o próximo objeto encerram sem perguntar (nada está pela metade).
-window.addEventListener('keydown',e=>{if(!cmdRep||cadCmd||draft||tool!=='pan'||document.querySelector('dialog[open]'))return;const t=e.target;
+window.addEventListener('keydown',e=>{if(document.querySelector('.rsCascade'))return;if(!cmdRep||cadCmd||draft||tool!=='pan'||document.querySelector('dialog[open]'))return;const t=e.target;
  if(e.key==='Escape'||(e.key==='Enter'&&(!inField(t)||(t.id==='cmdLine'&&!t.value.trim())))){e.preventDefault();e.stopImmediatePropagation();encerrarRepeticao()}},true);
 // Ferramentas de desenho: Enter conclui o objeto e mantém a ferramenta para o próximo.
 estender('endCommand',anterior=>async function(){if(!draft||tool==='pan')return anterior();const t=tool;await finishDraft();

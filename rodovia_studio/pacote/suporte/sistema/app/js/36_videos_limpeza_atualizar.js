@@ -30,12 +30,12 @@ $('clClose')?.addEventListener('click',()=>$('cleanDlg').close());
 
 // ---------- Atualizar pelo aplicativo ----------
 async function openUpdate(){const r=await api('/api/atualizacao');const F=r.encontradas||[];const nova=F.find(f=>f.mais_nova);
- $('updBody').innerHTML=`<p>Versão instalada: <b>${esc(r.instalada)}</b></p>`+(F.length?`<table class="tbl"><tr><th>ZIP encontrado</th><th>Versão</th><th>Pasta</th></tr>${F.map(f=>`<tr><td>${esc(f.arquivo)}</td><td>${esc(f.versao)}${f.mais_nova?' <b>(nova)</b>':''}</td><td><small>${esc(f.pasta)}</small></td></tr>`).join('')}</table>`:'<p class="muted">Nenhum ZIP de atualização encontrado. Salve o arquivo RodoviaStudio_&lt;versão&gt;_atualizacao.zip na pasta “atualizacoes” (ou em Downloads).</p>')+
-  (nova?(r.modo==='cmd'?`<p>O Rodovia Studio vai fechar, aplicar a versão ${esc(nova.versao)} numa janela própria e abrir de novo. Projetos e vídeos não são alterados.</p>`:r.modo==='exe'?'<p>Aberto pelo Rodovia Studio.exe: clique com o botão direito no ícone perto do relógio › <b>Procurar e aplicar atualização</b>.</p>':'<p class="muted">Atualização automática só na instalação do Windows.</p>'):'')+(r.rollback?`<p class="muted">Versão anterior disponível para restabelecimento${r.rollback.previous?`: <b>${esc(r.rollback.previous)}</b>`:''}. O rollback afeta somente arquivos do programa.</p>`:'');
- $('updGo').hidden=!(nova&&r.modo==='cmd');$('updRestore').hidden=!(r.rollback&&r.modo==='cmd');$('updDlg').dataset.pasta=r.pasta_atualizacoes;if(!$('updDlg').open)$('updDlg').showModal()}
-$('updGo')?.addEventListener('click',guard(async()=>{if(!await confirmBox('Fechar o Rodovia Studio e aplicar a atualização agora?','Atualizar','Cancelar'))return;if(pid){clearTimeout(saveTimer);try{await save()}catch{}}
- await api('/api/atualizacao/aplicar',{method:'POST'});$('updBody').innerHTML='<p><b>Atualizando…</b> Esta janela vai parar de responder; o Rodovia Studio abre de novo ao terminar.</p>';$('updGo').hidden=true}));
-$('updRestore')?.addEventListener('click',guard(async()=>{if(!await confirmBox('Restabelecer a versão anterior do Rodovia Studio? Projetos e vídeos serão preservados. Antes do rollback será criado um snapshot de segurança da versão atual.','Restabelecer','Cancelar'))return;if(pid){clearTimeout(saveTimer);try{await save()}catch{}}await api('/api/atualizacao/restaurar',{method:'POST'});$('updBody').innerHTML='<p><b>Restabelecendo…</b> O aplicativo será fechado e abrirá novamente ao concluir.</p>';$('updGo').hidden=true;$('updRestore').hidden=true}));
+ $('updBody').innerHTML=`<p>Versão instalada: <b>${esc(r.instalada)}</b></p>`+(F.length?`<table class="tbl"><tr><th>ZIP encontrado</th><th>Versão</th><th>Pasta</th></tr>${F.map(f=>`<tr><td>${esc(f.arquivo)}</td><td>${esc(f.versao)}${f.mais_nova?' <b>(nova)</b>':''}</td><td><small>${esc(f.pasta)}</small></td></tr>`).join('')}</table>`:'<p class="muted">Nenhum ZIP de atualização encontrado. Salve o arquivo RodoviaStudio_&lt;versão&gt;_atualizacao.zip na pasta “atualizacoes”.</p>')+
+  (nova?((r.modo==='cmd'||r.modo==='exe')?`<p>O Rodovia Studio vai fechar, aplicar a versão ${esc(nova.versao)} numa janela própria e pedir para reabrir o aplicativo. Projetos e vídeos não são alterados.</p>`:r.modo==='exe'?'<p>Aberto pelo Rodovia Studio.exe: clique com o botão direito no ícone perto do relógio › <b>Procurar e aplicar atualização</b>.</p>':'<p class="muted">Atualização automática só na instalação do Windows.</p>'):'')+(r.rollback?`<p class="muted">Versão anterior disponível para restabelecimento${r.rollback.previous?`: <b>${esc(r.rollback.previous)}</b>`:''}. O rollback afeta somente arquivos do programa.</p>`:'');
+ $('updGo').hidden=!(nova&&(r.modo==='cmd'||r.modo==='exe'));$('updRestore').hidden=!(r.rollback&&(r.modo==='cmd'||r.modo==='exe'));$('updDlg').dataset.pasta=r.pasta_atualizacoes;if(!$('updDlg').open)$('updDlg').showModal()}
+$('updGo')?.addEventListener('click',guard(async()=>{if(!await confirmBox('Fechar o Rodovia Studio e aplicar a atualização agora?','Atualizar','Cancelar'))return;if(!await window.rodoviaPrepararAtualizacao())return;
+ await api('/api/atualizacao/aplicar',{method:'POST'});$('updBody').innerHTML='<p><b>Atualizando…</b> Esta janela vai parar de responder; reabra o Rodovia Studio após a confirmação de conclusão.</p>';$('updGo').hidden=true}));
+$('updRestore')?.addEventListener('click',guard(async()=>{if(!await confirmBox('Restabelecer a versão anterior do Rodovia Studio? Projetos e vídeos serão preservados. Antes do rollback será criado um snapshot de segurança da versão atual.','Restabelecer','Cancelar'))return;if(!await window.rodoviaPrepararAtualizacao())return;await api('/api/atualizacao/restaurar',{method:'POST'});$('updBody').innerHTML='<p><b>Restabelecendo…</b> O aplicativo será fechado. Reabra após a confirmação de conclusão.</p>';$('updGo').hidden=true;$('updRestore').hidden=true}));
 $('updFolder')?.addEventListener('click',guard(()=>openFolder('atualizacoes')));
 $('updClose')?.addEventListener('click',()=>$('updDlg').close());
 
@@ -49,3 +49,12 @@ comando(['ATUALIZAR'],()=>guard(openUpdate)(),'Procura e aplica a atualização 
 comando(['VERSAOANTERIOR','ROLLBACK'],()=>guard(openUpdate)(),'Abre Atualização para restabelecer a versão anterior');
 // Ao concluir um vídeo, a mensagem lembra que ele foi guardado e oferece a lista.
 estender('poll',anterior=>async function(jid){const r=await anterior(jid);try{const j=await api('/api/jobs/'+jid);if(j.kind==='render'&&j.state==='done'&&/guardado em/.test(j.message||''))msg(j.message+' — Arquivo › Vídeos gerados para ver todos.')}catch{}return r},'vídeos: aviso do arquivo guardado');
+
+// O iniciador aguarda esta promessa antes de encerrar a janela e o servidor.
+window.rodoviaPrepararAtualizacao=async function(){
+ try{
+  if((typeof draft!=='undefined'&&draft)||(typeof cadCmd!=='undefined'&&cadCmd)){msg('Conclua ou cancele o comando em andamento antes de atualizar.',true);return false}
+  if(pid){clearTimeout(saveTimer);await save()}
+  return true;
+ }catch(e){msg('Não foi possível salvar o projeto. Atualização adiada: '+e.message,true);return false}
+};

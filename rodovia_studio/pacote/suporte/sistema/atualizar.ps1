@@ -1,4 +1,4 @@
-param([string]$Raiz,[string]$Pacote='',[int]$Aguardar=0)
+﻿param([string]$Raiz,[string]$Pacote='',[int]$Aguardar=0,[switch]$RestaurarAnterior,[string]$Backup='')
 # Executa o atualizador com uma copia temporaria do Python portatil, para que a pasta do
 # programa possa ser reorganizada e atualizada sem arquivos em uso.
 $ErrorActionPreference = 'Stop'
@@ -18,7 +18,12 @@ try {
     $copyScript = Join-Path $tmp 'atualizador.py'
     Copy-Item $script $copyScript
     $py = Join-Path $tmp 'python.exe'
-    if ($Pacote) { & $py -X utf8 $copyScript --raiz $Raiz --pacote $Pacote } else { & $py -X utf8 $copyScript --raiz $Raiz --procurar --aguardar $Aguardar }
+    if ($RestaurarAnterior) {
+        $arguments = @('-X','utf8',$copyScript,'--raiz',$Raiz,'--restaurar-anterior','--aguardar',"$Aguardar")
+        if ($Backup) { $arguments += @('--backup',$Backup) }
+        & $py @arguments
+    }
+    elseif ($Pacote) { & $py -X utf8 $copyScript --raiz $Raiz --pacote $Pacote } else { & $py -X utf8 $copyScript --raiz $Raiz --procurar --aguardar $Aguardar }
     $code = $LASTEXITCODE
     Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue
     exit $code

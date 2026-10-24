@@ -1,3 +1,5 @@
+import pytest
+from pydantic import ValidationError
 import math, json, pathlib, sys
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT.parent))
@@ -16,19 +18,14 @@ def test_short_routes_blocked_frontend_and_backend():
     assert 'self.make_itineraries(0.)' not in tr
 
 def test_models_reject_non_finite_and_invalid_route_inputs():
-    from app.models import Settings, RouteAlignment
-    import pydantic
-    bad=[float('nan'),float('inf'),-float('inf')]
-    for v in bad:
-        try:
+    from app.models import RouteAlignment
+    for v in [float('nan'),float('inf'),-float('inf')]:
+        with pytest.raises(ValidationError):
             RouteAlignment(points=[{'x':0,'y':0},{'x':100,'y':0}],lane_width_m=v)
-            assert False, 'não-finito aceito'
-        except Exception: pass
-    for payload in [None,{}, {'points':[]}, {'points':[{'x':0,'y':0}]}]:
-        if payload is None: continue
-        try:
-            RouteAlignment(**payload); assert False, 'rota vazia/incompleta aceita'
-        except Exception: pass
+    for payload in [{}, {'points':[]}, {'points':[{'x':0,'y':0}]}]:
+        with pytest.raises(ValidationError):RouteAlignment(**payload)
+    with pytest.raises(ValidationError):RouteAlignment.model_validate(None)
+
 
 def test_route_lane_change_window_is_total_and_no_divzero():
     from app.simulation import TrafficSim
@@ -50,9 +47,7 @@ def test_numeric_boundary_matrix_settings():
     for key in numeric:
         for bad in [float("nan"),float("inf"),-float("inf")]:
             d=dict(base);d[key]=bad
-            try:
-                Settings.model_validate(d);assert False,f"{key} aceitou não-finito"
-            except Exception: pass
+            with pytest.raises(ValidationError):Settings.model_validate(d)
 
 def test_empty_and_zero_inputs_do_not_create_nonfinite_route_geometry():
     from app.models import RouteAlignment
@@ -62,9 +57,7 @@ def test_empty_and_zero_inputs_do_not_create_nonfinite_route_geometry():
       {"points":[{"x":0,"y":0},{"x":100,"y":0}],"taper_m":0},
     ]
     for d in cases:
-        try:
-            RouteAlignment(**d);assert False,"entrada zero inválida aceita"
-        except Exception: pass
+        with pytest.raises(ValidationError):RouteAlignment(**d)
 
 
 def test_legacy_short_route_is_disabled_on_model_load():

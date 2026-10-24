@@ -35,7 +35,12 @@ function restore(st,{selection=true,anchor=true}={}){
       if(st.sel&&ok(st.sel))sel={...st.sel};
       else if(typeof sel!=='undefined')sel=null;
       if(typeof selSet!=='undefined')selSet=(st.selSet||[]).filter(ok).map(x=>({...x}));
-      try{showProps()}catch{}
+      try{
+        if(typeof selLink!=='undefined'&&selLink)showLinkProps();
+        else if(typeof selSeg!=='undefined'&&selSeg&&segById(selSeg.id))showSegProps();
+        else if(typeof dxfSel!=='undefined'&&dxfSel&&typeof showDxfProps==='function')showDxfProps();
+        else showProps();
+      }catch{}
     }
     try{draw()}catch{}
   }finally{S.restoring=false}

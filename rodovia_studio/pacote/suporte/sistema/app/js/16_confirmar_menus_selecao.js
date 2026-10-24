@@ -17,6 +17,7 @@ async function escapeCommand(){if(document.querySelector('dialog[open]'))return;
  draft=null;cadCmd=null;prompt_('Comando:');$('cmdLine')&&($('cmdLine').value='');setTool('pan');msg('Comando cancelado.');canvas.focus({preventScroll:true})}
 function inField(t){return t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'||t.isContentEditable)}
 document.addEventListener('keydown',e=>{
+ if(document.querySelector('.rsCascade'))return;
  if(e.key==='Escape'){const t=e.target;if(document.querySelector('dialog[open]'))return;if(t&&t.closest&&t.closest('#propPanel'))return;
   if(inField(t)&&t.id!=='cmdLine'&&!(t.closest&&t.closest('#toolOptions')))return;e.preventDefault();e.stopImmediatePropagation();escapeCommand();return}
  if(e.key==='Enter'){const t=e.target;if(document.querySelector('dialog[open]'))return;
@@ -111,16 +112,16 @@ function segToggle(seg,action){checkpoint();const i=segOverride(seg,action);if(i
 let flowTimer=null;function scheduleFlowUpdate(){if(!$('flowAuto')?.checked)return msg('Alteração registrada. Clique “Atualizar fluxos” para recalcular.');clearTimeout(flowTimer);flowTimer=setTimeout(guard(async()=>{await start('analyze');selSeg=null;showSegProps();msg('Fluxos atualizados.')}),1200)}
 function showSegProps(){const box=$('propPanel');if(!box)return;if(!selSeg){if(!sel&&!selSet.length){box.hidden=true}return}const s=editor?.segments?.find(x=>x.id===selSeg.id)||selSeg;
  const rev=segOverride(s,'reverse')>=0,off=segOverride(s,'disable')>=0;const L=polyLen(s.points.map(P));
- box.hidden=false;box.innerHTML=`<h3>Trajetória ${esc(String(s.id))} · ${esc(s.kind||'')}</h3><p class="ppInfo">comprimento ${L.toFixed(1)} m · ${s.both?'dois sentidos':s.forward?'no sentido do desenho':'contra o sentido do desenho'}${s.manual?' · fluxo incluído':''}${s.source?' · '+esc(s.source):''}</p>
+ box.hidden=false;box.innerHTML=`<h3>Trajetória ${esc(String(s.id))} · ${esc(({main:'Principal',marginal:'Marginal',device:'Dispositivo',return:'Retorno'})[s.kind]||s.kind||'')}</h3><p class="ppInfo">comprimento ${L.toFixed(1)} m · ${s.both?'dois sentidos':s.forward?'no sentido do desenho':'contra o sentido do desenho'}${s.manual?' · fluxo incluído':''}${s.source?' · '+esc(s.source):''}</p>
  <div class="row"><button type="button" data-seg="reverse" class="${rev?'primary':''}">⇄ ${rev?'Desfazer inversão':'Inverter sentido'}</button><button type="button" data-seg="disable" class="${off?'primary':''}">⦸ ${off?'Reativar':'Desativar'}</button><button type="button" data-seg="close">Fechar</button></div>
- <label><input type="checkbox" id="flowAuto" ${localStorage.getItem('rodovia_flowauto')==='1'?'checked':''}> Atualizar fluxos automaticamente após editar</label><p class="muted">Clique numa trajetória (linha ciano) com Navegar para editá-la. A seta indica o sentido atual.</p>`}
+ <label><input type="checkbox" id="flowAuto" ${localStorage.getItem('rodovia_flowauto')==='1'?'checked':''}> Atualizar fluxos automaticamente após editar</label><p class="muted">Clique numa trajetória (verde, vermelha ou amarela) com Navegar para editá-la. A seta indica o sentido atual.</p>`}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#propPanel [data-seg]');if(!b)return;const a=b.dataset.seg;if(a==='close'){selSeg=null;$('propPanel').hidden=true;draw();return}const s=editor?.segments?.find(x=>x.id===selSeg?.id);if(s)segToggle(s,a)});
 document.addEventListener('change',e=>{if(e.target.id==='flowAuto'){try{localStorage.setItem('rodovia_flowauto',e.target.checked?'1':'0')}catch{}}});
 canvas.addEventListener('pointerup',e=>{if(tool!=='pan'||e.button!==0||cadCmd||e.shiftKey||e.ctrlKey||!ready())return;if(sel||selSet.length)return;
  const c=canvasPt(e);if(!c.w)return;const moved=lastDownPt?Math.hypot(c.cx-lastDownPt.cx,c.cy-lastDownPt.cy):99;if(moved>4)return;
  if(vecOn.flows===false)return;const seg=nearestSegment(c.w,6/Math.max(pxPerM(),1e-9));if(!seg){if(selSeg){selSeg=null;showSegProps();draw()}return}selSeg={id:seg.id};showSegProps();draw()});
 let lastDownPt=null;canvas.addEventListener('pointerdown',e=>{lastDownPt=canvasPt(e)},true);
-function drawSelSeg(){if(!selSeg||!editor)return;const s=editor.segments.find(x=>x.id===selSeg.id);if(!s)return;const pts=s.points.map(P);poly(pts);ctx.save();ctx.strokeStyle='#ffe14d';ctx.lineWidth=6;ctx.globalAlpha=.55;ctx.stroke();ctx.restore()}
+function drawSelSeg(){if(!selSeg||!editor)return;const s=editor.segments.find(x=>x.id===selSeg.id);if(!s)return;const pts=s.points.map(P);poly(pts);ctx.save();ctx.strokeStyle='#ffffff';ctx.lineWidth=6;ctx.globalAlpha=.25;ctx.stroke();ctx.restore()}
 
 // ---------- editor de texturas ----------
 const TEX_LABEL={pista_nova:'Pista nova (asfalto)',pista_existente:'Pista existente',concreto:'Concreto (OAE e pavimento rígido)',acostamento:'Acostamento',canteiro:'Canteiro (grama)',trilhas:'Trilhas de roda',talude_corte:'Talude de corte',talude_aterro:'Talude de aterro'};

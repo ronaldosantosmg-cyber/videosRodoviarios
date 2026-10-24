@@ -1,4 +1,12 @@
 /* ---------- Desenho ---------- */
+const FLOW_STUDY_COLORS={ok:'#22c55e',problem:'#ef4444',adjustment:'#eab308'};
+function flowStudyStatus(s){
+ if(window.RodoviaFlowStudy?.stale)return 'adjustment';
+ if(s?.disabled||s?.enabled===false)return 'problem';
+ return Object.hasOwn(FLOW_STUDY_COLORS,s?.technical_status)?s.technical_status:'adjustment';
+}
+function flowStudyColor(s){return FLOW_STUDY_COLORS[flowStudyStatus(s)]}
+
 function poly(pts,close){ctx.beginPath();pts.forEach((p,i)=>{const q=W2C(p);i?ctx.lineTo(...q):ctx.moveTo(...q)});if(close)ctx.closePath()}
 function arrowHead(a,b,size,color){const [x1,y1]=W2C(a),[x2,y2]=W2C(b),ang=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-size*Math.cos(ang-.45),y2-size*Math.sin(ang-.45));ctx.lineTo(x2-size*Math.cos(ang+.45),y2-size*Math.sin(ang+.45));ctx.closePath();ctx.fillStyle=color;ctx.fill()}
 function arrowsAlong(pts,forward,both,color,spacingPx=90){const L=[0];for(let i=1;i<pts.length;i++){const a=W2C(pts[i-1]),b=W2C(pts[i]);L.push(L[i-1]+Math.hypot(b[0]-a[0],b[1]-a[1]))}const total=L[L.length-1];if(total<30)return;for(let d=spacingPx/2;d<total;d+=spacingPx){let i=1;while(i<L.length-1&&L[i]<d)i++;const t=(d-L[i-1])/((L[i]-L[i-1])||1),a=pts[i-1],b=pts[i],m={x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t};const dirs=both?[1,-1]:[forward?1:-1];for(const s of dirs){const tip={x:m.x+(b.x-a.x)*.001*s,y:m.y+(b.y-a.y)*.001*s};arrowHead(s>0?m:tip,s>0?tip:m,9,color)}}}
@@ -17,8 +25,8 @@ function draw(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c1722';ctx.fillRe
   if(M.chainage.mode==='manual'&&M.chainage.end){const st=station();const [x,y]=W2C(M.chainage.end);ctx.fillStyle='#ffd56b';ctx.strokeStyle='#081623';ctx.lineWidth=2;ctx.beginPath();ctx.rect(x-8,y-8,16,16);ctx.fill();ctx.stroke();label('Fim km '+formatKm(st.kmEndGeo),M.chainage.end,'#ffd56b')}
   if(M.chainage.mode!=='off'){const st=station();const a=axisAt(st.s0),b=axisAt(st.s0+st.dir*Math.min(60,st.L/4));arrowHead(a,b,16,'#ffd56b');poly([a,b]);ctx.strokeStyle='#ffd56b';ctx.lineWidth=3;ctx.stroke()}
   if(M.chainage.mode==='manual'&&M.chainage.start){const [x,y]=W2C(M.chainage.start);ctx.fillStyle='#ffd56b';ctx.strokeStyle='#081623';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,y-14);ctx.lineTo(x+10,y);ctx.lineTo(x,y+14);ctx.lineTo(x-10,y);ctx.closePath();ctx.fill();ctx.stroke();label('Início km '+formatKm(cfg.km_start_m),M.chainage.start,'#ffd56b')}}
- if(editor&&vecOn.flows!==false)for(const s of editor.segments){const pts=s.points.map(P);poly(pts);ctx.lineWidth=s.disabled?2:2.5;ctx.strokeStyle=s.disabled?'#9aa3a8':s.reversed?'#ffae5c':s.manual?'#e78bff':'#61e6d7';ctx.setLineDash(s.disabled?[5,6]:[]);ctx.stroke();ctx.setLineDash([]);if(!s.disabled)arrowsAlong(pts,s.forward,s.both,ctx.strokeStyle)}
- for(const p of M.traffic_paths){poly(p.points);ctx.strokeStyle=p.enabled===false?'#9aa3a8':'#e78bff';ctx.lineWidth=3;ctx.setLineDash(p.enabled===false?[4,6]:[]);ctx.stroke();ctx.setLineDash([])}
+ if(editor&&vecOn.flows!==false)for(const s of editor.segments){const pts=s.points.map(P);poly(pts);ctx.lineWidth=s.disabled?2:2.5;ctx.strokeStyle=flowStudyColor(s);ctx.setLineDash(s.disabled?[5,6]:[]);ctx.stroke();ctx.setLineDash([]);if(!s.disabled)arrowsAlong(pts,s.forward,s.both,ctx.strokeStyle)}
+ if(vecOn.flows!==false)for(const p of M.traffic_paths){poly(p.points);ctx.strokeStyle=flowStudyColor(p.enabled===false?{disabled:true}:(editor?.segments||[]).find(s=>s.source===p.name));ctx.lineWidth=3;ctx.setLineDash(p.enabled===false?[4,6]:[]);ctx.stroke();ctx.setLineDash([])}
  for(const d of M.direction_marks){poly([d.start,d.end]);ctx.strokeStyle='#ffe14d';ctx.lineWidth=4;ctx.stroke();arrowHead(d.start,d.end,14,'#ffe14d')}
  for(const o of M.flow_overrides){const [x,y]=W2C(o);ctx.fillStyle=o.action==='reverse'?'#ffae5c':'#c9d1d6';ctx.beginPath();ctx.arc(x,y,6,0,7);ctx.fill();ctx.fillStyle='#081623';ctx.font='bold 10px system-ui';ctx.fillText(o.action==='reverse'?'⇄':'⦸',x-4,y+4)}
  M.exclusions.forEach((a,i)=>{if(!a.length)return;poly(a,true);ctx.fillStyle=selected===`ex${i}`?'#ff786077':'#ff786044';ctx.fill();ctx.strokeStyle='#ff9577';ctx.lineWidth=2.5;ctx.stroke();if(tool==='exedit')for(const p of a){const [x,y]=W2C(p);ctx.fillStyle='#fff';ctx.strokeStyle='#c4442a';ctx.lineWidth=2;ctx.beginPath();ctx.rect(x-4,y-4,8,8);ctx.fill();ctx.stroke()}});

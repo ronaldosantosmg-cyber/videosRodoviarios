@@ -18,6 +18,8 @@ const AREA={get(k,d){try{const v=localStorage.getItem('rodovia_area_'+k);return 
 
 // ---------- painel da direita com abas ----------
 const DOCK_ITENS=[{id:'prop',t:'Propriedades',ico:'☰'},{id:'marc',t:'Marcações do projeto',ico:'📌'},{id:'ajuste',t:'Ajuste DXF × imagem',ico:'⌖'},{id:'fluxos',t:'Conexões de tráfego',ico:'⤳'},{id:'avisos',t:'Avisos da análise',ico:'⚠'}];
+let dockClosedSelection=null;
+function dockSelectionKey(){return JSON.stringify([typeof sel!=='undefined'?sel:null,typeof selSeg!=='undefined'?selSeg?.id:null,typeof selLink!=='undefined'?selLink:null,typeof dxfSel!=='undefined'?dxfSel?.id:null])}
 let dockState={aba:AREA.get('aba','marc'),recolhida:AREA.get('recolhida',false),fixada:AREA.get('fixada',true),soltas:AREA.get('soltas',{})},dockAuto=false;
 function montarDock(){const side=document.querySelector('.editorSide');if(!side||side.dataset.dock)return;side.dataset.dock='1';side.classList.add('dock');
  const det=[...side.querySelectorAll(':scope>details')];const els={prop:[$('propPanel')],marc:[det[0]],ajuste:[det[1]],fluxos:[det[2]],avisos:[$('warnings'),$('geom')]};
@@ -38,7 +40,7 @@ function montarDock(){const side=document.querySelector('.editorSide');if(!side|
  const pp=$('propPanel');new MutationObserver(()=>{const vis=!pp.hidden;atualizarAvisos();
   const solta=document.querySelector('.floatWin[data-dock="prop"]');
   if(solta){solta.classList.toggle('vazia',!vis);return}
-  if(vis&&(dockState.recolhida||dockState.aba!=='prop')){dockAuto={antes:dockState.aba,recolhida:dockState.recolhida};dockState.aba='prop';dockState.recolhida=false;aplicarDock(false)}
+  if(vis&&dockClosedSelection!==dockSelectionKey()&&(dockState.recolhida||dockState.aba!=='prop')){dockAuto={antes:dockState.aba,recolhida:dockState.recolhida};dockState.aba='prop';dockState.recolhida=false;aplicarDock(false)}
   else if(!vis&&dockAuto){dockState.aba=dockAuto.antes;dockState.recolhida=dockAuto.recolhida;dockAuto=false;aplicarDock(false)}
   document.querySelector('.dockItem[data-dock="prop"]')?.classList.toggle('vazia',!vis)}).observe(pp,{attributes:true,attributeFilter:['hidden']});
  document.querySelector('.dockItem[data-dock="prop"]')?.classList.toggle('vazia',pp.hidden);
@@ -52,8 +54,8 @@ function aplicarDock(salvar=true){const side=document.querySelector('.editorSide
  if(salvar){AREA.set('aba',dockState.aba);AREA.set('recolhida',!!dockState.recolhida);AREA.set('fixada',!!dockState.fixada)}
  setTimeout(()=>{try{resizeCanvas()}catch{}},40)}
 function abrirAba(id,clique){const solta=document.querySelector(`.floatWin[data-dock="${id}"]`);if(solta){frente(solta);return}
- if(clique&&dockState.aba===id&&!dockState.recolhida){recolherDock(true);return}dockState.aba=id;dockState.recolhida=false;dockAuto=false;aplicarDock()}
-function recolherDock(v){dockState.recolhida=v;dockAuto=false;aplicarDock()}
+ if(clique&&dockState.aba===id&&!dockState.recolhida){recolherDock(true);return}dockClosedSelection=null;dockState.aba=id;dockState.recolhida=false;dockAuto=false;aplicarDock()}
+function recolherDock(v){dockClosedSelection=v?dockSelectionKey():null;dockState.recolhida=v;dockAuto=false;aplicarDock()}
 function fixarDock(v){dockState.fixada=v;aplicarDock();msg(v?'Barra lateral fixada: o desenho se ajusta a ela.':'Barra lateral desafixada: abre por cima do desenho.')}
 function atualizarAvisos(){const w=$('warnings');const n=w?w.textContent.split('\n').filter(x=>x.trim()).length:0;const b=document.querySelector('.dockTab[data-dt="avisos"] .db');if(b){b.hidden=!n;b.textContent=n}}
 

@@ -23,6 +23,9 @@ O formato do ZIP continua o mesmo (pacote/raiz e pacote/suporte/...), para que a
 consigam entregar o pacote a este atualizador.
 """
 import argparse,json,os,re,shutil,sys,time,urllib.request,zipfile,filecmp,tempfile,subprocess
+import hashlib, uuid, math
+from contextlib import contextmanager
+from pathlib import PurePosixPath, PureWindowsPath
 from pathlib import Path
 
 SYSTEM_ITEMS=['app','assets','runtime','tests','run.py','diagnostico.py','requirements.txt','requirements-dev.txt','iniciar.ps1','iniciar.sh','VERSAO.json','atualizador.py']
@@ -34,6 +37,9 @@ MAIN_CMD='ABRIR RODOVIA STUDIO.cmd';MAIN_EXE='Rodovia Studio.exe'
 AUX_ROOT=['ATUALIZAR RODOVIA STUDIO.cmd','COMPILAR INICIADOR.cmd','LEIA-ME.txt']
 DATA_DIRS=['projetos','videos','atualizacoes']
 
+class PackageError(RuntimeError):
+    pass
+
 def L(p):
     """Caminho longo no Windows (pastas do OneDrive passam facilmente de 260 caracteres)."""
     p=os.path.abspath(str(p))
@@ -42,7 +48,9 @@ def L(p):
     return p
 
 def version_tuple(v):
-    return tuple(int(x) for x in re.findall(r'\d+',str(v))[:3]) or (0,)
+    if not isinstance(v, str) or not re.fullmatch(r'\d+\.\d+(?:\.\d+)?', v):
+        raise ValueError('Versão inválida: use maior.menor ou maior.menor.correção.')
+    return tuple((list(map(int, v.split('.'))) + [0, 0, 0])[:3])
 
 def program_dir(raiz):
     """Pasta do programa conforme a organização encontrada."""
@@ -64,7 +72,7 @@ def installed_version(raiz):
 def find_root(path):
     """Aceita a raiz ou uma subpasta dela; reconhece as organizações antigas."""
     p=Path(path).resolve()
-    for cand in [p,p.parent,p.parent.parent,p.parent.parent.parent,p/'RodoviaStudio',p/'Rodovia_Studio']:
+    for cand in [p,*p.parents,p/'RodoviaStudio',p/'Rodovia_Studio']:
         if (cand/'sistema/programa/app/server.py').exists():return cand,'sistema'
         if (cand/'suporte/sistema/app/server.py').exists():return cand,'nova'
         if (cand/'app/server.py').exists() and (cand/'app').is_dir() and cand.name not in ('sistema','programa'):return cand,'antiga'
@@ -235,7 +243,7 @@ def _legacy_backup_target(raiz,rel):
         return Path(raiz)/'sistema'/'programa'/Path(*sp[1:]) if sp and sp[0]=='sistema' else Path(raiz)/'sistema'/sub
     return Path(raiz)/rel
 
-def restore_previous(raiz,backup=None,say=print,check_running=True):
+def _restore_previous(raiz,backup=None,say=print,check_running=True):
     """Restabelece a atualização anterior sem tocar em projetos/vídeos.
 
     Atualizações novas gravam rollback.json e permitem remover também arquivos
@@ -249,39 +257,132 @@ def restore_previous(raiz,backup=None,say=print,check_running=True):
         b=Path(backup);cand=next((x for x in cands if Path(x['path']).resolve()==b.resolve() or x['name']==str(backup)),None)
     else:cand=next((x for x in cands if not x['restored']),None)
     if not cand:raise RuntimeError('Nenhuma versão anterior disponível para restabelecer.')
-    bdir=Path(cand['path']);manfile=bdir/'rollback.json';stamp=time.strftime('%Y%m%d_%H%M%S')
+    bdir=Path(cand['path']);manfile=bdir/'rollback.json';stamp=time.strftime('%Y%m%d_%H%M%S')+'_'+uuid.uuid4().hex[:8]
     safety=system_dir(raiz)/'backups'/f'antes_restaurar_{stamp}';restored=removed=0
     if manfile.exists():
         man=json.loads(manfile.read_text(encoding='utf-8'))
         entries=man.get('files',[])
-        # snapshot de segurança do estado atual antes do rollback
         for e in entries:
-            target=Path(raiz)/e['target']
-            if target.exists() and target.is_file():
-                snap=safety/e['target'];snap.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(L(target),L(snap))
-        for e in reversed(entries):
-            target=Path(raiz)/e['target']
+            _safe_target(raiz, e['target'])
             if e.get('had_previous'):
-                src=bdir/e['backup']
-                if not src.exists():raise RuntimeError('Backup incompleto: '+str(src))
-                target.parent.mkdir(parents=True,exist_ok=True);tmp=target.with_name(target.name+'.restaurando')
-                shutil.copy2(L(src),L(tmp));os.replace(L(tmp),L(target));restored+=1
-            elif target.exists() and target.is_file():
-                target.unlink();removed+=1
-        man['restored_at']=time.strftime('%Y-%m-%dT%H:%M:%S');man['safety_snapshot']=str(safety)
-        manfile.write_text(json.dumps(man,ensure_ascii=False,indent=2),encoding='utf-8')
+                src = _safe_child(bdir, e['backup'])
+                if not src.is_file():raise RuntimeError('Backup incompleto: '+str(src))
+                if e.get('sha256') and _sha(src) != e['sha256']:
+                    raise RuntimeError('Backup com hash divergente: '+str(src))
+        # Snapshot recuperável antes do rollback; uma restauração também pode falhar.
+        safety.mkdir(parents=True,exist_ok=True);safety_entries=[]
+        for e in entries:
+            target=_safe_target(raiz,e['target']);had=target.is_file()
+            saved={'target':e['target'],'had_previous':had,'backup':e['target'] if had else None}
+            if had:
+                snap=safety/e['target'];snap.parent.mkdir(parents=True,exist_ok=True)
+                shutil.copy2(L(target),L(snap));saved['sha256']=_sha(snap)
+            safety_entries.append(saved)
+        safety_manifest=safety/'snapshot.json'
+        safety_info={'state':'restoring','files':safety_entries}
+        _write_manifest(safety_manifest,safety_info)
+        try:
+            for e in reversed(entries):
+                target=_safe_target(raiz,e['target'])
+                if e.get('had_previous'):
+                    src=_safe_child(bdir,e['backup'])
+                    target.parent.mkdir(parents=True,exist_ok=True);tmp=target.with_name(target.name+'.restaurando')
+                    try:shutil.copy2(L(src),L(tmp));os.replace(L(tmp),L(target));restored+=1
+                    finally:tmp.unlink(missing_ok=True)
+                elif target.exists() and target.is_file():target.unlink();removed+=1
+            man['state']='restored';man['restored_at']=time.strftime('%Y-%m-%dT%H:%M:%S');man['safety_snapshot']=str(safety)
+            _write_manifest(manfile,man)
+        except Exception as exc:
+            try:
+                _restore_safety(raiz,safety,safety_entries)
+                safety_info['state']='recovered';_write_manifest(safety_manifest,safety_info)
+            except Exception as recovery:
+                raise RuntimeError(f'Restauração interrompida. Snapshot de recuperação em {safety}: {recovery}') from exc
+            raise RuntimeError('Restauração interrompida. O estado anterior à tentativa foi recuperado.') from exc
+        safety_info['state']='completed';_write_manifest(safety_manifest,safety_info)
         previous=man.get('previous') or 'anterior'
     else:
         # compatibilidade com backups de atualizadores anteriores
         for src in sorted((x for x in bdir.rglob('*') if x.is_file()),key=lambda x:len(x.parts)):
             target=_legacy_backup_target(raiz,src.relative_to(bdir))
             if target is None:continue
+            _safe_target(raiz,target.relative_to(raiz).as_posix())
             if target.exists():
                 snap=safety/target.resolve().relative_to(Path(raiz).resolve());snap.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(L(target),L(snap))
             target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(L(src),L(target));restored+=1
         previous='anterior (backup legado)'
     msg=f'Versão {previous} restabelecida: {restored} arquivos restaurados, {removed} arquivos novos removidos. Snapshot de segurança: {safety.relative_to(raiz)}.'
     say(msg);log(raiz,msg);return {'restored':restored,'removed':removed,'previous':previous,'backup':str(bdir),'safety':str(safety)}
+
+
+def _sha(path):
+    with open(L(path), 'rb') as f:
+        return hashlib.file_digest(f, 'sha256').hexdigest()
+
+
+def _safe_child(root, relative):
+    if not isinstance(relative, str) or not relative or '\\' in relative:
+        raise ValueError('Caminho interno inválido.')
+    rel = PurePosixPath(relative)
+    if rel.is_absolute() or '..' in rel.parts or PureWindowsPath(relative).drive or ':' in relative:
+        raise ValueError('Caminho interno inválido: '+relative)
+    root = Path(root).resolve()
+    target = root.joinpath(*rel.parts)
+    # Não atravesse links, mesmo quando apontam para outra pasta dentro da instalação.
+    for part in [target, *target.parents]:
+        if part == root:break
+        if part.is_symlink():raise ValueError('Link não permitido no caminho: '+relative)
+    target.resolve().relative_to(root)
+    return target
+
+
+def _safe_target(root, relative):
+    target = _safe_child(root, relative)
+    parts = PurePosixPath(relative).parts
+    if parts[0] != 'sistema' and relative not in (MAIN_CMD, MAIN_EXE):
+        raise ValueError('Destino protegido: '+relative)
+    if len(parts)>1 and parts[1] in ('backups','logs'):
+        raise ValueError('Destino protegido: '+relative)
+    return target
+
+
+def _write_manifest(path, data):
+    path = Path(path)
+    tmp = path.with_name(path.name+'.novo')
+    with open(L(tmp), 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2, allow_nan=False)
+        f.flush();os.fsync(f.fileno())
+    os.replace(L(tmp), L(path))
+
+
+@contextmanager
+def _update_lock(raiz):
+    logs = system_dir(raiz)/'logs';logs.mkdir(parents=True, exist_ok=True)
+    with open(logs/'atualizacao.lock', 'a+b') as f:
+        f.seek(0);f.write(b'0');f.flush();f.seek(0)
+        try:
+            if os.name == 'nt':
+                import msvcrt
+                msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError as exc:
+            raise RuntimeError('Já existe uma atualização ou restauração em andamento.') from exc
+        try:yield
+        finally:
+            if os.name == 'nt':
+                import msvcrt
+                f.seek(0);msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(f, fcntl.LOCK_UN)
+
+
+def restore_previous(raiz,backup=None,say=print,check_running=True):
+    raiz,_=find_root(raiz)
+    with _update_lock(raiz):
+        return _restore_previous(raiz,backup,say,check_running)
 
 
 def validate_package(pacote,say=print):
@@ -297,6 +398,29 @@ def validate_package(pacote,say=print):
         if not f.is_file():continue
         try:json.loads(f.read_text(encoding='utf-8'))
         except Exception as e:errors.append(f'JSON inválido em {f.name}: {e}')
+    if not errors:
+        try:
+            man=json.loads((pacote/'manifest.json').read_text(encoding='utf-8'))
+            version=json.loads((pacote/'suporte/sistema/VERSAO.json').read_text(encoding='utf-8'))
+            if man.get('app') not in (None,'Rodovia Studio'):raise ValueError('Aplicativo do pacote não reconhecido.')
+            if version_tuple(man.get('version')) != version_tuple(version.get('version')):
+                raise ValueError('Manifesto e VERSAO.json têm versões diferentes.')
+            for f in pacote.rglob('*'):
+                if f.is_symlink():raise ValueError('Pacote contém link: '+str(f))
+            if 'files' in man:
+                actual={f.relative_to(pacote).as_posix() for f in pacote.rglob('*') if f.is_file() and f!=pacote/'manifest.json'}
+                if actual!=set(man['files']):raise ValueError('Lista de arquivos diverge do manifesto de integridade.')
+            for rel, expected in man.get('files', {}).items():
+                f=_safe_child(pacote, rel)
+                if not f.is_file() or _sha(f) != expected:raise ValueError('Hash divergente: '+rel)
+            # Detecta destinos protegidos, duplicados ou fora da instalação antes da escrita.
+            seen=set()
+            virtual=Path(tempfile.gettempdir())/'rs_destinos_validacao'
+            for _,target,_ in _targets(pacote, virtual):
+                rel=target.relative_to(virtual).as_posix();_safe_target(virtual, rel)
+                if rel.casefold() in seen:raise ValueError('Destino duplicado: '+rel)
+                seen.add(rel.casefold())
+        except (OSError, ValueError, TypeError, AttributeError) as e:errors.append(str(e))
     pyroot=pacote/'suporte/sistema'
     for f in pyroot.rglob('*.py') if pyroot.exists() else []:
         try:compile(f.read_text(encoding='utf-8'),str(f),'exec')
@@ -312,15 +436,22 @@ def validate_package(pacote,say=print):
             try:t=f.read_text(encoding='utf-8')
             except Exception as e:errors.append(f'JavaScript ilegível em {f.name}: {e}');continue
             if '\x00' in t or not t.strip():errors.append(f'JavaScript inválido/vazio: {f.name}')
-    if errors:raise RuntimeError('Pacote recusado na verificação prévia:\n- '+'\n- '.join(errors[:20]))
+    if errors:raise PackageError('Pacote recusado na verificação prévia:\n- '+'\n- '.join(errors[:20]))
     say('Verificação prévia concluída: pacote íntegro e sintaxe Python válida'+(' / JavaScript validada com Node.' if node else '.'))
     return True
 
 def apply(pacote,raiz,say=print,check_running=True):
+    raiz,_=find_root(raiz)
+    with _update_lock(raiz):
+        return _apply(pacote,raiz,say,check_running)
+
+
+def _apply(pacote,raiz,say=print,check_running=True):
     pacote=Path(pacote);validate_package(pacote,say);raiz,layout=find_root(raiz)
-    man=json.loads((pacote/'manifest.json').read_text(encoding='utf-8'));new=man.get('version','0')
-    if check_running and (port:=app_running()):raise RuntimeError(f'O Rodovia Studio está aberto (porta {port}). Feche a janela do aplicativo e tente de novo.')
-    stamp=time.strftime('%Y%m%d_%H%M%S');old=installed_version(raiz)
+    new=json.loads((pacote/'manifest.json').read_text(encoding='utf-8'))['version']
+    if check_running and (port:=app_running()):
+        raise RuntimeError(f'O Rodovia Studio está aberto (porta {port}). Feche a janela do aplicativo e tente de novo.')
+    stamp=time.strftime('%Y%m%d_%H%M%S')+'_'+uuid.uuid4().hex[:8];old=installed_version(raiz)
     say(f'Rodovia Studio {old} -> {new} em {raiz}')
     if layout=='antiga':migrate(raiz,stamp,say);layout_now='nova'
     else:layout_now=layout
@@ -328,24 +459,46 @@ def apply(pacote,raiz,say=print,check_running=True):
     if layout_now=='nova':
         migrate_132(raiz,stamp,say)
         old_exe=handle_old_exe(raiz,stamp,say)
-    backup=raiz/'sistema/backups'/f'antes_v{new.replace(".","_")}_{stamp}';copied=0;saved=0;rollback_files=[]
+    final_backup=raiz/'sistema/backups'/f'antes_v{new.replace(".","_")}_{stamp}'
+    backup=final_backup.with_name('.preparando_'+final_backup.name)
+    rollback_files=[];plan=[];saved=0
+    # Todos os backups ficam completos ANTES de substituir o primeiro arquivo.
     for f,target,label in _targets(pacote,raiz):
-        had_previous=os.path.exists(L(target))
+        target=_safe_target(raiz, target.relative_to(raiz).as_posix())
+        had_previous=target.exists()
+        if had_previous and filecmp.cmp(L(f),L(target),shallow=False):continue
+        entry={'target':_rel_target(raiz,target),'had_previous':had_previous,'backup':label if had_previous else None}
         if had_previous:
-            if filecmp.cmp(L(f),L(target),shallow=False):continue
-            b=backup/label;os.makedirs(L(b.parent),exist_ok=True);shutil.copy2(L(target),L(b));saved+=1
-        os.makedirs(L(target.parent),exist_ok=True);tmp=target.with_name(target.name+'.novo')
-        shutil.copy2(L(f),L(tmp));os.replace(L(tmp),L(target));copied+=1
-        rollback_files.append({'target':_rel_target(raiz,target),'had_previous':bool(had_previous),'backup':label if had_previous else None})
+            b=backup/label;b.parent.mkdir(parents=True,exist_ok=True)
+            shutil.copy2(L(target),L(b));entry['sha256']=_sha(b);saved+=1
+        rollback_files.append(entry);plan.append((f,target))
+    if not plan:
+        say('Nenhum arquivo precisa ser substituído.')
+        return {'version':new,'previous':old,'copied':0,'backed_up':0,'backup':None}
+    backup.mkdir(parents=True,exist_ok=True)
+    journal={'version':new,'previous':old,'created_at':time.strftime('%Y-%m-%dT%H:%M:%S'),'state':'prepared','files':rollback_files}
+    manifest=backup/'rollback.json';_write_manifest(manifest,journal)
+    os.replace(L(backup),L(final_backup));backup=final_backup;manifest=backup/'rollback.json'
+    try:
+        journal['state']='applying';_write_manifest(manifest,journal)
+        for f,target in plan:
+            target.parent.mkdir(parents=True,exist_ok=True);tmp=target.with_name(target.name+'.novo')
+            try:
+                shutil.copy2(L(f),L(tmp));os.replace(L(tmp),L(target))
+            finally:
+                if tmp.exists():tmp.unlink()
+        journal['state']='applied';_write_manifest(manifest,journal)
+    except Exception as exc:
+        journal['state']='failed';_write_manifest(manifest,journal)
+        try:_restore_previous(raiz,str(backup),say,check_running=False)
+        except Exception as recovery:
+            raise RuntimeError(f'Atualização interrompida; restauração pendente em {backup}: {recovery}') from exc
+        raise RuntimeError('Atualização interrompida. A versão anterior foi restaurada automaticamente.') from exc
     for d in DATA_DIRS:(raiz/d).mkdir(exist_ok=True)
-    if rollback_files:
-        backup.mkdir(parents=True,exist_ok=True)
-        (backup/'rollback.json').write_text(json.dumps({'version':new,'previous':old,'created_at':time.strftime('%Y-%m-%dT%H:%M:%S'),'files':rollback_files},ensure_ascii=False,indent=2),encoding='utf-8')
-    # O ATUALIZAR RODOVIA STUDIO.cmd antigo pode estar rodando agora: fica para a próxima abertura (run.py).
-    organize_root(raiz,stamp,say,keep=('ATUALIZAR RODOVIA STUDIO.cmd',))
-    msg=f'Atualização {new} aplicada: {copied} arquivos novos/alterados, {saved} anteriores guardados em {backup.relative_to(raiz) if saved else "(nenhum)"}.'
+    msg=f'Atualização {new} aplicada: {len(plan)} arquivos novos/alterados, {saved} anteriores guardados em {backup.relative_to(raiz)}.'
     say(msg);log(raiz,msg)
-    return {'version':new,'previous':old,'copied':copied,'backed_up':saved,'layout_before':layout,'backup':str(backup),'old_exe_saved':old_exe}
+    return {'version':new,'previous':old,'copied':len(plan),'backed_up':saved,'layout_before':layout,'backup':str(backup),'old_exe_saved':old_exe}
+
 
 def candidates(raiz):
     """Pacotes pendentes oficiais.
@@ -361,18 +514,34 @@ def candidates(raiz):
         try:
             with zipfile.ZipFile(z) as zf:
                 names=set(zf.namelist())
+                manifests=[n for n in names if n=='manifest.json' or n.endswith('pacote/manifest.json')]
+                if len(manifests)!=1:continue
                 if 'manifest.json' in names:name='manifest.json';package_prefix=''
                 else:
                     legacy=next((n for n in names if n.endswith('pacote/manifest.json')),None)
                     if not legacy:continue
                     name=legacy;package_prefix=str(Path(name).parent).replace('\\','/')
-                man=json.loads(zf.read(name));ver=version_tuple(man.get('version','0'))
+                man=json.loads(zf.read(name))
+                if not isinstance(man,dict) or man.get('app') not in (None,'Rodovia Studio'):continue
+                ver=version_tuple(man.get('version'))
                 out.append((ver,z,name,package_prefix))
-        except (zipfile.BadZipFile,KeyError,ValueError,json.JSONDecodeError,OSError):continue
+        except (zipfile.BadZipFile,KeyError,ValueError,TypeError,AttributeError,OSError):continue
     return sorted(out,key=lambda c:(c[0],c[1].stat().st_mtime),reverse=True)
+
+def _archive_zip(z,folder):
+    folder.mkdir(parents=True,exist_ok=True);dest=folder/z.name
+    if dest.exists():dest=folder/(z.stem+'_'+uuid.uuid4().hex[:8]+z.suffix)
+    os.replace(L(z),L(dest))
+    return dest
+
 
 def search_and_apply(raiz,say=print,check_running=True):
     raiz,_=find_root(raiz);cur=version_tuple(installed_version(raiz));found=candidates(raiz)
+    if found:
+        valid={x[1] for x in found}
+        for invalid in (raiz/'atualizacoes').glob('*.zip'):
+            if ZIP_RE.search(invalid.name) and invalid not in valid:
+                _archive_zip(invalid,raiz/'atualizacoes'/'rejeitadas')
     if not found:
         # ZIP com nome de atualização mas estrutura inválida: coloca em rejeitadas para não gerar loop.
         rej=raiz/'atualizacoes'/'rejeitadas';rej.mkdir(parents=True,exist_ok=True);moved=[]
@@ -399,13 +568,16 @@ def search_and_apply(raiz,say=print,check_running=True):
         with zipfile.ZipFile(z) as zf:
             for m in zf.infolist():
                 p=Path(m.filename)
-                if p.is_absolute() or '..' in p.parts:raise RuntimeError('ZIP com caminho inválido: '+m.filename)
+                _safe_child(tmp, m.filename.rstrip('/'))
+                if (m.external_attr >> 16) & 0o170000 == 0o120000:
+                    raise ValueError('ZIP contém link: '+m.filename)
             for m in zf.infolist():
                 out=tmp/m.filename
                 if m.is_dir():os.makedirs(L(out),exist_ok=True);continue
                 os.makedirs(L(out.parent),exist_ok=True)
                 with zf.open(m) as src,open(L(out),'wb') as dst:shutil.copyfileobj(src,dst)
         pacote=tmp/Path(package_prefix) if package_prefix else tmp
+        validate_package(pacote,say)
         newer=pacote/'suporte/sistema/atualizador.py'
         if newer.exists() and newer.read_bytes()!=Path(__file__).read_bytes() and not os.environ.get('RODOVIA_ATUALIZADOR_INTERNO'):
             # Usa o atualizador que veio no pacote (pode conter reorganizações novas).
@@ -416,16 +588,54 @@ def search_and_apply(raiz,say=print,check_running=True):
         else:res=apply(pacote,raiz,say,check_running)
         dest=raiz/'atualizacoes'/'aplicadas';dest.mkdir(parents=True,exist_ok=True)
         try:
-            if z.parent==raiz/'atualizacoes':os.replace(z,dest/z.name)
+            if z.parent==raiz/'atualizacoes':_archive_zip(z,dest)
         except OSError:pass
         return res
+    except (ValueError, PackageError, zipfile.BadZipFile) as exc:
+        _archive_zip(z,raiz/'atualizacoes'/'rejeitadas')
+        raise RuntimeError('Pacote recusado e movido para atualizacoes/rejeitadas: '+str(exc)) from exc
     finally:shutil.rmtree(L(tmp),ignore_errors=True)
+
+def _restore_safety(raiz,folder,entries):
+    # Verifica todo o snapshot antes de reverter a primeira escrita.
+    for e in entries:
+        _safe_target(raiz,e['target'])
+        if e['had_previous']:
+            src=_safe_child(folder,e['backup'])
+            if not src.is_file() or _sha(src)!=e['sha256']:raise RuntimeError('Snapshot de segurança incompleto ou alterado.')
+    for e in reversed(entries):
+        target=_safe_target(raiz,e['target'])
+        if e['had_previous']:
+            tmp=target.with_name(target.name+'.recuperando');target.parent.mkdir(parents=True,exist_ok=True)
+            try:shutil.copy2(L(_safe_child(folder,e['backup'])),L(tmp));os.replace(L(tmp),L(target))
+            finally:tmp.unlink(missing_ok=True)
+        else:target.unlink(missing_ok=True)
+
+
+def recover_pending(raiz,say=print):
+    """Recupera uma troca interrompida por queda de energia antes de abrir o app."""
+    raiz,_=find_root(raiz)
+    with _update_lock(raiz):
+        for file in (system_dir(raiz)/'backups').glob('antes_restaurar_*/snapshot.json'):
+            info=json.loads(file.read_text(encoding='utf-8'))
+            if info.get('state')=='restoring':
+                _restore_safety(raiz,file.parent,info['files'])
+                info['state']='recovered';_write_manifest(file,info)
+                say('Snapshot recuperado após restauração interrompida.')
+        for candidate in rollback_candidates(raiz):
+            file=Path(candidate['path'])/'rollback.json'
+            if not file.exists():continue
+            man=json.loads(file.read_text(encoding='utf-8'))
+            if man.get('state') in ('prepared','applying','failed') and not man.get('restored_at'):
+                _restore_previous(raiz,candidate['path'],say,check_running=True)
+
 
 def main(argv=None):
     a=argparse.ArgumentParser();a.add_argument('--raiz',required=True);a.add_argument('--pacote');a.add_argument('--procurar',action='store_true');a.add_argument('--restaurar-anterior',action='store_true');a.add_argument('--backup');a.add_argument('--sem-verificar-aberto',action='store_true')
     a.add_argument('--aguardar',type=float,default=0,help='espera o aplicativo fechar (segundos), usado pela atualização feita de dentro do aplicativo')
     o=a.parse_args(argv)
     try:
+        if not math.isfinite(o.aguardar) or o.aguardar<0:raise ValueError('Tempo de espera inválido.')
         if o.aguardar:
             t0=time.time()
             while app_running() and time.time()-t0<o.aguardar:time.sleep(.5)

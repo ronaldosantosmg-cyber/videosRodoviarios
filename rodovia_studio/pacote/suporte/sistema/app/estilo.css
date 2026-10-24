@@ -460,3 +460,22 @@ body.desktop140.dwProjectFocus .dwTitleBar .dwBrandLogo{display:flex!important}
 
 body.desktop140.dwProjectFocus .dwTitleBar>.row{display:none!important}
 body.desktop140.dwProjectFocus .dwTitleBar .brand h1{font-size:13px}
+
+/* 1.42.1: menu principal em cascata e comandos fora da área gráfica. */
+.studio142 #menuBar.rsMenuBar{display:flex;flex-wrap:wrap;gap:2px;min-height:30px;flex:none;padding:2px 8px;background:var(--cromo);border-bottom:1px solid var(--cromo-borda)}
+.studio142 #menuBar .mb{min-width:0;padding:5px 12px;border:0;border-radius:3px;background:transparent;color:var(--texto);font:13px "Segoe UI",system-ui,sans-serif}
+.studio142 #menuBar .mb:hover,.studio142 #menuBar .mb.on{background:var(--cromo-hover)}
+.rsCascade{position:fixed;z-index:10000;min-width:240px;max-width:min(390px,calc(100vw - 8px));max-height:calc(100vh - 8px);overflow:auto;padding:4px;background:var(--menu,#fff);color:var(--texto,#222);border:1px solid var(--cromo-borda,#999);border-radius:5px;box-shadow:0 5px 18px #0004}
+.rsCascade>button{display:grid;grid-template-columns:20px minmax(0,1fr) auto;align-items:center;gap:8px;width:100%;min-height:30px;padding:5px 9px;text-align:left;color:inherit;background:transparent;border:0;border-radius:3px;font:13px "Segoe UI",system-ui,sans-serif}
+.rsCascade>button:hover:not(:disabled),.rsCascade>button:focus-visible{background:var(--cromo-hover,#e4efff);outline:2px solid var(--accent,#1672cb);outline-offset:-2px}
+.rsCascade>button:disabled{opacity:.45;cursor:default}.rsMenuIcon svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.6}.rsMenuKey{font-size:11px;opacity:.7}.rsSeparator{border-top:1px solid var(--cromo-borda,#aaa);margin:4px 3px}.rsMenuHeading{font-size:11px;opacity:.7;padding:5px 9px}
+.studio142 #rsCommandRail{flex:none;position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;max-height:30vh;overflow:auto;padding:4px 10px;background:var(--panel);border-bottom:1px solid var(--cromo-borda)}
+.studio142 #rsCommandRail #toolOptions,.studio142 #rsCommandRail #selBar,.studio142 #rsCommandRail .dwCursor{position:static!important;inset:auto!important;transform:none!important;box-shadow:none!important;max-width:100%;margin:0!important;flex-wrap:wrap}
+.studio142 #rsCommandRail #toolOptions{width:auto;max-height:18vh;overflow:auto}.studio142 #rsCommandRail #dwCommandDrawer{flex-basis:100%;box-shadow:none;max-height:18vh}
+.studio142 #rsActiveTool{font-size:12px;color:var(--texto);min-height:22px;display:flex;align-items:center}.studio142 #rsFlowLegend{font-size:11px;display:flex;flex-wrap:wrap;gap:10px;flex-basis:100%}.flow-ok{color:#16833c}.flow-problem{color:#dc2626}.flow-adjustment{color:#a16207}
+.studio142 #toolbar[hidden],.studio142 #rsCommandRail [hidden],.studio142 .rsCascade[hidden]{display:none!important}
+.studio142 .canvasWrap>#toolOptions,.studio142 .canvasWrap>#selBar{display:none!important}
+
+.studio142 .dockItems,.studio142 .dockItem,.studio142 #propPanel{min-width:0;max-width:100%;overflow-wrap:anywhere}
+.studio142 #propPanel .row{flex-wrap:wrap}.studio142 #propPanel p,.studio142 #propPanel label{white-space:normal}
+.studio142 #propPanel table{table-layout:fixed;width:100%}.studio142 #propPanel input,.studio142 #propPanel select{min-width:0;max-width:100%;box-sizing:border-box}
