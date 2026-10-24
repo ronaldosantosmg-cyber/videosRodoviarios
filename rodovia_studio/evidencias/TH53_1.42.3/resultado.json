@@ -1,0 +1,112 @@
+{
+  "input": {
+    "name": "DUPLICAÇÃO TH53.dxf",
+    "sha256": "7936e09e195212a85a894dbc48f5ad337f0cbe4f3195225e6f8137297e3e4538",
+    "size_bytes": 21106984,
+    "dxf_insunits": 6
+  },
+  "scope": "Configuração padrão; CRS não confirmado; sem projeto salvo nem KMZ. Sem validação de conformidade legal.",
+  "duration_s": 30,
+  "old": {
+    "version": "1.42.2",
+    "itineraries": 14,
+    "audits_ok": 7,
+    "reasons": {
+      "corpo_fora_da_pista": 6,
+      "auto_intersecao": 1,
+      "mudanca_brusca": 1,
+      "esterco_excessivo": 1
+    }
+  },
+  "new": {
+    "version": "1.42.3",
+    "itineraries": 4,
+    "audits_ok": 4,
+    "vehicles": 25,
+    "rear_collisions": 0,
+    "short_segments_ignored": 99,
+    "paths_m": [
+      1538.07,
+      840.3,
+      779.43,
+      2314.09
+    ],
+    "audits": [
+      {
+        "ok": true,
+        "reasons": [],
+        "message": "Trajetória cinemática válida.",
+        "max_steering_deg": 3.602,
+        "vehicle": "car",
+        "samples": 3078,
+        "critical_station_m": 82.977,
+        "front_xy": [
+          727975.102,
+          7827002.6298
+        ],
+        "rear_xy": [
+          727971.1192,
+          7827004.7243
+        ]
+      },
+      {
+        "ok": true,
+        "reasons": [],
+        "message": "Trajetória cinemática válida.",
+        "max_steering_deg": 1.812,
+        "vehicle": "car",
+        "samples": 1682,
+        "critical_station_m": 163.462,
+        "front_xy": [
+          729465.8391,
+          7826910.4029
+        ],
+        "rear_xy": [
+          729461.5096,
+          7826909.1762
+        ]
+      },
+      {
+        "ok": true,
+        "reasons": [],
+        "message": "Trajetória cinemática válida.",
+        "max_steering_deg": 0.881,
+        "vehicle": "car",
+        "samples": 1560,
+        "critical_station_m": 102.99,
+        "front_xy": [
+          732468.9382,
+          7829239.3085
+        ],
+        "rear_xy": [
+          732473.4308,
+          7829239.5673
+        ]
+      },
+      {
+        "ok": true,
+        "reasons": [],
+        "message": "Trajetória cinemática válida.",
+        "max_steering_deg": 3.347,
+        "vehicle": "car",
+        "samples": 4630,
+        "critical_station_m": 606.892,
+        "front_xy": [
+          728837.1838,
+          7826700.938
+        ],
+        "rear_xy": [
+          728841.6616,
+          7826701.384
+        ]
+      }
+    ]
+  },
+  "limitations": [
+    "Mapeamento automático de camadas; sem as configurações do projeto salvo.",
+    "CRS EPSG:31983 é o padrão legado, não confirmado pelo DXF; sem análise de imagem aérea ou coordenadas geográficas.",
+    "Sem KMZ, restrições adicionais nem certificação CONTRAN.",
+    "Colisões traseiras verificadas não equivalem a detecção de todos os conflitos em cruzamentos.",
+    "Quatro itinerários mantidos não significam que todos os ramais estejam operacionais."
+  ]
+}
