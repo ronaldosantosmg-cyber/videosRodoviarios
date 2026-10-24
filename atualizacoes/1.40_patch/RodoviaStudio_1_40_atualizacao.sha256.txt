@@ -1,0 +1,5 @@
+RodoviaStudio_1_40_atualizacao.zip
+SHA-256: bacfc3db52785224677806ce38129c03a1a367bbc47f76033c4c1fcb4ef5fd9b
+Tamanho: 2.2 MB
+Base: Rodovia Studio 1.39
+Objetivo: Desktop Workspace
