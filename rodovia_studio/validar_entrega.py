@@ -107,6 +107,7 @@ def main():
         finally:temp.unlink(missing_ok=True)
     sha=hashlib.sha256(output.read_bytes()).hexdigest()
     output.with_suffix('.sha256.txt').write_text(f'{sha}  {output.name}\n')
+    (dest/'canal_estavel.json').write_text(json.dumps({'app':'Rodovia Studio','version':metadata['version'],'filename':output.name,'sha256':sha},ensure_ascii=False,indent=2)+'\n')
     print(f'Pacote gerado: {output}\nSHA-256: {sha}')
 
 

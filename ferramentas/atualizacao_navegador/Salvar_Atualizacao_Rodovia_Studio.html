@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Salvar atualização — Rodovia Studio</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f1f5f9;color:#172536;font:16px/1.55 system-ui,sans-serif}main{max-width:760px;margin:7vh auto;padding:30px;background:white;border:1px solid #ccd6df;border-radius:14px}h1{font-size:25px;margin:0 0 12px}p{margin:12px 0}.notice{background:#eaf3fc;border-left:4px solid #2878b9;padding:12px 16px}.actions{display:flex;flex-wrap:wrap;gap:12px;margin:24px 0}button,a{font:inherit}button{padding:10px 16px;border-radius:6px;border:1px solid #2878b9;background:#1769aa;color:white;cursor:pointer}button:disabled{opacity:.5;cursor:default}button:focus-visible,a:focus-visible{outline:3px solid #f4b82e;outline-offset:3px}#folder{overflow-wrap:anywhere}#status{min-height:65px;background:#f1f5f9;padding:14px;border-radius:6px;white-space:pre-wrap;overflow-wrap:anywhere}.error{color:#a61624}small{color:#506274}a{color:#145f9a}code{font-size:13px;overflow-wrap:anywhere}@media(max-width:780px){main{margin:12px;padding:20px}}
+</style>
+<main>
+<h1>Salvar atualização do Rodovia Studio</h1>
+<p>Use esta página no <strong>Microsoft Edge ou Google Chrome do PC</strong>. Não precisa instalar o Codex.</p>
+<p class="notice">Você escolhe a pasta <strong>atualizacoes</strong> da sua instalação. A página grava o ZIP nessa pasta após conferir seu SHA-256. O assistente na nuvem continua sem acesso ao restante do computador.</p>
+<p id="version">Consultando a atualização disponível…</p>
+<p id="folder">Nenhuma pasta autorizada.</p>
+<div class="actions">
+<button id="choose" type="button">1. Escolher pasta atualizacoes</button>
+<button id="save" type="button" disabled>2. Gravar atualização</button>
+</div>
+<div id="status" role="status" aria-live="polite">A permissão será solicitada pelo próprio navegador.</div>
+<p><a id="manual" href="https://github.com/ronaldosantosmg-cyber/videosRodoviarios/raw/refs/heads/desenvolvimento/rodovia-studio-1.42/atualizacoes/RodoviaStudio_1_42_2_atualizacao.zip" rel="noopener">Baixar ZIP manualmente</a></p>
+<small>Salve seu trabalho antes de atualizar. Se o iniciador do Rodovia Studio estiver configurado para atualização automática, ele detectará o ZIP local. Esta página não executa programas nem instala a atualização. Sua pasta é autorizada apenas nesta página; fechar a aba encerra o uso da autorização por ela.</small>
+<details><summary>Conferência do arquivo</summary><p>SHA-256 esperado:</p><code id="hash">Aguardando consulta.</code></details>
+</main>
+<script>
+'use strict';
+const ROOT='https://raw.githubusercontent.com/ronaldosantosmg-cyber/videosRodoviarios/desenvolvimento/rodovia-studio-1.42/';
+const $=id=>document.getElementById(id);
+let folder=null,release=null,busy=false,releaseProblem='';
+function message(text,error=false){$('status').textContent=text;$('status').classList.toggle('error',error)}
+function controls(){
+ $('choose').disabled=busy||typeof window.showDirectoryPicker!=='function';
+ $('save').disabled=busy||!folder||!release;
+}
+async function loadRelease(){
+ try{
+  const response=await fetch(ROOT+'atualizacoes/canal_estavel.json',{cache:'no-store'});
+  if(!response.ok)throw Error('Não foi possível consultar o GitHub.');
+  const data=await response.json();
+  if(data.app!=='Rodovia Studio'||!/^\d+\.\d+\.\d+$/.test(data.version)||!/^RodoviaStudio_\d+_\d+_\d+_atualizacao\.zip$/.test(data.filename)||!/^[a-f0-9]{64}$/.test(data.sha256))throw Error('Os dados da atualização são inválidos.');
+  if(data.filename!=='RodoviaStudio_'+data.version.replaceAll('.','_')+'_atualizacao.zip')throw Error('A versão e o nome do ZIP são diferentes.');
+  release=data;$('version').textContent='Atualização disponível: '+data.version;
+  $('hash').textContent=data.sha256;
+  $('manual').href=ROOT+'atualizacoes/'+data.filename;
+ }catch(e){release=null;releaseProblem=e.message;$('version').textContent='Consulta indisponível.';message(e.message+' Use o download manual ou reabra a página com acesso à internet.',true)}
+ controls();
+}
+$('choose').onclick=async()=>{
+ if(busy)return;
+ try{
+  const chosen=await window.showDirectoryPicker({id:'rodovia-atualizacoes',mode:'readwrite',startIn:'documents'});
+  if(chosen.name.toLocaleLowerCase('pt-BR')!=='atualizacoes'){folder=null;$('folder').textContent='Pasta incorreta: '+chosen.name;message('Selecione a pasta chamada atualizacoes, dentro da instalação do Rodovia Studio.',true);return}
+  folder=chosen;$('folder').textContent='Pasta autorizada: '+chosen.name;
+  if(release)message('Pasta selecionada. Clique em Gravar atualização quando estiver pronto.');
+  else if(releaseProblem)message('Pasta selecionada, mas a atualização está indisponível: '+releaseProblem,true);
+  else message('Pasta selecionada. Aguarde a consulta da atualização no GitHub.');
+ }catch(e){if(e.name==='AbortError')message('Escolha cancelada. Nenhum arquivo foi gravado.');else message('Não foi possível autorizar a pasta: '+e.message,true)}
+ finally{controls()}
+};
+$('save').onclick=async()=>{
+ if(busy||!folder||!release)return;
+ busy=true;controls();let writable=null;
+ try{
+  const current={...release};
+  message('Baixando Rodovia Studio '+current.version+' do GitHub…');
+  const response=await fetch(ROOT+'atualizacoes/'+current.filename,{cache:'no-store'});
+  if(!response.ok)throw Error('Falha no download do ZIP (HTTP '+response.status+').');
+  const bytes=await response.arrayBuffer();
+  const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(b=>b.toString(16).padStart(2,'0')).join('');
+  if(hash!==current.sha256)throw Error('SHA-256 divergente. O arquivo foi recusado antes de gravar.');
+  // Não substitua nem crie o ZIP antes da conferência dos bytes baixados.
+  try{await folder.getFileHandle(current.filename);throw Error('Esse ZIP já existe na pasta. Ele foi preservado; confira a atualização no Rodovia Studio.')}
+  catch(e){if(e.name!=='NotFoundError')throw e}
+  const file=await folder.getFileHandle(current.filename,{create:true});
+  writable=await file.createWritable();await writable.write(bytes);await writable.close();writable=null;
+  message('ZIP salvo em atualizacoes/'+current.filename+'\nSHA-256 conferido. Continue a atualização no Rodovia Studio.');
+ }catch(e){if(writable)try{await writable.abort()}catch{};message(e.message+'\nA atualização não foi aplicada por esta página.',true)}
+ finally{busy=false;controls()}
+};
+if(typeof window.showDirectoryPicker!=='function')message('Este navegador não oferece escolha de pasta. Abra o arquivo no Edge ou Chrome do PC, ou use Baixar ZIP manualmente.',true);
+loadRelease();
+</script>
+</html>
