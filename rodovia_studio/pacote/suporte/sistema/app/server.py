@@ -17,6 +17,8 @@ from .render import ASSETS
 from .rotas.comum import BASE,VERSION,idle,enqueue,stop,dispatch_lock,maintenance_pending
 def dispatcher():
     while not stop.is_set():
+        from .capture3d import active as capture_active
+        if capture_active():stop.wait(.2);continue
         with store.connect() as c:r=c.execute("SELECT * FROM jobs WHERE state='queued' ORDER BY created,rowid LIMIT 1").fetchone()
         if not r:stop.wait(.4);continue
         j=dict(r)
@@ -63,7 +65,9 @@ async def lifespan(app):
     try:
         yield
     finally:
-        stop.set();thread.join(timeout=5)
+        stop.set()
+        from .capture3d import abort_all
+        abort_all();thread.join(timeout=5)
         # Workers já foram encerrados. Agora temporários de projeto e da sessão podem sair com segurança.
         try:
             from .maintenance import clean_categories
@@ -99,3 +103,7 @@ async def not_found(request,e):return JSONResponse({'detail':str(e)},404)
 # a segurança (somente local) e o tratamento de erros.
 from .rotas import paginas,projetos,modelos,editor,tarefas,arquivos,web,suporte,camadas,videos,sistema,obras
 for _m in (paginas,projetos,modelos,editor,tarefas,arquivos,web,suporte,camadas,videos,sistema,obras):app.include_router(_m.router)
+
+from starlette.staticfiles import StaticFiles
+app.mount('/vendor',StaticFiles(directory=BASE/'app/vendor'),name='vendor-local')
+app.mount('/webgl',StaticFiles(directory=BASE/'app/webgl'),name='webgl-local')

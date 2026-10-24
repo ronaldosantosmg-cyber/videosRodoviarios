@@ -45,19 +45,19 @@ def find_folder(pid):
         except OSError:continue
     return None
 
-def archive(d,pid,settings,info,seconds=None):
+def archive(d,pid,settings,info,seconds=None,source_name='video.mp4'):
     """Copia o vídeo recém-gerado (<projeto>/video.mp4) para o arquivo de vídeos, com a ficha."""
-    src=Path(d)/'video.mp4'
+    src=Path(d)/source_name
     if not src.exists():return None
     folder=find_folder(pid) or project_folder(pid,settings.name)
     n=1+max([int(m.group(1)) for f in folder.glob('*.mp4') if (m:=re.search(r'_v(\d+)\.mp4$',f.name))]+[0])
     stamp=time.strftime('%Y-%m-%d_%Hh%M')
-    name=f'{slug(settings.name,48)}_{stamp}_v{n:02d}.mp4'
+    name=f'{slug(settings.name,48)}'+('_3D' if source_name=='video3d.mp4' else '')+f'_{stamp}_v{n:02d}.mp4'
     dst=folder/name;tmp=folder/(name+'.tmp')
     shutil.copyfile(src,tmp);store.replace(tmp,dst)
     from .rotas.comum import VERSION
     meta={'arquivo':name,'projeto':settings.name,'projeto_id':pid,'gerado_em':time.strftime('%Y-%m-%d %H:%M:%S'),'versao_app':VERSION,
-          'numero':n,'bytes':dst.stat().st_size,'largura':info.get('width'),'altura':info.get('height'),'fps':info.get('fps'),'duracao_s':info.get('duration_s'),
+          'motor':info.get('motor','2D'),'camera3d':info.get('camera3d'),'scene3d_revision':info.get('scene3d_revision'),'numero':n,'bytes':dst.stat().st_size,'largura':info.get('width'),'altura':info.get('height'),'fps':info.get('fps'),'duracao_s':info.get('duration_s'),
           'quadros':info.get('frames'),'codificador':info.get('encoder'),'qualidade':getattr(settings,'video_quality','padrao'),
           'tempo_geracao_s':round(seconds,1) if seconds else info.get('total_seconds'),'configuracao':settings.model_dump()}
     dst.with_suffix('.json').write_text(json.dumps(meta,ensure_ascii=False,indent=1),encoding='utf-8')

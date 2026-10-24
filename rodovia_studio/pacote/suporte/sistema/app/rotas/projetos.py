@@ -18,6 +18,7 @@ def projects():
     with store.connect() as c:return [dict(r) for r in c.execute('SELECT * FROM projects ORDER BY created DESC,rowid DESC')]
 @router.post('/api/projects',status_code=201)
 def create(s:Settings):
+    if any(not getattr(s,k).strip() for k in ('name','origin','destination')):raise HTTPException(422,'Informe nome, origem e destino do projeto.')
     pid=uuid.uuid4().hex;d=store.ROOT/pid;d.mkdir();store.write_json(d/'config.json',s.model_dump())
     with store.connect() as c:c.execute('INSERT INTO projects(id,name) VALUES(?,?)',(pid,s.name))
     return {'id':pid,'config':s.model_dump()}
@@ -123,8 +124,7 @@ def project_rename(pid,body:RenameBody):
     return {'id':pid,'name':n}
 
 @router.post('/api/example',status_code=201)
-def example():
-    s=Settings.model_validate(json.loads((ASSETS/'th57/config.json').read_text(encoding='utf-8')));r=create(s);d=store.directory(r['id']);shutil.copyfile(ASSETS/'th57/projeto.dxf',d/'input.dxf');return r
+def example():raise HTTPException(410,'O exemplo histórico foi arquivado. Crie um projeto identificado e envie seu DXF/KMZ.')
 @router.get('/api/projects/{pid}')
 def get_project(pid):
     d=store.directory(pid);r={'id':pid,'config':Settings.model_validate_json((d/'config.json').read_text(encoding='utf-8')).model_dump(),'files':{'dxf':(d/'input.dxf').exists(),'kmz':(d/'input.kmz').exists()},'files_info':_files_info(d)}

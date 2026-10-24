@@ -62,7 +62,7 @@ class JobLog:
             import re
             if not re.fullmatch(r'[A-Za-z0-9_-]{1,80}',str(self.jid)):return
             snapshot=Path(self.d)/'logs'/'execucoes';snapshot.mkdir(parents=True,exist_ok=True)
-            write_json(snapshot/(str(self.jid)+'.json'),{'tarefa':self.jid,'tipo':self.kind,'versao':app_version(),'config':data,'entradas':_inputs(Path(self.d)) if self.kind in ('render','video') else [],'ambiente':environment() if self.kind in ('render','video') else None,'config_sha256':hashlib.sha256(json.dumps(data,sort_keys=True,ensure_ascii=False,allow_nan=False).encode()).hexdigest()})
+            write_json(snapshot/(str(self.jid)+'.json'),{'tarefa':self.jid,'tipo':self.kind,'versao':app_version(),'config':data,'entradas':_inputs(Path(self.d)) if self.kind in ('render','video','render3d') else [],'ambiente':environment() if self.kind in ('render','video','render3d') else None,'config_sha256':hashlib.sha256(json.dumps(data,sort_keys=True,ensure_ascii=False,allow_nan=False).encode()).hexdigest()})
             write(self.d,'execucao','configuracao',tarefa=self.jid,tipo=self.kind,config_sha=config_hash(settings))
         except Exception as exc:write(self.d,'erros','snapshot_nao_criado',erro=type(exc).__name__,mensagem=str(exc)[:400])
     def finish_stage(self):
@@ -181,6 +181,9 @@ def ai_prompt(project_dir,pid):
     L.append('```json');L.append(txt);L.append('```')
     if vid:
         L.append('## Último vídeo gerado (video.json)');L.append('```json');L.append(json.dumps(vid,ensure_ascii=False,indent=1)[:20000]);L.append('```')
+    if (d/'video3d.json').exists():
+        capture=_json_for_prompt(d/'video3d.json',issues,{})
+        L.extend(['## Último vídeo WebGL 3D','```json',json.dumps(capture,ensure_ascii=False,indent=1),'```'])
     if jobs:
         L.append('## Tarefas recentes');L.append('| criada | tipo | situação | mensagem |');L.append('|---|---|---|---|')
         for j in jobs:L.append(f"| {j.get('created')} | {j.get('kind')} | {j.get('state')} | {str(j.get('message') or '').replace('|','/')[:160]} |")
@@ -209,7 +212,7 @@ def ai_prompt(project_dir,pid):
     for f in snapshots:
         try:
             value=json.loads(f.read_text(encoding='utf-8'))
-            if value.get('tipo') in ('render','video'):render_snapshots.append((f,value))
+            if value.get('tipo') in ('render','video','render3d'):render_snapshots.append((f,value))
         except (ValueError,OSError):continue
     if render_snapshots:
         f,value=render_snapshots[0]
@@ -228,7 +231,7 @@ def bundle(project_dir,pid):
     d=Path(project_dir);buf=io.BytesIO()
     with zipfile.ZipFile(buf,'w',zipfile.ZIP_DEFLATED) as z:
         for f in sorted((d/'logs').glob('*.jsonl')) if (d/'logs').exists() else []:z.write(f,'logs/'+f.name)
-        for name in ('config.json','analysis.json','video.json','preview.json','error.log','ffmpeg.log'):
+        for name in ('config.json','analysis.json','video.json','video3d.json','preview.json','error.log','ffmpeg.log'):
             if (d/name).exists():z.write(d/name,name)
         from .usage_catalog import summarize
         z.writestr('catalogo_uso.json',json.dumps(summarize(read(d,'execucao',3000),read(d,'erros',1000)),ensure_ascii=False,indent=2))

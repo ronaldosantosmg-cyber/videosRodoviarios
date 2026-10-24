@@ -30,6 +30,10 @@ def routes_preview(body:RoutesBody):
 def editor_file(pid):
     path=store.directory(pid)/'editor.json'
     if not path.exists():raise HTTPException(404,'Gere uma prévia para carregar o editor.')
+    from ..scene3d import revision
+    try:
+        if json.loads(path.read_text()).get('engine_revision')!=revision(path.parent):raise HTTPException(409,'Editor desatualizado. Recalcule os fluxos.')
+    except (ValueError,OSError):raise HTTPException(409,'Editor inválido. Recalcule os fluxos.')
     return FileResponse(path,media_type='application/json',headers={'Cache-Control':'no-store'})
 
 @router.post('/api/projects/{pid}/validate_path')
@@ -180,3 +184,79 @@ def project_cities(pid,radius_km:float=25):
     try:return {'cities':nearby(d,cfg.get('crs','EPSG:31983'),rep['bounds'],radius_km)}
     except ValueError as e:raise HTTPException(422,str(e))
     except OSError as e:raise HTTPException(503,str(e)+' Você pode marcar as cidades à mão com a ferramenta Cidade.')
+
+@router.post('/api/projects/{pid}/scene3d',status_code=202)
+def scene3d_job(pid):return enqueue(pid,'scene3d')
+
+@router.get('/api/projects/{pid}/scene3d.json')
+def scene3d_file(pid):
+    from ..scene3d import revision
+    d=store.directory(pid);f=d/'scene3d.json'
+    if not f.is_file():raise HTTPException(404,'Construa a cena 3D primeiro.')
+    try:
+        data=json.loads(f.read_text(encoding='utf-8'))
+        if data.get('revision')!=revision(d):raise HTTPException(409,'Cena desatualizada. Reconstrua o 3D.')
+    except (ValueError,OSError):raise HTTPException(409,'Cena inválida. Reconstrua o 3D.')
+    return FileResponse(f,media_type='application/json',headers={'Cache-Control':'no-store'})
+
+from typing import Literal
+class Camera3D(_BM):
+    model_config=ConfigDict(allow_inf_nan=False,extra='forbid')
+    position:list[float]=Field(min_length=3,max_length=3)
+    target:list[float]=Field(min_length=3,max_length=3)
+    follow_id:int|None=Field(default=None,ge=0)
+    light:Literal['dia','entardecer']='dia'
+class Capture3D(_BM):
+    model_config=ConfigDict(allow_inf_nan=False,extra='forbid')
+    revision:str=Field(pattern=r'^[a-f0-9]{64}$')
+    width:Literal[1280,1920,2560,3840]=1280
+    fps:Literal[24,30]=24
+    duration_s:float=Field(ge=3,le=60)
+    camera:Camera3D
+
+@router.post('/api/projects/{pid}/scene3d/capture',status_code=202)
+def capture3d_begin(pid,body:Capture3D):
+    from ..scene3d import revision
+    from ..capture3d import begin
+    d,s=_config(pid)
+    with dispatch_lock:
+        idle(pid)
+        if not (d/'scene3d.json').is_file():raise HTTPException(409,'Construa a cena 3D primeiro.')
+        data=json.loads((d/'scene3d.json').read_text())
+        if body.revision!=data.get('revision') or body.revision!=revision(d):raise HTTPException(409,'A cena está desatualizada. Reconstrua o 3D.')
+        if body.duration_s>data.get('duration_s',0)+.0001:raise HTTPException(422,'A duração excede a prévia simulada disponível.')
+        s=s.model_copy(update={'width':body.width,'fps':body.fps})
+        return begin(d,pid,s,body.revision,body.camera.model_dump(),body.duration_s)
+
+@router.post('/api/projects/{pid}/scene3d/capture/{jid}/frame')
+async def capture3d_frame(pid,jid,index:int,request:Request):
+    from ..capture3d import session
+    from starlette.concurrency import run_in_threadpool
+    s=session(jid,request.headers.get('X-Rodovia-Capture'))
+    if s.pid!=pid:raise HTTPException(403,'Projeto de exportação inválido.')
+    data=bytearray()
+    async for chunk in request.stream():
+        data.extend(chunk)
+        if len(data)>16*1024*1024:s.abort('Quadro acima do limite.');raise HTTPException(413,'Quadro acima de 16 MB.')
+    return await run_in_threadpool(s.feed,index,bytes(data))
+
+@router.post('/api/projects/{pid}/scene3d/capture/{jid}/finish')
+def capture3d_finish(pid,jid,request:Request):
+    from ..capture3d import session
+    s=session(jid,request.headers.get('X-Rodovia-Capture'))
+    if s.pid!=pid:raise HTTPException(403,'Projeto de exportação inválido.')
+    return s.finish()
+
+@router.post('/api/projects/{pid}/scene3d/capture/{jid}/cancel')
+def capture3d_cancel(pid,jid,request:Request):
+    from ..capture3d import session
+    s=session(jid,request.headers.get('X-Rodovia-Capture'))
+    if s.pid!=pid:raise HTTPException(403,'Projeto de exportação inválido.')
+    s.abort('Cancelado pelo usuário.',cancelled=True);return {'cancelled':True}
+
+@router.get('/api/projects/{pid}/scene3d/capture/{jid}')
+def capture3d_status(pid,jid,request:Request):
+    from ..capture3d import session
+    s=session(jid,request.headers.get('X-Rodovia-Capture'))
+    if s.pid!=pid:raise HTTPException(403,'Projeto de exportação inválido.')
+    return {'ready':s.ready,'ended':s.ended,'accepted':s.count,'frames':s.frames,'job':store.job(jid)}

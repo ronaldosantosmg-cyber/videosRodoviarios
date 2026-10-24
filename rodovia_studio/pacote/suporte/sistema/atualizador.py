@@ -211,6 +211,28 @@ def _targets(pacote,raiz):
                 dest=raiz/'sistema'/'programa'/Path(*parts[1:]) if parts[0]=='sistema' else raiz/'sistema'/rel
                 yield f,dest,'suporte/'+rel.as_posix()
 
+def _known_development_residuals(raiz,old,new_targets):
+    """Só arquiva testes idênticos aos do ZIP aplicado anterior; desconhecidos ficam."""
+    raiz=Path(raiz);out=[];folder=raiz/'atualizacoes'/'aplicadas'
+    if not folder.exists():return out
+    for z in sorted(folder.glob('*.zip'),key=lambda f:f.stat().st_mtime,reverse=True):
+        try:
+            with zipfile.ZipFile(z) as archive:
+                names=[n for n in archive.namelist() if n=='manifest.json' or n.endswith('pacote/manifest.json')]
+                if len(names)!=1 or archive.getinfo(names[0]).file_size>2*1024*1024:continue
+                metadata=json.loads(archive.read(names[0]))
+                if metadata.get('version')!=old or not isinstance(metadata.get('files'),dict):continue
+                for relative,expected in metadata['files'].items():
+                    if not relative.startswith('suporte/sistema/tests/'):continue
+                    sub=Path(relative).relative_to('suporte/sistema')
+                    target=_safe_target(raiz,(Path('sistema/programa')/sub).as_posix())
+                    if target in new_targets or not target.is_file() or target.is_symlink():continue
+                    if not isinstance(expected,str) or _sha(target)!=expected:continue
+                    out.append((target,expected))
+                return out
+        except (OSError,ValueError,KeyError,zipfile.BadZipFile):continue
+    return out
+
 def _rel_target(raiz,target):
     """Caminho persistido no manifesto de rollback, sempre relativo à raiz."""
     return Path(target).resolve().relative_to(Path(raiz).resolve()).as_posix()
@@ -472,7 +494,11 @@ def _apply(pacote,raiz,say=print,check_running=True):
             b=backup/label;b.parent.mkdir(parents=True,exist_ok=True)
             shutil.copy2(L(target),L(b));entry['sha256']=_sha(b);saved+=1
         rollback_files.append(entry);plan.append((f,target))
-    if not plan:
+    residuals=_known_development_residuals(raiz,old,{target for _,target,_ in _targets(pacote,raiz)})
+    for target,expected in residuals:
+        label='residuos/'+target.relative_to(raiz).as_posix();b=backup/label;b.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(L(target),L(b))
+        rollback_files.append({'target':_rel_target(raiz,target),'had_previous':True,'backup':label,'sha256':expected,'archived_residual':True});saved+=1
+    if not plan and not residuals:
         say('Nenhum arquivo precisa ser substituído.')
         return {'version':new,'previous':old,'copied':0,'backed_up':0,'backup':None}
     backup.mkdir(parents=True,exist_ok=True)
@@ -487,6 +513,9 @@ def _apply(pacote,raiz,say=print,check_running=True):
                 shutil.copy2(L(f),L(tmp));os.replace(L(tmp),L(target))
             finally:
                 if tmp.exists():tmp.unlink()
+        for target,expected in residuals:
+            if target.exists() and _sha(target)==expected:target.unlink()
+        journal['archived_residuals']=len(residuals)
         journal['state']='applied';_write_manifest(manifest,journal)
     except Exception as exc:
         journal['state']='failed';_write_manifest(manifest,journal)
@@ -497,7 +526,7 @@ def _apply(pacote,raiz,say=print,check_running=True):
     for d in DATA_DIRS:(raiz/d).mkdir(exist_ok=True)
     msg=f'Atualização {new} aplicada: {len(plan)} arquivos novos/alterados, {saved} anteriores guardados em {backup.relative_to(raiz)}.'
     say(msg);log(raiz,msg)
-    return {'version':new,'previous':old,'copied':len(plan),'backed_up':saved,'layout_before':layout,'backup':str(backup),'old_exe_saved':old_exe}
+    return {'version':new,'previous':old,'copied':len(plan),'backed_up':saved,'layout_before':layout,'backup':str(backup),'old_exe_saved':old_exe,'archived_residuals':len(residuals)}
 
 
 def candidates(raiz):

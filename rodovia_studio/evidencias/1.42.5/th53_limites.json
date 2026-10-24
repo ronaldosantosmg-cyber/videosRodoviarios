@@ -1,0 +1,961 @@
+{
+  "source_sha256": "7936e09e195212a85a894dbc48f5ad337f0cbe4f3195225e6f8137297e3e4538",
+  "settings": "Mapeamento automático padrão; CRS não confirmado; projeto salvo original não fornecido.",
+  "runs": [
+    {
+      "limit_m": 50,
+      "automatic_pruned": 198,
+      "minimum_automatic_edge_m": 51.6060429348269,
+      "itineraries": 5,
+      "simulation": {
+        "model": "microssimulacao",
+        "vehicles": 21,
+        "rear_collisions": 0,
+        "min_gap_m": 31.63,
+        "max_waiting_at_entries": 0,
+        "rerouted": 0,
+        "blocks": 0,
+        "density": 1.0,
+        "lane_changes": 0,
+        "lane_change_blocked_rule": 0,
+        "lane_change_blocked_safety": 0,
+        "safety_interventions": 0,
+        "collision_free": true,
+        "capacity_vph_per_lane": 1900,
+        "motion_blocked_vehicles": 10,
+        "lane_change_blocked_geometry": 0,
+        "motion_profiles": {
+          "1:bus": {
+            "ok": false,
+            "reasons": [
+              "corpo_fora_da_pista"
+            ],
+            "message": "Trajetória recusada: corpo_fora_da_pista.",
+            "max_steering_deg": 3.673,
+            "vehicle": "bus",
+            "samples": 3812,
+            "critical_station_m": 337.458,
+            "front_xy": [
+              730119.119,
+              7828503.0895
+            ],
+            "rear_xy": [
+              730114.4579,
+              7828491.5989
+            ]
+          },
+          "1:pickup": {
+            "ok": true,
+            "reasons": [],
+            "message": "Trajetória cinemática válida.",
+            "max_steering_deg": 2.504,
+            "vehicle": "pickup",
+            "samples": 3812,
+            "critical_station_m": 1904.263,
+            "front_xy": [
+              731347.1753,
+              7829301.4658
+            ],
+            "rear_xy": [
+              731341.9038,
+              7829300.9163
+            ]
+          },
+          "0:car": {
+            "ok": true,
+            "reasons": [],
+            "message": "Trajetória cinemática válida.",
+            "max_steering_deg": 1.789,
+            "vehicle": "car",
+            "samples": 1681,
+            "critical_station_m": 163.496,
+            "front_xy": [
+              729465.6934,
+              7826910.3578
+            ],
+            "rear_xy": [
+              729461.3617,
+              7826909.1387
+            ]
+          },
+          "2:car": {
+            "ok": true,
+            "reasons": [],
+            "message": "Trajetória cinemática válida.",
+            "max_steering_deg": 0.622,
+            "vehicle": "car",
+            "samples": 1049,
+            "critical_station_m": 112.487,
+            "front_xy": [
+              731887.6687,
+              7829180.0788
+            ],
+            "rear_xy": [
+              731883.1944,
+              7829180.5587
+            ]
+          },
+          "1:car": {
+            "ok": true,
+            "reasons": [],
+            "message": "Trajetória cinemática válida.",
+            "max_steering_deg": 2.509,
+            "vehicle": "car",
+            "samples": 3812,
+            "critical_station_m": 1904.263,
+            "front_xy": [
+              731346.7775,
+              7829301.4237
+            ],
+            "rear_xy": [
+              731342.3016,
+              7829300.9584
+            ]
+          },
+          "2:truck": {
+            "ok": false,
+            "reasons": [
+              "corpo_fora_da_pista"
+            ],
+            "message": "Trajetória recusada: corpo_fora_da_pista.",
+            "max_steering_deg": 1.26,
+            "vehicle": "truck",
+            "samples": 1049,
+            "critical_station_m": 121.986,
+            "front_xy": [
+              731900.874,
+              7829179.0071
+            ],
+            "rear_xy": [
+              731888.9078,
+              7829179.9071
+            ]
+          },
+          "3:pickup": {
+            "ok": false,
+            "reasons": [
+              "corpo_fora_da_pista"
+            ],
+            "message": "Trajetória recusada: corpo_fora_da_pista.",
+            "max_steering_deg": 1.005,
+            "vehicle": "pickup",
+            "samples": 1560,
+            "critical_station_m": 102.49,
+            "front_xy": [
+              732468.8506,
+              7829239.3077
+            ],
+            "rear_xy": [
+              732474.1424,
+              7829239.6034
+            ]
+          },
+          "3:car": {
+            "ok": true,
+            "reasons": [],
+            "message": "Trajetória cinemática válida.",
+            "max_steering_deg": 0.871,
+            "vehicle": "car",
+            "samples": 1560,
+            "critical_station_m": 102.49,
+            "front_xy": [
+              732469.25,
+              7829239.3302
+            ],
+            "rear_xy": [
+              732473.743,
+              7829239.581
+            ]
+          },
+          "0:van": {
+            "ok": false,
+            "reasons": [
+              "corpo_fora_da_pista"
+            ],
+            "message": "Trajetória recusada: corpo_fora_da_pista.",
+            "max_steering_deg": 2.215,
+            "vehicle": "van",
+            "samples": 1681,
+            "critical_station_m": 164.496,
+            "front_xy": [
+              729467.0791,
+              7826910.7856
+            ],
+            "rear_xy": [
+              729461.8982,
+              7826909.2628
+            ]
+          },
+          "3:carreta": {
+            "ok": false,
+            "reasons": [
+              "corpo_fora_da_pista"
+            ],
+            "message": "Trajetória recusada: corpo_fora_da_pista.",
+            "max_steering_deg": 2.114,
+            "vehicle": "carreta",
+            "samples": 1560,
+            "critical_station_m": 101.99,
+            "front_xy": [
+              732462.7089,
+              7829238.9879
+            ],
+            "rear_xy": [
+              732481.2825,
+              7829239.9779
+            ]
+          },
+          "0:pickup": {
+            "ok": false,
+            "reasons": [
+              "corpo_fora_da_pista"
+            ],
+            "message": "Trajetória recusada: corpo_fora_da_pista.",
+            "max_steering_deg": 2.071,
+            "vehicle": "pickup",
+            "samples": 1681,
+            "critical_station_m": 163.996,
+            "front_xy": [
+              729466.5553,
+              7826910.6172
+            ],
+            "rear_xy": [
+              729461.4617,
+              7826909.1524
+            ]
+          },
+          "4:carreta": {
+            "ok": false,
+            "reasons": [
+              "corpo_fora_da_pista"
+            ],
+            "message": "Trajetória recusada: corpo_fora_da_pista.",
+            "max_steering_deg": 0.849,
+            "vehicle": "carreta",
+            "samples": 648,
+            "critical_station_m": 194.932,
+            "front_xy": [
+              731142.8035,
+              7829302.7049
+            ],
+            "rear_xy": [
+              731161.2881,
+              7829304.7733
+            ]
+          },
+          "4:moto": {
+            "ok": true,
+            "reasons": [],
+            "message": "Trajetória cinemática válida.",
+            "max_steering_deg": 0.187,
+            "vehicle": "moto",
+            "samples": 648,
+            "critical_station_m": 194.932,
+            "front_xy": [
+              731151.0023,
+              7829303.6223
+            ],
+            "rear_xy": [
+              731153.0893,
+              7829303.8559
+            ]
+          },
+          "2:bus": {
+            "ok": false,
+            "reasons": [
+              "corpo_fora_da_pista"
+            ],
+            "message": "Trajetória recusada: corpo_fora_da_pista.",
+            "max_steering_deg": 1.298,
+            "vehicle": "bus",
+            "samples": 1049,
+            "critical_station_m": 63.993,
+            "front_xy": [
+              731843.8131,
+              7829187.6852
+            ],
+            "rear_xy": [
+              731831.8445,
+              7829190.9276
+            ]
+          },
+          "4:car": {
+            "ok": true,
+            "reasons": [],
+            "message": "Trajetória cinemática válida.",
+            "max_steering_deg": 0.35,
+            "vehicle": "car",
+            "samples": 648,
+            "critical_station_m": 194.932,
+            "front_xy": [
+              731149.8098,
+              7829303.4888
+            ],
+            "rear_xy": [
+              731154.2819,
+              7829303.9894
+            ]
+          }
+        },
+        "max_queue_by_lane": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "current_queue_by_lane": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "queue_vehicle_seconds_by_lane": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "queue_discharged_by_lane": [
+          5,
+          8,
+          1,
+          5,
+          2
+        ]
+      }
+    },
+    {
+      "limit_m": 120,
+      "automatic_pruned": 202,
+      "minimum_automatic_edge_m": 120.6076105002052,
+      "itineraries": 5,
+      "simulation": {
+        "model": "microssimulacao",
+        "vehicles": 21,
+        "rear_collisions": 0,
+        "min_gap_m": 31.63,
+        "max_waiting_at_entries": 0,
+        "rerouted": 0,
+        "blocks": 0,
+        "density": 1.0,
+        "lane_changes": 0,
+        "lane_change_blocked_rule": 0,
+        "lane_change_blocked_safety": 0,
+        "safety_interventions": 0,
+        "collision_free": true,
+        "capacity_vph_per_lane": 1900,
+        "motion_blocked_vehicles": 10,
+        "lane_change_blocked_geometry": 0,
+        "motion_profiles": {
+          "1:bus": {
+            "ok": false,
+            "reasons": [
+              "corpo_fora_da_pista"
+            ],
+            "message": "Trajetória recusada: corpo_fora_da_pista.",
+            "max_steering_deg": 3.673,
+            "vehicle": "bus",
+            "samples": 3812,
+            "critical_station_m": 337.458,
+            "front_xy": [
+              730119.119,
+              7828503.0895
+            ],
+            "rear_xy": [
+              730114.4579,
+              7828491.5989
+            ]
+          },
+          "1:pickup": {
+            "ok": true,
+            "reasons": [],
+            "message": "Trajetória cinemática válida.",
+            "max_steering_deg": 2.504,
+            "vehicle": "pickup",
+            "samples": 3812,
+            "critical_station_m": 1904.263,
+            "front_xy": [
+              731347.1753,
+              7829301.4658
+            ],
+            "rear_xy": [
+              731341.9038,
+              7829300.9163
+            ]
+          },
+          "0:car": {
+            "ok": true,
+            "reasons": [],
+            "message": "Trajetória cinemática válida.",
+            "max_steering_deg": 1.789,
+            "vehicle": "car",
+            "samples": 1681,
+            "critical_station_m": 163.496,
+            "front_xy": [
+              729465.6934,
+              7826910.3578
+            ],
+            "rear_xy": [
+              729461.3617,
+              7826909.1387
+            ]
+          },
+          "2:car": {
+            "ok": true,
+            "reasons": [],
+            "message": "Trajetória cinemática válida.",
+            "max_steering_deg": 0.622,
+            "vehicle": "car",
+            "samples": 1049,
+            "critical_station_m": 112.487,
+            "front_xy": [
+              731887.6687,
+              7829180.0788
+            ],
+            "rear_xy": [
+              731883.1944,
+              7829180.5587
+            ]
+          },
+          "1:car": {
+            "ok": true,
+            "reasons": [],
+            "message": "Trajetória cinemática válida.",
+            "max_steering_deg": 2.509,
+            "vehicle": "car",
+            "samples": 3812,
+            "critical_station_m": 1904.263,
+            "front_xy": [
+              731346.7775,
+              7829301.4237
+            ],
+            "rear_xy": [
+              731342.3016,
+              7829300.9584
+            ]
+          },
+          "2:truck": {
+            "ok": false,
+            "reasons": [
+              "corpo_fora_da_pista"
+            ],
+            "message": "Trajetória recusada: corpo_fora_da_pista.",
+            "max_steering_deg": 1.26,
+            "vehicle": "truck",
+            "samples": 1049,
+            "critical_station_m": 121.986,
+            "front_xy": [
+              731900.874,
+              7829179.0071
+            ],
+            "rear_xy": [
+              731888.9078,
+              7829179.9071
+            ]
+          },
+          "3:pickup": {
+            "ok": false,
+            "reasons": [
+              "corpo_fora_da_pista"
+            ],
+            "message": "Trajetória recusada: corpo_fora_da_pista.",
+            "max_steering_deg": 1.004,
+            "vehicle": "pickup",
+            "samples": 1560,
+            "critical_station_m": 102.489,
+            "front_xy": [
+              732468.8347,
+              7829239.3066
+            ],
+            "rear_xy": [
+              732474.1264,
+              7829239.6028
+            ]
+          },
+          "3:car": {
+            "ok": true,
+            "reasons": [],
+            "message": "Trajetória cinemática válida.",
+            "max_steering_deg": 0.871,
+            "vehicle": "car",
+            "samples": 1560,
+            "critical_station_m": 102.489,
+            "front_xy": [
+              732469.234,
+              7829239.3291
+            ],
+            "rear_xy": [
+              732473.727,
+              7829239.5803
+            ]
+          },
+          "0:van": {
+            "ok": false,
+            "reasons": [
+              "corpo_fora_da_pista"
+            ],
+            "message": "Trajetória recusada: corpo_fora_da_pista.",
+            "max_steering_deg": 2.215,
+            "vehicle": "van",
+            "samples": 1681,
+            "critical_station_m": 164.496,
+            "front_xy": [
+              729467.0791,
+              7826910.7856
+            ],
+            "rear_xy": [
+              729461.8982,
+              7826909.2628
+            ]
+          },
+          "3:carreta": {
+            "ok": false,
+            "reasons": [
+              "corpo_fora_da_pista"
+            ],
+            "message": "Trajetória recusada: corpo_fora_da_pista.",
+            "max_steering_deg": 2.115,
+            "vehicle": "carreta",
+            "samples": 1560,
+            "critical_station_m": 101.989,
+            "front_xy": [
+              732462.6929,
+              7829238.9864
+            ],
+            "rear_xy": [
+              732481.2665,
+              7829239.9777
+            ]
+          },
+          "0:pickup": {
+            "ok": false,
+            "reasons": [
+              "corpo_fora_da_pista"
+            ],
+            "message": "Trajetória recusada: corpo_fora_da_pista.",
+            "max_steering_deg": 2.071,
+            "vehicle": "pickup",
+            "samples": 1681,
+            "critical_station_m": 163.996,
+            "front_xy": [
+              729466.5553,
+              7826910.6172
+            ],
+            "rear_xy": [
+              729461.4617,
+              7826909.1524
+            ]
+          },
+          "4:carreta": {
+            "ok": false,
+            "reasons": [
+              "corpo_fora_da_pista"
+            ],
+            "message": "Trajetória recusada: corpo_fora_da_pista.",
+            "max_steering_deg": 0.85,
+            "vehicle": "carreta",
+            "samples": 648,
+            "critical_station_m": 194.936,
+            "front_xy": [
+              731142.7813,
+              7829302.7028
+            ],
+            "rear_xy": [
+              731161.2661,
+              7829304.7704
+            ]
+          },
+          "4:moto": {
+            "ok": true,
+            "reasons": [],
+            "message": "Trajetória cinemática válida.",
+            "max_steering_deg": 0.187,
+            "vehicle": "moto",
+            "samples": 648,
+            "critical_station_m": 194.936,
+            "front_xy": [
+              731150.9802,
+              7829303.6198
+            ],
+            "rear_xy": [
+              731153.0672,
+              7829303.8533
+            ]
+          },
+          "2:bus": {
+            "ok": false,
+            "reasons": [
+              "corpo_fora_da_pista"
+            ],
+            "message": "Trajetória recusada: corpo_fora_da_pista.",
+            "max_steering_deg": 1.298,
+            "vehicle": "bus",
+            "samples": 1049,
+            "critical_station_m": 63.993,
+            "front_xy": [
+              731843.8131,
+              7829187.6852
+            ],
+            "rear_xy": [
+              731831.8445,
+              7829190.9276
+            ]
+          },
+          "4:car": {
+            "ok": true,
+            "reasons": [],
+            "message": "Trajetória cinemática válida.",
+            "max_steering_deg": 0.35,
+            "vehicle": "car",
+            "samples": 648,
+            "critical_station_m": 194.936,
+            "front_xy": [
+              731149.7877,
+              7829303.4864
+            ],
+            "rear_xy": [
+              731154.2598,
+              7829303.9868
+            ]
+          }
+        },
+        "max_queue_by_lane": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "current_queue_by_lane": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "queue_vehicle_seconds_by_lane": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "queue_discharged_by_lane": [
+          5,
+          8,
+          1,
+          5,
+          2
+        ]
+      }
+    },
+    {
+      "limit_m": 200,
+      "automatic_pruned": 205,
+      "minimum_automatic_edge_m": 325.1787959288387,
+      "itineraries": 4,
+      "simulation": {
+        "model": "microssimulacao",
+        "vehicles": 9,
+        "rear_collisions": 0,
+        "min_gap_m": 227.03,
+        "max_waiting_at_entries": 1,
+        "rerouted": 0,
+        "blocks": 0,
+        "density": 1.0,
+        "lane_changes": 0,
+        "lane_change_blocked_rule": 0,
+        "lane_change_blocked_safety": 0,
+        "safety_interventions": 0,
+        "collision_free": true,
+        "capacity_vph_per_lane": 1900,
+        "motion_blocked_vehicles": 12,
+        "lane_change_blocked_geometry": 0,
+        "motion_profiles": {
+          "1:bus": {
+            "ok": false,
+            "reasons": [
+              "corpo_fora_da_pista"
+            ],
+            "message": "Trajetória recusada: corpo_fora_da_pista.",
+            "max_steering_deg": 3.673,
+            "vehicle": "bus",
+            "samples": 3812,
+            "critical_station_m": 337.458,
+            "front_xy": [
+              730119.119,
+              7828503.0895
+            ],
+            "rear_xy": [
+              730114.4579,
+              7828491.5989
+            ]
+          },
+          "0:moto": {
+            "ok": true,
+            "reasons": [],
+            "message": "Trajetória cinemática válida.",
+            "max_steering_deg": 0.957,
+            "vehicle": "moto",
+            "samples": 1681,
+            "critical_station_m": 163.496,
+            "front_xy": [
+              729464.5383,
+              7826910.0326
+            ],
+            "rear_xy": [
+              729462.5168,
+              7826909.4639
+            ]
+          },
+          "0:car": {
+            "ok": true,
+            "reasons": [],
+            "message": "Trajetória cinemática válida.",
+            "max_steering_deg": 1.789,
+            "vehicle": "car",
+            "samples": 1681,
+            "critical_station_m": 163.496,
+            "front_xy": [
+              729465.6934,
+              7826910.3578
+            ],
+            "rear_xy": [
+              729461.3617,
+              7826909.1387
+            ]
+          },
+          "2:moto": {
+            "ok": true,
+            "reasons": [],
+            "message": "Trajetória cinemática válida.",
+            "max_steering_deg": 0.33,
+            "vehicle": "moto",
+            "samples": 1049,
+            "critical_station_m": 112.487,
+            "front_xy": [
+              731886.4756,
+              7829180.2068
+            ],
+            "rear_xy": [
+              731884.3875,
+              7829180.4308
+            ]
+          },
+          "0:truck": {
+            "ok": false,
+            "reasons": [
+              "corpo_fora_da_pista"
+            ],
+            "message": "Trajetória recusada: corpo_fora_da_pista.",
+            "max_steering_deg": 3.656,
+            "vehicle": "truck",
+            "samples": 1681,
+            "critical_station_m": 163.996,
+            "front_xy": [
+              729469.7745,
+              7826911.5442
+            ],
+            "rear_xy": [
+              729458.2426,
+              7826908.2253
+            ]
+          },
+          "3:carreta": {
+            "ok": false,
+            "reasons": [
+              "corpo_fora_da_pista"
+            ],
+            "message": "Trajetória recusada: corpo_fora_da_pista.",
+            "max_steering_deg": 2.113,
+            "vehicle": "carreta",
+            "samples": 1560,
+            "critical_station_m": 101.983,
+            "front_xy": [
+              732462.804,
+              7829238.997
+            ],
+            "rear_xy": [
+              732481.378,
+              7829239.9788
+            ]
+          },
+          "2:truck": {
+            "ok": false,
+            "reasons": [
+              "corpo_fora_da_pista"
+            ],
+            "message": "Trajetória recusada: corpo_fora_da_pista.",
+            "max_steering_deg": 1.26,
+            "vehicle": "truck",
+            "samples": 1049,
+            "critical_station_m": 121.986,
+            "front_xy": [
+              731900.874,
+              7829179.0071
+            ],
+            "rear_xy": [
+              731888.9078,
+              7829179.9071
+            ]
+          },
+          "0:carreta": {
+            "ok": false,
+            "reasons": [
+              "corpo_fora_da_pista"
+            ],
+            "message": "Trajetória recusada: corpo_fora_da_pista.",
+            "max_steering_deg": 4.484,
+            "vehicle": "carreta",
+            "samples": 1681,
+            "critical_station_m": 163.996,
+            "front_xy": [
+              729472.9454,
+              7826912.4582
+            ],
+            "rear_xy": [
+              729455.0716,
+              7826907.3114
+            ]
+          },
+          "3:car": {
+            "ok": true,
+            "reasons": [],
+            "message": "Trajetória cinemática válida.",
+            "max_steering_deg": 0.889,
+            "vehicle": "car",
+            "samples": 1560,
+            "critical_station_m": 102.483,
+            "front_xy": [
+              732469.3452,
+              7829239.3368
+            ],
+            "rear_xy": [
+              732473.8384,
+              7829239.5851
+            ]
+          },
+          "3:bus": {
+            "ok": false,
+            "reasons": [
+              "corpo_fora_da_pista"
+            ],
+            "message": "Trajetória recusada: corpo_fora_da_pista.",
+            "max_steering_deg": 1.798,
+            "vehicle": "bus",
+            "samples": 1560,
+            "critical_station_m": 102.483,
+            "front_xy": [
+              732465.4012,
+              7829239.119
+            ],
+            "rear_xy": [
+              732477.7824,
+              7829239.8028
+            ]
+          },
+          "2:car": {
+            "ok": true,
+            "reasons": [],
+            "message": "Trajetória cinemática válida.",
+            "max_steering_deg": 0.622,
+            "vehicle": "car",
+            "samples": 1049,
+            "critical_station_m": 112.487,
+            "front_xy": [
+              731887.6687,
+              7829180.0788
+            ],
+            "rear_xy": [
+              731883.1944,
+              7829180.5587
+            ]
+          },
+          "0:van": {
+            "ok": false,
+            "reasons": [
+              "corpo_fora_da_pista"
+            ],
+            "message": "Trajetória recusada: corpo_fora_da_pista.",
+            "max_steering_deg": 2.215,
+            "vehicle": "van",
+            "samples": 1681,
+            "critical_station_m": 164.496,
+            "front_xy": [
+              729467.0791,
+              7826910.7856
+            ],
+            "rear_xy": [
+              729461.8982,
+              7826909.2628
+            ]
+          },
+          "1:truck": {
+            "ok": false,
+            "reasons": [
+              "corpo_fora_da_pista"
+            ],
+            "message": "Trajetória recusada: corpo_fora_da_pista.",
+            "max_steering_deg": 3.588,
+            "vehicle": "truck",
+            "samples": 3812,
+            "critical_station_m": 337.958,
+            "front_xy": [
+              730119.2615,
+              7828503.3552
+            ],
+            "rear_xy": [
+              730114.6932,
+              7828492.2588
+            ]
+          },
+          "1:car": {
+            "ok": true,
+            "reasons": [],
+            "message": "Trajetória cinemática válida.",
+            "max_steering_deg": 2.509,
+            "vehicle": "car",
+            "samples": 3812,
+            "critical_station_m": 1904.263,
+            "front_xy": [
+              731346.7775,
+              7829301.4237
+            ],
+            "rear_xy": [
+              731342.3016,
+              7829300.9584
+            ]
+          }
+        },
+        "max_queue_by_lane": [
+          1,
+          0,
+          0,
+          0
+        ],
+        "current_queue_by_lane": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "queue_vehicle_seconds_by_lane": [
+          1.4,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "queue_discharged_by_lane": [
+          4,
+          1,
+          2,
+          2
+        ]
+      }
+    }
+  ],
+  "source_preserved": true
+}

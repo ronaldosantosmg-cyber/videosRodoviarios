@@ -134,6 +134,7 @@ class TrafficNetwork:
         self.oae_dirs=list(oae_dirs);self.dxf_edges=[np.asarray(p,float) for p in edge_lines];self.s=settings;self.axis=axis;self.ds=ds;self.bridges=unary_union(bridges).buffer(1) if bridges else Polygon()
         # Cruzamentos sem conexão marcados pelo usuário: nenhum giro/troca de via dentro deles.
         self.no_connect=zones_geometry(getattr(settings,'no_connection_zones',[]))
+        self.min_route=float(getattr(settings,'min_route_segment_m',50) or 0);self.auto_pruned=[];self.pruned_contacts=collections.defaultdict(list);self.original_terminals={}
         self.raw_info=[];self.rejected_paths=[];self.rejected_connectors=collections.Counter();self.rejected_edge_ids=set();self.rejected_nodes=set()
         self.allowed=unary_union(roads).difference(unary_union(obstacles).buffer(.15)).buffer(-.12) if roads else Polygon()
         self.paved=self.allowed  # superfície para as linhas de bordo (sem as exclusões de limpeza)
@@ -179,13 +180,15 @@ class TrafficNetwork:
             from .routes import raw_paths
             raw.extend(raw_paths(settings))
         for i,r in enumerate(raw):r.setdefault('origin',i)
+        raw=self.prune_automatic(raw,'original')
         # 1.39: comprimento de cada trecho original (antes dos cortes nos encontros) para ignorar os curtos nas rotas.
+        self.original_terminals={r['origin']:np.asarray(r['points'],float)[[0,-1]].copy() for r in raw}
         self.origin_info={}
         for r in raw:
             o=r['origin'];L=float(LineString(r['points']).length) if len(r['points'])>1 else 0.
             keep=bool(r.get('manual') or r.get('fixed') or r.get('kind')=='main')
             a=self.origin_info.get(o,(0.,False));self.origin_info[o]=(a[0]+L,a[1] or keep)
-        raw=self.split_contacts(raw)
+        raw=self.prune_automatic(self.split_contacts(raw),'contato')
         # Setas e cliques do usuário são resolvidos uma vez, sobre os trechos finais.
         sampled=[sample(r['points'])[0] for r in raw]
         marks=assign(sampled,getattr(settings,'flow_overrides',[]),getattr(settings,'direction_marks',[]))
@@ -200,6 +203,8 @@ class TrafficNetwork:
                 elif 40<hole.area<3000 and hole.length<200:self.splitters.append(hole)
         self.nodes=[]
         for i,r in enumerate(raw):self.add_raw(r,i,axes)
+        # Trechos longos inviáveis continuam vermelhos para correção; só minigeometrias saem do estudo.
+        for r in self.raw_info:r['automatic_excluded']=not (r.get('manual') or r.get('route_fixed')) and float(LineString(r['points']).length)<max(20.,self.min_route)
         self.connections={i:[] for i in range(len(self.edges))};self.connectors={}
         for i,a in enumerate(self.edges):
             if a['disabled']:continue
@@ -218,7 +223,26 @@ class TrafficNetwork:
             self.warnings.append(f'Nenhuma rota segura permaneceu após excluir trechos menores que {self.min_route:g} m; tráfego não foi habilitado nesses trechos.')
         if self.rejected_connectors:self.warnings.append(f'{sum(self.rejected_connectors.values())} tentativa(s) de ligação recusada(s) por geometria ou sentido incompatível. Consulte o diagnóstico de circulação.')
         self.finalize_signage()
-        self.report={'directed_edges':len(self.edges),'connections':sum(map(len,self.connections.values())),'itineraries':len(self.paths),'coverage':dict(collections.Counter(e['kind'] for e in self.edges)),'used_kinds':dict(collections.Counter(k for p in self.paths for k in p['kinds'])),'warnings':self.warnings,'signage':getattr(self,'report_signage',{}),'minimum_flow_length_m':self.min_route,'short_segments_ignored':len(self.short_ignored),'motion_rejected_paths':len(self.rejected_paths),'motion_rejected_connections':dict(self.rejected_connectors),'motion_scope':'Geometria e restrições disponíveis no projeto; sem certificação CONTRAN.'}
+        self.report={'directed_edges':len(self.edges),'connections':sum(map(len,self.connections.values())),'itineraries':len(self.paths),'coverage':dict(collections.Counter(e['kind'] for e in self.edges)),'used_kinds':dict(collections.Counter(k for p in self.paths for k in p['kinds'])),'warnings':self.warnings,'signage':getattr(self,'report_signage',{}),'automatic_segments_pruned':len(self.auto_pruned),'minimum_flow_length_m':self.min_route,'short_segments_ignored':len(self.short_ignored),'motion_rejected_paths':len(self.rejected_paths),'motion_rejected_connections':dict(self.rejected_connectors),'motion_scope':'Geometria e restrições disponíveis no projeto; sem certificação CONTRAN.'}
+    def prune_automatic(self,raw,stage):
+        """Candidatos curtos não chegam aos nós, conectores ou ao desenho de fluxos.
+
+        A fonte DXF e rotas manuais são preservadas. Várias pontas curtas num
+        mesmo nó não podem recriar um leque de micro-rotas nem novas entradas.
+        """
+        minimum=max(20.,self.min_route);kept=[]
+        for r in raw:
+            if r.get('manual') or r.get('fixed'):
+                kept.append(r);continue
+            p=np.asarray(r.get('points',[]),float)
+            valid=p.ndim==2 and p.shape[1]==2 and len(p)>=2 and np.isfinite(p).all()
+            length=float(np.sum(np.linalg.norm(np.diff(p,axis=0),axis=1))) if valid else 0.
+            if not valid or length<minimum:
+                if stage=='contato' and valid:self.pruned_contacts[r.get('origin')].extend([p[0].copy(),p[-1].copy()])
+                self.auto_pruned.append({'source':r.get('source','automático'),'length_m':round(length,3),'stage':stage,'reason':'mini_rota_automatica'})
+            else:kept.append(r)
+        if len(kept)<len(raw):self.warnings.append(f'{len(raw)-len(kept)} mini-rota(s) automática(s) excluída(s) antes da rede ({stage}; limite {minimum:g} m). Crie a ligação manualmente se necessária.')
+        return kept
     def axis_offset(self,p):
         idx=self.tree.query(p)[1];t=self.axis_t[idx];return float(np.dot(np.asarray(p)-self.dense[idx],np.array([t[1],-t[0]])))
     def inside(self,q):return contains_xy(self.paved,q[:,0],q[:,1])
@@ -333,6 +357,9 @@ class TrafficNetwork:
                 if b-a<8:continue
                 segment=lane[a:b];tt=tangent(segment);d=np.r_[0,np.cumsum(np.linalg.norm(np.diff(segment,axis=0),axis=1))]
                 if d[-1]<4:continue
+                if not r.get('manual') and not r.get('fixed') and d[-1]<max(20.,self.min_route):
+                    self.pruned_contacts[r.get('origin')].extend([segment[0].copy(),segment[-1].copy()])
+                    self.auto_pruned.append({'source':r['source'],'length_m':float(d[-1]),'stage':'superficie','reason':'mini_rota_automatica'});continue
                 startpt=q[0] if np.linalg.norm(q[a]-q[0])<10 else q[a]
                 endpt=q[-1] if np.linalg.norm(q[b-1]-q[-1])<10 else q[b-1]
                 start=self.node(startpt,r['level']);end=self.node(endpt,r['level'])
@@ -615,6 +642,11 @@ class TrafficNetwork:
             L,keep=self.origin_info.get(e.get('origin'),(e['length'],False))
             if L<min_len:out.add(i)
         return out
+    def portal_allowed(self,edge,start):
+        p=edge['p'][0 if start else -1];origin=edge.get('origin')
+        ends=getattr(self,'original_terminals',{}).get(origin,[])
+        if any(np.linalg.norm(p-q)<4 for q in ends):return True
+        return not any(np.linalg.norm(p-q)<4 for q in getattr(self,'pruned_contacts',{}).get(origin,[]))
     def make_itineraries(self,min_len=0.):
         self.paths=[]
         short=self.short_edges(min_len);self.short_ignored=short
@@ -657,7 +689,7 @@ class TrafficNetwork:
         for a_,bs_ in self.connections.items():
             for b_ in bs_:
                 if not self.edges[a_]['disabled']:rfull[b_].append(a_)
-        entries={i for i in live if not reverse[i] and not rfull[i] and self.edges[i]['start'] not in self.rejected_nodes};exits={i for i in live if not conn[i] and not self.connections[i] and self.edges[i]['end'] not in self.rejected_nodes}
+        entries={i for i in live if not reverse[i] and not rfull[i] and self.edges[i]['start'] not in self.rejected_nodes and self.portal_allowed(self.edges[i],True)};exits={i for i in live if not conn[i] and not self.connections[i] and self.edges[i]['end'] not in self.rejected_nodes and self.portal_allowed(self.edges[i],False)}
         main_entries={i for i in entries if self.edges[i]['kind']=='main'};main_exits={i for i in exits if self.edges[i]['kind']=='main'}
         entries=main_entries or entries;exits=main_exits or exits
         # 1.18: a ponta de um acesso desenhado pelo operador também é origem/destino dos veículos.

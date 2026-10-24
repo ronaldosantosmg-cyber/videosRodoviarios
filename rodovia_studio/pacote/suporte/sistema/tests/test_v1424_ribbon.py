@@ -42,7 +42,7 @@ def test_ribbon_above_drawing(page,width):
     page.set_viewport_size({'width':width,'height':900})
     page.get_by_role('tab',name='Áreas e sinalização',exact=True).click();page.wait_for_timeout(150)
     top=rect(page,'#rsCommandRail');canvas=rect(page,'.canvasWrap');footer=rect(page,'#rsStudyFooter')
-    ribbon=rect(page,'#rsToolRibbon');quick=rect(page,'#rsQuickTools');menu=rect(page,'#menuBar')
+    ribbon=rect(page,'#rsToolRibbon');quick=rect(page,'#rsTechnicalOptions');menu=rect(page,'#menuBar')
     assert menu['y']+menu['height']<=ribbon['y'] and ribbon['y']-menu['y']-menu['height']<=10
     assert ribbon['y']+ribbon['height']<=quick['y']+1
     assert overlap(top,canvas)<1 and overlap(footer,canvas)<1 and canvas['height']>300

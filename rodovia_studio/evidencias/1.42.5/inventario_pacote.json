@@ -1,0 +1,13 @@
+{
+  "version": "1.42.5",
+  "zip_bytes": 6456536,
+  "zip_sha256": "24b078a72b8ab04d726fc7db36c19fa7c66e8b337c072c4c6db55566064b53ab",
+  "files": 271,
+  "installed_test_files": 0,
+  "previous_test_files": 89,
+  "previous_test_bytes": 619843,
+  "protected_data_embedded": false,
+  "local_webgl_licenses": true,
+  "root_update_notes": [],
+  "support_documentation_preserved": true
+}

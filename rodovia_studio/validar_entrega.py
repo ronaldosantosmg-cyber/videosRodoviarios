@@ -18,6 +18,8 @@ PACKAGE=ROOT/'pacote'
 SYSTEM=PACKAGE/'suporte/sistema'
 EVIDENCE=ROOT/'evidencias'/json.loads((PACKAGE/'manifest.json').read_text())['version']
 TESTS=[
+ 'tests/test_v1425_scene3d.py','tests/test_v1425_fan_pruning.py',
+ 'tests/test_v1425_archive.py','tests/test_v1425_capture3d.py','tests/test_v1425_live_3d.py',
  'tests/test_v1424_resilience.py','tests/test_v1424_editing.py',
  'tests/test_v132.py::test_cleanup_categories','tests/test_v126.py::test_api_images_lines_sessions_and_logs',
  'tests/test_v1424_flow_limit.py','tests/test_v1424_flow_limit_ui.py',
@@ -80,7 +82,7 @@ def main():
         run([sys.executable,'-m','compileall','-q','app','tests','atualizador.py','run.py'],env,log)
         node=shutil.which('node')
         if not node:raise RuntimeError('Node é necessário para validar JavaScript.')
-        for f in sorted((SYSTEM/'app/js').glob('*.js')):run([node,'--check',f],env,log)
+        for f in sorted((SYSTEM/'app/js').glob('*.js'))+sorted((SYSTEM/'app/webgl').glob('*.mjs'))+sorted((SYSTEM/'app/vendor/three').rglob('*.js')):run([node,'--check',f],env,log)
         run([sys.executable,'-m','pytest','-q','-p','no:cacheprovider',*TESTS,f'--junitxml={report}'],env,log)
         suites=ET.parse(report).getroot().findall('.//testsuite')
         counts={k:sum(int(s.attrib.get(k,0)) for s in suites) for k in ['tests','failures','errors','skipped']}
@@ -96,9 +98,14 @@ def main():
     output=dest/f'RodoviaStudio_{metadata["version"].replace(".","_")}_atualizacao.zip'
     if output.exists():raise RuntimeError('O pacote final já existe; preserve-o antes de gerar outra entrega.')
     with tempfile.TemporaryDirectory(prefix='rs_package_') as tmp:
-        stage=Path(tmp)/'pacote';shutil.copytree(PACKAGE,stage,ignore=shutil.ignore_patterns('__pycache__','.pytest_cache','*.pyc'))
+        stage=Path(tmp)/'pacote';shutil.copytree(PACKAGE,stage,ignore=shutil.ignore_patterns('__pycache__','.pytest_cache','*.pyc','tests'))
+        docs=stage/'suporte/documentacao';docs.mkdir(parents=True,exist_ok=True)
+        for f in stage.glob('*.md'):
+            if metadata['version'].replace('.','_') in f.name:f.replace(docs/f.name)
+            elif f.name.startswith(('ATUALIZACAO_','AUDITORIA_')):f.unlink()
+            else:f.replace(docs/f.name)
         evidence=stage/('suporte/documentacao/validacao_'+metadata['version'].replace('.','_'));evidence.mkdir(parents=True)
-        for name in ['1424_06_zoom_dpi_1.png','1424_06_zoom_dpi_2.png','1424_05_limite_fluxos.png','1424_04_barra_completa_139.png','1424_01_comandos_139_visiveis.png','1424_02_comando_e_opcoes.png','1424_03_faixa_1024.png','1424_03_faixa_1366.png','1424_03_faixa_1920.png','1423_01_ferramentas_139_restauradas.png','1423_02_pan_zoom_redesenhar.png','1423_03_modificar.png','1423_04_inserir_controle_desfazer.png','1423_05_controle_calibracao.png','1423_video_quadro_0.png','1423_video_quadro_36.png','1423_video_quadro_71.png','1423_video_metadados.json','pytest-resultados.xml','resultado.json','validacao.log','142_03_modelar_cascata.png','1422_01_acesso_rapido_rodape.png','1422_03_fluxos_sobre_superficies.png','1422_05_selecao_fluxo_prioritaria.png','142_11_motor_editor_real.png','142_12_motor_editor_fluxo_problema.png','splash_142_1_a.png','splash_142_1_b.png']:
+        for name in ['1425_01_webgl_trafego_real.png','1425_02_captura_e_diagnostico.png','1425_03_contexto_recuperado.png','1425_04_novo_projeto_identificado.png','1425_05_video_3d_conferido.png','1424_06_zoom_dpi_1.png','1424_06_zoom_dpi_2.png','1424_05_limite_fluxos.png','1424_04_barra_completa_139.png','1424_01_comandos_139_visiveis.png','1424_02_comando_e_opcoes.png','1424_03_faixa_1024.png','1424_03_faixa_1366.png','1424_03_faixa_1920.png','1423_01_ferramentas_139_restauradas.png','1423_02_pan_zoom_redesenhar.png','1423_03_modificar.png','1423_04_inserir_controle_desfazer.png','1423_05_controle_calibracao.png','1423_video_quadro_0.png','1423_video_quadro_36.png','1423_video_quadro_71.png','1423_video_metadados.json','pytest-resultados.xml','resultado.json','validacao.log','142_03_modelar_cascata.png','1422_01_acesso_rapido_rodape.png','1422_03_fluxos_sobre_superficies.png','1422_05_selecao_fluxo_prioritaria.png','142_11_motor_editor_real.png','142_12_motor_editor_fluxo_problema.png','splash_142_1_a.png','splash_142_1_b.png']:
             shutil.copy2(EVIDENCE/name,evidence/name)
         manifest=json.loads((stage/'manifest.json').read_text())
         manifest['files']={f.relative_to(stage).as_posix():hashlib.sha256(f.read_bytes()).hexdigest() for f in sorted(stage.rglob('*')) if f.is_file() and f!=stage/'manifest.json'}

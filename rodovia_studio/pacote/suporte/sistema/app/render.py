@@ -500,11 +500,13 @@ class Scene:
         diagnostics=flow_diagnostics(self.network)
         segments=[]
         for i,r in enumerate(self.network.raw_info):
+            if r.get('automatic_excluded'):continue
             p=r['points'];stride=max(1,len(p)//400)
             q=p[::stride] if len(p)>2 else p
             if len(q)<2 or not np.array_equal(q[-1],p[-1]):q=np.vstack([q,p[-1:]])
             segments.append({**diagnostics[i],'route':r.get('route'),'id':i,'base':r['base'],'kind':r['kind'],'forward':r['forward'],'both':r['both'],'disabled':r['disabled'],'reversed':r['reversed'],'manual':r['manual'],'source':r['source'],'points':pts(q),'mid':pts(p[len(p)//2][None])[0],'speed_kmh':r.get('speed_kmh'),'length_m':round(float(np.sum(np.linalg.norm(np.diff(p,axis=0),axis=1))),1)})
-        return {'crs':self.s.crs,'axis':pts(self.axis,step) if step==1 else pts(np.vstack([self.axis[::step],self.axis[-1:]])),'axis_length_m':self.length,
+        from .scene3d import revision
+        return {'engine_revision':revision(self.directory,self.s),'crs':self.s.crs,'axis':pts(self.axis,step) if step==1 else pts(np.vstack([self.axis[::step],self.axis[-1:]])),'axis_length_m':self.length,
                 'stationing':{**st.info(),'mode':self.s.chainage.mode},
                 'alignment':self.report.get('alignment'),'segments':segments,
                 'pois':[{'id':p.get('id'),'title':p.get('title'),'kind':p.get('kind'),'x':p['x'],'y':p['y'],'km_m':p.get('km_m'),'km_auto_m':p.get('km_auto_m'),'km_mode':p.get('km_mode','auto'),'anchor':p.get('anchor'),'source':p.get('source','')} for p in self.pois],

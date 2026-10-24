@@ -1,0 +1,14 @@
+{
+  "version": "1.42.5",
+  "source_sha256": "446a2f02e37ea657fd31788652b934ec4da8f2aa26f8e410f751abc436c5f9bd",
+  "pytest": {
+    "tests": 239,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "splash": "Mono/Xvfb; versão, fabricante e animação",
+  "launcher": "C# compilado com e sem WEBVIEW2",
+  "platform": "Linux, Python 3.12.14",
+  "windows_native_executed": false
+}

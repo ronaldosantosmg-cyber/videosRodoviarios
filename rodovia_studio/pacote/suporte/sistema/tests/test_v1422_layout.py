@@ -5,7 +5,7 @@ from visual_harness import rect,overlap,screenshot
 
 
 def test_information_is_below_canvas_and_quick_buttons_below_menu(page):
-    menu=rect(page,'#menuBar');quick=rect(page,'#rsQuickTools');canvas=rect(page,'.canvasWrap')
+    menu=rect(page,'#menuBar');quick=rect(page,'#rsToolRibbon');canvas=rect(page,'.canvasWrap')
     footer=rect(page,'#rsStudyFooter');legend=rect(page,'#rsFlowLegend')
     assert menu['y']+menu['height']<=quick['y']+1
     assert quick['y']+quick['height']<=canvas['y']+1
@@ -14,24 +14,25 @@ def test_information_is_below_canvas_and_quick_buttons_below_menu(page):
     assert legend['y']+legend['height']<=page.viewport_size['height']-20
     assert page.locator('#rsStudyFooter .dwCursor').count()==1
     assert page.locator('#rsStudyFooter #rsActiveTool').count()==1
-    assert page.locator('#rsQuickTools #undo,#rsQuickTools #redo').count()==2
+    assert page.locator('#rsQuickTools').count()==0
+    assert page.locator('#rsCommandBindings #undo,#rsCommandBindings #redo').count()==2
     screenshot(page,'1422_01_acesso_rapido_rodape')
 
 
 def test_quick_actions_execute_and_properties_toggle(page):
-    page.locator('[data-rs-quick="route"]').click()
+    page.locator('#rsToolPanel0 [data-rs-tool="route"]').click()
     assert page.evaluate('tool')=='route'
-    page.locator('[data-rs-quick="select"]').click()
+    page.locator('#rsToolPanel0 [data-rs-tool="pan"]').click()
     assert page.evaluate('tool')=='pan'
-    page.locator('[data-rs-quick="properties"]').click()
+    page.locator('[data-pshub="props"]').click()
     assert not page.evaluate('dockState.recolhida')
-    page.locator('[data-rs-quick="properties"]').click()
+    page.locator('[data-pshub="props"]').click()
     page.wait_for_timeout(200)
     assert page.evaluate('dockState.recolhida')
-    page.locator('[data-rs-quick="flows"]').click()
-    assert page.locator('[data-rs-quick="flows"]').get_attribute('aria-pressed')=='true'
-    page.locator('[data-rs-quick="flows"]').click()
-    assert page.locator('[data-rs-quick="flows"]').get_attribute('aria-pressed')=='false'
+    page.locator('#rsToolPanel0 [data-rs-command="EDITARFLUXOS"]').click()
+    assert page.locator('#rsToolPanel0 [data-rs-command="EDITARFLUXOS"]').get_attribute('aria-pressed')=='true'
+    page.locator('#rsToolPanel0 [data-rs-command="EDITARFLUXOS"]').click()
+    assert page.locator('#rsToolPanel0 [data-rs-command="EDITARFLUXOS"]').get_attribute('aria-pressed')=='false'
     screenshot(page,'1422_02_botoes_funcionais')
 
 
@@ -48,7 +49,7 @@ def seed(page):
 
 def test_all_flows_are_drawn_above_surfaces_with_contrast(page):
     seed(page)
-    page.locator('[data-rs-quick="flows"]').click()
+    page.locator('#rsToolPanel0 [data-rs-command="EDITARFLUXOS"]').click()
     colors=page.evaluate("""()=>{
       const original=ctx.stroke;const strokes=[];ctx.stroke=function(...a){strokes.push(this.strokeStyle);return original.apply(this,a)};
       try{draw()}finally{ctx.stroke=original}
@@ -68,7 +69,7 @@ def test_route_object_points_are_visible_in_foreground(page):
 
 def test_flow_click_has_priority_over_surface(page):
     seed(page)
-    page.locator('[data-rs-quick="flows"]').click()
+    page.locator('#rsToolPanel0 [data-rs-command="EDITARFLUXOS"]').click()
     point=page.evaluate("()=>{const [x,y]=W2C({x:0,y:0});const r=canvas.getBoundingClientRect();return {x:r.left+x*r.width/canvas.width,y:r.top+y*r.height/canvas.height}}")
     page.mouse.click(point['x'],point['y']);page.wait_for_timeout(150)
     assert page.evaluate('selSeg?.id')==0
@@ -84,6 +85,7 @@ def test_responsive_bars_keep_canvas_clear(page,width):
     assert overlap(c,footer)<1 and overlap(c,top)<1
     assert c['height']>300
     legend=rect(page,'#rsFlowLegend');assert legend['y']+legend['height']<=900-20
-    assert page.locator('[data-rs-quick=render]').is_visible()
+    assert page.locator('#rsQuickTools').count()==0
+    assert page.get_by_role('menuitem',name='Vídeo',exact=True).is_visible()
     assert page.locator('#rsStudyFooter #dwCommandDrawer').count()==1
     screenshot(page,f'1422_06_layout_{width}')

@@ -1,0 +1,2 @@
+// Caches antigos não são aceitos como resultado de um motor novo.
+(()=>{'use strict';const attempted=new Set();let timer=null;const previous=load;load=async function(id,...args){const r=await previous(id,...args);if(pid===id&&analysis&&!editor&&!task&&!attempted.has(id)){attempted.add(id);clearTimeout(timer);timer=setTimeout(guard(async()=>{if(pid!==id||task)return;msg('Atualizando automaticamente os fluxos para o motor atual…');await start('analyze')}),150)}return r};})();

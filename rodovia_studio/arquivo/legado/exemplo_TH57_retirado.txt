@@ -1,0 +1,4 @@
+Rotina histórica que dependia de assets ausentes. Preservada para consulta; não é carregada pelo aplicativo.
+
+def example():
+    s=Settings.model_validate(json.loads((ASSETS/'th57/config.json').read_text(encoding='utf-8')));r=create(s);d=store.directory(r['id']);shutil.copyfile(ASSETS/'th57/projeto.dxf',d/'input.dxf');return r

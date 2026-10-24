@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.4",
-  "description": "Barra compacta da 1.39, ajuda nos ícones, limite de fluxo por projeto, zoom/desfazer, recursos locais e diagnóstico IA."
+  "version": "1.42.5",
+  "description": "Ícones técnicos, vista WebGL/3D local, prévia MP4, projeto identificado e remoção automática de minirrotas."
 }

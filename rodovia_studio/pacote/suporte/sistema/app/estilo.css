@@ -481,20 +481,20 @@ body.desktop140.dwProjectFocus .dwTitleBar .brand h1{font-size:13px}
 .studio142 #propPanel table{table-layout:fixed;width:100%}.studio142 #propPanel input,.studio142 #propPanel select{min-width:0;max-width:100%;box-sizing:border-box}
 
 /* 1.42.2: ações rápidas no topo; comando, coordenadas e legenda no rodapé. */
-.studio142 #rsQuickTools{flex-basis:100%;display:flex;gap:6px;align-items:center;overflow-x:auto;min-width:0;padding:2px 0}
-.studio142 .rsQuickGroup{display:flex;gap:3px;flex:none;align-items:center;padding-right:7px;border-right:1px solid var(--cromo-borda)}
-.studio142 .rsQuickGroup:last-child{border:0}.studio142 .rsQuickGroup button{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;min-height:30px;padding:4px 7px;color:var(--texto);background:var(--panel);border:1px solid var(--cromo-borda);border-radius:4px;font:12px "Segoe UI",system-ui,sans-serif}
-.studio142 .rsQuickGroup button:hover:not(:disabled),.studio142 .rsQuickGroup button.on{background:var(--cromo-hover);border-color:var(--accent)}
-.studio142 .rsQuickGroup button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}.studio142 .rsQuickGroup button:disabled{opacity:.45}.studio142 .rsQuickGroup svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6}
+
+
+
+
+
 .studio142 #rsStudyFooter{display:flex;flex-wrap:wrap;align-items:center;flex:none;gap:3px 10px;padding:3px 10px;max-height:28vh;overflow:auto;background:var(--panel);border-top:1px solid var(--cromo-borda);font-size:12px}
 .studio142 #rsStudyFooter .dwCursor{position:static!important;display:flex;flex-wrap:wrap;margin:0!important;min-height:20px;flex:1;min-width:240px}
 .studio142 #rsStudyFooter #rsActiveTool{min-height:20px;flex:none}.studio142 #rsStudyFooter #rsFlowLegend{display:flex;flex-wrap:wrap;gap:12px;flex-basis:100%;font-size:11px}
 .studio142 #rsStudyFooter #dwCommandDrawer{flex-basis:100%;max-height:18vh;box-shadow:none}.studio142 #rsStudyFooter [hidden]{display:none!important}
-.studio142 #rsCommandRail{max-height:25vh;gap:4px 10px}.studio142 #rsQuickTools .rsQuickGroup button svg:empty{display:none}
+.studio142 #rsCommandRail{max-height:25vh;gap:4px 10px}
 body.studio142.wide{display:flex!important;flex-direction:column!important;height:100dvh!important;min-height:0!important;overflow:hidden!important;padding:0!important;box-sizing:border-box}
 body.studio142.wide main{height:auto!important;flex:1 1 0!important;min-height:0!important;overflow:hidden}
 .studio142 #bottomBar{position:relative!important;inset:auto!important;flex:none;min-height:24px;box-sizing:border-box}
-.studio142 #rsQuickTools{flex-wrap:wrap;overflow-x:visible}
+
 
 /* 1.42.4: faixa visível de comandos originais; apenas um grupo por vez. */
 .studio142 #rsToolRibbon{flex-basis:100%;min-width:0;border-top:1px solid var(--cromo-borda);padding-top:3px}
@@ -524,3 +524,23 @@ body.studio142.wide main{height:auto!important;flex:1 1 0!important;min-height:0
 #rsToolHelp[hidden]{display:none!important}
 
 .studio142 .rsFlowLimit{display:inline-flex;align-items:center;gap:4px;margin:0;font:12px "Segoe UI",system-ui,sans-serif;white-space:nowrap}.studio142 .rsFlowLimit select{width:auto;min-height:28px;padding:3px 5px;font:inherit}
+/* Faixa técnica: ações de arquivo permanecem nos menus. */
+.studio142 #rsTechnicalOptions{display:flex;flex-wrap:wrap;align-items:center;gap:5px 16px;flex-basis:100%;padding:2px 0}
+.studio142 #rsToolRibbon button[data-rs-tool],.studio142 .rsToolPanel button[data-rs-command],.studio142 button[data-rs3d]{border-radius:5px;transition:background-color .12s,border-color .12s;box-shadow:0 1px 1px #00000008}
+.studio142 [data-rs-tool] svg,.studio142 [data-rs-command] svg,.studio142 [data-rs3d] svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.studio142 [data-rs-tool]:hover,.studio142 [data-rs-command]:hover,.studio142 [data-rs3d]:hover{background:var(--cromo-hover);border-color:var(--accent)}
+.studio142 #rsViewport3D{position:absolute;inset:0;background:#cbd7df;z-index:2;border-radius:7px;overflow:hidden}
+.studio142 #rsViewport3D[hidden],.studio142 #canvas[hidden],.studio142 #rs3dControls[hidden]{display:none!important}
+.studio142 #rsViewport3D canvas{display:block;max-width:100%;max-height:100%;touch-action:none;outline:none}
+.studio142 #rs3dControls{display:flex;align-items:center;gap:4px;flex-wrap:wrap;min-width:0}
+.studio142 button[data-rs3d]{display:inline-flex;align-items:center;justify-content:center;width:31px;height:30px;padding:5px;background:var(--panel);color:var(--texto);border:1px solid var(--cromo-borda)}
+.studio142 button[data-rs3d].on{background:var(--cromo-hover);border-color:var(--accent);color:var(--accent)}
+.studio142 #rs3dControls label{display:flex;align-items:center;gap:8px;margin:0;font-size:12px}
+.studio142 #rs3dTime{width:150px;max-width:25vw;margin:0}
+.studio142 #rs3dState{font-size:12px;flex-basis:100%;overflow-wrap:anywhere;color:var(--texto)}
+.studio142 #rs3dState:empty{display:none}
+.studio142 #rsProjectIdentity{font:11px/1.3 "Segoe UI",system-ui,sans-serif;color:var(--texto-suave);max-width:46vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin:0 10px}
+.rsNewProject{width:min(700px,calc(100vw - 32px));max-height:90vh;overflow:auto}.rsNewProject form{margin:0}.rsNewProject label{min-width:0}.rsNewProject input,.rsNewProject select{box-sizing:border-box;max-width:100%}.rsNewProject .grid{grid-template-columns:repeat(2,minmax(0,1fr))}.rsNewProject #rsNewError{color:var(--danger,#b42318);min-height:20px}.rsNewProject .rsNewConfirm{display:flex;align-items:center;gap:7px}.rsNewProject .rsNewConfirm input{width:auto}
+@media(max-width:700px){.rsNewProject .grid{grid-template-columns:1fr}.studio142 #rsProjectIdentity{max-width:35vw}}
+
+#rs3dExport{max-width:min(520px,90vw);border:1px solid var(--cromo-borda);border-radius:8px;color:var(--texto);background:var(--panel);padding:22px}#rs3dExport label{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0}#rs3dExport::backdrop{background:#0006}

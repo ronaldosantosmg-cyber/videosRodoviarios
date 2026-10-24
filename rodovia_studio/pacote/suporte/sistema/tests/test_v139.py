@@ -65,8 +65,9 @@ def test_trecho_curto_nao_faz_ziguezague():
     assert not antes.paths or desvio(antes)<.05  # auditoria cinemática também protege com o filtro de 50 m desligado
     n=zig_net(50)
     assert not n.paths or desvio(n)<.05  # nenhuma rota insegura pode receber veículos
-    assert n.rejected_connectors or n.rejected_paths
-    assert n.short_ignored and any('curto' in w for w in n.warnings)
+    assert n.rejected_connectors or n.rejected_paths or n.auto_pruned
+    assert n.auto_pruned or n.short_ignored
     assert all(not set(p['edges'])&n.short_ignored for p in n.paths)
     # as ligações e a pintura da rede não mudam (o atalho é só da rota)
-    assert set(n.connectors)==set(antes.connectors)
+    assert all(e['length']>=50 for e in n.edges)
+    assert n.auto_pruned
