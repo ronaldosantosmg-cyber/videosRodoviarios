@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.2",
-  "description": "Rodapé com comando, coordenadas e legenda; botões rápidos abaixo do menu; fluxos em primeiro plano na edição."
+  "version": "1.42.3",
+  "description": "Barra rápida completa, análise dianteira/traseira e bloqueio de trajetórias geometricamente inválidas."
 }

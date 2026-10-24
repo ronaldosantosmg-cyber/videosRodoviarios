@@ -17,6 +17,7 @@ def flow_diagnostics(network):
         if not finite or length<=0:status,message='problem','Geometria inválida ou de comprimento nulo.'
         elif raw.get('disabled'):status,message='problem','Fluxo desativado; veículos não circulam neste trecho.'
         elif length<50:status,message='adjustment','Trecho menor que 50 m; ajuste a rota antes de habilitar veículos.'
+        elif any(i in getattr(network,'rejected_edge_ids',set()) for i,_ in edges):status,message='problem','Trajetória recusada pela análise de frente/traseira, esterçamento ou continuidade.'
         elif not active:status,message='problem','Sem faixa habilitada para circulação.'
         elif not any(i in used for i in active):status,message='adjustment','Trecho sem itinerário utilizável; revise as ligações e o sentido.'
         elif any(e.get('disabled') or e.get('crossing_blocked') for _,e in edges):status,message='adjustment','Parte das faixas está bloqueada; revise as restrições.'

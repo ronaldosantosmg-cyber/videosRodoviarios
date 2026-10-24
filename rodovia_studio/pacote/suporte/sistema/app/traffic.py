@@ -9,6 +9,7 @@ from shapely.ops import unary_union,substring
 from shapely import contains_xy
 from .markup import zones_geometry,assign
 from . import signage
+from .vehicle_motion import analyze_motion
 
 STEP=.6
 
@@ -133,7 +134,7 @@ class TrafficNetwork:
         self.oae_dirs=list(oae_dirs);self.dxf_edges=[np.asarray(p,float) for p in edge_lines];self.s=settings;self.axis=axis;self.ds=ds;self.bridges=unary_union(bridges).buffer(1) if bridges else Polygon()
         # Cruzamentos sem conexão marcados pelo usuário: nenhum giro/troca de via dentro deles.
         self.no_connect=zones_geometry(getattr(settings,'no_connection_zones',[]))
-        self.raw_info=[]
+        self.raw_info=[];self.rejected_paths=[];self.rejected_connectors=collections.Counter();self.rejected_edge_ids=set();self.rejected_nodes=set()
         self.allowed=unary_union(roads).difference(unary_union(obstacles).buffer(.15)).buffer(-.12) if roads else Polygon()
         self.paved=self.allowed  # superfície para as linhas de bordo (sem as exclusões de limpeza)
         if settings.exclusions:self.allowed=self.allowed.difference(unary_union([Polygon([(p.x,p.y) for p in a]) for a in settings.exclusions]))
@@ -215,8 +216,9 @@ class TrafficNetwork:
             # Segurança visual: nunca reabilita automaticamente micro-rotas. Melhor ficar sem veículos
             # do que produzir zigue-zague/cintilação por itinerários menores que o limite configurado.
             self.warnings.append(f'Nenhuma rota segura permaneceu após excluir trechos menores que {self.min_route:g} m; tráfego não foi habilitado nesses trechos.')
+        if self.rejected_connectors:self.warnings.append(f'{sum(self.rejected_connectors.values())} tentativa(s) de ligação recusada(s) por geometria ou sentido incompatível. Consulte o diagnóstico de circulação.')
         self.finalize_signage()
-        self.report={'directed_edges':len(self.edges),'connections':sum(map(len,self.connections.values())),'itineraries':len(self.paths),'coverage':dict(collections.Counter(e['kind'] for e in self.edges)),'used_kinds':dict(collections.Counter(k for p in self.paths for k in p['kinds'])),'warnings':self.warnings,'signage':getattr(self,'report_signage',{})}
+        self.report={'directed_edges':len(self.edges),'connections':sum(map(len,self.connections.values())),'itineraries':len(self.paths),'coverage':dict(collections.Counter(e['kind'] for e in self.edges)),'used_kinds':dict(collections.Counter(k for p in self.paths for k in p['kinds'])),'warnings':self.warnings,'signage':getattr(self,'report_signage',{}),'motion_rejected_paths':len(self.rejected_paths),'motion_rejected_connections':dict(self.rejected_connectors),'motion_scope':'Geometria e restrições disponíveis no projeto; sem certificação CONTRAN.'}
     def axis_offset(self,p):
         idx=self.tree.query(p)[1];t=self.axis_t[idx];return float(np.dot(np.asarray(p)-self.dense[idx],np.array([t[1],-t[0]])))
     def inside(self,q):return contains_xy(self.paved,q[:,0],q[:,1])
@@ -301,7 +303,9 @@ class TrafficNetwork:
             if abs(delta)>2:forward=bool(delta*sgn>0);both=False
         if r.get('fixed'):forward=True;both=False   # 1.30: faixa de rota: o sentido é o dos pontos
         reversed_by_user=bool(user.get('reverse'))
-        if reversed_by_user and not both:forward=not forward
+        if reversed_by_user and (r.get('fixed') or r.get('direction') in ('growing','decreasing')):
+            user=dict(user,disable=True);self.warnings.append('Inversão recusada: o trecho tem sentido explícito definido pela rota.')
+        elif reversed_by_user and not both:forward=not forward
         disabled=bool(user.get('disable'))
         spd=user.get('speed_kmh') or r.get('speed_kmh')
         route_meta={k:r.get(k) for k in ('route','route_name','route_dir','route_lane','route_start_m','route_end_m','lane_change','lane_change_sections') if r.get(k) is not None}
@@ -491,16 +495,26 @@ class TrafficNetwork:
         if force:
             pa=a['p'][-1];pb=b['p'][0];gap=np.linalg.norm(pb-pa)
             if gap>30 or cos<-.85:return None
-        elif not self.no_connect.is_empty and self.no_connect.covers(Point(node)):
+        if not self.no_connect.is_empty and self.no_connect.covers(Point(node)):
             # Dentro do cruzamento sem conexão só existe continuidade da mesma via.
             if a.get('origin')!=b.get('origin') or cos<.9:return None
-        if not force and not self.bridges.is_empty and self.bridges.covers(Point(node)) and cos<.72:return None
-        if cos<-.85:return None
+        if not self.bridges.is_empty and self.bridges.covers(Point(node)) and cos<.72:return None
+        if cos<-.85:
+            self.rejected_nodes.update((a['end'],b['start']));return None
+        if a.get('route') is not None and a.get('route')==b.get('route') and a.get('route_dir')!=b.get('route_dir'):
+            self.rejected_connectors['contramao_rota']+=1;self.rejected_nodes.update((a['end'],b['start']));return None
         pa=a['p'][-1];pb=b['p'][0];gap=np.linalg.norm(pb-pa)
         if gap>(30 if force else 18):return None
-        control=max(2.,gap*.55);u=np.linspace(0,1,max(8,int((gap+control*2)/.35)));c1=pa+ta*control;c2=pb-tb*control
+        if gap<1e-6:
+            if cos<.995:return None
+            return np.vstack([pa,pb])
+        control=max(.05,gap*.55);u=np.linspace(0,1,max(8,int((gap+control*2)/.35)));c1=pa+ta*control;c2=pb-tb*control
         p=(1-u[:,None])**3*pa+3*(1-u[:,None])**2*u[:,None]*c1+3*(1-u[:,None])*u[:,None]**2*c2+u[:,None]**3*pb
         p,_=sample(p,.35)
+        if not self.no_connect.is_empty and a.get('origin')!=b.get('origin') and LineString(p).intersects(self.no_connect):return None
+        audit=analyze_motion(np.vstack([a['p'][-min(len(a['p']),20):],p[1:-1],b['p'][:min(len(b['p']),20)]]))
+        if not audit['ok']:
+            self.rejected_connectors.update(audit['reasons']);self.rejected_nodes.update((a['end'],b['start']));return None
         if not valid_centers(self.allowed,p).all():return None
         for pt,t in zip(p[::2],tangent(p)[::2]):
             n=np.array([-t[1],t[0]]);body=Polygon([pt+t*x+n*y for x,y in [(-2.3,-.95),(2.3,-.95),(2.3,.95),(-2.3,.95)]])
@@ -529,7 +543,7 @@ class TrafficNetwork:
             else:
                 for i in ins:
                     for j in outs:
-                        if i==j or self.edges[i]['base']==self.edges[j]['base'] or j in self.connections.get(i,[]):continue
+                        if i==j or self.edges[i]['base']==self.edges[j]['base'] or j in self.connections.get(i,[]) or any(x==i and y==j for x,y,_,_ in self.denied):continue
                         g=float(np.linalg.norm(self.edges[j]['p'][0]-self.edges[i]['p'][-1]))
                         if g>30:continue
                         sc=dA[i]+dB[j]+g*.2
@@ -560,13 +574,21 @@ class TrafficNetwork:
         """Travessia do canteiro central só em retornos (em desnível pela OAE, rotatórias ou retorno em nível)
         ou em locais permitidos pelo operador. Trechos e ligações que trocam de pista fora disso ficam sem veículos."""
         mode=getattr(self.s,'median_crossing','returns');self.crossings_blocked=0
-        if mode=='free' or len(self.main)<2:return
         zones=getattr(self.s,'crossing_zones',[]) or []
         def zone(z):
             from .markup import _xy
             return Point(*_xy(z.point)).buffer(z.radius_m) if z.kind=='point' else Polygon([_xy(v) for v in z.points]).buffer(0)
         allow=unary_union([zone(z) for z in zones if z.mode=='allow']) if any(z.mode=='allow' for z in zones) else Polygon()
         deny=unary_union([zone(z) for z in zones if z.mode=='deny']) if any(z.mode=='deny' for z in zones) else Polygon()
+        if not deny.is_empty:
+            for e in self.edges:
+                if not e['disabled'] and LineString(e['p']).intersects(deny):e['disabled']=True;e['crossing_blocked']=True;self.crossings_blocked+=1
+            for (i,j),c in list(self.connectors.items()):
+                if LineString(c).intersects(deny):
+                    self.connections[i]=[x for x in self.connections[i] if x!=j];del self.connectors[(i,j)];self.crossings_blocked+=1
+        if mode=='free' or len(self.main)<2:
+            if self.crossings_blocked:self.warnings.append(f'{self.crossings_blocked} movimentos excluídos por proibição explícita de travessia.')
+            return
         rings=unary_union([Point(*c).buffer(r+12) for c,r in self.islands]) if self.islands else Polygon()
         def ok(pts,kind):
             line=LineString(pts) if len(pts)>1 else Point(pts[0])
@@ -580,7 +602,6 @@ class TrafficNetwork:
             a=self.side(e['p'][0]);b=self.side(e['p'][-1])
             if a is not None and b is not None and a!=b and not ok(e['p'],e['kind']):e['disabled']=True;e['crossing_blocked']=True;self.crossings_blocked+=1
         for (i,j),c in list(self.connectors.items()):
-            if (i,j) in getattr(self,'forced',set()):continue
             a=self.side(self.edges[i]['p'][-1]);b=self.side(self.edges[j]['p'][0])
             if a is not None and b is not None and a!=b and not ok(c,'connector'):
                 self.connections[i]=[x for x in self.connections[i] if x!=j];del self.connectors[(i,j)];self.crossings_blocked+=1
@@ -621,7 +642,7 @@ class TrafficNetwork:
                 if self.edges[k]['disabled']:continue
                 for a in set(ends(k,False,{k})):
                     for b in set(ends(k,True,{k})):
-                        if a==b or b in conn[a] or self.edges[a]['base']==self.edges[b]['base']:continue
+                        if a==b or b in conn[a] or self.edges[a]['base']==self.edges[b]['base'] or any(x==a and y==b for x,y,_,_ in getattr(self,'denied',[])):continue
                         sa=self.side(self.edges[a]['p'][-1]);sb=self.side(self.edges[b]['p'][0])
                         if sa is not None and sb is not None and sa!=sb and getattr(self.s,'median_crossing','returns')!='free':continue
                         c=self.connectors.get((a,b))
@@ -637,7 +658,7 @@ class TrafficNetwork:
         for a_,bs_ in self.connections.items():
             for b_ in bs_:
                 if not self.edges[a_]['disabled']:rfull[b_].append(a_)
-        entries={i for i in live if not reverse[i] and not rfull[i]};exits={i for i in live if not conn[i] and not self.connections[i]}
+        entries={i for i in live if not reverse[i] and not rfull[i] and self.edges[i]['start'] not in self.rejected_nodes};exits={i for i in live if not conn[i] and not self.connections[i] and self.edges[i]['end'] not in self.rejected_nodes}
         main_entries={i for i in entries if self.edges[i]['kind']=='main'};main_exits={i for i in exits if self.edges[i]['kind']=='main'}
         entries=main_entries or entries;exits=main_exits or exits
         # 1.18: a ponta de um acesso desenhado pelo operador também é origem/destino dos veículos.
@@ -666,6 +687,10 @@ class TrafficNetwork:
                     q,dq=cand()
                     if q is not None and len(q)>=10 and valid_centers(self.allowed,q).all():p,d=q,dq;break
             if len(p)<10 or d[-1]<60 or not valid_centers(self.allowed,p).all():continue
+            audit=analyze_motion(p,allowed=self.allowed)
+            if not audit['ok']:
+                self.rejected_paths.append({'edges':list(seq),'audit':audit})
+                self.rejected_edge_ids.update(seq);continue
             # 1.12: trechos físicos do itinerário (arestas e conectores) para a simulação sem colisão.
             links=[];prev=None
             for e,a,b in marks:
@@ -684,21 +709,33 @@ class TrafficNetwork:
         if off:self.warnings.append(f'{off} segmentos desativados pelo usuário (geometria preservada; reative em Fluxos).')
         if missing:self.warnings.append(f'{len(missing)} segmentos sem itinerário seguro completo; confira os eixos/conexões na prévia. Esses segmentos não recebem veículos isolados.')
         if short:self.warnings.append(f'{len(short)} trecho(s) curto(s) (< {min_len:g} m) ignorados nas rotas dos veículos (sem ziguezague).')
+        # Aresta usada por uma alternativa válida não é marcada como excluída.
+        self.rejected_edge_ids.update(i for i,e in enumerate(self.edges) if (e['start'] in self.rejected_nodes or e['end'] in self.rejected_nodes) and i not in covered)
+        self.rejected_edge_ids.difference_update(covered)
+        if self.rejected_paths:self.warnings.append(f'{len(self.rejected_paths)} itinerário(s) recusado(s) pela análise de frente/traseira, esterçamento ou continuidade. Não recebem veículos.')
         self.covered=covered
     def vehicles(self,t,speed):
+        for pt,tan,k,identity,j in self.vehicles_ex(t,speed):yield pt,tan,k,identity
+    def vehicles_ex(self,t,speed,vehicle_type=None):
+        from .vehicle_motion import prepare_points,axle_geometry_prepared
+        if not math.isfinite(float(speed)) or speed<=0 or not math.isfinite(float(t)):return
+        if not hasattr(self,'legacy_motion_cache'):self.legacy_motion_cache={};self.legacy_motion_points={}
         for i,path in enumerate(self.paths):
-            L=path['length'];duration=L/speed;count=max(1,min(16,int(L/350)));period=duration+5
+            L=float(path['length'])
+            if not math.isfinite(L) or L<=0:continue
+            if (i,'car') not in self.legacy_motion_cache:self.legacy_motion_cache[(i,'car')]=analyze_motion(path['p'],'car',self.allowed)
+            audit=self.legacy_motion_cache[(i,'car')]
+            if not audit['ok']:continue
+            angle=math.radians(audit['max_steering_deg'] or 0.)
+            radius=2.7/max(math.tan(angle),1e-9);route_speed=min(speed,math.sqrt(2.2*radius))
+            duration=L/route_speed;count=max(1,min(16,int(L/350)));period=duration+5
             for k in range(count):
                 phase=t+(k+.3)*period/count+i*2.1;cycle=math.floor(phase/period);local=phase-cycle*period
                 if local>=duration:continue
-                distance=local*speed;j=min(len(path['p'])-1,int(np.searchsorted(path['d'],distance)))
-                yield path['p'][j],path['t'][j],i*17+k,(i,k,cycle)
-    def vehicles_ex(self,t,speed):
-        # Mesma posição de vehicles(), com o índice da amostra (permite memorizar validações).
-        for i,path in enumerate(self.paths):
-            L=path['length'];duration=L/speed;count=max(1,min(16,int(L/350)));period=duration+5
-            for k in range(count):
-                phase=t+(k+.3)*period/count+i*2.1;cycle=math.floor(phase/period);local=phase-cycle*period
-                if local>=duration:continue
-                distance=local*speed;j=min(len(path['p'])-1,int(np.searchsorted(path['d'],distance)))
-                yield path['p'][j],path['t'][j],i*17+k,(i,k,cycle),j
+                identity=(i,k,cycle);vt=vehicle_type(path['kinds'],identity) if vehicle_type else 'car';key=(i,vt)
+                if key not in self.legacy_motion_cache:self.legacy_motion_cache[key]=analyze_motion(path['p'],vt,self.allowed)
+                if not self.legacy_motion_cache[key]['ok']:continue
+                if i not in self.legacy_motion_points:self.legacy_motion_points[i]=prepare_points(path['p'])
+                distance=local*route_speed;j=min(len(path['p'])-1,int(np.searchsorted(path['d'],distance)))
+                g=axle_geometry_prepared(*self.legacy_motion_points[i],vt,np.array([distance]))
+                yield g['center'][0],g['heading'][0],i*17+k,identity,j

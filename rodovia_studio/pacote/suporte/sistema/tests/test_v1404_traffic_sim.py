@@ -1,3 +1,4 @@
+import numpy as np
 from types import SimpleNamespace
 from app.models import RouteAlignment, Point, LaneChangeSection
 from app.simulation import TrafficSim
@@ -55,6 +56,13 @@ def test_safe_overtake_starts_only_to_adjacent_lane_when_window_is_allowed():
     base={'length':1000.0,'route':'r1','route_dir':'f','route_start_m':0.0,'route_end_m':1000.0,
           'lane_change':'marked','lane_change_sections':[{'start_m':0,'end_m':1000,'mode':'allow'}]}
     sim.paths=[dict(base,route_lane=0),dict(base,route_lane=1)]
+    from shapely.geometry import box
+    from types import SimpleNamespace
+    for k,path in enumerate(sim.paths):
+        path['p']=np.c_[np.linspace(0,1000,1001),np.full(1001,k*3.5)]
+        path['d']=np.linspace(0,1000,1001);path['t']=np.tile([1.,0.],(1001,1))
+    sim.net=SimpleNamespace(allowed=box(-20,-10,1020,15));sim.motion_cache={};sim.lc_blocked_geometry=0
+
     sim.link_of=[[(('e',0),0.0,1000.0)],[(('e',1),0.0,1000.0)]]
     sim.starts=[[0.0],[0.0]];sim.adjacent={0:[1],1:[0]}
     sim.lane_changes=sim.lc_blocked_rules=sim.lc_blocked_safety=0

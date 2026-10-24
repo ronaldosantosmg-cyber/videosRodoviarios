@@ -837,7 +837,9 @@ class Scene:
         return self._sim
     def traffic_iter(self,t):
         sim=self.traffic()
-        if sim is None:return self.network.vehicles_ex(t,self.s.traffic_speed_kmh/3.6)
+        if sim is None:
+            import functools
+            return self.network.vehicles_ex(t,self.s.traffic_speed_kmh/3.6,functools.partial(visual.vehicle_type,mix=getattr(self.s,'vehicle_mix','classico')))
         return sim.vehicles_ex(t)
     def fits(self,i,j,pt,tan,vtype):
         key=(i,j,vtype)
@@ -852,8 +854,7 @@ class Scene:
             q=scr(pt[None])[0]
             if not(5<q[0]<self.W-5 and self.H*.12<q[1]<self.H*.88):continue
             i=identity[0];vt=visual.vehicle_type(self.network.paths[i]['kinds'],identity,getattr(self.s,'vehicle_mix','classico'))
-            if vt!='car' and not self.fits(i,j,pt,tan,vt):vt='car'
-            if not self.fits(i,j,pt,tan,'car') and vt=='car':continue
+            if not self.fits(i,j,pt,tan,vt):continue
             items.append((pt,tan,vt,visual.vehicle_color(identity,vt)))
         if not items:return
         shadow=np.zeros(im.shape[:2],np.uint8)
@@ -1200,7 +1201,8 @@ def render(directory,s,status=lambda *a:None,cancel=lambda:False):
         out.unlink(missing_ok=True);raise RuntimeError('O vídeo gravado não passou na conferência: '+'; '.join(check['problems'])+'. Gere novamente.')
     from .store import replace
     final=directory/'video.mp4';replace(out,final)
-    meta={'frames':frames,'fps':s.fps,'duration_s':frames/s.fps,'width':OW,'height':OH,'video_quality':getattr(s,'video_quality','padrao'),'superamostragem':1.5 if ssaa else 1,'codec':'H.264 High','encoder':encoding['encoder'],'encoder_reason':encoding['reason'],'quality':encoding['quality'],'pix_fmt':'yuv420p','geometric_length_m':scene.length,'reference_length_m':s.reference_length_m,'geometry_cache_hit':scene.geometry_cache_hit,'visual_quality':s.visual_quality,'render_profile':s.render_profile,'workers':workers,'workers_reason':why,'camera':'cabin' if cabin else 'aerial','cabin_reaches_path_end':bool(cabin.reaches_end) if cabin else None,'preparation_seconds':round(prepared,3),'total_seconds':round(time.monotonic()-start,3),'validation':check}
+    meta={'frames':frames,'fps':s.fps,'duration_s':frames/s.fps,'width':OW,'height':OH,'video_quality':getattr(s,'video_quality','padrao'),'superamostragem':1.5 if ssaa else 1,'codec':'H.264 High','encoder':encoding['encoder'],'encoder_reason':encoding['reason'],'quality':encoding['quality'],'pix_fmt':'yuv420p','geometric_length_m':scene.length,'reference_length_m':s.reference_length_m,'geometry_cache_hit':scene.geometry_cache_hit,'visual_quality':s.visual_quality,'render_profile':s.render_profile,'workers':workers,'workers_reason':why,'camera':'cabin' if cabin else 'aerial','cabin_reaches_path_end':bool(cabin.reaches_end) if cabin else None,'preparation_seconds':round(prepared,3),'total_seconds':round(time.monotonic()-start,3),'validation':check,'motion_audit':scene.report.get('traffic_simulation'),'network_safety':{'rejected_paths':len(getattr(scene.network,'rejected_paths',[])),'rejected_connections':dict(getattr(scene.network,'rejected_connectors',{}))}}
+    if getattr(scene,'_sim',None) is not None:meta['motion_audit']['body_samples']=scene._sim.vehicle_body_state(min(s.duration_s/2,1.5))[:10]
     (directory/'video.json').write_text(json.dumps(meta,ensure_ascii=False,indent=2),encoding='utf-8')
     (directory/'encoder.json').write_text(json.dumps({k:v for k,v in encoding.items() if k!='args'},ensure_ascii=False,indent=2),encoding='utf-8')
     status(1,'Vídeo concluído · '+encoding['label']);return final

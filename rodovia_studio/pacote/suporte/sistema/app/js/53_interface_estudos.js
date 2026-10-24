@@ -97,6 +97,27 @@ openCanvasMenu=function(x,y,w){closeMenu();closeMenus();state.focus=canvas;popup
 const flowTools=new Set(['flowadd','flowrev','flowoff','linkforce','noconn','noconnarea','route','routesec','dir','arrowrot','lanes','lanerange','block','crossok','crossno']);
 function flowEditing(){return study.editing||flowTools.has(tool)}
 study.isEditing=flowEditing;
+function quickPopup(id,items){closeMenus();const anchor=document.querySelector(`[data-rs-quick="${id}"]`);state.focus=anchor;popup(items,anchor)}
+function zoomStep(factor){if(!ready())return msg('Analise ou abra um projeto antes de ajustar o zoom.');const r=canvas.getBoundingClientRect();canvas.dispatchEvent(new WheelEvent('wheel',{clientX:r.left+r.width/2,clientY:r.top+r.height/2,deltaY:-Math.log(factor)/.0015,cancelable:true}))}
+function allToolGroups(){let g=0;const groups=[{t:TOOL_GROUPS[0],sub:[]}];for(const t of TOOLS){if(t==='|'){g++;groups.push({t:TOOL_GROUPS[g]||'Outras ferramentas',sub:[]})}else groups.at(-1).sub.push(toolItem(t[0]))}return groups.filter(g=>g.sub.length)}
+function registerControlTool(){
+ if(FERRAMENTAS.insertcontrol)return;
+ ferramenta('insertcontrol',{rotulo:'Inserir vértice',dica:'Selecione uma linha ou área editável e clique no trecho onde inserir um ponto de controle. Esc encerra.',clique(w){
+  const obj=objOf(sel);const points=Array.isArray(obj?.o)?obj.o:obj?.o?.points||obj?.o?.polygon;
+  if(!obj||!Array.isArray(points)||points.length<2)return msg('Selecione uma rota, alinhamento ou área editável antes de inserir vértices.',true);
+  if(!w||!Number.isFinite(w.x)||!Number.isFinite(w.y)||points.length>=20000)return msg('Ponto inválido ou limite de vértices atingido.',true);
+  const closed=obj.shape==='area';let best=null;
+  for(let i=0;i<points.length-(closed?0:1);i++){
+   const a=points[i],b=points[(i+1)%points.length],dx=b.x-a.x,dy=b.y-a.y,D=dx*dx+dy*dy;if(D<1e-10)continue;
+   const t=Math.max(0,Math.min(1,((w.x-a.x)*dx+(w.y-a.y)*dy)/D));const q={x:a.x+t*dx,y:a.y+t*dy};const dist=Math.hypot(w.x-q.x,w.y-q.y);
+   if(!best||dist<best.dist)best={i,q,dist};
+  }
+  if(!best||best.dist*pxPerM()>12)return msg('Clique sobre um trecho da geometria selecionada.',true);
+  if(points.some(p=>Math.hypot(p.x-best.q.x,p.y-best.q.y)<.01))return msg('Já existe um vértice nesse ponto.',true);
+  checkpoint();points.splice(best.i+1,0,best.q);axisCache=null;afterGeomEdit(obj);changed('Vértice inserido. Arraste o grip para ajustar o traçado.');showProps();draw();
+ }});
+ if(!COMANDOS.has('REDRAW'))comando(['REDRAW'],()=>regenScreen(),'Redesenha a tela, preservando vista e seleção');
+}
 function quickTools(rail){
  if($('rsQuickTools'))return;
  const bar=document.createElement('div');bar.id='rsQuickTools';bar.setAttribute('role','toolbar');bar.setAttribute('aria-label','Acesso rápido');rail.prepend(bar);
@@ -104,14 +125,17 @@ function quickTools(rail){
   ['Projeto',[
    ['new','Novo',()=>$('new')?.click()],['open','Abrir',()=>openProjectDialog()],['save','Salvar',()=>$('saveProject')?.click()]]],
   ['Editar',[
-   ['properties','Propriedades',()=>psOpenHub('props')]]],
+   ['properties','Propriedades',()=>psOpenHub('props')],
+   ['modify','Modificar ▾',()=>quickPopup('modify',['MOVER','GIRAR','COPIAR','ESCALA','ESPELHAR','OFFSET'].map(c=>leaf(({MOVER:'Mover',GIRAR:'Girar',COPIAR:'Copiar',ESCALA:'Escala',ESPELHAR:'Espelhar',OFFSET:'Paralela'})[c],()=>runCommand(c))))],
+   ['points','Pontos ▾',()=>quickPopup('points',[leaf('Mover ponto / grip',()=>setTool('move')),leaf('Inserir vértice',()=>setTool('insertcontrol')),leaf('Editar vértices de área',()=>setTool('exedit')),leaf('Par de controle DXF × imagem',()=>setTool('pair')),leaf('Inspecionar coordenadas',()=>setTool('inspect'))])]]],
   ['Vista',[
-   ['select','Selecionar',()=>setTool('pan')],['fit','Enquadrar',()=>fitView()]]],
+   ['select','Pan / selecionar',()=>setTool('pan')],['zoom-in','Zoom +',()=>zoomStep(1.25)],['zoom-out','Zoom −',()=>zoomStep(.8)],['fit','Enquadrar',()=>fitView()],['redraw','Redesenhar',()=>regenScreen()]]],
   ['Fluxos',[
    ['flows','Editar fluxos',()=>{study.editing=!study.editing;vecOn.flows=true;if(!study.editing&&flowTools.has(tool))setTool('pan');sync();draw()}],
    ['route','Nova rota',()=>setTool('route')],['update-flows','Atualizar fluxos',()=>$('updFlows')?.click()]]],
   ['Vídeo',[
-   ['preview','Prévia',()=>$('openAtTime')?.click()],['render','Gerar vídeo',()=>typeof gerarVideo==='function'?gerarVideo():$('render')?.click()]]]
+   ['preview','Prévia',()=>$('openAtTime')?.click()],['render','Gerar vídeo',()=>typeof gerarVideo==='function'?gerarVideo():$('render')?.click()]]],
+  ['Ferramentas',[['all-tools','Ferramentas ▾',()=>quickPopup('all-tools',allToolGroups())]]]
  ];
  for(const [label,items] of groups){
   const group=document.createElement('div');group.className='rsQuickGroup';group.setAttribute('role','group');group.setAttribute('aria-label',label);
@@ -135,7 +159,7 @@ function foregroundFlows(){
  if(!ready()||!flowEditing()||vecOn.flows===false)return;
  ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.lineJoin='round';ctx.lineCap='round';
  const line=(points,status,forward=true,both=false,dashed=false)=>{
-  const pts=(points||[]).map(p=>Array.isArray(p)?P(p):p).filter(p=>Number.isFinite(p.x)&&Number.isFinite(p.y));if(pts.length<2)return;
+  const pts=(points||[]).map(p=>Array.isArray(p)?P(p):p).filter(p=>Number.isFinite(p.x)&&Number.isFinite(p.y));if(pts.length<2||polyLen(pts)<.1)return;
   const color=flowStudyColor(status);poly(pts);ctx.setLineDash([]);ctx.strokeStyle='#081623';ctx.lineWidth=7;ctx.stroke();
   ctx.setLineDash(dashed?[7,4]:[]);ctx.strokeStyle=color;ctx.lineWidth=4;ctx.stroke();ctx.setLineDash([]);arrowsAlong(pts,forward,both,color,85);
  };
@@ -162,7 +186,7 @@ function sync(){
  const legend=$('rsFlowLegend');if(legend)legend.hidden=vecOn.flows===false;
 }
 function init(){
- document.body.classList.add('studio142');buildMenus();dockCommands();sync();
+ registerControlTool();document.body.classList.add('studio142');buildMenus();dockCommands();sync();
  const oldPlace=placeSelBar;placeSelBar=function(){oldPlace();const b=$('selBar');if(b){b.style.left='';b.style.top=''}};
  const oldTool=setTool;setTool=function(...args){if(flowTools.has(args[0]))vecOn.flows=true;const r=oldTool(...args);sync();return r};
  const oldDraw=draw;draw=function(...args){const r=oldDraw(...args);foregroundFlows();return r};

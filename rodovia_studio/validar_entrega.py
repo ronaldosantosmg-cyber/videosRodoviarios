@@ -18,6 +18,8 @@ PACKAGE=ROOT/'pacote'
 SYSTEM=PACKAGE/'suporte/sistema'
 EVIDENCE=ROOT/'evidencias'/json.loads((PACKAGE/'manifest.json').read_text())['version']
 TESTS=[
+ 'tests/test_v1423_motion.py','tests/test_v1423_toolbar.py','tests/test_v1423_video.py',
+ 'tests/test_v139.py','tests/test_v1404_traffic_sim.py','tests/test_v127.py::test_curve_envelope',
  'tests/test_v142_update.py','tests/test_v142_runtime.py','tests/test_v142_diagnostics.py',
  'tests/test_v142_visual.py','tests/test_v1422_layout.py','tests/test_v142_live_ui.py','tests/test_v141_technical.py',
  'tests/test_v1410_final.py','tests/test_v1405_robust_traffic.py','tests/test_v1407_imagery_cache.py',
@@ -66,6 +68,8 @@ def main():
     parser=argparse.ArgumentParser();parser.add_argument('--gerar',action='store_true');args=parser.parse_args()
     EVIDENCE.mkdir(parents=True,exist_ok=True)
     env=dict(os.environ,PYTHONPYCACHEPREFIX=str(ROOT.parent.parent/'.cache/pycache'),XDG_CACHE_HOME=str(ROOT.parent.parent/'.cache'),VISUAL_ARTIFACTS=str(EVIDENCE),RODOVIA_DATA=str(Path(tempfile.gettempdir())/'rodovia_gate_data'))
+    for name in ['projetos','videos','dados']:
+        if (PACKAGE/name).exists():raise RuntimeError(f'Dados locais não devem integrar a entrega: {name}')
     initial=digest();report=EVIDENCE/'pytest-resultados.xml';report.unlink(missing_ok=True)
     with (EVIDENCE/'validacao.log').open('w',encoding='utf-8') as log:
         run([sys.executable,'-m','pip','check'],env,log)
@@ -90,7 +94,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix='rs_package_') as tmp:
         stage=Path(tmp)/'pacote';shutil.copytree(PACKAGE,stage,ignore=shutil.ignore_patterns('__pycache__','.pytest_cache','*.pyc'))
         evidence=stage/('suporte/documentacao/validacao_'+metadata['version'].replace('.','_'));evidence.mkdir(parents=True)
-        for name in ['pytest-resultados.xml','resultado.json','validacao.log','142_03_modelar_cascata.png','1422_01_acesso_rapido_rodape.png','1422_03_fluxos_sobre_superficies.png','1422_05_selecao_fluxo_prioritaria.png','142_11_motor_editor_real.png','142_12_motor_editor_fluxo_problema.png','splash_142_1_a.png','splash_142_1_b.png']:
+        for name in ['1423_01_ferramentas_139_restauradas.png','1423_02_pan_zoom_redesenhar.png','1423_03_modificar.png','1423_04_inserir_controle_desfazer.png','1423_05_controle_calibracao.png','1423_video_quadro_0.png','1423_video_quadro_36.png','1423_video_quadro_71.png','1423_video_metadados.json','pytest-resultados.xml','resultado.json','validacao.log','142_03_modelar_cascata.png','1422_01_acesso_rapido_rodape.png','1422_03_fluxos_sobre_superficies.png','1422_05_selecao_fluxo_prioritaria.png','142_11_motor_editor_real.png','142_12_motor_editor_fluxo_problema.png','splash_142_1_a.png','splash_142_1_b.png']:
             shutil.copy2(EVIDENCE/name,evidence/name)
         manifest=json.loads((stage/'manifest.json').read_text())
         manifest['files']={f.relative_to(stage).as_posix():hashlib.sha256(f.read_bytes()).hexdigest() for f in sorted(stage.rglob('*')) if f.is_file() and f!=stage/'manifest.json'}

@@ -49,7 +49,7 @@ function drawDxfSel(){if(!dxfSel)return;const P=dxfSel.points.map(P_);ctx.save()
  label(`Área do desenho · ${dxfSel.layer} · ${dxfSel.area_m2.toLocaleString('pt-BR')} m²`,P[0],'#bff4ff');ctx.restore()}
 const P_=a=>Array.isArray(a)?{x:a[0],y:a[1]}:a;
 function drawLinks(){if(!editor||!editor.connections||vecOn.flows===false)return;const sid=selSeg?selSeg.id:null;if(sid==null&&!showAllLinks&&!selLink)return;ctx.save();
- const one=(c,col,w,dash)=>{const pts=c.p.map(P);poly(pts);ctx.strokeStyle=col;ctx.lineWidth=w;ctx.setLineDash(dash||[]);ctx.stroke();ctx.setLineDash([]);if(pts.length>1)arrowHead(pts[pts.length-2],pts[pts.length-1],10,col)};
+ const one=(c,col,w,dash)=>{const pts=c.p.map(P);if(pts.length<2||polyLen(pts)<.1)return;poly(pts);ctx.strokeStyle=col;ctx.lineWidth=w;ctx.setLineDash(dash||[]);ctx.stroke();ctx.setLineDash([]);if(pts.length>1)arrowHead(pts[pts.length-2],pts[pts.length-1],10,col)};
  for(const c of editor.connections){const out=c.from===sid,inn=c.to===sid;if(!(showAllLinks||out||inn))continue;one(c,window.RodoviaFlowStudy?.stale?'#eab308':'#22c55e',out||inn?3.5:1.6)}
  for(const c of editor.denied||[]){if(!(showAllLinks||c.from===sid||c.to===sid))continue;one(c,'#ff4d4d',2.5,[5,4]);const m=P(c.p[Math.floor(c.p.length/2)]),[x,y]=W2C(m);ctx.strokeStyle='#ff4d4d';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x-6,y-6);ctx.lineTo(x+6,y+6);ctx.moveTo(x+6,y-6);ctx.lineTo(x-6,y+6);ctx.stroke()}
  if(selLink){one(selLink,'#ffe14d',6);one(selLink,selLink.denied?'#ff4d4d':'#36f28a',2.5,selLink.denied?[5,4]:[])}ctx.restore()}

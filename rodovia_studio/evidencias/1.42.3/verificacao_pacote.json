@@ -1,0 +1,10 @@
+{
+  "aplicacao_do_zip": "aprovada",
+  "inicializacao_fora_da_raiz": "aprovada",
+  "encerramento_controlado": "aprovado",
+  "rollback_apos_mover_instalacao": "aprovado",
+  "restauracao_byte_a_byte": "aprovada",
+  "kmz_geotiff_videos": "preservados",
+  "zip_sha256": "d74f28d9313b2011ff221837b77b5e4f9d6d10ad0a3adc208bbe46fed8b8bf24",
+  "windows_native_executed": false
+}
