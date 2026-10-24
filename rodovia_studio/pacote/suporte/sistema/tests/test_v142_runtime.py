@@ -29,7 +29,7 @@ def test_real_server_graceful_shutdown_from_other_directory(tmp_path):
                     break
                 except OSError:time.sleep(.1)
             else:raise AssertionError('Servidor não iniciou.')
-            assert health['version']=='1.42.1' and health['ffmpeg']
+            assert health['version']==json.loads((base/'VERSAO.json').read_text())['version'] and health['ffmpeg']
             with opener.open(url+'/api/atualizacao',timeout=3) as r:
                 assert json.load(r)['modo']=='desenvolvimento'
             req=urllib.request.Request(url+'/api/sessao/encerrar',data=b'',headers={'X-Rodovia-Control':'sessao-teste-real'},method='POST')

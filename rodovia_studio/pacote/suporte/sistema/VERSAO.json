@@ -1,5 +1,5 @@
 {
-  "version": "1.42.1",
+  "version": "1.42.2",
   "schema_version": 33,
   "reference_video_sha256": "1d8cc8267015132a80ec4363bb1e5a66f39361d2a7e897ba509c7974f97e488b",
   "reference_note": "O vídeo TH57 aprovado foi substituído pela ficha técnica assets/th57/referencia_ficha.json (dados do arquivo e métricas de imagem para comparação). SHA-256 histórico mantido.",
@@ -50,7 +50,8 @@
     "1.40.8": "KMZ protegido e rastreável: valida leitura, registra uso efetivo (eixo, georreferenciamento, POIs/referência) e alerta antes de retirar arquivo necessário.",
     "1.40.9": "Validação ampliada de usabilidade e funcionalidades: matriz visual responsiva, stress de interação, KMZ, imagens, rotas, robustez e salvamento.",
     "1.42": "Atualização autocontida: ZIP oficial somente em atualizacoes/, distribuição interna sem busca na raiz, detecção automática durante execução, fechamento controlado e aviso para reabrir; splash mostra versão, fabricante Ronaldo Santos e logotipo animado.",
-    "1.42.1": "Atualização transacional, encerramento controlado e validação da API."
+    "1.42.1": "Atualização transacional, encerramento controlado e validação da API.",
+    "1.42.2": "Informações no rodapé, botões de acesso rápido e fluxos em primeiro plano durante edição."
   },
   "automated_tests_passed": 306,
   "test_environment": "Linux, Python 3.13; shapely 2.1.2/GEOS 3.13.1 e pyproj 3.7.2/PROJ 9.6.2 compilados no ambiente (as versões fixadas para Windows são shapely 2.2.0 e pyproj 3.8.0); interface verificada em Chromium (Playwright)",

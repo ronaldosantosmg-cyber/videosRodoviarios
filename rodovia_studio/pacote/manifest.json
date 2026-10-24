@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.1",
-  "description": "Atualização autocontida em atualizacoes/, splash com versão/fabricante/animação e atualização automática controlada."
+  "version": "1.42.2",
+  "description": "Rodapé com comando, coordenadas e legenda; botões rápidos abaixo do menu; fluxos em primeiro plano na edição."
 }

@@ -479,3 +479,19 @@ body.desktop140.dwProjectFocus .dwTitleBar .brand h1{font-size:13px}
 .studio142 .dockItems,.studio142 .dockItem,.studio142 #propPanel{min-width:0;max-width:100%;overflow-wrap:anywhere}
 .studio142 #propPanel .row{flex-wrap:wrap}.studio142 #propPanel p,.studio142 #propPanel label{white-space:normal}
 .studio142 #propPanel table{table-layout:fixed;width:100%}.studio142 #propPanel input,.studio142 #propPanel select{min-width:0;max-width:100%;box-sizing:border-box}
+
+/* 1.42.2: ações rápidas no topo; comando, coordenadas e legenda no rodapé. */
+.studio142 #rsQuickTools{flex-basis:100%;display:flex;gap:6px;align-items:center;overflow-x:auto;min-width:0;padding:2px 0}
+.studio142 .rsQuickGroup{display:flex;gap:3px;flex:none;align-items:center;padding-right:7px;border-right:1px solid var(--cromo-borda)}
+.studio142 .rsQuickGroup:last-child{border:0}.studio142 .rsQuickGroup button{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;min-height:30px;padding:4px 7px;color:var(--texto);background:var(--panel);border:1px solid var(--cromo-borda);border-radius:4px;font:12px "Segoe UI",system-ui,sans-serif}
+.studio142 .rsQuickGroup button:hover:not(:disabled),.studio142 .rsQuickGroup button.on{background:var(--cromo-hover);border-color:var(--accent)}
+.studio142 .rsQuickGroup button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}.studio142 .rsQuickGroup button:disabled{opacity:.45}.studio142 .rsQuickGroup svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6}
+.studio142 #rsStudyFooter{display:flex;flex-wrap:wrap;align-items:center;flex:none;gap:3px 10px;padding:3px 10px;max-height:28vh;overflow:auto;background:var(--panel);border-top:1px solid var(--cromo-borda);font-size:12px}
+.studio142 #rsStudyFooter .dwCursor{position:static!important;display:flex;flex-wrap:wrap;margin:0!important;min-height:20px;flex:1;min-width:240px}
+.studio142 #rsStudyFooter #rsActiveTool{min-height:20px;flex:none}.studio142 #rsStudyFooter #rsFlowLegend{display:flex;flex-wrap:wrap;gap:12px;flex-basis:100%;font-size:11px}
+.studio142 #rsStudyFooter #dwCommandDrawer{flex-basis:100%;max-height:18vh;box-shadow:none}.studio142 #rsStudyFooter [hidden]{display:none!important}
+.studio142 #rsCommandRail{max-height:25vh;gap:4px 10px}.studio142 #rsQuickTools .rsQuickGroup button svg:empty{display:none}
+body.studio142.wide{display:flex!important;flex-direction:column!important;height:100dvh!important;min-height:0!important;overflow:hidden!important;padding:0!important;box-sizing:border-box}
+body.studio142.wide main{height:auto!important;flex:1 1 0!important;min-height:0!important;overflow:hidden}
+.studio142 #bottomBar{position:relative!important;inset:auto!important;flex:none;min-height:24px;box-sizing:border-box}
+.studio142 #rsQuickTools{flex-wrap:wrap;overflow-x:visible}

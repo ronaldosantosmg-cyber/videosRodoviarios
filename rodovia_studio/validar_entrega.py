@@ -16,10 +16,10 @@ import zipfile
 ROOT=Path(__file__).resolve().parent
 PACKAGE=ROOT/'pacote'
 SYSTEM=PACKAGE/'suporte/sistema'
-EVIDENCE=ROOT/'evidencias'
+EVIDENCE=ROOT/'evidencias'/json.loads((PACKAGE/'manifest.json').read_text())['version']
 TESTS=[
  'tests/test_v142_update.py','tests/test_v142_runtime.py','tests/test_v142_diagnostics.py',
- 'tests/test_v142_visual.py','tests/test_v142_live_ui.py','tests/test_v141_technical.py',
+ 'tests/test_v142_visual.py','tests/test_v1422_layout.py','tests/test_v142_live_ui.py','tests/test_v141_technical.py',
  'tests/test_v1410_final.py','tests/test_v1405_robust_traffic.py','tests/test_v1407_imagery_cache.py',
  'tests/test_v1408.py','tests/test_v1409_functionality.py','tests/test_v1407_visual.py',
  'tests/test_v1408_visual.py','tests/test_v1409_visual.py','tests/test_v1410_visual.py',
@@ -64,7 +64,7 @@ def native_checks(env,log):
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--gerar',action='store_true');args=parser.parse_args()
-    EVIDENCE.mkdir(exist_ok=True)
+    EVIDENCE.mkdir(parents=True,exist_ok=True)
     env=dict(os.environ,PYTHONPYCACHEPREFIX=str(ROOT.parent.parent/'.cache/pycache'),XDG_CACHE_HOME=str(ROOT.parent.parent/'.cache'),VISUAL_ARTIFACTS=str(EVIDENCE),RODOVIA_DATA=str(Path(tempfile.gettempdir())/'rodovia_gate_data'))
     initial=digest();report=EVIDENCE/'pytest-resultados.xml';report.unlink(missing_ok=True)
     with (EVIDENCE/'validacao.log').open('w',encoding='utf-8') as log:
@@ -89,8 +89,8 @@ def main():
     if output.exists():raise RuntimeError('O pacote final já existe; preserve-o antes de gerar outra entrega.')
     with tempfile.TemporaryDirectory(prefix='rs_package_') as tmp:
         stage=Path(tmp)/'pacote';shutil.copytree(PACKAGE,stage,ignore=shutil.ignore_patterns('__pycache__','.pytest_cache','*.pyc'))
-        evidence=stage/'suporte/documentacao/validacao_1_42_1';evidence.mkdir(parents=True)
-        for name in ['pytest-resultados.xml','resultado.json','validacao.log','142_03_modelar_cascata.png','142_11_motor_editor_real.png','142_12_motor_editor_fluxo_problema.png','splash_142_1_a.png','splash_142_1_b.png']:
+        evidence=stage/('suporte/documentacao/validacao_'+metadata['version'].replace('.','_'));evidence.mkdir(parents=True)
+        for name in ['pytest-resultados.xml','resultado.json','validacao.log','142_03_modelar_cascata.png','1422_01_acesso_rapido_rodape.png','1422_03_fluxos_sobre_superficies.png','1422_05_selecao_fluxo_prioritaria.png','142_11_motor_editor_real.png','142_12_motor_editor_fluxo_problema.png','splash_142_1_a.png','splash_142_1_b.png']:
             shutil.copy2(EVIDENCE/name,evidence/name)
         manifest=json.loads((stage/'manifest.json').read_text())
         manifest['files']={f.relative_to(stage).as_posix():hashlib.sha256(f.read_bytes()).hexdigest() for f in sorted(stage.rglob('*')) if f.is_file() and f!=stage/'manifest.json'}

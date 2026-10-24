@@ -75,6 +75,12 @@ window.addEventListener('pointerdown',e=>{if(e.target===canvas&&ctxState)closeMe
  const r=hitRot(c);if(r){stop();checkpoint();const L=selObjs();drag={type:'rot',c:r.c,a0:Math.atan2(c.w.y-r.c.y,c.w.x-r.c.x),objs:L,base:L.map(o=>o.grips.map(gripGet)),ang:0,cur:c};return}
  const lo=hitLabel(c);if(lo){stop();checkpoint();drag={type:'label',o:lo};return}
  if(hitAnyGrip(c))return;   // grips: arraste do 1.22
+ if(window.RodoviaFlowStudy?.isEditing?.()&&!e.shiftKey){
+  const hit=hitObjects(c).find(h=>['route_alignments','traffic_paths'].includes(h.key));
+  if(hit){stop();sel={key:hit.key,i:hit.i};selSet=[];dxfSel=null;selSeg=null;selLink=null;showProps();draw();return}
+  const link=linkAt(c),segment=nearestSegment(c.w,6/Math.max(pxPerM(),1e-9));
+  if(link||segment){stop();sel=null;selSet=[];dxfSel=null;if(link){selLink=link;selSeg=null;showLinkProps()}else{selSeg={id:segment.id};selLink=null;showSegProps()}draw();return}
+ }
  let h=hitObject(c);
  // Dentro de uma área (sem tocar a borda), ligação ou trajetória perto do clique têm prioridade.
  if(h&&h.d>=7&&objOf(h)?.shape==='area'&&!e.shiftKey&&(linkAt(c)||(vecOn.flows!==false&&nearestSegment(c.w,6/Math.max(pxPerM(),1e-9)))))h=null;

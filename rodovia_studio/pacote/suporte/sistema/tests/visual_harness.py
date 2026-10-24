@@ -7,7 +7,7 @@ Funciona em dois modos:
 O modo offline existe para redes corporativas/CI que bloqueiam navegação HTTP local no Chromium.
 """
 from __future__ import annotations
-import base64, os
+import base64, os, json
 from pathlib import Path
 
 BASE = Path(__file__).resolve().parents[1]
@@ -48,7 +48,7 @@ def chromium_path() -> str | None:
 def offline_html() -> str:
     html=(APP/'index.html').read_text(encoding='utf-8')
     css=(APP/'estilo.css').read_text(encoding='utf-8')
-    html=html.replace('<link rel="stylesheet" href="/estilo.css">',MOCK_BOOTSTRAP+f'<style>{css}</style>')
+    html=html.replace('<link rel="stylesheet" href="/estilo.css">',MOCK_BOOTSTRAP.replace('1.40.9-visual',json.loads((BASE/'VERSAO.json').read_text())['version']+'-visual')+f'<style>{css}</style>')
     html=html.replace('<script src="/app.js"></script>','')
     def data_img(path):
         raw=Path(path).read_bytes();return 'data:image/png;base64,'+base64.b64encode(raw).decode('ascii')

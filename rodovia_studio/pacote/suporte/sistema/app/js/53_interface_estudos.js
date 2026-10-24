@@ -2,7 +2,7 @@
 (()=>{
 'use strict';
 const state={menus:[],top:-1,focus:null};
-const study={stale:false};
+const study={stale:false,editing:false};
 window.RodoviaFlowStudy=study;
 const call=f=>{try{const r=f?.();if(r?.catch)r.catch(e=>msg(e.message,true))}catch(e){msg(e.message,true)}};
 const leaf=(t,f,k)=>({t,f,k});
@@ -94,15 +94,68 @@ function contextItems(w){
  return [{t:'Modelar',sub:modelGroups()},...original.filter(i=>!i.hd&&['Desfazer','Refazer','Enquadrar tudo','Centralizar aqui','Regenerar tela','Comandos e ajuda'].includes(i.t))];
 }
 openCanvasMenu=function(x,y,w){closeMenu();closeMenus();state.focus=canvas;popup(contextItems(w),null,0,{x,y})};
+const flowTools=new Set(['flowadd','flowrev','flowoff','linkforce','noconn','noconnarea','route','routesec','dir','arrowrot','lanes','lanerange','block','crossok','crossno']);
+function flowEditing(){return study.editing||flowTools.has(tool)}
+study.isEditing=flowEditing;
+function quickTools(rail){
+ if($('rsQuickTools'))return;
+ const bar=document.createElement('div');bar.id='rsQuickTools';bar.setAttribute('role','toolbar');bar.setAttribute('aria-label','Acesso rápido');rail.prepend(bar);
+ const groups=[
+  ['Projeto',[
+   ['new','Novo',()=>$('new')?.click()],['open','Abrir',()=>openProjectDialog()],['save','Salvar',()=>$('saveProject')?.click()]]],
+  ['Editar',[
+   ['properties','Propriedades',()=>psOpenHub('props')]]],
+  ['Vista',[
+   ['select','Selecionar',()=>setTool('pan')],['fit','Enquadrar',()=>fitView()]]],
+  ['Fluxos',[
+   ['flows','Editar fluxos',()=>{study.editing=!study.editing;vecOn.flows=true;if(!study.editing&&flowTools.has(tool))setTool('pan');sync();draw()}],
+   ['route','Nova rota',()=>setTool('route')],['update-flows','Atualizar fluxos',()=>$('updFlows')?.click()]]],
+  ['Vídeo',[
+   ['preview','Prévia',()=>$('openAtTime')?.click()],['render','Gerar vídeo',()=>typeof gerarVideo==='function'?gerarVideo():$('render')?.click()]]]
+ ];
+ for(const [label,items] of groups){
+  const group=document.createElement('div');group.className='rsQuickGroup';group.setAttribute('role','group');group.setAttribute('aria-label',label);
+  for(const [id,text,fn] of items){const btn=document.createElement('button');btn.type='button';btn.dataset.rsQuick=id;btn.title=text;btn.setAttribute('aria-label',text);btn.innerHTML=`${icoPara(text)}<span>${esc(text)}</span>`;btn.onclick=()=>call(fn);group.appendChild(btn)}
+  if(label==='Editar')for(const id of ['redo','undo']){const button=$(id);if(button)group.prepend(button)}
+  bar.appendChild(group);
+ }
+}
 function dockCommands(){
  const title=document.querySelector('.dwTitleBar');if(title)$('menuBar').before(title);
- let rail=$('rsCommandRail');if(!rail){rail=document.createElement('div');rail.id='rsCommandRail';rail.setAttribute('aria-label','Comandos e opções da ferramenta');$('menuBar').after(rail)}
- for(const el of [$('toolOptions'),$('selBar'),document.querySelector('.dwCursor'),$('dwCommandDrawer')])if(el&&el.parentNode!==rail)rail.appendChild(el);
+ let rail=$('rsCommandRail');if(!rail){rail=document.createElement('div');rail.id='rsCommandRail';rail.setAttribute('aria-label','Acesso rápido e opções da ferramenta');$('menuBar').after(rail)}
+ quickTools(rail);
+ for(const el of [$('toolOptions'),$('selBar')])if(el&&el.parentNode!==rail)rail.appendChild(el);
  const tb=$('toolbar');if(tb)tb.hidden=true;
- if(!$('rsActiveTool')){const head=document.createElement('div');head.id='rsActiveTool';head.setAttribute('role','status');rail.prepend(head)}
- if(!$('rsFlowLegend')){const legend=document.createElement('div');legend.id='rsFlowLegend';legend.innerHTML='<span class="flow-ok">● Fluxo OK</span><span class="flow-problem">● Problema</span><span class="flow-adjustment">● Ajuste necessário</span><span>Estudo técnico · não aparece no vídeo</span>';rail.appendChild(legend)}
+ let footer=$('rsStudyFooter');if(!footer){footer=document.createElement('div');footer.id='rsStudyFooter';footer.setAttribute('aria-label','Comando, coordenadas e diagnóstico de fluxos');$('bottomBar').before(footer)}
+ if(!$('rsActiveTool')){const head=document.createElement('div');head.id='rsActiveTool';head.setAttribute('role','status');footer.appendChild(head)}
+ for(const el of [document.querySelector('.dwCursor'),$('dwCommandDrawer')])if(el&&el.parentNode!==footer)footer.appendChild(el);
+ if(!$('rsFlowLegend')){const legend=document.createElement('div');legend.id='rsFlowLegend';legend.innerHTML='<span class="flow-ok">● Fluxo OK</span><span class="flow-problem">● Problema</span><span class="flow-adjustment">● Ajuste necessário</span><span>Estudo técnico · não aparece no vídeo</span>';footer.appendChild(legend)}
+}
+function foregroundFlows(){
+ if(!ready()||!flowEditing()||vecOn.flows===false)return;
+ ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.lineJoin='round';ctx.lineCap='round';
+ const line=(points,status,forward=true,both=false,dashed=false)=>{
+  const pts=(points||[]).map(p=>Array.isArray(p)?P(p):p).filter(p=>Number.isFinite(p.x)&&Number.isFinite(p.y));if(pts.length<2)return;
+  const color=flowStudyColor(status);poly(pts);ctx.setLineDash([]);ctx.strokeStyle='#081623';ctx.lineWidth=7;ctx.stroke();
+  ctx.setLineDash(dashed?[7,4]:[]);ctx.strokeStyle=color;ctx.lineWidth=4;ctx.stroke();ctx.setLineDash([]);arrowsAlong(pts,forward,both,color,85);
+ };
+ for(const seg of editor?.segments||[])line(seg.points,seg,seg.forward,seg.both,seg.disabled);
+ for(const route of M.traffic_paths||[])line(route.points,route.enabled===false?{disabled:true}:(editor?.segments||[]).find(s=>s.source===route.name),true,false,route.enabled===false);
+ for(const route of M.route_alignments||[]){
+  const calculated=(editor?.segments||[]).filter(s=>s.route===route.id);const status=route.enabled===false?{disabled:true}:calculated.find(s=>s.technical_status==='problem')||calculated.find(s=>s.technical_status==='adjustment')||calculated[0];
+  line(route.points,status,true,false,true);
+ }
+ for(const lane of routeLanes||[]){const route=M.route_alignments?.[lane.route];const calculated=(editor?.segments||[]).find(s=>s.route===route?.id);line(lane.points,lane.enabled===false?{disabled:true}:calculated,true,false)}
+ for(const link of editor?.connections||[])line(link.p,{technical_status:'ok'},true,false,!!link.forced);
+ for(const link of editor?.denied||[])line(link.p,{disabled:true},true,false,true);
+ // Preserva os grips de uma rota selecionada acima do próprio realce.
+ if(sel&&['route_alignments','traffic_paths'].includes(sel.key)){
+  const obj=objOf(sel);for(const grip of obj?.grips||[]){const [x,y]=W2C(gripGet(grip));ctx.fillStyle='#fff';ctx.strokeStyle='#1f2937';ctx.lineWidth=1.5;ctx.fillRect(x-4,y-4,8,8);ctx.strokeRect(x-4,y-4,8,8)}
+ }
+ ctx.restore();
 }
 function sync(){
+ const quick=$('rsQuickTools')?.querySelector('[data-rs-quick="flows"]');if(quick){quick.setAttribute('aria-pressed',String(flowEditing()));quick.classList.toggle('on',flowEditing())}
  const active=TOOLS.find(t=>Array.isArray(t)&&t[0]===tool);
  if($('rsActiveTool'))$('rsActiveTool').textContent='Comando: '+(active?toolLabel(active).replace(/^[^\p{L}\p{N}]+/u,''):'Selecionar')+' · Enter conclui · Esc cancela';
  const b=document.querySelector('[data-pshub="props"]');if(b){b.setAttribute('aria-expanded',String(!dockState.recolhida&&dockState.aba==='prop'));b.classList.toggle('on',!dockState.recolhida&&dockState.aba==='prop')}
@@ -111,7 +164,8 @@ function sync(){
 function init(){
  document.body.classList.add('studio142');buildMenus();dockCommands();sync();
  const oldPlace=placeSelBar;placeSelBar=function(){oldPlace();const b=$('selBar');if(b){b.style.left='';b.style.top=''}};
- const oldTool=setTool;setTool=function(...args){const r=oldTool(...args);sync();return r};
+ const oldTool=setTool;setTool=function(...args){if(flowTools.has(args[0]))vecOn.flows=true;const r=oldTool(...args);sync();return r};
+ const oldDraw=draw;draw=function(...args){const r=oldDraw(...args);foregroundFlows();return r};
  const oldDock=aplicarDock;aplicarDock=function(...args){const r=oldDock(...args);sync();return r};
  const oldChanged=changed;changed=function(...args){study.stale=true;const r=oldChanged(...args);sync();return r};
  const oldLoad=load;load=async function(...args){const r=await oldLoad(...args);study.stale=!!(task||savePending);draw();sync();return r};
