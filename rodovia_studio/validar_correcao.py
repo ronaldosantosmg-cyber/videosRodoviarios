@@ -21,7 +21,7 @@ AREAS = {
         'tests/test_v1428_panels.py::test_popup_save_reaches_the_real_api_and_restores_enabled_controls',
         'tests/test_v1428_panels.py::test_popup_discard_restores_form_and_preserves_previous_pending_edits',
     ],
-    'fluxo': ['tests/test_v14212_traffic_safety.py',
+    'fluxo': ['tests/test_v14213_continuity.py','tests/test_v14212_traffic_safety.py',
               'tests/test_v14212_modelagem.py::test_requested_vehicle_widths_and_lateral_reservation'],
     'imagem': ['tests/test_v14212_modelagem.py', 'tests/test_v14212_ui.py',
                'tests/test_v14212_presentation.py'],

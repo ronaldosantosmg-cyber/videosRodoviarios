@@ -12,7 +12,7 @@ def cut_raw_paths(raw,cuts,tolerance=6.,overrides=()):
         if not override.enabled or override.action!='disable':continue
         point=Point(override.x,override.y);best=None
         for i,r in enumerate(raw):
-            if override.target_key and override.target_key!=r.get('origin_key'):continue
+            if override.target_key and override.target_key not in r.get('origin_aliases',[r.get('origin_key')]):continue
             line=LineString(r['points']);distance=line.distance(point)
             if distance<=tolerance and (best is None or distance<best[0]):best=(distance,i,line.project(point))
         if best is not None:disabled_owners.setdefault(best[1],[]).append((best[2],{'id':override.id,'x':override.x,'y':override.y,'target_key':override.target_key}))
@@ -20,7 +20,7 @@ def cut_raw_paths(raw,cuts,tolerance=6.,overrides=()):
         if not cut.enabled:continue
         a,b=Point(cut.start.x,cut.start.y),Point(cut.end.x,cut.end.y);best=None
         for i,r in enumerate(raw):
-            if cut.target_key and cut.target_key!=r.get('origin_key'):continue
+            if cut.target_key and cut.target_key not in r.get('origin_aliases',[r.get('origin_key')]):continue
             ln=LineString(r['points']);distance=max(ln.distance(a),ln.distance(b))
             if distance<=tolerance and (best is None or distance<best[0]):best=(distance,i,ln)
         if best is None:reports.append({'id':cut.id,'status':'unmatched'});continue

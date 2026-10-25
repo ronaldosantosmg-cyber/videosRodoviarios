@@ -1,0 +1,12 @@
+........................................................................ [ 79%]
+...................                                                      [100%]
+============================= slowest 8 durations ==============================
+14.02s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14212_traffic_safety.py::test_pare_siga_never_reverses_while_tail_is_in_shared_corridor
+10.12s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14212_traffic_safety.py::test_actual_overtakes_have_indicators_and_keep_lateral_reservations
+9.67s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14212_traffic_safety.py::test_wide_trucks_observe_half_meter_free_distance_and_use_both_directions[3.5]
+7.53s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14212_traffic_safety.py::test_explicit_opposite_lane_endpoints_are_portals_without_a_uturn
+5.03s call     rodovia_studio/pacote/suporte/sistema/tests/test_v1405_robust_traffic.py::test_capacity_model_forms_queue_without_collisions
+3.86s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v14213_continuity_ui.py::test_real_block_shows_reason_location_and_manual_surface_correction
+2.77s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v14213_continuity_ui.py::test_native_contact_piece_is_green_selectable_and_has_continuity_explanation
+2.57s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v1428_menu_flow.py::test_flow_selection_opens_properties_after_other_object_selection
+91 passed in 67.07s (0:01:07)

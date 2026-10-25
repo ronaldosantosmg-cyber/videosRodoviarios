@@ -137,7 +137,7 @@ def assign(paths,overrides,marks,path_keys=None):
     for o in overrides or []:
         if not o.enabled:continue
         key=getattr(o,'target_key','')
-        i=nearest((o.x,o.y),check=lambda index:not key or bool(path_keys and path_keys[index]==key))
+        i=nearest((o.x,o.y),check=lambda index:not key or bool(path_keys and (key in path_keys[index] if isinstance(path_keys[index],(list,tuple,set)) else path_keys[index]==key)))
         if i is not None:
             if o.action=='speed':out[i]['speed_kmh']=getattr(o,'speed_kmh',None)
             else:out[i][o.action]=True

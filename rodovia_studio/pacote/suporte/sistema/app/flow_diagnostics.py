@@ -1,6 +1,12 @@
 """Diagnóstico de circulação para o editor; não modifica rotas nem desenha no vídeo."""
 import math
 
+REASONS={'corpo_fora_da_pista':'corpo do veículo fora do pavimento reconhecido',
+         'esterco_excessivo':'curva incompatível com o esterçamento do veículo',
+         'mudanca_brusca':'mudança brusca de direção','auto_intersecao':'traçado cruza a si mesmo',
+         'ziguezague':'ziguezague','frente_traseira_degeneradas':'frente/traseira sem direção válida',
+         'geometria_invalida':'coordenadas ou comprimento inválidos','rota_excessiva':'extensão excessiva'}
+
 
 def flow_diagnostics(network):
     minimum=float(getattr(network,'min_route',50))
@@ -18,9 +24,10 @@ def flow_diagnostics(network):
         length=sum(math.hypot(float(b[0])-float(a[0]),float(b[1])-float(a[1])) for a,b in zip(points,points[1:])) if finite else 0
         edges=by_base.get(raw['base'],[])
         active=[i for i,e in edges if not e.get('disabled') and i not in short]
+        effective_length=network.origin_info.get(raw.get('origin_id'),(length,False))[0] if raw.get('native_axis') else length
         if not finite or length<=0:status,message='problem','Geometria inválida ou de comprimento nulo.'
         elif raw.get('disabled'):status,message='problem','Fluxo desativado; veículos não circulam neste trecho.'
-        elif length<minimum:status,message='adjustment',f'Fluxo abaixo de {minimum:g} m; circulação desligada pelo limite do projeto.'
+        elif effective_length<minimum:status,message='adjustment',f'Fluxo abaixo de {minimum:g} m; circulação desligada pelo limite do projeto.'
         elif any(i in getattr(network,'rejected_edge_ids',set()) for i,_ in edges):status,message='problem','Trajetória recusada pela análise de frente/traseira, esterçamento ou continuidade.'
         elif not active:status,message='problem','Sem faixa habilitada para circulação.'
         elif not any(i in used for i in active):status,message='adjustment','Trecho sem itinerário utilizável; revise as ligações e o sentido.'
@@ -30,6 +37,16 @@ def flow_diagnostics(network):
         for item in getattr(network,'rejected_paths',[]):
             audit=item['audit'];point=audit.get('critical_center_xy') or audit.get('front_xy')
             if point and edge_ids.intersection(item['edges']):critical.append({'point':point,'reasons':audit.get('reasons',[])})
+        if status!='ok' and finite and not raw.get('disabled') and effective_length>=minimum:
+            from .vehicle_motion import analyze_motion
+            if 'diagnostic_audit' not in raw:raw['diagnostic_audit']=analyze_motion(points,allowed=getattr(network,'allowed',None))
+            audit=raw['diagnostic_audit']
+            if not audit['ok']:
+                status='problem';message='Bloqueio localizado: '+ '; '.join(REASONS.get(r,r) for r in audit['reasons'])+'.'
+                if audit.get('critical_center_xy'):critical.append({'point':audit['critical_center_xy'],'reasons':audit['reasons']})
+        reasons=list(dict.fromkeys(r for item in critical for r in item['reasons']))
+        if status=='ok' and raw.get('native_axis') and length<minimum:
+            message=f'Subtrecho integrado ao eixo DXF contínuo de {effective_length:.1f} m; não é uma mini-rota independente.'
         recovery=raw.get('recovery_reports') or []
         for report in recovery:
             for points in report.get('excluded_geometry',[]):
@@ -53,12 +70,16 @@ def flow_diagnostics(network):
         elif raw.get('disabled'):
             automatic='Manter desligado; não reativar uma desativação manual.'
             manual='Revisar o traçado e o sentido antes de habilitar e recalcular.'
-        elif length<minimum and finite and length>0:
+        elif effective_length<minimum and finite and length>0:
             automatic=f'Manter a geometria e desligar a circulação abaixo de {minimum:g} m.'
             manual='Revisar o limite do projeto ou criar manualmente uma rota contínua válida.'
         else:
             automatic='Excluir os movimentos inválidos da simulação; preservar o traçado original para revisão.'
             manual='Editar os pontos, o sentido e as ligações; recalcular e conferir o diagnóstico antes de circular.'
+        if 'corpo_fora_da_pista' in reasons:
+            manual='Confira a área de pavimento no ponto vermelho: corrija a classificação/hachura ou reposicione a faixa dentro da pista. Linhas de bordo não são barreiras; canteiros, obstáculos e cortes continuam bloqueando.'
+        elif status=='adjustment' and effective_length>=minimum:
+            manual='Confira as pontas, o sentido e a camada Eixo. Para escolha explícita, use Rota de veículos → Selecionar uma linha / Seleção contínua, confirme o sentido e recalcule.'
         out.append({'technical_status':status,'technical_message':message,
-                    'technical_automatic':automatic,'technical_manual':manual,'technical_recovery':recovery_info,'technical_points':critical[:20]})
+                    'technical_automatic':automatic,'technical_manual':manual,'technical_recovery':recovery_info,'technical_points':critical[:20],'technical_reasons':reasons})
     return out

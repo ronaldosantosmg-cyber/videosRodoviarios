@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.12",
-  "description": "1.42.12 provisória: correção de popups, contexto de imagem assistido, seções e pare e siga. Empacotamento antecipado autorizado pelo usuário; validação completa pendente."
+  "version": "1.42.13",
+  "description": "1.42.13: continuidade dos eixos DXF, junção conservadora de fragmentos e diagnóstico localizado dos bloqueios. Revisão com validação direcionada."
 }
