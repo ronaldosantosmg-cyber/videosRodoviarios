@@ -1,0 +1,111 @@
+{
+  "1.42.17": {
+    "DPI1": {
+      "results": {
+        "stationary": {
+          "p50_ms": 5.9000000059604645,
+          "p95_ms": 7
+        },
+        "pan": {
+          "p50_ms": 6.799999997019768,
+          "p95_ms": 8.299999997019768
+        }
+      },
+      "cache": {
+        "backgroundBuilds": 46,
+        "technicalBuilds": 47,
+        "hits": 99,
+        "buildMs": 4.299999997019768,
+        "fallbacks": 0,
+        "enabled": true,
+        "bytes": 5154240,
+        "budgetBytes": 33554432,
+        "surfaces": 3
+      },
+      "width": 1239,
+      "height": 520,
+      "css_area": 644280
+    },
+    "DPI2": {
+      "results": {
+        "stationary": {
+          "p50_ms": 15.599999994039536,
+          "p95_ms": 18.200000002980232
+        },
+        "pan": {
+          "p50_ms": 20.5,
+          "p95_ms": 26.69999998807907
+        }
+      },
+      "cache": {
+        "backgroundBuilds": 46,
+        "technicalBuilds": 47,
+        "hits": 99,
+        "buildMs": 9.200000017881393,
+        "fallbacks": 0,
+        "enabled": true,
+        "bytes": 20616960,
+        "budgetBytes": 33554432,
+        "surfaces": 3
+      },
+      "width": 2478,
+      "height": 1040,
+      "css_area": 644280
+    }
+  },
+  "1.42.18": {
+    "DPI1": {
+      "results": {
+        "stationary": {
+          "p50_ms": 0.7999999970197678,
+          "p95_ms": 1.5
+        },
+        "pan": {
+          "p50_ms": 7.899999991059303,
+          "p95_ms": 10.5
+        }
+      },
+      "cache": {
+        "backgroundBuilds": 46,
+        "technicalBuilds": 48,
+        "hits": 98,
+        "buildMs": 35.79999992251396,
+        "fallbacks": 0,
+        "enabled": true,
+        "bytes": 5154240,
+        "budgetBytes": 33554432,
+        "surfaces": 3
+      },
+      "width": 1239,
+      "height": 520,
+      "css_area": 644280
+    },
+    "DPI2": {
+      "results": {
+        "stationary": {
+          "p50_ms": 2.3999999910593033,
+          "p95_ms": 3.5
+        },
+        "pan": {
+          "p50_ms": 20.700000002980232,
+          "p95_ms": 25.5
+        }
+      },
+      "cache": {
+        "backgroundBuilds": 46,
+        "technicalBuilds": 48,
+        "hits": 98,
+        "buildMs": 22.899999886751175,
+        "fallbacks": 0,
+        "enabled": true,
+        "bytes": 20616960,
+        "budgetBytes": 33554432,
+        "surfaces": 3
+      },
+      "width": 2478,
+      "height": 1040,
+      "css_area": 644280
+    }
+  },
+  "limitations": "Pintura CPU da interface real em Chromium/Linux, 1366×900, com 100 hachuras sintéticas. Não mede FPS de projeto real, consumo total de RAM/GPU, Windows ou renderização do vídeo. Pan usa desenho direto durante arraste; caches têm teto adicional de 32 MiB."
+}

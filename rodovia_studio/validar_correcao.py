@@ -15,6 +15,7 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parent
 SYSTEM = ROOT / 'pacote/suporte/sistema'
 AREAS = {
+    'agentes': ['tests/test_v14218_agents.py','tests/test_v14218_axis_policy.py','tests/test_v14218_scene_agents.py','tests/test_v14218_live_agents.py','tests/test_v14218_layers_ui.py'],
     'popup': [
         'tests/test_v14214_panels_ui.py',
         'tests/test_v14212_ui.py::test_automatic_job_does_not_close_a_panel_opened_while_save_is_pending',
@@ -22,7 +23,7 @@ AREAS = {
         'tests/test_v1428_panels.py::test_popup_save_reaches_the_real_api_and_restores_enabled_controls',
         'tests/test_v1428_panels.py::test_popup_discard_restores_form_and_preserves_previous_pending_edits',
     ],
-    'fluxo': ['tests/test_v14216_flow_repair.py','tests/test_v14216_repair_live.py','tests/test_v14214_assistant.py','tests/test_v14213_continuity.py','tests/test_v14212_traffic_safety.py',
+    'fluxo': ['tests/test_v14218_axis_policy.py','tests/test_v14216_flow_repair.py','tests/test_v14216_repair_live.py','tests/test_v14214_assistant.py','tests/test_v14213_continuity.py','tests/test_v14212_traffic_safety.py',
               'tests/test_v14212_modelagem.py::test_requested_vehicle_widths_and_lateral_reservation'],
     'imagem': ['tests/test_v14212_modelagem.py', 'tests/test_v14212_ui.py',
                'tests/test_v14212_presentation.py'],

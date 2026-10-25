@@ -1,0 +1,16 @@
+........................................................................ [ 91%]
+.......                                                                  [100%]
+============================= slowest 8 durations ==============================
+50.60s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14218_live_agents.py::test_shared_people_and_bounded_smoke_are_rendered_by_real_webgl
+12.38s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14212_traffic_safety.py::test_pare_siga_never_reverses_while_tail_is_in_shared_corridor
+9.33s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14218_agents.py::test_pedestrian_crossings_hold_real_vehicles_and_have_no_body_overlap
+9.12s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14212_traffic_safety.py::test_wide_trucks_observe_half_meter_free_distance_and_use_both_directions[3.5]
+8.79s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14212_traffic_safety.py::test_actual_overtakes_have_indicators_and_keep_lateral_reservations
+7.66s call     rodovia_studio/pacote/suporte/sistema/tests/test_v1426_transport.py::test_real_simulation_stops_and_releases[signal]
+7.40s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v14218_live_agents.py::test_shared_people_and_bounded_smoke_are_rendered_by_real_webgl
+7.34s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14218_live_agents.py::test_2d_mp4_with_agents_decodes_all_frames_and_preserves_collision_audit
+79 passed in 219.88s (0:03:39)
+
+Verificação final da navegação/cache após ajustar o caminho de pan:
+.................                                                        [100%]
+17 passed in 42.79s

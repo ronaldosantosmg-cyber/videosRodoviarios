@@ -303,10 +303,17 @@ def analyze(directory,settings,preview=None,hatch_preview=None):
         raise
     axes=[v for v in entities if v['role']=='axis' and len(v['points'])>=2]
     if not axes and kml_lines:
-        axes=[{'layer':'KMZ','role':'axis','closed':False,'points':max(kml_lines,key=lambda p:LineString(p).length),'holes':[]}];entities+=axes
+        axes=[{'layer':'KMZ','role':'axis','reference_only':'KMZ' not in settings.layers.get('axis',[]),'closed':False,'points':max(kml_lines,key=lambda p:LineString(p).length),'holes':[]}];entities+=axes
         kmz_status['used']=True;kmz_status['required']=True;kmz_status['uses'].append('eixo_fallback')
         kmz_status['message']='KMZ/KML usado como eixo de referência porque não foi encontrado eixo válido no CAD.'
         warnings.append('Eixo obtido do KMZ. Pavimento só será desenhado se houver geometria no DXF.')
+    if not axes:
+        selected=next((r for r in getattr(settings,'route_alignments',[]) if r.enabled and len(r.points)>=2),None)
+        custom=getattr(settings,'custom_axis',None)
+        reference=selected or (custom if custom and custom.enabled and len(custom.points)>=2 else None)
+        if reference:
+            axes=[{'layer':'Alinhamento selecionado','role':'axis','reference_only':True,'closed':False,'points':np.array([[p.x,p.y] for p in reference.points]),'holes':[]}];entities+=axes
+            warnings.append('Eixo de referência obtido de alinhamento selecionado; tráfego usa somente as rotas explicitamente habilitadas.')
     if not axes:
         kmz_status['required']=True
         raise ValueError('Nenhum eixo encontrado. Associe uma camada ao papel eixo ou envie KMZ com linha.')

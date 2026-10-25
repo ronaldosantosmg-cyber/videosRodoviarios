@@ -85,6 +85,13 @@ def draw_dynamic(scene,im,t,cam,width):
                 for side in (-1,1):lamp(im,screen([p+h*9+normal*side])[0],(255,247,191),max(2,.17*scale))
         elif part['model']=='passageiros':
             for along in np.arange(-5,6,2):cv2.polylines(im,[screen(rectangle(p+h*along,h,.8,2.9))],True,(43,68,82),max(1,round(scale*.12)),cv2.LINE_AA)
+    from .rail_smoke import particles
+    for puff in particles(c.train_parts(t),t,getattr(scene.s,'rail_smoke',True)):
+        q=screen([puff['p']])[0];radius=max(1,min(36,round(puff['radius']*scale)))
+        x0,x1=max(0,int(q[0]-radius)),min(scene.W,int(q[0]+radius+1));y0,y1=max(0,int(q[1]-radius)),min(scene.H,int(q[1]+radius+1))
+        if x1<=x0 or y1<=y0:continue
+        ys,xs=np.ogrid[y0:y1,x0:x1];alpha=(np.maximum(0.,1-((xs-q[0])**2+(ys-q[1])**2)/max(radius**2,1))**2*puff['alpha'])[:,:,None]
+        roi=im[y0:y1,x0:x1];roi[:]=(roi*(1-alpha)+np.array([174,178,182])*alpha).astype(np.uint8)
     # Passagem em nível: luzes alternadas e cruz de Santo André em cada aproximação.
     if getattr(scene,'network',None):
         if not hasattr(scene,'_rail_stop_heads'):scene._rail_stop_heads=Transport(scene.s,scene.network)

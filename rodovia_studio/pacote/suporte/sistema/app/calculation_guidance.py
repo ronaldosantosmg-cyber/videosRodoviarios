@@ -2,6 +2,7 @@
 import math
 
 RULES=[
+ (('pedestre','passarela','travessia'), 'Conferir travessia e pontos de espera', ['Mantenha a espera fora da pista e dos trilhos; use faixa cadastrada, calçada ou passarela com vão suficiente.','Confira gabarito da passarela e fase exclusiva de pedestres; a aproximação do trem mantém a travessia fechada até liberar toda a composição.']),
  (('kmz','kml','zip'), 'Arquivo geográfico não pôde ser interpretado', ['Confira se o KMZ contém um KML válido e se o arquivo abre no aplicativo de origem.','Reexporte o arquivo sem anexos desnecessários; mantenha o original para conferência.']),
  (('layer','camada','pavimento','corpo_fora','trajetória','fluxo'), 'Conferir geometria, superfície e classificação', ['Use Corrigir fluxos para localizar o defeito, recuperar partes válidas ou recortar o intervalo.','Confira as camadas Eixo, Pavimento, Bordo, Canteiro e Barreira; referências não são obstáculos físicos.']),
  (('nan','infinity','finite','nulo','vazio','inválido','validation','422'), 'Entrada ou configuração inválida', ['Confira os campos citados na mensagem e informe números finitos, unidades e valores dentro dos limites.','Corrija a configuração e salve antes de repetir o cálculo.']),

@@ -7,7 +7,7 @@ function clear(){for(const s of slots.values()){s.surface.width=1;s.surface.heig
 function compose(background,technical){
  if(!enabled||canvas.width*canvas.height*8>BUDGET){if(slots.size)clear();counters.fallbacks++;background();technical();return}
  const camera=[pid,projectSession.context,canvas.width,canvas.height,view.s,view.ox,view.oy,id(geo),id(meta),baseMode].join('|');
- const keys=[camera+'|'+[revision,id(baseImage),id(localInfo),localInfo?.key,localInfo?.editor,tileAlpha,webKey()].join('|'),camera+'|'+[id(vecPaths),id(editor),projectSession.epoch,vecAlpha,JSON.stringify(vecOn),JSON.stringify(M.image_groups||{})].join('|')];
+ const keys=[camera+'|'+[revision,id(baseImage),id(localInfo),localInfo?.key,localInfo?.editor,tileAlpha,webKey()].join('|'),camera+'|'+[id(vecPaths),id(editor),id(M),MARK_KEYS.map(k=>id(M[k])).join(','),tool,selected,id(alignResult),cfg.km_start_m,cfg.km_end_m,window.RodoviaFlowStudy?.stale,projectSession.epoch,vecAlpha,JSON.stringify(vecOn),JSON.stringify(M.image_groups||{})].join('|')];
  // Allocate both contexts before compositing: a fallback must never paint alpha twice.
  for(const name of ['background','technical'])if(!slots.has(name)){const surface=document.createElement('canvas'),context=surface.getContext('2d');if(!context){clear();counters.fallbacks++;background();technical();return}slots.set(name,{surface,context,key:null})}
  for(const [i,paint] of [background,technical].entries()){
@@ -22,5 +22,6 @@ function compose(background,technical){
 }
 const oldTileRedraw=tileRedraw;tileRedraw=function(...args){revision++;return oldTileRedraw(...args)};
 window.addEventListener('rodovia:project-state',()=>{revision++;clear()});
-window.RodoviaLayers=Object.freeze({compose,invalidate(){revision++;clear()},setEnabled(value){enabled=!!value;clear();draw()},stats(){return {...counters,enabled,bytes:[...slots.values()].reduce((n,s)=>n+s.surface.width*s.surface.height*4,0),budgetBytes:BUDGET,surfaces:slots.size+1}}});
+const priorChanged=changed;changed=function(...args){const slot=slots.get('technical');if(slot)slot.key=null;return priorChanged(...args)};
+window.RodoviaLayers=Object.freeze({compose,invalidate(layer){if(layer==='technical'){const slot=slots.get('technical');if(slot)slot.key=null}else{revision++;clear()}},setEnabled(value){enabled=!!value;clear();draw()},stats(){return {...counters,enabled,bytes:[...slots.values()].reduce((n,s)=>n+s.surface.width*s.surface.height*4,0),budgetBytes:BUDGET,surfaces:slots.size+1}}});
 })();

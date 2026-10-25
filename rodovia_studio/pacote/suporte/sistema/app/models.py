@@ -27,6 +27,7 @@ class POI(BaseModel):
     anchor: Point | None = None
     bridge_span_m: float | None = Field(default=None,ge=10,le=160)
     bridge_width_m: float = Field(default=3,ge=1.5,le=8)
+    bridge_clearance_m: float = Field(default=5.5,ge=5.5,le=15)
     bridge_angle_deg: float = Field(default=0,ge=-85,le=85)
     bridge_access: Literal['ramps','stairs','none'] = 'ramps'
 
@@ -722,7 +723,7 @@ class Settings(BaseModel):
     schedule_show_planned: bool = True
     traffic_paths: list[TrafficPath] = Field(default_factory=list,max_length=100)
     traffic_network_preview: bool = False
-    derive_traffic_paths: bool = True
+    derive_traffic_paths: bool = False  # legado: pavimento não autoriza gerar eixos de circulação
     route_directions: dict[str,Literal['auto','forward','reverse','off']] = Field(default_factory=dict)
     encoder: Literal['auto','nvenc','cpu'] = 'auto'
     cpu_preset: Literal['fast','veryfast'] = 'veryfast'
@@ -826,6 +827,8 @@ class Settings(BaseModel):
     vegetation_areas: list[VegArea] = Field(default_factory=list,max_length=500)
     pedestrian_paths: list[PedPath] = Field(default_factory=list,max_length=300)
     pedestrians: bool = True            # pessoas nas faixas de pedestre, passarelas e caminhos
+    pedestrian_seed: int = Field(default=1729,ge=0,le=10**9)
+    rail_smoke: bool = True
     vehicle_mix: Literal['classico','variado'] = 'variado'   # variado: carros, motos, vans, caminhões, carretas e ônibus
     # 1.21: pavimento flexível (asfalto) ou rígido (concreto com juntas), texturas no modo técnico e contraste projeto × imagem.
     pavement_material: Literal['flexivel','rigido'] = 'flexivel'

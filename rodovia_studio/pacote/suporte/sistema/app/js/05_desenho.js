@@ -16,13 +16,7 @@ function label(text,p,color='#fff'){const [x,y]=W2C(p);ctx.font='12px system-ui'
 function drawPreviewImage(){const im=baseImage,s=view.s;ctx.imageSmoothingEnabled=s<2;
  const sx0=Math.max(0,Math.floor(-view.ox/s)-1),sy0=Math.max(0,Math.floor(-view.oy/s)-1),sx1=Math.min(im.width,Math.ceil((canvas.width-view.ox)/s)+1),sy1=Math.min(im.height,Math.ceil((canvas.height-view.oy)/s)+1);
  if(sx1<=sx0||sy1<=sy0)return;ctx.drawImage(im,sx0,sy0,sx1-sx0,sy1-sy0,view.ox+sx0*s,view.oy+sy0*s,(sx1-sx0)*s,(sy1-sy0)*s)}
-function drawSceneLayers(){
- const background=()=>{if(useGeo()){if(baseMode==='map'){drawTiles();drawLocalTiles()}}else drawPreviewImage()};
- const technical=()=>{if(useGeo()){window.RodoviaImageContext?.draw();drawVectors()}else if(meta?.context_capture)window.RodoviaImageContext?.draw()};
- if(window.RodoviaLayers)RodoviaLayers.compose(background,technical);else{background();technical()}
-}
-function draw(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c1722';ctx.fillRect(0,0,canvas.width,canvas.height);if(!ready()){ctx.fillStyle='#9cb3bf';ctx.font='16px system-ui';ctx.fillText(pid?'Clique “Analisar arquivos” (seção 1) para editar sobre a imagem web, ou gere uma prévia.':'Crie ou abra um projeto.',24,40);return}
- drawSceneLayers();ctx.lineJoin='round';ctx.lineCap='round';
+function drawProjectAnnotations(){
  const ad=axisData();
  if(ad){poly(ad.a);ctx.strokeStyle='#ffffff55';ctx.lineWidth=1.5;ctx.setLineDash([6,6]);ctx.stroke();ctx.setLineDash([]);
   const st=station(),L=ad.s[ad.s.length-1],ppm=pxPerM(),step=ppm>.5?100:ppm>.1?500:1000;const ka=cfg.km_start_m+st.dir*st.scale*(0-st.s0),kb=cfg.km_start_m+st.dir*st.scale*(L-st.s0);const first=Math.ceil(Math.min(ka,kb)/step)*step;
@@ -58,6 +52,16 @@ function draw(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c1722';ctx.fillRe
  const res=alignResult?.residuals_m||[];M.dxf_alignment.pairs.forEach((p,i)=>{const r=editor?.alignment&&M.dxf_alignment.applied?editor.alignment:null;const shown=r?fwdAlign(p.dxf,r):p.dxf;poly([shown,p.image]);ctx.strokeStyle=p.enabled?'#4fa3ff':'#888';ctx.lineWidth=2;ctx.stroke();arrowHead(shown,p.image,10,ctx.strokeStyle);const [x,y]=W2C(shown);ctx.fillStyle='#4fa3ff';ctx.fillRect(x-4,y-4,8,8);const [u,v]=W2C(p.image);ctx.fillStyle='#ff5a5a';ctx.beginPath();ctx.arc(u,v,5,0,7);ctx.fill();label(`P${i+1}`+(res[i]!=null?` · ${res[i].toFixed(2)} m`:''),p.image,'#bcd')});
  if(M.cabin&&M.cabin.start){const [x,y]=W2C(M.cabin.start);ctx.fillStyle='#ffef7a';ctx.strokeStyle='#081623';ctx.lineWidth=2;ctx.beginPath();ctx.rect(x-7,y-5,14,10);ctx.fill();ctx.stroke();label('Cabine',M.cabin.start,'#ffef7a')}
  for(const h of M.highlights||[]){const st=HL_STYLE[h.category]||HL_STYLE.outro,col=h.color||st[0];const [x,y]=W2C(h.point);let [bx,by]=h.label?W2C(h.label):[x+60,y-60];ctx.strokeStyle=col;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(bx,by);ctx.stroke();ctx.fillStyle=col;ctx.beginPath();ctx.arc(x,y,8,0,7);ctx.fill();ctx.fillStyle='#0a1620';ctx.font='bold 10px system-ui';ctx.fillText(st[1],x-3,y+4);ctx.font='bold 12px system-ui';const tw=ctx.measureText(h.name).width+16;ctx.fillStyle='#081623e6';ctx.fillRect(bx-tw/2,by-12,tw,24);ctx.strokeStyle=col;ctx.strokeRect(bx-tw/2,by-12,tw,24);ctx.fillStyle='#fff';ctx.fillText(h.name,bx-tw/2+8,by+4)}
+}
+function drawSceneLayers(){
+ const annotationsInMain=drag?.type==='pan';
+ const background=()=>{if(useGeo()){if(baseMode==='map'){drawTiles();drawLocalTiles()}}else drawPreviewImage()};
+ const technical=()=>{ctx.lineJoin='round';ctx.lineCap='round';if(useGeo()){window.RodoviaImageContext?.draw();drawVectors()}else if(meta?.context_capture)window.RodoviaImageContext?.draw();if(!annotationsInMain)drawProjectAnnotations()};
+ if(window.RodoviaLayers)RodoviaLayers.compose(background,technical);else{background();technical()}
+ if(annotationsInMain){ctx.lineJoin='round';ctx.lineCap='round';drawProjectAnnotations()}
+}
+function draw(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c1722';ctx.fillRect(0,0,canvas.width,canvas.height);if(!ready()){ctx.fillStyle='#9cb3bf';ctx.font='16px system-ui';ctx.fillText(pid?'Clique “Analisar arquivos” (seção 1) para editar sobre a imagem web, ou gere uma prévia.':'Crie ou abra um projeto.',24,40);return}
+ drawSceneLayers();ctx.lineJoin='round';ctx.lineCap='round';
  if(layerShow&&layerShow.p){ctx.save();ctx.strokeStyle='#ff4fd8';ctx.lineWidth=4;ctx.shadowColor='#000';ctx.shadowBlur=4;for(const q of layerShow.p){poly(q.map(v=>({x:v[0],y:v[1]})));ctx.stroke()}ctx.restore()}
  // rascunhos
  if(draft){const pts=draft.pts.slice();if(lastWorld&&['flowadd','exvert','noconnarea','oaepoly','block','hatch','lanes','crosswalk','access','lanerange','pavarea','shoulder'].includes(draft.type))pts.push(lastWorld);poly(pts,!['flowadd','route','railway'].includes(draft.type));ctx.strokeStyle=draft.type==='flowadd'?'#e78bff':'#ffcf5c';ctx.lineWidth=2.5;ctx.setLineDash([6,4]);ctx.stroke();ctx.setLineDash([]);for(const p of draft.pts){const [x,y]=W2C(p);ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x,y,4,0,7);ctx.fill()}if(draft.fail){const [x,y]=W2C(P(draft.fail));ctx.strokeStyle='#ff3030';ctx.lineWidth=3;ctx.beginPath();ctx.arc(x,y,12,0,7);ctx.stroke()}}

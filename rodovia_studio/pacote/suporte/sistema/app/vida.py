@@ -90,51 +90,33 @@ def draw_vegetation(scene,im,cam,width,progress,header,footer):
 
 # ---------------- pedestres ----------------
 ROUPA=[(200,60,50),(40,90,170),(230,230,224),(50,140,80),(240,190,40),(120,70,140),(30,30,34),(220,120,40)]
-def _caminhos(scene):
-    s=scene.s;out=[]
-    for cw in getattr(s,'crosswalks',[]) or []:
-        if getattr(cw,'show',True):out.append((np.array([[cw.a.x,cw.a.y],[cw.b.x,cw.b.y]]),2,'faixa'))
-    from .structures import bridge_geometry
-    for p in scene.pois:
-        if p.get('kind')!='passarela':continue
-        try:
-            idx=scene.tree.query([p['x'],p['y']])[1];tan=scene.dense[min(len(scene.dense)-1,idx+2)]-scene.dense[max(0,idx-2)]
-            g=bridge_geometry(np.array([p['x'],p['y']]),tan,p);c,v,span=g['center'],g['v'],g['span']
-            pts=[]
-            if len(g['ramps'])==2:pts=list(g['ramps'][0][::-1])+[c-v*span/2,c+v*span/2]+list(g['ramps'][1])
-            else:pts=[c-v*span/2,c+v*span/2]
-            out.append((np.array(pts),3,'passarela'))
-        except Exception:continue
-    for pp in getattr(s,'pedestrian_paths',[]) or []:
-        if pp.enabled:
-            P=np.array([[q.x,q.y] for q in pp.points]);L=float(np.sum(np.linalg.norm(np.diff(P,axis=0),axis=1)))
-            out.append((P,max(1,int(round(L/100*pp.people_per_100m))),'caminho'))
-    return out
-
 def draw_pedestrians(scene,im,t,cam,width,progress,header,footer):
-    if not getattr(scene.s,'pedestrians',False) or width>900:return
-    if not hasattr(scene,'_ped'):scene._ped=_caminhos(scene)
-    if not scene._ped:return
-    m=scene.W/width;rcab=max(1.2,.2*m);rcorpo=max(1.8,.34*m)   # um pouco maiores que o real, para aparecerem
-    for k,(P,n,tipo) in enumerate(scene._ped):
-        seg=np.linalg.norm(np.diff(P,axis=0),axis=1);L=float(seg.sum())
-        if L<1:continue
-        cum=np.concatenate([[0],np.cumsum(seg)]);ch=scene.ch[scene.tree.query(P.mean(0))[1]]
+    if not getattr(scene.s,'pedestrians',False) or scene.W/max(width,1)<.35:return
+    sim=scene.traffic()
+    if sim is not None:control=sim.pedestrians
+    else:
+        if not hasattr(scene,'_ped_control'):
+            from .pedestrian_traffic import without_vehicles
+            from .transport import Transport
+            scene._ped_control=without_vehicles(scene.s,scene.network,Transport(scene.s,scene.network),scene.s.duration_s)
+        control=scene._ped_control
+    rows=control.state(t)
+    if not rows:return
+    m=scene.W/width;rcab=max(1.2,.2*m);rcorpo=max(1.8,.3*m)
+    for row in rows:
+        p=np.array(row['p']);u=np.array(row['heading']);identity=row['id'];h=(identity*977)%1000/1000;vel=1.3
+        ch=scene.ch[scene.tree.query(p)[1]]
         if ch>progress*scene.length+25:continue
-        for j in range(n):
-            h=(k*131+j*977)%1000/1000;vel=1.1+.5*h;ida=(j%2==0)
-            d=(t*vel+h*L*3)%(2*L);d=d if d<=L else 2*L-d   # vai e volta
-            if not ida:d=L-d
-            i=int(np.clip(np.searchsorted(cum,d)-1,0,len(seg)-1));f=(d-cum[i])/max(seg[i],1e-9);p=P[i]+(P[i+1]-P[i])*f
-            lado=(.6 if tipo!='faixa' else 1.2)*(h-.5);u=(P[i+1]-P[i])/max(seg[i],1e-9);nrm=np.array([-u[1],u[0]]);p=p+nrm*lado
-            q=scene.screen(p[None],cam,width)[0]
-            if not(0<q[0]<scene.W and header<q[1]<scene.H-footer):continue
-            passo=math.sin(t*vel*6+h*10)*.12*m;x,y=int(round(q[0])),int(round(q[1]))
-            sv=scene.sombra_veiculo;dr=np.array([sv@scene.R[:,0],-(sv@scene.R[:,1])])*1.7*m*.6
-            cv2.circle(im,(int(x+dr[0]),int(y+dr[1])),max(1,int(rcorpo)),(40,44,40),-1,cv2.LINE_AA)
-            us=np.array([u@scene.R[:,0],-(u@scene.R[:,1])]);ns=np.array([-us[1],us[0]])
-            for s_ in (-1,1):   # pernas/braços alternando (só de perto)
-                if m>6:
-                    a=np.array([x,y])+ns*s_*rcorpo*.45;b=a+us*passo*s_*(1 if ida else -1);cv2.line(im,tuple(a.astype(int)),tuple(b.astype(int)),(60,52,46),max(1,int(m*.06)),cv2.LINE_AA)
-            cv2.ellipse(im,(x,y),(max(1,int(rcorpo)),max(1,int(rcorpo*.6))),math.degrees(math.atan2(ns[1],ns[0])),0,360,ROUPA[int(h*len(ROUPA))%len(ROUPA)],-1,cv2.LINE_AA)
-            cv2.circle(im,(x,y),max(1,int(rcab)),[(60,40,30),(150,110,80),(200,160,120),(40,30,25)][int(h*4)%4],-1,cv2.LINE_AA)
+        q=scene.screen(p[None],cam,width)[0]
+        if not(0<q[0]<scene.W and header<q[1]<scene.H-footer):continue
+        step=math.sin(t*vel*6+h*10)*.12*m if row['state']=='crossing' else 0.
+        x,y=int(round(q[0])),int(round(q[1]));sv=scene.sombra_veiculo
+        dr=np.array([sv@scene.R[:,0],-(sv@scene.R[:,1])])*1.7*m*.6
+        cv2.circle(im,(int(x+dr[0]),int(y+dr[1])),max(1,int(rcorpo)),(40,44,40),-1,cv2.LINE_AA)
+        us=np.array([u@scene.R[:,0],-(u@scene.R[:,1])]);ns=np.array([-us[1],us[0]])
+        if m>6:
+            for sign in (-1,1):
+                a=np.array([x,y])+ns*sign*rcorpo*.45;b=a+us*step*sign
+                cv2.line(im,tuple(a.astype(int)),tuple(b.astype(int)),(60,52,46),max(1,int(m*.06)),cv2.LINE_AA)
+        cv2.ellipse(im,(x,y),(max(1,int(rcorpo)),max(1,int(rcorpo*.6))),math.degrees(math.atan2(ns[1],ns[0])),0,360,ROUPA[identity%len(ROUPA)],-1,cv2.LINE_AA)
+        cv2.circle(im,(x,y),max(1,int(rcab)),[(60,40,30),(150,110,80),(200,160,120),(40,30,25)][identity%4],-1,cv2.LINE_AA)

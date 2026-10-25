@@ -164,7 +164,7 @@ class Transport:
                 half=10. if j==0 else 7.;front,_=at(rail['p'],rail['d'],original_s+half);rear,_=at(rail['p'],rail['d'],original_s-half);heading=front-rear
                 if np.linalg.norm(heading)>1e-8:h=heading/np.linalg.norm(heading)
                 if e['reverse']:h=-h
-                out.append({'id':f'{i}:{e["cycle"]}:{j}','p':p,'heading':h,'length':20. if j==0 else 14.,'width':3.,'locomotive':j==0,'model':rail['config'].model,'wagons':e['wagons']})
+                out.append({'id':f'{i}:{e["cycle"]}:{j}','p':p,'heading':h,'length':20. if j==0 else 14.,'width':3.,'locomotive':j==0,'level':float(rail['config'].level),'speed_mps':float(rail['config'].speed_kmh)/3.6,'model':rail['config'].model,'wagons':e['wagons']})
         return out
     def report(self):
         coverage=[{'id':signal.id,'name':signal.name,'axis_a':sum(stop['kind']=='signal' and stop['signal'].id==signal.id and stop['axis']==0 for rows in self.stops for stop in rows),'axis_b':sum(stop['kind']=='signal' and stop['signal'].id==signal.id and stop['axis']==1 for rows in self.stops for stop in rows)} for signal in self.signals if signal.enabled]

@@ -160,22 +160,16 @@ class TrafficNetwork:
             else:self.main_sign.append(1)
         self.markings=[];self.mark_src=[];self.arrows=[];self.edges=[];self.paths=[];self.warnings=[]
         self.clean=getattr(settings,'signage_style','clean')=='clean';self.arrow_mode=getattr(settings,'flow_arrows','km_conflicts')
-        raw=skeleton_paths(self.allowed,axis,prune=getattr(settings,'signage_style','clean')=='clean') if settings.derive_traffic_paths and not self.allowed.is_empty else []
+        # Somente eixos designados e trajetórias explicitamente escolhidas.
+        # A hachura de pavimento não autoriza inventar eixos por esqueleto.
+        raw=[]
         from .native_axes import native_paths
         native,self.native_axis_report=native_paths(axes,settings,self.allowed)
-        if raw and native:
-            # Todos os eixos CAD prevalecem; o esqueleto só complementa vias ausentes.
-            main_tree=cKDTree(np.concatenate([sample(r['points'],3)[0] for r in native]))
-            branches=[]
-            for r in raw:
-                pp=r['points'];ll=LineString(pp).length;delta=abs(self.chain(pp[-1:])[0]-self.chain(pp[:1])[0])
-                if np.mean(main_tree.query(pp)[0]<4)>.98:continue
-                branches.append(r)
-            raw=native+branches
-        elif native:raw=native+raw
+        if not native and not any(p.enabled for p in settings.traffic_paths) and not any(r.enabled for r in settings.route_alignments):self.warnings.append('Nenhum eixo autorizado para tráfego: associe a camada Eixo ou selecione uma linha como rota com sentido explícito. O pavimento sozinho não cria fluxos.')
+        raw=native
         for r in settings.traffic_paths:
             if not getattr(r,'enabled',True):continue
-            raw.append({'points':np.array([[p.x,p.y] for p in r.points]),'halfwidth':3.,'source':r.name,'source_id':r.id or r.name,'level':r.level,'kind':r.kind,'direction':r.direction,'manual':True,'speed_kmh':getattr(r,'speed_kmh',None)})
+            raw.append({'points':np.array([[p.x,p.y] for p in r.points]),'halfwidth':3.,'source':r.name,'source_id':r.id or r.name,'level':r.level,'kind':r.kind,'direction':r.direction,'manual':True,**({'fixed':True,'nopaint':True} if r.direction=='auto' else {}),'speed_kmh':getattr(r,'speed_kmh',None)})
         # 1.30: faixas dos alinhamentos de rota (pista simples, dupla por sentido ou sentido único).
         if getattr(settings,'route_alignments',None):
             from .routes import raw_paths
@@ -204,12 +198,16 @@ class TrafficNetwork:
             o=r['origin'];L=float(LineString(r['points']).length) if len(r['points'])>1 else 0.
             keep=bool(r.get('manual') or r.get('fixed') or r.get('kind')=='main')
             a=self.origin_info.get(o,(0.,False));self.origin_info[o]=(a[0]+L,a[1] or keep)
+        from .direction_intervals import split_intervals
+        raw,self.direction_report=split_intervals(raw,getattr(settings,'direction_marks',[]))
+        unresolved=sum(row['status']!='applied' for row in self.direction_report)
+        if unresolved:self.warnings.append(f'{unresolved} indicação(ões) de sentido curta(s) ou sem eixo único associado; use intervalo de pelo menos 5 m, selecione a linha explicitamente e confira início/fim.')
         raw=self.prune_automatic(self.split_contacts(raw),'contato')
         # Setas e cliques do usuário são resolvidos uma vez, sobre os trechos finais.
         sampled=[sample(r['points'])[0] for r in raw]
         from types import SimpleNamespace
         recovery_marks=[SimpleNamespace(id=o.id,x=o.x,y=o.y,enabled=o.enabled,action='recover',target_key=o.target_key) for o in getattr(settings,'flow_recoveries',[])]
-        marks=assign(sampled,list(getattr(settings,'flow_overrides',[]))+recovery_marks,getattr(settings,'direction_marks',[]),path_keys=[r['origin_aliases'] for r in raw])
+        marks=assign(sampled,list(getattr(settings,'flow_overrides',[]))+recovery_marks,[],path_keys=[r['origin_aliases'] for r in raw])
         keys={key for r in raw for key in r['origin_aliases']};unmatched=sum(o.enabled and bool(o.target_key) and o.target_key not in keys for o in getattr(settings,'flow_recoveries',[]))
         if unmatched:self.warnings.append(f'{unmatched} recuperação(ões) não correspondem mais à geometria atual. Selecione novamente o eixo para revisar.')
         recovery_origins={r['origin'] for r,m in zip(raw,marks.values()) if m.get('recover')}
@@ -248,6 +246,8 @@ class TrafficNetwork:
         self.finalize_signage()
         self.report={'directed_edges':len(self.edges),'connections':sum(map(len,self.connections.values())),'itineraries':len(self.paths),'coverage':dict(collections.Counter(e['kind'] for e in self.edges)),'used_kinds':dict(collections.Counter(k for p in self.paths for k in p['kinds'])),'warnings':self.warnings,'signage':getattr(self,'report_signage',{}),'automatic_segments_pruned':len(self.auto_pruned),'minimum_flow_length_m':self.min_route,'short_segments_ignored':len(self.short_ignored),'explicit_flow_cuts':getattr(self,'cut_report',[]),'recovered_principal_paths':getattr(self,'recovered_paths',0),'motion_rejected_paths':len(self.rejected_paths),'motion_rejected_connections':dict(self.rejected_connectors),'motion_scope':'Geometria e restrições disponíveis no projeto; sem certificação CONTRAN.'}
         self.report['native_axes']=self.native_axis_report
+        self.report['source_policy']='somente_eixos_designados_ou_selecao_explicita'
+        self.report['direction_intervals']=self.direction_report
     def prune_automatic(self,raw,stage):
         """Candidatos curtos não chegam aos nós, conectores ou ao desenho de fluxos.
 
@@ -361,6 +361,7 @@ class TrafficNetwork:
             delta=self.chain(p[inside[-1:]])[0]-self.chain(p[inside[:1]])[0]
             if abs(delta)>2:forward=bool(delta*sgn>0);both=False
         if r.get('fixed'):forward=True;both=False   # 1.30: faixa de rota: o sentido é o dos pontos
+        if 'explicit_direction' in r:forward=bool(r['explicit_direction']);both=False
         reversed_by_user=bool(user.get('reverse'))
         if reversed_by_user and (r.get('fixed') or r.get('direction') in ('growing','decreasing')):
             user=dict(user,disable=True);self.warnings.append('Inversão recusada: o trecho tem sentido explícito definido pela rota.')
@@ -368,7 +369,7 @@ class TrafficNetwork:
         disabled=bool(user.get('disable'))
         spd=user.get('speed_kmh') or r.get('speed_kmh')
         route_meta={k:r.get(k) for k in ('native_axis','native_id','native_joined','route','route_name','route_dir','route_lane','route_lane_width_m','route_start_m','route_end_m','lane_change','lane_change_sections') if r.get(k) is not None}
-        self.raw_info.append({'base':base,'points':p,'kind':kind,'forward':bool(forward),'both':bool(both),'disabled':disabled,'reversed':reversed_by_user,'source':r['source'],'manual':bool(r.get('manual')),'override_ids':user.get('override_ids',[]),'protected_overrides':r.get('cut_disable_refs',[]),'recovery_enabled':bool(user.get('recover')),'recovery_reports':[],'origin_id':r.get('origin',base),'origin_key':r.get('origin_key',''),'level':r['level'],'speed_kmh':float(spd) if spd else None,**route_meta,**({'route_fixed':True} if r.get('fixed') else {})})
+        self.raw_info.append({'base':base,'points':p,'kind':kind,'forward':bool(forward),'both':bool(both),'disabled':disabled,'reversed':reversed_by_user,'source':r['source'],'manual':bool(r.get('manual')),'override_ids':user.get('override_ids',[]),'protected_overrides':r.get('cut_disable_refs',[]),'recovery_enabled':bool(user.get('recover')),'recovery_reports':[],'origin_id':r.get('origin',base),'origin_key':r.get('origin_key',''),'level':r['level'],'speed_kmh':float(spd) if spd else None,**route_meta,**({'route_fixed':True} if r.get('fixed') else {}),**({'direction_mark_id':r['direction_mark_id'],'explicit_direction':r['explicit_direction']} if 'explicit_direction' in r else {})})
         # Paint belongs to the road center, not to an individual vehicle track.
         # 1.10: trechos curtos do esqueleto (ramos de junção) não recebem pintura no modo limpo.
         if r.get('nopaint'):pass   # 1.30: faixas de rota só conduzem veículos (sem pintura)

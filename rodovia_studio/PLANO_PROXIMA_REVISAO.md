@@ -1,6 +1,6 @@
-# Próxima revisão — área gráfica, apresentação e pedestres
+# Evolução da área gráfica, apresentação e pedestres — implementada na 1.42.18
 
-Solicitado em 25/10/2026. Implementar somente depois de finalizar e validar a revisão em andamento. Situação após a revisão 1.42.15: faixa compacta, recolhimento lateral e dois caches auxiliares 2D implementados e submetidos à validação direcionada. O cache cobre fundo e vetores georreferenciados; marcações editáveis e dinâmica continuam no canvas de interação. A fumaça ferroviária e o novo comportamento seguro dos pedestres permanecem pendentes. Protótipo dos pedestres preservado fora do aplicativo em desenvolvimento/pedestres_em_validacao/, sem ativação no pacote. As medições e limitações desta revisão estão em evidencias/1.42.15/. Os requisitos abaixo continuam como critérios de evolução; não significam que toda a estratégia já foi entregue.
+Solicitado em 25/10/2026. Situação atual: implementações da revisão 1.42.18 concluídas e submetidas à validação direcionada. Incluem cache técnico das marcações, fumaça 2D/3D/vídeo, motor compartilhado de pedestres, fontes de tráfego restritas e sentido por intervalo. Os tópicos abaixo registram os critérios originais e o histórico; os resultados e limites atuais estão em evidencias/1.42.18/. Windows nativo, calibração e carga prolongada permanecem sem certificação.
 
 ## Área útil e comandos
 
@@ -50,3 +50,7 @@ Trabalhar na branch de desenvolvimento; não alterar `main` sem autorização.
 A API omite a prévia quando ela fica desatualizada. O recarregamento de resultados não deve apagar a imagem já carregada por esse motivo. Conservar a imagem com indicação de desatualização e preservar centro/escala em CRS, mesmo quando os parâmetros da próxima imagem mudam. A referência anterior só pode ser reaproveitada no mesmo projeto; a troca de projeto conserva o isolamento de sessão. Falhas de carregamento não autorizam exportar resultados desatualizados.
 
 Solicitação reiterada após 1.42.16: concluir primeiro a revisão 1.42.17 (margens, cadastro residual, faixa de ferramentas, splash e orientação de cálculos); depois construir a revisão de camadas, fumaça e pedestres. Preservar a exclusão de pista com aproximação de veículos/trens em 50 m, exceto travessias protegidas/autorizadas e separação de nível efetiva. Fumaça sempre com componente contrária ao movimento, incluindo marcha a ré. Não considerar o protótipo arquivado como recurso entregue.
+
+## Situação na revisão 1.42.18
+
+Implementados e submetidos à validação direcionada: marcações/hachuras no cache técnico com fundo separado; desenho direto durante pan e limite de 32 MiB; fumaça determinística no 2D/WebGL/vídeo; motor de pedestres compartilhado com espera, reservas, retenção dos veículos, fase semafórica, aproximação ferroviária de 50 m, composição inteira e passarelas com gabarito. Inclusão posterior solicitada: fontes de tráfego restritas a eixos designados ou seleção explícita; sentido por início/fim altera o intervalo real e aciona recálculo. 79 testes direcionados aprovados. Suíte integral, Windows nativo, calibração e uso intenso prolongado ainda não certificados. Ver evidencias/1.42.18 para medições e limites reais. Não confundir esse resultado com uma certificação universal de segurança.

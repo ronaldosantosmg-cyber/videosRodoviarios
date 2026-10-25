@@ -124,6 +124,7 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
                 if samples>MAX_TRAFFIC_SAMPLES:raise ValueError('Tráfego excede o orçamento da prévia 3D. Reduza a densidade ou a duração.')
                 tracks[vid]['samples'].append([round(float(t),4),*q.tolist(),float(heading[0]),0.,-float(heading[1])])
                 tracks[vid]['indicators'].append([round(float(t),4),int(indicators.get(int(vid),0))])
+    from .rail_smoke import seed as smoke_seed
     from .transport import Transport,timings,AMBER,CLEARANCE,at
     from .transport_render import geometry as transport_geometry
     transport=sim.transport if sim else Transport(settings,scene.network);tg=transport_geometry(transport)
@@ -138,10 +139,37 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
         for part in transport.train_parts(float(t)):
             key_part=part['id']
             if key_part not in train_tracks:
-                train_tracks[key_part]={'id':1000000+len(train_tracks),'type':'rail_locomotive' if part['locomotive'] else 'rail_wagon','length':part['length'],'width':part['width'],'wheelbase':part['length']*.65,'color':'#e2af2c' if part['locomotive'] else '#789eae' if part['model']=='passageiros' else '#955f42','samples':[]}
+                train_tracks[key_part]={'id':1000000+len(train_tracks),'type':'rail_locomotive' if part['locomotive'] else 'rail_wagon','length':part['length'],'width':part['width'],'wheelbase':part['length']*.65,'smoke_seed':smoke_seed(part['id']),'smoke_speed':part.get('speed_mps',0),'color':'#e2af2c' if part['locomotive'] else '#789eae' if part['model']=='passageiros' else '#955f42','samples':[]}
             samples+=1
             if samples>MAX_TRAFFIC_SAMPLES:raise ValueError('Trens e veículos excedem o limite da prévia 3D. Reduza a duração / densidade ou divida o projeto.')
             q=local(np.array([part['p']]),.25)[0];h=part['heading'];train_tracks[key_part]['samples'].append([round(float(t),4),*q.tolist(),float(h[0]),0.,-float(h[1])])
+    from .pedestrian_traffic import without_vehicles
+    people=sim.pedestrians if sim else without_vehicles(settings,scene.network,transport,duration)
+    person_tracks={}
+    for t in np.r_[np.arange(0,duration,.2),duration]:
+        for person in people.state(float(t)):
+            identity=person['id']
+            if identity not in person_tracks and len(person_tracks)>=2000:raise ValueError('Mais de 2.000 trajetórias de pedestres; reduza densidade/duração para a prévia 3D.')
+            track=person_tracks.setdefault(identity,{'id':identity,'type':'pedestrian','length':.6,'width':.5,'samples':[]})
+            q=local(np.array([person['p']]),person['height']+.05)[0];h=person['heading'];samples+=1
+            if samples>MAX_TRAFFIC_SAMPLES:raise ValueError('Agentes excedem o orçamento 3D; reduza a duração/densidade.')
+            track['samples'].append([round(float(t),4),*q.tolist(),float(h[0]),0.,-float(h[1])])
+    # Tabuleiros das passarelas usam a mesma cota e geometria dos agentes.
+    from shapely.ops import triangulate
+    for route in people.routes:
+        if route['kind']!='passarela':continue
+        deck=route['line'].buffer(route.get('width',3.)/2,cap_style=2);positions=[]
+        for triangle in triangulate(deck):
+            if deck.covers(triangle):positions.extend(local(np.asarray(triangle.exterior.coords)[:3],route['height']).ravel().tolist())
+        if positions:meshes.append({'id':'passarela_'+route['id'],'role':'passarela','name':'Passarela de pedestres','positions':positions,'color':'#b7c0c8'})
+        columns=[]
+        for end in (route['p'][0],route['p'][-1]):
+            corners=np.array([end+[-.2,-.2],end+[.2,-.2],end+[.2,.2],end+[-.2,.2]])
+            bottom=local(corners,.03);top=local(corners,route['height']);vertices=np.vstack([bottom,top])
+            for face in ([0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7],[4,5,6,7]):
+                columns.extend(vertices[[face[0],face[1],face[2],face[0],face[2],face[3]]].ravel().tolist())
+        if columns:meshes.append({'id':'apoios_'+route['id'],'role':'passarela','name':'Apoios da passarela','positions':columns,'color':'#929da6'})
+    warnings.extend(people.warnings)
     heads=[{'p':local(np.array([h['point']]),.25)[0].tolist(),'signal':h['signal'],'axis':h['axis'],'kind':'signal','arm':local(np.array([h['arm_end']]),.25)[0].tolist()} for h in tg['heads']]
     rail_stops=[];seen=set()
     for stops in transport.stops:
@@ -169,7 +197,7 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
     if any(e.get('level') for e in scene.network.edges) or scene.oae or any(r.level for r in settings.railways) or any(r.level for r in settings.traffic_signals):warnings.append('As cotas de OAE e os gabaritos verticais exigem conferência técnica; esta vista não certifica cruzamentos em desnível.')
     if cancel():raise InterruptedError('Construção 3D cancelada.')
     if sum(len(mesh['positions'])//3 for mesh in context_meshes+meshes)>MAX_VERTICES:raise ValueError('Cena e objetos da imagem excedem o orçamento 3D. Reduza a área.')
-    data={'format':'rodovia-scene3d-1','revision':key,'origin_crs':origin.tolist(),'crs':settings.crs,'coordinates_confirmed':settings.coordinates_confirmed,'span_m':span,'meshes':context_meshes+meshes,'terrain':terrain,'markings':markings,'diagnostics':diagnostics,'vehicles':list(tracks.values())+list(train_tracks.values()),'transport':transport_data,'duration_s':duration,'source_duration_s':settings.duration_s,'simulation_report':sim.report() if sim else None,'warnings':warnings[-25:],'scope':'Visualização de projeto e tráfego. Diagnósticos técnicos não integram a captura de apresentação.'}
+    data={'format':'rodovia-scene3d-1','revision':key,'origin_crs':origin.tolist(),'crs':settings.crs,'coordinates_confirmed':settings.coordinates_confirmed,'span_m':span,'meshes':context_meshes+meshes,'terrain':terrain,'markings':markings,'diagnostics':diagnostics,'vehicles':list(tracks.values())+list(train_tracks.values()),'pedestrians':list(person_tracks.values()),'pedestrian_report':people.report(),'rail_smoke':settings.rail_smoke,'transport':transport_data,'duration_s':duration,'source_duration_s':settings.duration_s,'simulation_report':sim.report() if sim else None,'warnings':warnings[-25:],'scope':'Visualização de projeto e tráfego. Diagnósticos técnicos não integram a captura de apresentação.'}
     if not np.isfinite(origin).all():raise ValueError('Origem 3D inválida.')
     if key!=revision(d):raise ValueError('O projeto mudou durante o processamento. Reconstrua o 3D.')
     encoded=json.dumps(data,ensure_ascii=False,allow_nan=False,separators=(',',':')).encode()

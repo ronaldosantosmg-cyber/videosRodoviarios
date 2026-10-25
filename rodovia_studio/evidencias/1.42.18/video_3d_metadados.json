@@ -1,0 +1,40 @@
+{
+  "motor": "WebGL 3D",
+  "width": 1280,
+  "height": 720,
+  "fps": 24,
+  "frames": 72,
+  "duration_s": 3.0,
+  "encoder": "libx264",
+  "validation": {
+    "codec": "h264",
+    "pix_fmt": "yuv420p",
+    "width": 1280,
+    "height": 720,
+    "fps": 24.0,
+    "frames_decoded": 72,
+    "frames_expected": 72,
+    "decode_errors": "",
+    "faststart": true,
+    "ok": true,
+    "problems": []
+  },
+  "scene3d_revision": "c403ca6340bf85f4b49447c23ba223b77d51b4113092fe5f6c3d8d98400ce85b",
+  "camera3d": {
+    "position": [
+      350.0,
+      350.0,
+      425.00000000000006
+    ],
+    "target": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "follow_id": null,
+    "light": "dia"
+  },
+  "total_seconds": 37.82,
+  "arquivo": "Novo trecho_3D_2026-10-25_21h48_v01.mp4",
+  "pasta_videos": "/tmp/pytest-of-agent/pytest-195/webgl_real0/_videos/Novo trecho"
+}

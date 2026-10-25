@@ -1,0 +1,22 @@
+# Referência histórica: substituída pelo motor compartilhado em 1.42.18. Fora do aplicativo.
+def _caminhos(scene):
+    s=scene.s;out=[]
+    for cw in getattr(s,'crosswalks',[]) or []:
+        if getattr(cw,'show',True):out.append((np.array([[cw.a.x,cw.a.y],[cw.b.x,cw.b.y]]),2,'faixa'))
+    from .structures import bridge_geometry
+    for p in scene.pois:
+        if p.get('kind')!='passarela':continue
+        try:
+            idx=scene.tree.query([p['x'],p['y']])[1];tan=scene.dense[min(len(scene.dense)-1,idx+2)]-scene.dense[max(0,idx-2)]
+            g=bridge_geometry(np.array([p['x'],p['y']]),tan,p);c,v,span=g['center'],g['v'],g['span']
+            pts=[]
+            if len(g['ramps'])==2:pts=list(g['ramps'][0][::-1])+[c-v*span/2,c+v*span/2]+list(g['ramps'][1])
+            else:pts=[c-v*span/2,c+v*span/2]
+            out.append((np.array(pts),3,'passarela'))
+        except Exception:continue
+    for pp in getattr(s,'pedestrian_paths',[]) or []:
+        if pp.enabled:
+            P=np.array([[q.x,q.y] for q in pp.points]);L=float(np.sum(np.linalg.norm(np.diff(P,axis=0),axis=1)))
+            out.append((P,max(1,int(round(L/100*pp.people_per_100m))),'caminho'))
+    return out
+

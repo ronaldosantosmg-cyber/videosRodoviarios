@@ -53,10 +53,10 @@ def test_border_paint_does_not_interrupt_but_real_obstacles_do():
 
 def test_join_rejects_real_gap_ambiguity_incompatible_layer_and_disabled_axis():
     s=Settings();surface=box(-10,-10,200,10)
-    def row(a,b,layer='A'):return dict(points=np.array([[a,0.],[b,0.]]),layer=layer)
+    def row(a,b,layer='EIXO A'):return dict(points=np.array([[a,0.],[b,0.]]),layer=layer)
     rows,report=native_paths([row(0,60),row(60.1,120)],s,surface)
     assert len(rows)==1 and report['joined']==1 and abs(report['max_gap_m']-.1)<1e-6
-    for axes in [[row(0,60),row(61,120)],[row(0,60),row(60,120,'B')],
+    for axes in [[row(0,60),row(61,120)],[row(0,60),row(60,120,'EIXO B')],
                  [row(0,60),row(60,120),row(60,130)]]:
         assert native_paths(axes,s,surface)[1]['joined']==0
     s.route_directions={'1':'off'}
@@ -91,9 +91,11 @@ def test_sparse_dxf_vertices_do_not_leave_a_duplicate_skeleton_flow():
     assert n.paths and all(raw.get('native_axis') for raw in n.raw_info)
 
 
-def test_partial_overlap_does_not_delete_the_uncovered_connector(monkeypatch):
+def test_partial_overlap_connector_requires_explicit_selection(monkeypatch):
     import app.traffic as module
     p,_=sample(np.array([[0.,0.],[460.,0.],[480.,20.]]))
     monkeypatch.setattr(module,'skeleton_paths',lambda *a,**k:[dict(points=p,halfwidth=3.5,source='Ligação complementar',level=0)])
     n=network([dict(points=AXIS)],derive_traffic_paths=True)
-    assert any(r['source']=='Ligação complementar' for r in n.raw_info)
+    assert not any(r['source']=='Ligação complementar' for r in n.raw_info)
+    explicit=network([dict(points=AXIS)],traffic_paths=[dict(id='chosen',name='Ligação selecionada',points=[dict(x=float(x),y=float(y)) for x,y in p])])
+    assert any(r['source']=='Ligação selecionada' and r['manual'] for r in explicit.raw_info)

@@ -89,6 +89,8 @@ class TrafficSim:
         from .alternating_traffic import AlternatingTraffic
         from .vehicle_safety import PolygonSafety
         self.alternating=AlternatingTraffic(settings,network);self.polygon_safety=PolygonSafety(self)
+        from .pedestrian_traffic import PedestrianTraffic
+        self.pedestrians=PedestrianTraffic(settings,network,self.transport,self)
         self.lane_events=[]
         self.run(status)
 
@@ -270,6 +272,7 @@ class TrafficSim:
                 self.lc_blocked_rules+=1;continue
             best=None
             for target in cand:
+                if not self.pedestrians.lane_change_allowed(v,target,travel):continue
                 st=self.map_s(v['p'],target,v['s'])
                 fg,fv=self.leader(v,occ,look=180.,path_i=target,s=st)
                 rg,rv,rL=self.follower_on_path(v,V,target,st)
@@ -316,7 +319,7 @@ class TrafficSim:
                 new={'id':vid,'p':j,'s':0.,'v':0.,'L':Lv,'v0':v0,'t':vt,'li':0,'lc':None,'lc_cooldown':-math.inf,'entered_s':t}
                 dyn=TYPE_DYN.get(vt,TYPE_DYN['car'])
                 if not self.polygon_safety.admission(new,V):continue
-                if not self.transport.admission_allowed(j,t,Lv):continue
+                if not self.transport.admission_allowed(j,t,Lv) or not self.pedestrians.admission_allowed(j,Lv):continue
                 if self.capacity_model:
                     # Capacidade da faixa: a fila permanece na entrada e é descarregada por headway equivalente PCU.
                     min_headway=self.admission_headway(j,vt)
@@ -331,6 +334,7 @@ class TrafficSim:
                 queue_area[qi]+=q*DT;max_queue_lane[qi]=max(max_queue_lane[qi],q)
             if k%max(1,int(round(1.0/DT)))==0:occ=self.consider_lane_changes(V,t,occ)
             self.alternating.update(V,t)
+            self.pedestrians.update(V,t,DT)
             acc=[self.accel(v,occ,t) for v in V]
             planned=[]
             for v,a in zip(V,acc):
@@ -338,7 +342,7 @@ class TrafficSim:
                 gap,_=self.leader(v,occ,look=max(30.,ds+10.))
                 if v.get('lc'):
                     target=v['lc']['to'];target_gap,_=self.leader(v,occ,path_i=target,s=self.map_s(v['p'],target,v['s']));gap=min(gap,target_gap)
-                control=min(self.transport.stop_gap(v,t,gap),self.transport.stop_gap(v,t+DT,gap),self.alternating.stop_gap(v))
+                control=min(self.transport.stop_gap(v,t,gap),self.transport.stop_gap(v,t+DT,gap),self.alternating.stop_gap(v),self.pedestrians.stop_gap(v))
                 if control<math.inf:
                     if ds>max(0.,control-self.HARD_GAP):self.control_stops+=1
                     gap=min(gap,control)
@@ -360,6 +364,7 @@ class TrafficSim:
             V=alive
             # Última barreira numérica: qualquer eventual sobreposição é resolvida antes de gravar o quadro.
             self.enforce_hard_separation(V)
+            self.pedestrians.check(V,t)
             if k>=first:
                 ids=np.array([v['id'] for v in V],np.int32);ss=np.array([v['s'] for v in V],np.float64);ps=np.array([v['p'] for v in V],np.int32)
                 to=np.array([v['lc']['to'] if v.get('lc') is not None else -1 for v in V],np.int32)
@@ -429,7 +434,7 @@ class TrafficSim:
             if not bl.active(t):continue
             if bl.mode=='partial' and a-40<=s<=b:v0=min(v0,bl.speed);T=max(T,2.4)
             elif bl.mode=='total' and s<a:v['_stop']=a-2-v['L']/2-s
-        gap,vl,lead=self.leader_state(v,occ);stop=min(v.pop('_stop',math.inf),self.transport.stop_gap(v,t,gap),self.alternating.stop_gap(v))
+        gap,vl,lead=self.leader_state(v,occ);stop=min(v.pop('_stop',math.inf),self.transport.stop_gap(v,t,gap),self.alternating.stop_gap(v),self.pedestrians.stop_gap(v))
         if self.heavy_reaction and lead is not None and TYPE_DYN.get(lead.get('t'),{}).get('heavy'):
             # Reação a pesados: seguidor abre headway e aceita menor velocidade até existir ultrapassagem segura.
             T=max(T,2.05 if v.get('t') not in ('truck','bus','carreta') else 2.35);s0=max(s0,3.2)
@@ -513,7 +518,7 @@ class TrafficSim:
     def report(self):
         ratio=max([row['ratio'] for row in self.entry_demand_study],default=None)
         from .vehicle_safety import LATERAL_CLEARANCE,LATERAL_BUFFER
-        return {'model':'microssimulacao','lateral_clearance_m':LATERAL_CLEARANCE,'lateral_buffer_per_vehicle_m':LATERAL_BUFFER,'narrow_corridor_admission_holds':self.polygon_safety.narrow_holds,'minimum_following_gap_m':self.HARD_GAP,'polygon_safety_interventions':self.polygon_safety.interventions,'alternating_traffic':self.alternating.report(),'vehicles':self.spawned,'rear_collisions':self.collisions,'side_collisions':self.side_collisions,
+        return {'model':'microssimulacao','lateral_clearance_m':LATERAL_CLEARANCE,'lateral_buffer_per_vehicle_m':LATERAL_BUFFER,'narrow_corridor_admission_holds':self.polygon_safety.narrow_holds,'minimum_following_gap_m':self.HARD_GAP,'polygon_safety_interventions':self.polygon_safety.interventions,'alternating_traffic':self.alternating.report(),'pedestrians':self.pedestrians.report(),'vehicles':self.spawned,'rear_collisions':self.collisions,'side_collisions':self.side_collisions,
                 'min_gap_m':None if self.min_gap==math.inf else round(self.min_gap,2),'max_waiting_at_entries':self.max_queue,
                 'transport_controls':self.transport.report(),'control_stop_interventions':self.control_stops,'rerouted':self.rerouted,'blocks':len(self.blocks),'density':self.density,'lane_changes':self.lane_changes,
                 'lane_change_blocked_rule':self.lc_blocked_rules,'lane_change_blocked_safety':self.lc_blocked_safety,

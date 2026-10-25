@@ -1,0 +1,184 @@
+{
+  "pedestrians": 2,
+  "pedestrian_report": {
+    "routes": 1,
+    "admitted": 2,
+    "arrived": 0,
+    "yield_steps": 0,
+    "waiting_steps": 0,
+    "rejected_paths": 0,
+    "maximum_agents": 80,
+    "vehicle_collisions": 0,
+    "people_collisions": 0,
+    "train_collisions": 0,
+    "history_samples": 114,
+    "history_bytes": 4560,
+    "warnings": [],
+    "scope": "Agentes locais ilustrativos; sem calibração ou certificação normativa."
+  },
+  "rail_smoke": true,
+  "source_duration_s": 12.0,
+  "simulation_report": {
+    "model": "microssimulacao",
+    "lateral_clearance_m": 0.5,
+    "lateral_buffer_per_vehicle_m": 0.25,
+    "narrow_corridor_admission_holds": 0,
+    "minimum_following_gap_m": 2.0,
+    "polygon_safety_interventions": 0,
+    "alternating_traffic": {
+      "zones": 0,
+      "release_s": [],
+      "clearance": "até o último veículo desocupar; sem inversão forçada",
+      "phase_changes": 1
+    },
+    "pedestrians": {
+      "routes": 1,
+      "admitted": 2,
+      "arrived": 0,
+      "yield_steps": 0,
+      "waiting_steps": 0,
+      "rejected_paths": 0,
+      "maximum_agents": 80,
+      "vehicle_collisions": 0,
+      "people_collisions": 0,
+      "train_collisions": 0,
+      "history_samples": 114,
+      "history_bytes": 4560,
+      "warnings": [],
+      "scope": "Agentes locais ilustrativos; sem calibração ou certificação normativa."
+    },
+    "vehicles": 4,
+    "rear_collisions": 0,
+    "side_collisions": 0,
+    "min_gap_m": null,
+    "max_waiting_at_entries": 1,
+    "transport_controls": {
+      "coverage": [],
+      "warnings": [],
+      "ambiguous_railway_conflicts": 0,
+      "railways": 1,
+      "signals": 0,
+      "crossings": 1,
+      "stop_lines": 0,
+      "signal_offsets_s": {},
+      "scope": "Simulação ilustrativa com temporização informada pelo usuário; sem certificação de sinalização."
+    },
+    "control_stop_interventions": 0,
+    "rerouted": 0,
+    "blocks": 0,
+    "density": 1.0,
+    "lane_changes": 0,
+    "lane_change_blocked_rule": 0,
+    "lane_change_blocked_safety": 0,
+    "safety_interventions": 0,
+    "collision_free": true,
+    "demand_vph_per_lane": null,
+    "capacity_vph_per_lane": 1900,
+    "entry_demand_study": [],
+    "saturation_indicator": {
+      "status": "nível de serviço não determinado",
+      "demand_capacity_ratio": null,
+      "scope": "Estimativa com fatores de equivalência internos; não é classificação DNIT/HCM. Depende de tipo de via, velocidade, densidade, atrasos e método aplicável."
+    },
+    "motion_blocked_vehicles": 0,
+    "lane_change_blocked_geometry": 0,
+    "motion_profiles": {
+      "0:carreta": {
+        "ok": true,
+        "reasons": [],
+        "message": "Trajetória cinemática válida.",
+        "max_steering_deg": 0.0,
+        "vehicle": "carreta",
+        "samples": 801,
+        "critical_station_m": 0.0,
+        "critical_center_xy": [
+          500050.0,
+          7799998.35
+        ],
+        "front_xy": [
+          500059.3,
+          7799998.35
+        ],
+        "rear_xy": [
+          500040.7,
+          7799998.35
+        ]
+      },
+      "0:moto": {
+        "ok": true,
+        "reasons": [],
+        "message": "Trajetória cinemática válida.",
+        "max_steering_deg": 0.0,
+        "vehicle": "moto",
+        "samples": 801,
+        "critical_station_m": 0.0,
+        "critical_center_xy": [
+          500050.0,
+          7799998.35
+        ],
+        "front_xy": [
+          500051.05,
+          7799998.35
+        ],
+        "rear_xy": [
+          500048.95,
+          7799998.35
+        ]
+      },
+      "0:car": {
+        "ok": true,
+        "reasons": [],
+        "message": "Trajetória cinemática válida.",
+        "max_steering_deg": 0.0,
+        "vehicle": "car",
+        "samples": 801,
+        "critical_station_m": 0.0,
+        "critical_center_xy": [
+          500050.0,
+          7799998.35
+        ],
+        "front_xy": [
+          500052.25,
+          7799998.35
+        ],
+        "rear_xy": [
+          500047.75,
+          7799998.35
+        ]
+      },
+      "0:truck": {
+        "ok": true,
+        "reasons": [],
+        "message": "Trajetória cinemática válida.",
+        "max_steering_deg": 0.0,
+        "vehicle": "truck",
+        "samples": 801,
+        "critical_station_m": 0.0,
+        "critical_center_xy": [
+          500050.0,
+          7799998.35
+        ],
+        "front_xy": [
+          500056.0,
+          7799998.35
+        ],
+        "rear_xy": [
+          500044.0,
+          7799998.35
+        ]
+      }
+    },
+    "max_queue_by_lane": [
+      1
+    ],
+    "current_queue_by_lane": [
+      1
+    ],
+    "queue_vehicle_seconds_by_lane": [
+      21.0
+    ],
+    "queue_discharged_by_lane": [
+      4
+    ]
+  }
+}
