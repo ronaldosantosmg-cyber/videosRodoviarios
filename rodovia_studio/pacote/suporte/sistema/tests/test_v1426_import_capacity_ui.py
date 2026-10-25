@@ -6,7 +6,7 @@ from visual_harness import screenshot
 
 
 def test_saves_3500_capacity_and_higher_demand_through_real_api(gl_page):
-    p=gl_page;p.locator('[data-pshub=video]').click();p.get_by_text('Tráfego: simulação, engarrafamento e canteiro',exact=True).click();p.locator('#traffic_capacity_vphpl').fill('3500');p.locator('#traffic_demand_vphpl').fill('5000');p.locator('#traffic_demand_vphpl').dispatch_event('input');p.evaluate('save()')
+    p=gl_page;p.locator('[data-pshub=video]').click();p.get_by_text('Tráfego: simulação, engarrafamento e canteiro',exact=True).click();p.locator('#traffic_capacity_vphpl').fill('3500');p.locator('#traffic_demand_vphpl').fill('5000');p.locator('#traffic_demand_vphpl').dispatch_event('input');p.locator('#rsPanelSave').click();p.wait_for_function('!RodoviaPanels.opened',timeout=15000);p.locator('[data-pshub=video]').click()
     assert p.evaluate('cfg.traffic_capacity_vphpl')==3500 and p.evaluate('cfg.traffic_demand_vphpl')==5000
     assert 'sobressaturação' in p.locator('#rsTrafficStudy').inner_text()
     screenshot(p,'1426_06_demanda_sobressaturacao')

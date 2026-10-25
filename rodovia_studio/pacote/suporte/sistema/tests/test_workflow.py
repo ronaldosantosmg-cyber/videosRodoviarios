@@ -1,5 +1,5 @@
 import os,tempfile,time,zipfile
-os.environ['RODOVIA_DATA']=tempfile.mkdtemp(prefix='rodovia_test_')
+if not os.environ.get('RODOVIA_DATA'):os.environ['RODOVIA_DATA']=tempfile.mkdtemp(prefix='rodovia_test_')
 import ezdxf,numpy as np,cv2,pytest
 from fastapi.testclient import TestClient
 from app.models import Settings

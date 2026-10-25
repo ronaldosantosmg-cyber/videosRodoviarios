@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.7",
-  "description": "Gravação com revisão e recuperação, importação transacional e sincronização dos resultados por dependências."
+  "version": "1.42.8",
+  "description": "Correção do histórico em caminhos longos, painéis amplos com salvar/descartar e seleção acessível de imagens e comandos."
 }

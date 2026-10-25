@@ -47,7 +47,11 @@ def test_engine_diagnostics_reach_live_editor_and_update(drawing):
                 assert 'Fluxo presente nos itinerários calculados.' in page.inner_text('#propPanel')
                 screenshot(page,'142_11_motor_editor_real')
                 # Desativa o trecho e recalcula pelo fluxo real da aplicação.
-                page.evaluate("async()=>{const s=selSeg;M.flow_overrides.push({id:'teste-fluxo',x:s.mid[0],y:s.mid[1],action:'disable',enabled:true});changed('Fluxo desativado para teste.');await start('analyze')}")
+                page.evaluate("async()=>{const s=selSeg;M.flow_overrides.push({id:'teste-fluxo',x:s.mid[0],y:s.mid[1],action:'disable',enabled:true});changed('Fluxo desativado para teste.')}")
+                try:page.locator('#rsPanelSave').click(timeout=5000)
+                except Exception:raise AssertionError(page.evaluate('()=>({popup:RodoviaPanels.opened,pending:RodoviaPanels.pending,disabled:document.querySelector("#rsPanelSave").disabled,open:document.querySelector("#rsPanelPopup").open,decision:!!document.querySelector("#rsPanelDecision"),message:document.querySelector("#message").textContent})'))
+                page.wait_for_function('!RodoviaPanels.opened',timeout=15000)
+                page.evaluate("async()=>{await start('analyze')}")
                 assert page.evaluate("editor.segments.some(s=>s.disabled&&flowStudyColor(s)==='#ef4444')")
                 screenshot(page,'142_12_motor_editor_fluxo_problema')
                 assert not errors,errors

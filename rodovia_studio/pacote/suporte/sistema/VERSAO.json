@@ -1,5 +1,5 @@
 {
-  "version": "1.42.7",
+  "version": "1.42.8",
   "schema_version": 33,
   "reference_video_sha256": "1d8cc8267015132a80ec4363bb1e5a66f39361d2a7e897ba509c7974f97e488b",
   "reference_note": "O vídeo TH57 aprovado foi substituído pela ficha técnica assets/th57/referencia_ficha.json (dados do arquivo e métricas de imagem para comparação). SHA-256 histórico mantido.",
@@ -526,7 +526,7 @@
     "oda_converter_real_tested": false,
     "windows_tested": false
   },
-  "notes": "1.42.7: revisão de configuração, proteção contra gravação concorrente, histórico e recuperação, importação transacional e proveniência de resultados. Edições locais e Desfazer preservados ao concluir tarefas. Migração incremental das etapas 3 e 4.",
+  "notes": "1.42.8: histórico com temporários curtos para caminhos Windows; painéis destacados com salvar/descartar e Ctrl+S; seleção de imagem local/mapa; destaque lateral, seleção de fluxos, grupos e ícones distintos.",
   "v1_40_7_validation": {
     "technical_tests": 28,
     "workflow_tests": 7,

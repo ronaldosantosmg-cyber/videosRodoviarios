@@ -45,17 +45,27 @@ def _atomic_write_json(file,data):
 
     Mantém exatamente o mesmo formato/pasta das versões-base; a blindagem acontece somente durante a troca.
     """
-    file=Path(file);file.parent.mkdir(parents=True,exist_ok=True);tmp=file.with_name(file.name+'.tmp-'+uuid.uuid4().hex)
-    try:
-        text=json.dumps(data,ensure_ascii=False,indent=2,allow_nan=False)
-        with tmp.open('w',encoding='utf-8',newline='\n') as f:
-            f.write(text);f.flush();os.fsync(f.fileno())
-        # valida bytes realmente gravados antes de tocar no arquivo anterior
-        json.loads(tmp.read_text(encoding='utf-8'))
-        replace(tmp,file)
-    finally:
-        try:tmp.unlink(missing_ok=True)
-        except OSError:pass
+    file=Path(file)
+    text=json.dumps(data,ensure_ascii=False,indent=2,allow_nan=False)
+    # Não repetir o nome de destino: hashes de histórico + UUID ultrapassavam MAX_PATH no Windows.
+    # .wip não entra na limpeza comum de .tmp enquanto uma gravação estiver em andamento.
+    for attempt in range(3):
+        tmp=file.with_name('.rs-'+uuid.uuid4().hex+'.wip')
+        try:
+            file.parent.mkdir(parents=True,exist_ok=True)
+            with tmp.open('x+',encoding='utf-8',newline='\n') as stream:
+                stream.write(text);stream.flush();os.fsync(stream.fileno())
+                stream.seek(0);json.load(stream)
+            replace(tmp,file)
+            return
+        except FileNotFoundError as exc:
+            if attempt==2:
+                raise FileNotFoundError('Não foi possível concluir a gravação de '+file.name+'. A versão anterior foi preservada. Confira se a pasta está disponível localmente e se o sincronizador não a está movendo.') from exc
+            time.sleep(.05*(attempt+1))
+        finally:
+            try:tmp.unlink(missing_ok=True)
+            except OSError:pass
+
 def update(job,**fields):
     if not fields:return
     with connect() as c:c.execute('UPDATE jobs SET '+','.join(k+'=?' for k in fields)+' WHERE id=?',list(fields.values())+[job])

@@ -20,10 +20,12 @@ def test_original_buttons_are_visible_in_their_groups(page):
 
 def test_commands_and_tool_options_execute(page):
     page.get_by_role('tab',name='Edição',exact=True).click()
-    for name in ['MOVER','GIRAR','COPIAR','ESCALA','ESPELHAR','OFFSET','APAGAR','DIST']:
+    for name in ['MOVER','GIRAR','COPIAR','ESCALA','ESPELHAR','OFFSET','APAGAR']:
         assert page.locator(f'[role=tabpanel]:visible [data-rs-command="{name}"]').is_visible()
+    page.get_by_role('tab',name='Cálculos',exact=True).click()
     page.locator('[role=tabpanel]:visible [data-rs-command="DIST"]').click();assert page.evaluate('!!cadCmd')
     page.keyboard.press('Escape');page.locator('#confirmYes').click();assert not page.evaluate('!!cadCmd')
+    page.get_by_role('tab',name='Edição',exact=True).click()
     page.locator('[role=tabpanel]:visible [data-rs-tool="insertcontrol"]').click();assert page.evaluate('tool')=='insertcontrol'
     page.get_by_role('tab',name='Tráfego e acessos',exact=True).click()
     page.locator('[role=tabpanel]:visible [data-rs-tool="block"]').click();assert page.evaluate('tool')=='block'

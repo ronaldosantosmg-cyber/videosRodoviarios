@@ -548,3 +548,22 @@ body.studio142.wide main{height:auto!important;flex:1 1 0!important;min-height:0
 #rsTransportDialog{width:min(640px,90vw);max-height:85vh;overflow:auto;padding:22px;border:1px solid var(--cromo-borda);border-radius:8px;background:var(--panel);color:var(--texto)}#rsTransportDialog::backdrop{background:#0007}.rsTransportFields{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px}.rsTransportFields label{display:flex;flex-direction:column;gap:4px}.rsTransportFields p{grid-column:1/-1}#rsTransportError{color:#c53333}@media(max-width:650px){.rsTransportFields{grid-template-columns:1fr}}
 
 .rsTransportFields .rsTransportCheck{flex-direction:row;align-items:center;gap:8px;grid-column:1/-1}.rsTransportCheck input[type=checkbox]{width:auto;margin:0}.rsTransportActions{position:sticky;bottom:-22px;background:var(--panel);padding:12px 0;margin-top:12px;border-top:1px solid var(--cromo-borda);z-index:1}
+
+/* Grupos técnicos: legenda por função, sem repetir nomes em cada botão. */
+.studio142 #rsToolRibbon .rsAllGroup{position:relative;padding-top:15px;align-content:start}
+.studio142 #rsToolRibbon .rsAllGroup::before{content:attr(aria-label);position:absolute;top:0;left:2px;font:10px "Segoe UI",sans-serif;color:var(--texto);opacity:.8;white-space:nowrap}
+.studio142 #rsToolRibbon.rsIconMode #rsToolPanel0{max-height:150px}
+/* Os campos originais ganham espaço e rolagem, sem recortes laterais. */
+#rsPanelPopup{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;width:min(1040px,calc(100vw - 24px));height:min(780px,calc(100dvh - 32px));max-width:calc(100vw - 24px);max-height:calc(100dvh - 32px);padding:0;border:1px solid var(--cromo-borda);border-radius:9px;background:var(--panel);color:var(--texto);z-index:9000;box-shadow:0 12px 60px #0006;overflow:hidden}
+#rsPanelPopup[open]{display:flex;flex-direction:column}
+#rsPanelPopup header,#rsPanelPopup footer{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;background:var(--panel);flex-shrink:0}
+#rsPanelPopup header h2{flex:1;margin:0;font-size:17px}#rsPanelPopup header button{font-size:23px;min-width:36px}
+#rsPanelBody{padding:14px 18px;overflow:auto;flex:1;min-height:0;min-width:0}
+#rsPanelBody>.dockItem,#rsPanelBody>section{display:block!important;width:auto!important;max-width:100%;min-width:0;position:static!important;margin:0}
+#rsPanelBody .grid{grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr))}
+#rsPanelBody input,#rsPanelBody select,#rsPanelBody textarea{max-width:100%;min-width:0;box-sizing:border-box}
+#rsPanelBody .row{flex-wrap:wrap}#rsPanelBody .scroll{overflow:auto;max-width:100%}
+#rsPanelStatus{flex:1;min-width:180px;font-size:12px}#rsPanelDecision{max-width:min(560px,calc(100vw - 28px));z-index:10000}#rsPanelDecision::backdrop{background:#0006}
+.rsPresentationChoice{display:inline-flex;align-items:center;gap:6px;margin:0!important}.rsPresentationChoice select{max-width:min(340px,70vw)}
+.floatWin,.winDlg{max-width:calc(100vw - 24px)!important;max-height:calc(100dvh - 32px)!important}.floatWin{min-width:min(720px,calc(100vw - 24px))!important}.floatWin .fwBody{overflow:auto;min-width:0}.winDlg .grid{grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))}
+dialog:has(.grid):not(#rsPanelPopup):not(#rsPanelDecision){width:min(900px,calc(100vw - 28px));max-height:calc(100dvh - 32px);overflow:auto}

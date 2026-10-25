@@ -15,7 +15,9 @@ const PS={
 };
 function psFindSection(test){return pnItens.find(i=>test(i.t||'',i.el))||null}
 function psOpenHub(id){
+  const more=$('psMore');if(more)more.hidden=true;PS.extraOpen=false;
   if(id==='props'){
+    pnAbrir(null);
     try{abrirAba('prop',true)}catch{}
     const p=$('propPanel');if(p?.hidden)msg('Propriedades: selecione um objeto no desenho para editar.');
     return;
@@ -23,11 +25,12 @@ function psOpenHub(id){
   const item=id==='project'?psFindSection(t=>/Projeto e arquivos/i.test(t)):
              id==='layers'?psFindSection(t=>/Camadas, imagem local/i.test(t)):
              id==='video'?psFindSection(t=>/Exportar vídeo/i.test(t)):null;
-  if(item){pnAbrir(pnEstado.aberto===item.id?null:item.id);return}
+  if(item){recolherDock(true);pnAbrir(pnEstado.aberto===item.id?null:item.id);return}
   if(id==='layers'&&typeof openLayerManager==='function'){openLayerManager();return}
   if(id==='video')openSection('5. Exportar vídeo');
 }
 function psMoreMenu(anchor){
+  if(PS.extraOpen){PS.extraOpen=false;if($('psMore'))$('psMore').hidden=true;psUpdateHubState();return}
   let pop=$('psMore');if(!pop){pop=document.createElement('div');pop.id='psMore';pop.className='psMore';pop.hidden=true;document.body.appendChild(pop)}
   const primary=new Set(['project','layers','video']);
   const rows=pnItens.filter(i=>{
@@ -37,8 +40,15 @@ function psMoreMenu(anchor){
     return true;
   });
   pop.innerHTML=rows.map(i=>`<button type="button" data-pspn="${esc(i.id)}"><span>${i.ico||'▣'}</span><span>${esc(i.t)}</span></button>`).join('');
-  const r=anchor.getBoundingClientRect();pop.style.left=Math.round(r.right+6)+'px';pop.style.top=Math.round(r.top)+'px';pop.hidden=false;PS.extraOpen=true;
-  pop.onclick=e=>{const b=e.target.closest('[data-pspn]');if(!b)return;pnAbrir(b.dataset.pspn);pop.hidden=true;PS.extraOpen=false};
+  const r=anchor.getBoundingClientRect();pop.style.left=Math.round(r.right+6)+'px';pop.style.top=Math.round(r.top)+'px';pop.hidden=false;PS.extraOpen=true;psUpdateHubState();
+  pop.onclick=e=>{const b=e.target.closest('[data-pspn]');if(!b)return;pnAbrir(b.dataset.pspn);pop.hidden=true;PS.extraOpen=false;psUpdateHubState()};
+}
+function psUpdateHubState(){
+ const item=pnItens.find(i=>i.id===pnEstado.aberto);let active=null;
+ if(PS.extraOpen)active='more';
+ else if(item)active=/Projeto e arquivos/i.test(item.t)?'project':/Camadas, imagem local/i.test(item.t)?'layers':/Exportar vídeo/i.test(item.t)?'video':'more';
+ else if(!dockState.recolhida&&dockState.aba==='prop')active='props';
+ document.querySelectorAll('#atividades .psHub').forEach(b=>{const on=(b.dataset.pshub||'more')===active;b.classList.toggle('on',on);b.setAttribute('aria-expanded',String(on));b.setAttribute('aria-pressed',String(on))});
 }
 function psSyncActivities(){
   const bar=$('atividades');if(!bar||bar.dataset.ps==='1')return;bar.dataset.ps='1';bar.classList.add('psActivityBar');
@@ -127,8 +137,9 @@ function psRibbon(){
 }
 function psInit(){
   psRibbon();
-  try{estender('pnEntrar',anterior=>function(){const r=anterior();queueMicrotask(psSyncActivities);return r},'1.40.1: quatro hubs principais no workspace')}catch{}
-  queueMicrotask(psSyncActivities);
-  document.addEventListener('pointerdown',e=>{const p=$('psMore');if(p&&!p.hidden&&!e.target.closest('#psMore,[data-psmore]')){p.hidden=true;PS.extraOpen=false}},true);
+  for(const name of ['pnAplicar','aplicarDock'])estender(name,previous=>function(...args){const r=previous(...args);psUpdateHubState();return r},'Sincroniza o botão lateral com o painel aberto');
+  try{estender('pnEntrar',anterior=>function(){const r=anterior();queueMicrotask(()=>{psSyncActivities();psUpdateHubState()});return r},'1.40.1: quatro hubs principais no workspace')}catch{}
+  queueMicrotask(()=>{psSyncActivities();psUpdateHubState()});
+  document.addEventListener('pointerdown',e=>{const p=$('psMore');if(p&&!p.hidden&&!e.target.closest('#psMore,[data-psmore]')){p.hidden=true;PS.extraOpen=false;psUpdateHubState()}},true);
 }
 queueMicrotask(psInit);
