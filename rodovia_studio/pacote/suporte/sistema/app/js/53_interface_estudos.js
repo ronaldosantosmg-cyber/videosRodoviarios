@@ -163,7 +163,7 @@ function commandRibbon(rail){
  {label:'Navegação',tools:['pan'],commands:[]},
  {label:'Cálculos',tools:['inspect'],commands:['DIST','CALCULARFLUXOS']},
  {label:'Estaqueamento e obras',tools:['chain','chainend','poi','span','anchor','highlight','oae','oaepoly','city','gantry','obra'],commands:[]},
- {label:'Fluxos de tráfego',tools:['route','routesec','arrowrot','dir','flowrev','flowoff','flowadd','linkforce','noconn','noconnarea'],commands:['EDITARFLUXOS']},
+ {label:'Fluxos de tráfego',tools:['route','routesec','arrowrot','dir','flowrev','flowoff','flowadd','flowcut','flowjoin','linkforce','noconn','noconnarea'],commands:['EDITARFLUXOS']},
  {label:'Áreas e sinalização',tools:['exvert','exlasso','cleanarea','hatch','crosswalk','sign','pavarea','pavpick','shoulder','brush'],commands:[]},
  {label:'Tráfego e acessos',tools:['lanerange','lanes','block','access','crossok','crossno','advzone'],commands:[]},
  {label:'Calibração e cabine',tools:['pair','align','cabin'],commands:[]},

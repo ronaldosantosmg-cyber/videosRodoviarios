@@ -78,6 +78,23 @@ def project_trash(pid):
     with store.connect() as c:c.execute('DELETE FROM projects WHERE id=?',(pid,))
     return {'trash':dst.name}
 
+@router.delete('/api/project-records/{pid}')
+def remove_missing_project_record(pid):
+    """Remove só o cadastro sem configuração, com cópia recuperável; não apaga pastas."""
+    if not re.fullmatch(r'[a-f0-9]{32}',pid):raise HTTPException(422,'Identificador de projeto inválido.')
+    with dispatch_lock,store.connect() as c:
+        c.execute('BEGIN IMMEDIATE')
+        row=c.execute('SELECT * FROM projects WHERE id=?',(pid,)).fetchone()
+        if not row:raise HTTPException(404,'Registro não encontrado.')
+        d=store.ROOT/pid
+        if d.is_symlink() or (d/'config.json').exists():raise HTTPException(409,'Este projeto possui configuração ou vínculo de pasta; use a exclusão normal.')
+        if c.execute("SELECT 1 FROM jobs WHERE project=? AND state IN ('queued','running','cancel_requested')",(pid,)).fetchone():raise HTTPException(409,'Cancele ou aguarde o processamento antes de remover o registro.')
+        archive=store.ROOT/'_registros_removidos'/(pid+'_'+uuid.uuid4().hex+'.json')
+        if archive.parent.is_symlink():raise HTTPException(409,'Pasta de registros removidos não pode ser um vínculo simbólico.')
+        store.write_json(archive,{'project':dict(row),'reason':'cadastro_sem_configuracao','files_removed':False})
+        c.execute('DELETE FROM projects WHERE id=?',(pid,))
+    return {'removed_record':True,'files_removed':False,'backup':archive.name}
+
 # ---------------- 1.30: abrir projeto, renomear e modelos ----------------
 @router.get('/api/projects_info')
 def projects_info():

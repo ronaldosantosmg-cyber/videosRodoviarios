@@ -1,0 +1,15 @@
+..................................                                       [100%]
+============================= slowest 6 durations ==============================
+7.62s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v14217_usability.py::test_missing_record_removal_preserves_existing_files_and_archives_catalogue
+7.53s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v14214_panels_ui.py::test_discard_closes_even_if_property_refresh_fails
+6.36s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14214_panels_ui.py::test_modified_properties_closes_after_decision_and_stays_closed[discard]
+6.32s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v1425_live_3d.py::test_new_project_requires_identity_and_saves_all_initial_settings
+6.10s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v14214_panels_ui.py::test_modified_properties_closes_after_decision_and_stays_closed[save]
+5.78s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14216_repair_live.py::test_visible_repair_action_reaches_real_motor_and_preserves_dxf
+34 passed in 109.71s (0:01:49)
+
+Orientação acionada por erro real de alinhamento:
+.                                                                        [100%]
+1 passed in 14.16s
+
+Orientação visível ao lado da correção de fluxos: 1 teste aprovado (pytest-layout.xml).

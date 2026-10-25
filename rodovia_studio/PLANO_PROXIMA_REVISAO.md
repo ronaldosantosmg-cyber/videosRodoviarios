@@ -48,3 +48,5 @@ Trabalhar na branch de desenvolvimento; não alterar `main` sem autorização.
 ## Continuidade da vista — correção prioritária 1.42.15
 
 A API omite a prévia quando ela fica desatualizada. O recarregamento de resultados não deve apagar a imagem já carregada por esse motivo. Conservar a imagem com indicação de desatualização e preservar centro/escala em CRS, mesmo quando os parâmetros da próxima imagem mudam. A referência anterior só pode ser reaproveitada no mesmo projeto; a troca de projeto conserva o isolamento de sessão. Falhas de carregamento não autorizam exportar resultados desatualizados.
+
+Solicitação reiterada após 1.42.16: concluir primeiro a revisão 1.42.17 (margens, cadastro residual, faixa de ferramentas, splash e orientação de cálculos); depois construir a revisão de camadas, fumaça e pedestres. Preservar a exclusão de pista com aproximação de veículos/trens em 50 m, exceto travessias protegidas/autorizadas e separação de nível efetiva. Fumaça sempre com componente contrária ao movimento, incluindo marcha a ré. Não considerar o protótipo arquivado como recurso entregue.

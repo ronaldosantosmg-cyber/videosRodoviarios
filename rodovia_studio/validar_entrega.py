@@ -18,6 +18,7 @@ PACKAGE=ROOT/'pacote'
 SYSTEM=PACKAGE/'suporte/sistema'
 EVIDENCE=ROOT/'evidencias'/json.loads((PACKAGE/'manifest.json').read_text())['version']
 TESTS=[
+ 'tests/test_v14217_usability.py',
  'tests/test_v14216_flow_repair.py','tests/test_v14216_repair_live.py',
  'tests/test_v14215_view_retention.py',
  'tests/test_v14214_assistant.py','tests/test_v14214_panels_ui.py',

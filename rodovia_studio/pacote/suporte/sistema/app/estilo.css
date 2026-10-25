@@ -599,3 +599,13 @@ body.rsCompactWorkspace.rsSidebarCollapsed.paineis main{grid-template-columns:27
 body.rsCompactWorkspace.rsSidebarCollapsed.paineis.pnAberto.pnFixado main{grid-template-columns:27px var(--side,420px) 8px minmax(0,1fr)!important}
 body.rsSidebarCollapsed #atividades .pnRot{display:none!important}
 body.rsSidebarCollapsed #atividades .pnIco{width:19px!important}
+
+/* Respiro interno e transbordamento por grupo, sem comandos fora da tela. */
+dialog#rsNewProject{padding:20px 24px;box-sizing:border-box;border:1px solid var(--cromo-borda);max-height:calc(100dvh - 32px);overflow:auto}
+#rsNewProject form{min-width:0}#rsNewProject h3{margin:0 0 14px}#rsNewProject .row:last-child{padding-top:16px;padding-bottom:3px}
+.studio142.rsCompactWorkspace #rsToolPanel0{max-height:108px!important;overflow-y:auto;overflow-x:hidden;flex-wrap:wrap!important}
+.rsCompactWorkspace #rsToolPanel0 .rsAllGroups{width:100%!important;max-width:100%;flex-wrap:wrap!important;gap:6px}
+.rsCompactWorkspace #rsToolPanel0 .rsAllGroup{min-width:0!important;max-width:100%;flex-wrap:wrap!important}
+.rsCompactWorkspace .rsToolPanel{max-width:100%;flex-wrap:wrap;overflow-x:hidden}
+#rsToolTabs{max-width:100%;overflow-x:auto}#rsToolRibbon{min-width:0;max-width:100%}
+@media(max-width:600px){dialog#rsNewProject{padding:14px 16px}#rsNewProject .grid{grid-template-columns:minmax(0,1fr)}}

@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.16",
-  "description": "1.42.16: central visível de correção de fluxos, ajuste lateral seguro, continuidade de eixos CAD e barreiras abertas. Validação direcionada."
+  "version": "1.42.17",
+  "description": "1.42.17: margens de janelas, remoção segura de cadastros residuais, faixa agrupada, orientação local dos cálculos e finalização do splash. Validação direcionada."
 }

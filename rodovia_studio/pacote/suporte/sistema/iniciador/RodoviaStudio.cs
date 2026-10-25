@@ -77,6 +77,11 @@ namespace RodoviaStudioLauncher
             timer.Tick += delegate { angle = (angle + 7f) % 360f; frame++; Invalidate(); };
             timer.Start();
         }
+        public void Restart() { angle = 0f; frame = 0; Invalidate(); Update(); timer.Start(); }
+        public void Finish()
+        {
+            timer.Stop(); angle = 0f; frame = 0; Invalidate(); Update();
+        }
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
@@ -138,6 +143,18 @@ namespace RodoviaStudioLauncher
             status.SetBounds(160, 122, 380, 54);
             Controls.Add(logo); Controls.Add(title); Controls.Add(version); Controls.Add(maker); Controls.Add(status);
             SetVersion(appVersion);
+        }
+        public void RestartAnimation() { logo.Restart(); }
+        public void FinishAnimation()
+        {
+            if (IsDisposed) return;
+            logo.Finish();
+            DateTime until = DateTime.UtcNow.AddMilliseconds(180);
+            while (!IsDisposed && DateTime.UtcNow < until) { Application.DoEvents(); Thread.Sleep(10); }
+        }
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            logo.Finish(); base.OnFormClosing(e);
         }
         public void SetVersion(string v)
         {
@@ -242,7 +259,7 @@ namespace RodoviaStudioLauncher
                 if (!Prepare()) return false;            // uma atualização pode trazer novas dependências
                 if (!StartServer()) return false;
                 WriteVersionFile();
-                splash.Close(); splash = null;
+                splash.FinishAnimation(); splash.Close(); splash = null;
                 CreateTray();
                 StartUpdateWatcher();
                 OpenWindow();

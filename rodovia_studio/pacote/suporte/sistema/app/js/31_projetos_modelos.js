@@ -13,6 +13,7 @@ function renderOpen(){const R=opFiltered();
  $('opGrid').innerHTML=R.length?R.map(r=>`<div class="prjCard${r.id===opSel?' on':''}${r.id===pid?' cur':''}" data-op="${r.id}" tabindex="0" title="Duplo clique abre">${r.preview?`<img loading="lazy" alt="" src="/api/projects/${r.id}/miniatura.jpg?v=${encodeURIComponent(r.modified||'')}">`:'<div class="noimg">sem prévia</div>'}<b>${esc(r.name)}</b><small>${r.missing?'pasta ausente':`DXF ${r.files?.dxf?'✓':'—'} · KMZ ${r.files?.kmz?'✓':'—'}${r.video?' · vídeo ✓':''}`}</small><small>Gravado ${esc(r.modified||'—')}</small></div>`).join(''):'<p class="muted">Nenhum projeto encontrado.</p>';
  opButtons()}
 function opButtons(){const r=opRows.find(x=>x.id===opSel);for(const id of ['opOpen','opRename','opDup','opTpl','opDel'])$(id).disabled=!r||(!!r.missing&&id!=='opDel');
+ $('opDel').textContent=r?.missing?'Remover registro…':'Excluir…';
  $('opInfo').textContent=r?`${r.name}${r.origin||r.destination?` — ${r.origin||'?'} → ${r.destination||'?'}`:''} · criado ${String(r.created||'').slice(0,16)}${r.file_names&&Object.keys(r.file_names).length?' · arquivos: '+Object.values(r.file_names).filter(Boolean).join(', '):''}`:`${opRows.length} projeto(s). Clique para escolher; duplo clique abre.`}
 async function openProjectId(id){if(pid&&id!==pid&&typeof savePending!=='undefined'&&savePending){clearTimeout(saveTimer);try{await save()}catch(e){}}
  await load(id);await list();announce({t:'project'});msg(`Projeto “${cfg.name}” aberto.`)}
@@ -33,9 +34,9 @@ $('opDup')?.addEventListener('click',guard(async()=>{const r=opRows.find(x=>x.id
  const v=await inputBox('Duplicar projeto','Nome da cópia:',(r.name+' (cópia)').slice(0,80),{taken:opRows.map(x=>x.name)});if(!v)return;const n=await api(`/api/projects/${r.id}/save_as`,json('POST',{name:v}));opRows=await api('/api/projects_info');opSel=n.id;renderOpen();await list();msg(`Cópia “${n.name}” criada (o projeto aberto não mudou).`)}));
 $('opTpl')?.addEventListener('click',guard(async()=>{if(opSel)await openTplSave(opSel)}));
 $('opDel')?.addEventListener('click',guard(async()=>{const r=opRows.find(x=>x.id===opSel);if(!r)return;
- if(!await confirmBox(`Excluir o projeto “${r.name}” da lista? A pasta vai para “_lixeira” (pode ser recuperada manualmente).`,'Excluir','Cancelar'))return;
- const res=await api(`/api/projects/${r.id}`,{method:'DELETE'});if(r.id===pid){pid='';cfg={};meta=null;geo=null;baseImage=null;editor=null;try{localStorage.removeItem('rodovia_project')}catch{}draw()}
- opRows=await api('/api/projects_info');opSel=opRows[0]?.id||null;renderOpen();await list();msg(`Projeto retirado da lista (pasta ${res.trash} em _lixeira).`)}));
+ if(!await confirmBox(r.missing?`Remover o registro “${r.name}” da lista? Nenhum arquivo será apagado e uma cópia do cadastro será preservada.`:`Excluir o projeto “${r.name}” da lista? A pasta vai para “_lixeira” (pode ser recuperada manualmente).`,r.missing?'Remover registro':'Excluir','Cancelar'))return;
+ const res=await api(r.missing?`/api/project-records/${r.id}`:`/api/projects/${r.id}`,{method:'DELETE'});if(r.id===pid){pid='';cfg={};meta=null;geo=null;baseImage=null;editor=null;try{localStorage.removeItem('rodovia_project')}catch{}draw()}
+ opRows=await api('/api/projects_info');opSel=opRows[0]?.id||null;renderOpen();await list();msg(res.removed_record?'Registro removido da lista. Nenhum arquivo foi apagado; cadastro guardado em _registros_removidos.':`Projeto retirado da lista (pasta ${res.trash} em _lixeira).`)}));
 $('opNew')?.addEventListener('click',guard(async()=>{const v=await inputBox('Novo projeto','Nome do novo projeto:','Novo trecho',{taken:opRows.map(x=>x.name)});if(!v)return;const r=await api('/api/projects',json('POST',{name:v}));$('openDlg').close();await list();await load(r.id);msg(`Projeto “${v}” criado. Envie o DXF e o KMZ.`)}));
 $('opClose')?.addEventListener('click',()=>$('openDlg').close());
 

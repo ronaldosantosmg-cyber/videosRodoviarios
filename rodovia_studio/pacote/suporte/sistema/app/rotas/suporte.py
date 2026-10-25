@@ -88,3 +88,13 @@ def usage_catalog(pid):
     from ..usage_catalog import summarize
     d=store.directory(pid)
     return summarize(read(d,'execucao',3000),read(d,'erros',1000))
+
+class CalculationGuidanceRequest(_BM):
+    kind: str = Field(default='cálculo',max_length=80)
+    message: str = Field(default='',max_length=8000)
+    point: list[float] | None = Field(default=None,max_length=2)
+
+@router.post('/api/calculations/guidance')
+def calculation_guidance(body:CalculationGuidanceRequest):
+    from ..calculation_guidance import guidance
+    return guidance(body.kind,body.message,body.point)
