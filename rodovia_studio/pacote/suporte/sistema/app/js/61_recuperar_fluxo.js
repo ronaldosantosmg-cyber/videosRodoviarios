@@ -4,7 +4,7 @@
  const previous=showSegProps;
  showSegProps=function(...args){const result=previous(...args),s=segById(selSeg?.id),box=$('propPanel');if(!s||!box||box.hidden)return result;
  const row=document.createElement('div');row.className='row';
- const button=document.createElement('button');button.type='button';button.dataset.flowRecovery='recover';button.textContent='Recuperar fluxo principal…';button.title='Preserva o eixo original, exclui da circulação os intervalos reprovados e revalida os trechos restantes. Não liga através das lacunas.';
+ const button=document.createElement('button');button.type='button';button.dataset.flowRecovery='recover';button.innerHTML=RodoviaInfraRail.icon('auto-fix')+'<span>Recuperar fluxo principal…</span>';button.title='Preserva o eixo original, exclui da circulação os intervalos reprovados e revalida os trechos restantes. Não liga através das lacunas.';
  row.appendChild(button);
  if(recoveryIndex(s)>=0){const remove=document.createElement('button');remove.type='button';remove.dataset.flowRecovery='remove';remove.textContent='Remover recuperação';row.appendChild(remove)}
  box.appendChild(row);return result;

@@ -13,7 +13,7 @@ async function openCatalog(){
  const materials=()=>{const role=$('rsAssetRole').value;const rows=catalog.filter(m=>m.role===role);$('rsAssetMaterial').innerHTML='<option value="">Material padrão da classe</option>'+rows.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join('')};
  $('rsAssetRole').onchange=materials;materials();
  const searchKey=value=>String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase();
- const gallery=()=>{const q=searchKey($('rsAssetSearch').value.trim());$('rsAssetGallery').innerHTML=catalog.filter(m=>searchKey(m.name+' '+m.aliases.join(' ')).includes(q)).map(m=>`<button type="button" data-material="${m.id}" title="Selecionar ${esc(m.name)}"><img src="/api/materials/${m.id}.png" alt="${esc(m.name)}" width="96" height="72"><br>${esc(m.name)}</button>`).join('')};
+ const gallery=()=>{const q=searchKey($('rsAssetSearch').value.trim());$('rsAssetGallery').innerHTML=catalog.filter(m=>searchKey(m.name+' '+m.aliases.join(' ')).includes(q)).map(m=>`<button type="button" data-material="${m.id}" title="Selecionar ${esc(m.name)}"><img src="/api/materials/${m.id}.png" alt="${esc(m.name)}" width="96" height="72"><br>${RodoviaInfraRail.forMaterial(m.role)}${esc(m.name)}</button>`).join('')};
  $('rsAssetSearch').oninput=gallery;gallery();
  d.addEventListener('click',e=>{const key=e.target.closest('[data-material]')?.dataset.material;if(key){const row=catalog.find(m=>m.id===key);$('rsAssetRole').value=row.role;materials();$('rsAssetMaterial').value=row.id;dirty=true}});
  d.addEventListener('input',e=>{if(e.target.id!=='rsAssetSearch')dirty=true});

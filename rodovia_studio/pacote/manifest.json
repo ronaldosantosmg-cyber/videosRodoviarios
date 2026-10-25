@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.10",
-  "description": "1.42.10: recuperação, corte e junção validados de fluxos; indicação de conflitos e sentido; ferrovia por seleção de rota; faróis noturnos e braços semafóricos; desnível declarado de OAE; catálogo local de 32 materiais e nomes CAD reutilizáveis."
+  "version": "1.42.11",
+  "description": "1.42.11: integração local do pacote de ícones InfraRail fornecido pelo usuário."
 }

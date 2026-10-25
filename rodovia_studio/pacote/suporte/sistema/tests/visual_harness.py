@@ -49,7 +49,7 @@ def offline_html() -> str:
     html=(APP/'index.html').read_text(encoding='utf-8')
     css=(APP/'estilo.css').read_text(encoding='utf-8')
     html=html.replace('<link rel="stylesheet" href="/estilo.css">',MOCK_BOOTSTRAP.replace('1.40.9-visual',json.loads((BASE/'VERSAO.json').read_text())['version']+'-visual')+f'<style>{css}</style>')
-    html=html.replace('<script src="/app.js"></script>','')
+    html=html.replace('<script src="/app.js"></script>',(APP/'icons/infrarail-sprite.svg').read_text(encoding='utf-8'))
     def data_img(path):
         raw=Path(path).read_bytes();return 'data:image/png;base64,'+base64.b64encode(raw).decode('ascii')
     html=html.replace('src="/marca/icone.png"',f'src="{data_img(APP/"icone.png")}"')

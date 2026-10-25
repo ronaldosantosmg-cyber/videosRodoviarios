@@ -62,7 +62,7 @@ const ICON_PATHS={pan:'M8 12V6a1.5 1.5 0 013 0v5M11 11V4.5a1.5 1.5 0 013 0V11M14
  city:'M3 21h18M5 21V10l4-3v14M9 21V4h7v17M16 21V9h3v12',block:'M3 10h18v5H3zM6 10l3 5M11 10l3 5M16 10l3 5M5 15v5M19 15v5',access:'M3 6h18M3 18h18M12 18c0-6 3-9 9-9',
  crossok:'M4 14l5 5 11-12',crossno:'M12 3a9 9 0 100 18 9 9 0 000-18zM8 12h8',pair:'M6 6a2 2 0 100 4 2 2 0 000-4zM18 14a2 2 0 100 4 2 2 0 000-4zM8 9l8 6',cabin:'M4 15l2-6h12l2 6v3H4zM7 18v2M17 18v2M7.5 15h.01M16.5 15h.01'};
 const TOOL_GROUPS=['Navegação','Estaqueamento e obras','Fluxos de tráfego','Áreas e sinalização','Tráfego e acessos','Calibração e cabine'];
-function toolIcon(id){const d=ICON_PATHS[id];return d?`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`:''}
+function toolIcon(id){const supplied=window.RodoviaInfraRail?.forTool(id);if(supplied)return supplied;const d=ICON_PATHS[id];return d?`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`:''}
 const toolLabel=t=>t[1].replace(/^[^\p{L}\p{N}(]+/u,'').trim();
 function buildToolbar(){let g=0,html=`<div class="tgroup"><span class="tgname">${TOOL_GROUPS[0]}</span><div class="tbtns">`;for(const t of TOOLS){if(t==='|'){g++;html+=`</div></div><div class="tgroup"><span class="tgname">${TOOL_GROUPS[g]||''}</span><div class="tbtns">`;continue}html+=`<button data-tool="${t[0]}" title="${esc(toolLabel(t)+' — '+t[2])}">${toolIcon(t[0])}<span>${esc(toolLabel(t))}</span></button>`}
  let lbl=false;try{lbl=localStorage.getItem('rodovia_tool_labels')==='1'}catch{}

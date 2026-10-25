@@ -1,0 +1,51 @@
+{
+  "aplicacao_do_zip": "aprovada",
+  "residuos_arquivados": 0,
+  "inicializacao_servidor_s": 1.979,
+  "recursos_locais": {
+    "dependencias_locais": {
+      "fastapi": true,
+      "uvicorn": true,
+      "pydantic": true,
+      "ezdxf": true,
+      "numpy": true,
+      "scipy": true,
+      "shapely": true,
+      "pyproj": true,
+      "cv2": true,
+      "PIL": true,
+      "imageio_ffmpeg": true,
+      "rasterio": true,
+      "tifffile": true,
+      "skimage": true
+    },
+    "ffmpeg": {
+      "disponivel": true,
+      "detalhe": "ffmpeg version 7.0.2-static https://johnvansickle.com/ffmpeg/  Copyright (c) 2000-2024 the FFmpeg developers"
+    },
+    "fontes_locais": true,
+    "recursos": {
+      "DXF": true,
+      "KMZ": true,
+      "GeoTIFF": true,
+      "ECW": false,
+      "MrSID": false,
+      "DWG_ODA": false
+    },
+    "dependem_de_internet": [
+      "Imagem aérea online sem cache",
+      "Consulta de cidades e hidrografia online",
+      "Download de atualizações e componentes opcionais"
+    ],
+    "observacao": "Disponibilidade de driver não certifica um arquivo real. ECW/MrSID e DWG dependem de componentes opcionais; DXF, KMZ, GeoTIFF, edição, simulação, MP4 e prompt IA podem funcionar localmente."
+  },
+  "modulos_webgl_locais": "disponiveis",
+  "sprite_infrarail_instalado": "32 símbolos e módulo local disponíveis",
+  "inicializacao_fora_da_raiz": "aprovada",
+  "encerramento_controlado": "aprovado",
+  "rollback_apos_mover_instalacao": "aprovado",
+  "restauracao_byte_a_byte": "aprovada",
+  "kmz_geotiff_videos": "preservados",
+  "zip_sha256": "db066d5dbb1d351f25bbc35625ce66df49e9718e3b4ea140f720a733d8c8ae38",
+  "windows_native_executed": false
+}

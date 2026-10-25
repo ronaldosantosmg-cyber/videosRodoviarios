@@ -24,7 +24,7 @@ Object.assign(professionalIcons,{
  access:technicalIcon('M3 4h8v16H3M19 20v-5c0-4-8-4-8-7M16 17l3 3 3-3'),
  signal_link:technicalIcon('M2 3h6v12H2zM16 9h6v12h-6zM5 6v.1M5 9v.1M5 12v.1M19 12v.1M19 15v.1M19 18v.1M8 7h4v10h4')
 });
-const oldIcon=toolIcon;toolIcon=id=>professionalIcons[id]||oldIcon(id);
+const oldIcon=toolIcon;toolIcon=id=>window.RodoviaInfraRail?.forTool(id)||professionalIcons[id]||oldIcon(id);
 window.RodoviaIcons=Object.freeze(professionalIcons);
 const state={menus:[],top:-1,focus:null};
 const study={stale:false,editing:false};

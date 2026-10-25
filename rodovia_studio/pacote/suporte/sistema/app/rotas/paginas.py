@@ -19,7 +19,8 @@ def index():
     # de tentar carregar os módulos seguintes; /app.js permanece por compatibilidade e diagnóstico.
     html=(BASE/'app/index.html').read_text(encoding='utf-8')
     tags=''.join(f'<script src="/js/{f.name}"></script>' for f in sorted((BASE/'app/js').glob('[0-9][0-9]_*.js')))
-    return html.replace('<script src="/app.js"></script>',tags)
+    sprite=(BASE/'app/icons/infrarail-sprite.svg').read_text(encoding='utf-8')
+    return html.replace('<script src="/app.js"></script>',sprite+tags)
 
 @router.get('/js/{name}',include_in_schema=False)
 def js_module(name:str):
