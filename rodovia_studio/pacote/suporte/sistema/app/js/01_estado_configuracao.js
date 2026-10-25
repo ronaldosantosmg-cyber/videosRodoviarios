@@ -51,9 +51,17 @@ async function save(){
 
 async function list(){const rows=await api('/api/projects');$('projects').innerHTML='<option value="">Selecione…</option>'+rows.map(r=>`<option value="${r.id}">${esc(r.name)} · ${esc(r.created)}</option>`).join('');$('projects').value=pid}
 let sourceLayerCatalog=null;
+function showRouteChoices(preserve=false){
+ if(!analysis){$('routes').innerHTML='';return}
+ if(preserve){cfg.route_directions={...(cfg.route_directions||{})};document.querySelectorAll('#routes select[data-route]').forEach(e=>cfg.route_directions[e.dataset.route]=e.value)}
+ const requested=Number($('min_route_segment_m')?.value??cfg.min_route_segment_m),minimum=Number.isFinite(requested)&&requested>0?requested:50;
+ const rows=(analysis.routes||[]).filter(r=>Number.isFinite(Number(r.length_exact_m??r.length_m))&&Number(r.length_exact_m??r.length_m)>=minimum);
+ $('routes').innerHTML=rows.map(r=>`<tr><td>Eixo ${esc(r.id)} · ${Number(r.length_m).toFixed(1)} m<br>${esc(r.layer)}</td><td><select data-route="${esc(r.id)}">${[['auto','Automático'],['forward','Crescente (km)'],['reverse','Decrescente (km)'],['off','Sem veículos']].map(([k,v])=>`<option value="${k}" ${(cfg.route_directions||{})[r.id]===k?'selected':''}>${v}</option>`).join('')}</select></td></tr>`).join('');
+}
+for(const event of ['input','change'])$('min_route_segment_m')?.addEventListener(event,()=>showRouteChoices(true));
 function showLayers(){const rows=[...new Map([...(sourceLayerCatalog?.layers||[]),...(analysis?.layers||[])].map(l=>[l.name,l])).values()];if(!rows)return;$('layers').innerHTML=rows.map(l=>{let current=Object.entries(cfg.layers||{}).find(([k,v])=>v.includes(l.name))?.[0]||(!Object.keys(cfg.layers||{}).length?l.suggested_role:'');return `<tr><td>${esc(l.name)}<br><small>${l.count} entidades</small></td><td><select data-layer="${esc(l.name)}"><option value="">Ignorar</option>${Object.entries(roles).map(([k,v])=>`<option value="${k}" ${k===current?'selected':''}>${v}</option>`).join('')}</select></td><td><button class="mini" data-showlayer="${esc(l.name)}" title="Destacar esta camada no editor">Ver</button></td></tr>`}).join('');showRoleColors();
  if(!analysis){$('routes').innerHTML='';$('warnings').textContent=(sourceLayerCatalog?.warnings||[]).join('\n');return}
- $('routes').innerHTML=analysis.routes.map(r=>`<tr><td>Eixo ${r.id} · ${r.length_m.toFixed(1)} m<br>${esc(r.layer)}</td><td><select data-route="${r.id}">${[['auto','Automático'],['forward','Crescente (km)'],['reverse','Decrescente (km)'],['off','Sem veículos']].map(([k,v])=>`<option value="${k}" ${(cfg.route_directions||{})[r.id]===k?'selected':''}>${v}</option>`).join('')}</select></td></tr>`).join('');
+ showRouteChoices();
  $('warnings').textContent=(analysis.warnings||[]).join('\n');$('geom').textContent=`Comprimento geométrico: ${(analysis.geometric_length_m/1000).toFixed(3)} km. A extensão de referência permanece independente.`+(analysis.georef_check?` Conferência DXF × KMZ (${analysis.georef_check.points} pontos ao longo do eixo): desvio mediano ${analysis.georef_check.median_m.toFixed(2)} m, 95% até ${analysis.georef_check.p95_m.toFixed(2)} m, máximo ${analysis.georef_check.max_m.toFixed(2)} m.`:' Sem KMZ: a posição não foi conferida contra outra referência.')}
 function mergeProjectConfig(base,local,remote,path=[],conflicts=[]){
  const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b),copy=v=>v===undefined?undefined:structuredClone(v);

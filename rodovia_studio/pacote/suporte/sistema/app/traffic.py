@@ -182,7 +182,7 @@ class TrafficNetwork:
             raw.extend(raw_paths(settings))
         for i,r in enumerate(raw):
             r.setdefault('origin',i)
-            coordinates=np.round(r['points'],3).astype('<f8');geometry_key=min(coordinates.tobytes(),coordinates[::-1].tobytes())
+            coordinates=np.round(r.get('identity_points',r['points']),3).astype('<f8');geometry_key=min(coordinates.tobytes(),coordinates[::-1].tobytes())
             r['origin_key']=hashlib.sha256((str(r.get('source_id') or r.get('route') or r.get('native_id') or r.get('source',''))+'|'+str(r.get('level',0))).encode()+geometry_key).hexdigest()
             r['origin_aliases']=[r['origin_key']]
             if r.get('native_axis') and ',' not in r['native_id']:

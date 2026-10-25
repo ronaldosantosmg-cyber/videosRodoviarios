@@ -1,0 +1,11 @@
+....................................                                     [100%]
+============================= slowest 8 durations ==============================
+8.88s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v14212_ui.py::test_automatic_job_does_not_close_a_panel_opened_while_save_is_pending
+8.41s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v1428_panels.py::test_popup_save_reaches_the_real_api_and_restores_enabled_controls
+8.15s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v14214_panels_ui.py::test_modified_properties_closes_after_decision_and_stays_closed[save]
+7.06s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v1428_panels.py::test_popup_discard_restores_form_and_preserves_previous_pending_edits
+6.64s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14214_panels_ui.py::test_modified_properties_closes_after_decision_and_stays_closed[save]
+6.50s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14212_ui.py::test_failed_save_keeps_dialog_and_discard_restores_the_model
+6.28s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v14212_ui.py::test_failed_save_keeps_dialog_and_discard_restores_the_model
+6.26s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14214_panels_ui.py::test_modified_properties_closes_after_decision_and_stays_closed[discard]
+36 passed in 125.00s (0:02:04)

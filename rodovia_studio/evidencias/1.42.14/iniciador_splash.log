@@ -1,0 +1,4 @@
+iniciador/RodoviaStudio.cs(407,17): warning CS0162: Unreachable code detected
+Compilation succeeded - 1 warning(s)
+Gtk not found (missing LD_LIBRARY_PATH to libgtk-x11-2.0.so.0?), using built-in colorscheme
+Splash: versão, fabricante e animação verificados (8026 pixels alterados).

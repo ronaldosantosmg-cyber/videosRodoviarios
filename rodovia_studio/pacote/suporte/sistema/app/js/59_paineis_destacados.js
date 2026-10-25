@@ -1,6 +1,6 @@
 // Janelas amplas para os mesmos campos do painel; alterações ficam pendentes até confirmar.
 (()=>{'use strict';
-let active=null,committing=false,closing=false,decision=null;
+let active=null,committing=false,closing=false,decision=null,closePending=null;
 const clone=x=>JSON.parse(JSON.stringify(x));
 const originalSave=save,originalSchedule=scheduleSave,originalStart=start,originalLoad=load;
 function controls(root=document){return [...root.querySelectorAll('input,select,textarea')].filter(e=>e.type!=='file').map(e=>({el:e,value:e.value,checked:e.checked}))}
@@ -27,17 +27,24 @@ function open(node,title,key){
  if(!node||closing)return;
  if(active){if(active.key===key){dialog().focus();return}void requestClose().then(ok=>{if(ok)open(node,title,key)});return}
  pauseTimers();const base=state(node),placeholder=document.createComment('painel destacado');node.before(placeholder);
- active={...base,node,placeholder,key,title,classes:node.className,hidden:node.hidden,project:pid};
+ active={...base,node,parent:placeholder.parentNode,placeholder,key,title,classes:node.className,hidden:node.hidden,project:pid};
  node.classList.remove('pnOculta','vazia');node.hidden=false;$('rsPanelBody')||dialog();$('rsPanelBody').appendChild(node);$('rsPanelTitle').textContent=title;
  $('rsPanelStatus').textContent='Alterações de configuração serão confirmadas ao salvar.';
  dialog().show();document.body.classList.add('rsPanelOpen');
 }
 function finish(discard){
  if(!active)return;const base=active;closing=true;active=null;
- if(discard)restore(base);
- base.node.className=base.classes;base.node.hidden=base.hidden;base.placeholder.replaceWith(base.node);dialog().close();document.body.classList.remove('rsPanelOpen');
- if(base.key.startsWith('dock:'))recolherDock(true);else pnAbrir(null);
- closing=false;syncImagery();
+ let refreshError=null;
+ try{if(discard)restore(base)}catch(e){refreshError=e}
+ finally{
+  try{base.node.className=base.classes;base.node.hidden=base.hidden;if(base.placeholder.isConnected)base.placeholder.replaceWith(base.node);else if(base.parent?.isConnected)base.parent.appendChild(base.node)}catch(e){refreshError??=e}
+  // O fechamento não pode depender de uma atualização de lista/propriedades.
+  dialog().close();document.body.classList.remove('rsPanelOpen');
+  try{if(base.key.startsWith('dock:'))recolherDock(true);else pnAbrir(null)}catch(e){refreshError??=e}
+  finally{closing=false}
+ }
+ try{syncImagery()}catch(e){refreshError??=e}
+ if(refreshError)msg((discard?'Alterações descartadas. ':'Alterações salvas. ')+'A janela foi fechada; não foi possível atualizar uma parte do painel: '+refreshError.message,true);
  const refresh=()=>{if(active||pid!==base.project)return;if(!task&&!taskRequestPending&&!savePending&&analysis&&!editor&&projectSession.artifacts.editor?.state==='stale')void originalStart('analyze',undefined,{automatic:true}).catch(e=>msg(e.message,true));if(!savePending&&typeof autoPrev!=='undefined'&&autoPrev&&previewStale&&previewVisible())scheduleViewPreview()};
  if(discard&&base.project&&!savePending)void oldApi('/api/projects/'+base.project).then(r=>{if(pid===base.project&&!savePending&&projectSession.revision===r.config_revision)window.dispatchEvent(new CustomEvent('rodovia:project-state',{detail:{project:base.project,...r}}))}).catch(()=>{});
  if(savePending){clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{try{await originalSave();refresh()}catch(e){msg(e.message,true)}},900)}else setTimeout(refresh,350)
@@ -47,8 +54,8 @@ async function commitClose(){
  const pane=active;
  if(pane.project!==pid){msg('O projeto mudou. Feche e reabra esta janela.',true);return false}
  if(!pid){msg('Crie ou abra um projeto antes de salvar.',true);return false}
- committing=true;dialog().querySelectorAll('button,input,select,textarea').forEach(e=>{e.dataset.rsWasDisabled=String(e.disabled);e.disabled=true});
- try{if(['name','origin','destination'].some(key=>!String($(key)?.value||'').trim()))throw Error('Informe nome, origem e destino antes de salvar.');await originalSave();if(savePending)throw Error('Há novas alterações pendentes. Revise e salve novamente.');finish(false);return true}
+ committing=true;
+ try{flushPropertyInputs(pane.node);dialog().querySelectorAll('button,input,select,textarea').forEach(e=>{e.dataset.rsWasDisabled=String(e.disabled);e.disabled=true});if(['name','origin','destination'].some(key=>!String($(key)?.value||'').trim()))throw Error('Informe nome, origem e destino antes de salvar.');await originalSave();if(savePending)throw Error('Há novas alterações pendentes. Revise e salve novamente.');finish(false);return true}
  catch(e){$('rsPanelStatus').textContent='Não foi salvo: '+e.message;msg(e.message,true);return false}
  finally{document.querySelectorAll('[data-rs-was-disabled]').forEach(e=>{e.disabled=e.dataset.rsWasDisabled==='true';delete e.dataset.rsWasDisabled});committing=false}
 }
@@ -59,11 +66,16 @@ function choose(){
  const done=value=>{d.close();d.remove();decision=null;resolve(value)};d.onclick=e=>{const value=e.target.closest('[data-choice]')?.dataset.choice;if(value)done(value)};d.oncancel=e=>{e.preventDefault();done('continue')};
  document.body.appendChild(d);decision={promise};d.showModal();return promise;
 }
-async function requestClose(){
- if(!active)return true;if(committing)return false;
- if(!differs()){finish(false);return true}
- const answer=await choose();if(answer==='continue')return false;
- if(answer==='discard'){finish(true);return true}return commitClose();
+function requestClose(){
+ if(closePending)return closePending;
+ if(!active)return Promise.resolve(true);if(committing)return Promise.resolve(false);
+ const pane=active;
+ closePending=(async()=>{
+  if(!differs()){finish(false);return true}
+  const answer=await choose();if(answer==='continue')return false;
+  if(active!==pane)return !active;
+  if(answer==='discard'){finish(true);return true}return commitClose();
+ })().finally(()=>{closePending=null});return closePending;
 }
 scheduleSave=function(...args){if(!active||committing)return originalSchedule(...args);projectSession.epoch++;savePending=true;pauseTimers();$('saveState').textContent='alterações pendentes na janela';if($('rsPanelStatus'))$('rsPanelStatus').textContent='Alterações pendentes — salve ou descarte antes de fechar.'};
 save=async function(...args){if(active&&!committing){pauseTimers();if(!await requestClose())throw Error('Gravação cancelada; a janela continua em edição.')}return originalSave(...args)};

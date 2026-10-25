@@ -85,6 +85,18 @@ function commitProp(el){const o=objOf(sel);if(!o)return;checkpoint();
   if(typeof old==='string'&&old.trim()!==''&&String(v).trim()===''&&['name','title'].includes(k)){undoStack.pop();showProps();return msg(`O campo “${k}” não pode ficar vazio.`,true)}
   if(el.type==='number'&&String(el.value).trim()===''&&old!==null){undoStack.pop();showProps();return msg(`O campo “${k}” não pode ficar vazio.`,true)}if(typeof old==='number'&&!isFinite(v)){undoStack.pop();return msg('Valor numérico inválido.',true)}if(old===null&&el.value==='')v=null;o.o[k]=v}
  changed('Propriedade alterada.');showProps()}
+function flushPropertyInputs(root){
+ const o=objOf(sel);if(!o||!root?.contains($('propPanel')))return;
+ const pending=[];
+ for(const el of root.querySelectorAll('#propPanel input[data-pp],#propPanel input[data-grip]')){
+  const coordinate=el.dataset.grip!==undefined,old=coordinate?gripGet(o.grips[Number(el.dataset.grip)])[el.dataset.ax]:o.o[el.dataset.pp];
+  const text=el.value.trim();let value=el.type==='checkbox'?el.checked:el.type==='number'?(text===''&&old===null?null:Number(text.replace(',','.'))):el.value;
+  if(el.type==='number'&&((text===''&&old!==null)||(value!==null&&!Number.isFinite(value))))throw Error('Informe um valor numérico válido antes de salvar.');
+  if(!coordinate&&['name','title'].includes(el.dataset.pp)&&!String(value??'').trim())throw Error('O nome não pode ficar vazio.');
+  if(value!==old&&!(old===null&&value===''))pending.push(el);
+ }
+ for(const el of pending)commitProp(el);
+}
 document.addEventListener('keydown',e=>{const el=e.target;if(!el.closest||!el.closest('#propPanel'))return;if(e.key==='Enter'){e.preventDefault();commitProp(el)}if(e.key==='Escape'){e.preventDefault();showProps()}});
 document.addEventListener('change',e=>{const el=e.target;if(el.closest&&el.closest('#propPanel')&&(el.tagName==='SELECT'||el.type==='checkbox'))commitProp(el)});
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#propPanel [data-ppact]');if(!b)return;const a=b.dataset.ppact;

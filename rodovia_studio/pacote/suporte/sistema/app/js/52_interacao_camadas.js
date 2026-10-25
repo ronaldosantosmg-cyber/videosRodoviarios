@@ -36,7 +36,9 @@ function restore(st,{selection=true,anchor=true}={}){
       else if(typeof sel!=='undefined')sel=null;
       if(typeof selSet!=='undefined')selSet=(st.selSet||[]).filter(ok).map(x=>({...x}));
       try{
-        if(typeof selLink!=='undefined'&&selLink)showLinkProps();
+        const keepClosed=typeof dockClosedSelection!=='undefined'&&dockClosedSelection===dockSelectionKey();
+        if(keepClosed){/* A seleção continua realçada; resize não reabre uma janela fechada. */}
+        else if(typeof selLink!=='undefined'&&selLink)showLinkProps();
         else if(typeof selSeg!=='undefined'&&selSeg&&segById(selSeg.id))showSegProps();
         else if(typeof dxfSel!=='undefined'&&dxfSel&&typeof showDxfProps==='function')showDxfProps();
         else showProps();
