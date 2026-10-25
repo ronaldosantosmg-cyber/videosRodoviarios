@@ -47,6 +47,7 @@ def flow_diagnostics(network):
         reasons=list(dict.fromkeys(r for item in critical for r in item['reasons']))
         if status=='ok' and raw.get('native_axis') and length<minimum:
             message=f'Subtrecho integrado ao eixo DXF contínuo de {effective_length:.1f} m; não é uma mini-rota independente.'
+        if raw.get('lateral_fits') and status=='ok':message+=' Afastamento ajustado automaticamente para acomodar o veículo dentro da pista.'
         recovery=raw.get('recovery_reports') or []
         for report in recovery:
             for points in report.get('excluded_geometry',[]):
@@ -83,5 +84,5 @@ def flow_diagnostics(network):
         from .flow_assistant import guidance
         assistant=guidance(status,reasons,disabled=bool(raw.get('disabled')),length=effective_length,minimum=minimum,points=critical)
         out.append({'technical_status':status,'technical_message':message,'technical_assistant':assistant,
-                    'technical_automatic':automatic,'technical_manual':manual,'technical_recovery':recovery_info,'technical_points':critical[:20],'technical_reasons':reasons})
+                    'technical_lateral_fits':raw.get('lateral_fits',[]),'technical_automatic':automatic,'technical_manual':manual,'technical_recovery':recovery_info,'technical_points':critical[:20],'technical_reasons':reasons})
     return out

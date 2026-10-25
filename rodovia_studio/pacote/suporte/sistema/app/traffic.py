@@ -379,12 +379,14 @@ class TrafficNetwork:
         for f in ([True,False] if both else [forward]):
             q=p.copy() if f else p[::-1].copy();t=tangent(q);n=np.column_stack([t[:,1],-t[:,0]])
             offset=0. if r.get('fixed') else min(1.65,max(0.,r['halfwidth']-1.35)) if both or kind in ['main','marginal'] else 0.
-            lane=q+n*offset
-            valid=np.ones(len(lane),bool) if r.get('free') else valid_centers(self.allowed,lane)
-            ids=np.flatnonzero(valid)
-            if len(ids)>8 and not valid[ids[0]:ids[-1]+1].all():
-                centered=valid_centers(self.allowed,q);ci=np.flatnonzero(centered)
-                if len(ci)>8 and centered[ci[0]:ci[-1]+1].all():lane=q;valid=centered
+            if r.get('free') or r.get('fixed'):
+                lane=q+n*offset;valid=np.ones(len(lane),bool) if r.get('free') else valid_centers(self.allowed,lane)
+            else:
+                from .flow_fit import fit_offset
+                lane,valid,fit=fit_offset(q,n,offset,self.allowed,both)
+                if fit:
+                    self.raw_info[-1].setdefault('lateral_fits',[]).append(fit)
+                    offset=fit['applied_m']
             # Invalid interior samples split the edge: no jumps across gaps or barriers.
             changes=np.diff(np.r_[False,valid,False].astype(np.int8))
             runs=list(zip(np.flatnonzero(changes==1),np.flatnonzero(changes==-1)))
@@ -681,9 +683,15 @@ class TrafficNetwork:
             return mode=='returns' and kind=='return' and line.length>=6
         for i,e in enumerate(self.edges):
             if e['disabled']:continue
+            # Um eixo CAD nativo não troca de pista só porque outra linha
+            # perpendicular passou a ser a referência mais próxima. Obstáculos
+            # físicos já recortam allowed; proibições explícitas foram aplicadas acima.
+            if e.get('native_axis'):continue
             a=self.side(e['p'][0]);b=self.side(e['p'][-1])
             if a is not None and b is not None and a!=b and not ok(e['p'],e['kind']):e['disabled']=True;e['crossing_blocked']=True;self.crossings_blocked+=1
         for (i,j),c in list(self.connectors.items()):
+            first,second=self.edges[i],self.edges[j]
+            if first.get('native_axis') and second.get('native_axis') and first.get('origin')==second.get('origin'):continue
             a=self.side(self.edges[i]['p'][-1]);b=self.side(self.edges[j]['p'][0])
             if a is not None and b is not None and a!=b and not ok(c,'connector'):
                 self.connections[i]=[x for x in self.connections[i] if x!=j];del self.connectors[(i,j)];self.crossings_blocked+=1

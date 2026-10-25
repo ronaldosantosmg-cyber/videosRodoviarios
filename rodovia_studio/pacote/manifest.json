@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.15",
-  "description": "1.42.15: continuidade da vista ao editar rotas, preservação de prévia desatualizada, cache 2D limitado e faixa de comandos compacta. Validação direcionada."
+  "version": "1.42.16",
+  "description": "1.42.16: central visível de correção de fluxos, ajuste lateral seguro, continuidade de eixos CAD e barreiras abertas. Validação direcionada."
 }

@@ -1,0 +1,13 @@
+....................................................                     [100%]
+============================= slowest 6 durations ==============================
+10.41s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14212_traffic_safety.py::test_pare_siga_never_reverses_while_tail_is_in_shared_corridor
+7.85s call     rodovia_studio/pacote/suporte/sistema/tests/test_v1426_transport.py::test_real_simulation_stops_and_releases[signal]
+7.18s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v14216_repair_live.py::test_visible_repair_action_reaches_real_motor_and_preserves_dxf
+6.64s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14216_repair_live.py::test_visible_repair_action_reaches_real_motor_and_preserves_dxf
+6.32s call     rodovia_studio/pacote/suporte/sistema/tests/test_v1426_transport.py::test_real_simulation_stops_and_releases[rail]
+2.13s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v14216_flow_repair.py::test_criteria_review_is_explicit_and_keeps_safety_description
+52 passed in 74.56s (0:01:14)
+
+Validação final da central após garantir visibilidade/seleção e detalhar camadas:
+...........                                                              [100%]
+11 passed in 10.67s

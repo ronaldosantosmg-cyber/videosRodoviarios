@@ -394,7 +394,8 @@ class Scene:
     def prepare_routes(self):
         roads=[poly(e) for e in self.items if e['closed'] and e['role'] in ['pavement','oae']]
         roads.extend(poly(e) for e in self.items if e['closed'] and e['role']=='existing_pavement')
-        obstacles=[poly(e) for e in self.items if e['closed'] and e['role'] in ['median','barrier']]
+        from .flow_fit import physical_obstacles
+        obstacles=physical_obstacles(self.items)
         decks=[o['deck'] for o in self.oae]
         roads.extend(decks)
         from .markup import oae_direction_marks
