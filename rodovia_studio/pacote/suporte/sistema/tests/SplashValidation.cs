@@ -11,13 +11,13 @@ class SplashValidation
     {
         Application.EnableVisualStyles();
         using (Icon icon = new Icon(args[0]))
-        using (Splash splash = new Splash(icon, "1.42.9"))
+        using (Splash splash = new Splash(icon, "1.42.10"))
         {
             splash.Show(); splash.Status("Validando atualização e preparando o aplicativo…");
             Pump(250);
             string text = "";
             foreach (Control c in splash.Controls) text += c.Text + "\n";
-            if (!text.Contains("Versão 1.42.9") || !text.Contains("Fabricante: Ronaldo Santos")) return 1;
+            if (!text.Contains("Versão 1.42.10") || !text.Contains("Fabricante: Ronaldo Santos")) return 1;
             Bitmap a = Capture(splash); Pump(450); Bitmap b = Capture(splash);
             Directory.CreateDirectory(args[1]);
             a.Save(Path.Combine(args[1], "splash_142_1_a.png"));

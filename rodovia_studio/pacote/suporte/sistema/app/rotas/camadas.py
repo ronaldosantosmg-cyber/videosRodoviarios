@@ -37,15 +37,32 @@ def layer_profiles_delete(name:str):
 async def layer_profiles_apply(pid,request:Request):
     from .. import layer_profiles as LP
     d=store.directory(pid);a=d/'analysis.json'
-    if not a.exists():raise HTTPException(409,'Analise os arquivos para listar as camadas do DXF.')
     body=await request.json();name=body.get('name');prof=next((p for p in LP.load(store.ROOT) if p['name']==name),None)
     if prof is None:raise HTTPException(404,'Perfil não encontrado.')
-    layers=[l['name'] for l in json.loads(a.read_text(encoding='utf-8'))['layers']]
+    from ..layer_catalog import catalog
+    layers=sorted({l['name'] for l in catalog(d)['layers']}|({l['name'] for l in json.loads(a.read_text(encoding='utf-8'))['layers']} if a.exists() else set()))
     mapping=LP.apply(layers,prof)
-    return {'layers':mapping,'matched':sum(len(v) for v in mapping.values()),'total':len(layers)}
+    from ..asset_catalog import CATALOG
+    materials={}
+    for name in layers:
+        rule=next((rule for rule in prof['rules'] if LP.matches(rule['pattern'],name)),{})
+        if rule.get('material') in CATALOG:materials[name]=rule['material']
+    return {'materials':materials,'layers':mapping,'matched':sum(len(v) for v in mapping.values()),'total':len(layers)}
 
 @router.get('/api/projects/{pid}/layers_preview.json')
 def project_layers_preview(pid):
     f=store.directory(pid)/'camadas_previa.json'
     if not f.exists():raise HTTPException(404,'Analise os arquivos para gerar a prévia das camadas.')
     return FileResponse(f,media_type='application/json',headers={'Cache-Control':'no-store'})
+
+
+@router.get('/api/materials')
+def materials_catalog():
+    from ..asset_catalog import CATALOG,ASSET_ROLES
+    return {'materials':list(CATALOG.values()),'roles':ASSET_ROLES,'scope':'Materiais procedurais locais; símbolos e dimensões de apresentação não substituem cadastro técnico.'}
+
+@router.get('/api/materials/{key}.png')
+def material_image(key:str):
+    from ..asset_catalog import CATALOG,png
+    if key not in CATALOG:raise HTTPException(404,'Material não cadastrado.')
+    return Response(png(key),media_type='image/png',headers={'Cache-Control':'public, max-age=86400'})

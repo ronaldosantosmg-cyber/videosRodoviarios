@@ -11,6 +11,10 @@ from shapely import make_valid
 
 ROLES=['axis','pavement','existing_pavement','shoulder','median','barrier','oae','cut','fill','domain','edge_line','water','earthwork','sign_h','sign_v']
 COLORS={'sign_h':'#ffffff','sign_v':'#ff5d5d','edge_line':'#f4f2e2','water':'#2a80b9','existing_pavement':'#a4a8a9','pavement':'#454c4e','shoulder':'#858983','median':'#7f9b6e','barrier':'#e0ddd2','oae':'#b9bcb7','cut':'#df6262','fill':'#53bb77','domain':'#ffd56b'}
+from .asset_catalog import ASSET_ROLES,CATALOG,DEFAULT,material_for
+ROLES.extend(ASSET_ROLES)
+COLORS.update({role:CATALOG[DEFAULT[role]]['color'] for role in ASSET_ROLES})
+
 def norm(s):
     return ''.join(c for c in unicodedata.normalize('NFKD',s.upper()) if not unicodedata.combining(c))
 def guess(layer):
@@ -55,6 +59,8 @@ def convert(e,layer,role,units,entities,warnings,extra=None):
     """Converte uma entidade DXF em polilinhas/polígonos (metros, coordenadas do desenho)."""
     extra=extra or {}
     try:
+        if e.dxftype()=='POINT' and role in ASSET_ROLES:
+            p=e.dxf.location;entities.append({'layer':layer,'role':role,'closed':False,'points':np.array([[p.x*units,p.y*units]]),'holes':[],**extra});return
         hatch=e.dxftype() in HATCH_TYPES
         paths=list(from_hatch(e)) if hatch else [make_path(e)]
         ps=[]
@@ -208,6 +214,10 @@ def analyze(directory,settings,preview=None,hatch_preview=None):
             role=next((r for r,ls in settings.layers.items() if layer in ls),None)
             if role is None:role=next((r for r,ls in settings.layers.items() if e.dxf.layer in ls),None)
             guessed=False
+            if role is None and (not settings.layers or hauto):
+                named=guess(layer)
+                if named in ASSET_ROLES or named in ('oae','water'):
+                    role=named;guessed=True
             if e.dxftype() in HATCH_TYPES:
                 # 1.24: leitura automática das hachuras pela assinatura (camada + padrão + cor).
                 sig,info=hatch_signature(e,layer,doc,settings.units_to_m);rec=hsig.setdefault(sig,info);rec['count']+=1;rec['area_m2']+=info['_area']
@@ -218,6 +228,8 @@ def analyze(directory,settings,preview=None,hatch_preview=None):
                     for r in _last_rings:
                         if hp['n']+len(r)<=6000:hp['p'].append(np.round(LineString(r).simplify(.3).coords,2).tolist());hp['n']+=len(r)
                 rec['current_role']=role
+                if role in ASSET_ROLES:
+                    rec['suggested_layer_role']=role;rec['suggested_role']=None;rec['suggested_material']=None
                 if sig in hroles:
                     hr=hroles[sig];r_=hr.role if hasattr(hr,'role') else hr.get('role')
                     if r_=='ignore':continue
@@ -255,6 +267,9 @@ def analyze(directory,settings,preview=None,hatch_preview=None):
         if axes0:
             ax0=max(axes0,key=lambda e:LineString(e['points']).length)['points']
             entities.extend(access_items(settings,entities,ax0,warnings))
+    for entity in entities:
+        material=material_for('earthwork' if entity['role']=='earth_pending' else entity['role'],entity['layer'],getattr(settings,'layer_materials',{}))
+        if material:entity['asset_material']=material
     from .pavement import tag_materials
     tag_materials(entities,settings)
     if getattr(settings,'pavement_areas',None) or getattr(settings,'shoulder_marks',None):
@@ -268,6 +283,7 @@ def analyze(directory,settings,preview=None,hatch_preview=None):
     for e in entities:
         if e['role']=='earth_pending':
             if trees:e['role']=min(trees,key=lambda r:float(np.median(trees[r].query(e['points'][::max(1,len(e['points'])//40)])[0])))
+            else:e['role']='earthwork'
     entities=[e for e in entities if e['role']!='earth_pending']
     # 1.40.8: KMZ é input técnico rastreável. Nunca é ignorado silenciosamente.
     kmz_status={

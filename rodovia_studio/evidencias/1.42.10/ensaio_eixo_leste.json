@@ -1,0 +1,20 @@
+{
+  "arquivo": "DUPLICAÇÃO TH53.dxf",
+  "camada": "EIXO_LESTE",
+  "sha256": "7936e09e195212a85a894dbc48f5ad337f0cbe4f3195225e6f8137297e3e4538",
+  "fonte_preservada": true,
+  "escopo": "Ensaio isolado sobre a geometria EIXO_LESTE e a superfície da auditoria disponível; não reproduz o projeto salvo do usuário. Limite de 50 m.",
+  "resultados": [
+    {
+      "vertices_origem": 1538,
+      "motivos_antes": [
+        "corpo_fora_da_pista"
+      ],
+      "status": "partial",
+      "partes_revalidadas": 9,
+      "retido_m": 9315.0,
+      "excluido_m": 912.471,
+      "todas_partes_aprovadas": true
+    }
+  ]
+}

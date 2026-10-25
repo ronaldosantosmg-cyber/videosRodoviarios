@@ -26,7 +26,7 @@ def geometry(control):
         for a in control.approaches(signal):
             c,h=a['center'],a['direction'];n=np.array([-h[1],h[0]])
             lines.append({'points':np.array([a['a'],a['b']]),'kind':'stop'})
-            heads.append({'point':c-n*(a['width']/2+1),'signal':signal.id,'axis':a['axis'],'heading':h,'kind':'signal'})
+            heads.append({'point':c-n*(a['width']/2+1),'signal':signal.id,'axis':a['axis'],'heading':h,'arm_end':c,'kind':'signal'})
             if signal.phases==3:
                 c=c+h*3
                 for x in np.arange(-a['width']/2+.5,a['width']/2,.9):crosswalks.append(rectangle(c+n*x,h,3.,.45))
@@ -51,6 +51,8 @@ def draw_static(scene,im,cam,width):
     for kind,col,w in [('sleeper',(65,57,48),.23),('rail',(200,205,211),.14),('stop',(244,243,230),.35)]:
         paths=[screen(r['points']) for r in g['lines'] if r['kind']==kind];paths=[p for p in paths if visible(p)]
         if paths:cv2.polylines(im,paths,False,col,max(1,min(20,round(w*scale))),cv2.LINE_AA)
+    for head in g['heads']:
+        cv2.line(im,tuple(screen(np.asarray([head['point']]))[0]),tuple(screen(np.asarray([head['arm_end']]))[0]),(91,101,110),max(2,round(.16*scale)),cv2.LINE_AA)
     for poly in g['crosswalks']:
         q=screen(poly)
         if visible(q):cv2.fillPoly(im,[q],(244,243,230),cv2.LINE_AA)
@@ -64,7 +66,7 @@ def draw_dynamic(scene,im,t,cam,width):
     def screen(p):return np.clip(scene.screen(np.asarray(p,float),cam,width),-1000000,1000000).astype(np.int32)
     colors={'green':(45,238,92),'amber':(255,183,35),'red':(255,42,42),'off':(74,78,80)}
     for head in g['heads']:
-        p=screen([head['point']])[0]
+        p=screen([head.get('arm_end',head['point'])])[0]
         if not (-20<p[0]<scene.W+20 and -20<p[1]<scene.H+20):continue
         signal=c.by_id[head['signal']];state=c.signal_state(signal,t)[head['axis']];r=max(2,min(9,round(.3*scale)))
         cv2.rectangle(im,tuple(p- [r+2,3*r+3]),tuple(p+[r+2,3*r+3]),(24,29,33),-1)
@@ -78,7 +80,9 @@ def draw_dynamic(scene,im,t,cam,width):
         normal=np.array([-h[1],h[0]])
         if part['locomotive']:
             glass=screen(rectangle(p+h*5,h,3.,2.5));cv2.fillPoly(im,[glass],(35,60,76),cv2.LINE_AA)
-            for side in (-1,1):lamp(im,screen([p+h*9+normal*side])[0],(255,247,191),max(2,.17*scale))
+            if night>.1:
+                beam=screen(np.array([p+h*9-normal,p+h*45-normal*7,p+h*45+normal*7,p+h*9+normal]));glow=im.copy();cv2.fillPoly(glow,[beam],(255,244,183),cv2.LINE_AA);cv2.addWeighted(glow,.13*night,im,1-.13*night,0,im)
+                for side in (-1,1):lamp(im,screen([p+h*9+normal*side])[0],(255,247,191),max(2,.17*scale))
         elif part['model']=='passageiros':
             for along in np.arange(-5,6,2):cv2.polylines(im,[screen(rectangle(p+h*along,h,.8,2.9))],True,(43,68,82),max(1,round(scale*.12)),cv2.LINE_AA)
     # Passagem em nível: luzes alternadas e cruz de Santo André em cada aproximação.

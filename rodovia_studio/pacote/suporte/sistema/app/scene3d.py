@@ -73,12 +73,18 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
         if geom.is_empty:continue
         key_mesh=e['role']+'|'+str(e.get('layer',''))
         labels[key_mesh]={'role':e['role'],'layer':str(e.get('layer','')),'name':str(e.get('layer') or e['role'])}
+        from .asset_catalog import CATALOG
+        material=e.get('asset_material')
+        if material in CATALOG:labels[key_mesh].update(asset_material=material,texture_pattern=CATALOG[material]['pattern'],color=settings.role_colors.get(e['role']) or CATALOG[material]['color'])
         for triangle in shapely.constrained_delaunay_triangles(geom).geoms:
             q=np.asarray(triangle.exterior.coords)[:3,:2];total+=3
             if total>MAX_VERTICES:raise ValueError('Cena 3D muito detalhada. Divida o desenho em trechos menores.')
             lift={'pavement':.06,'existing_pavement':.05,'shoulder':.04,'water':-.1}.get(e['role'],.02)
             buffers[key_mesh].extend(local(q,lift).ravel().tolist())
     meshes=[dict(labels[k],id=f'surface-{i}',positions=p) for i,(k,p) in enumerate(buffers.items())]
+    from .engineering_assets import asset_meshes
+    meshes.extend(asset_meshes(scene.items,local,settings.role_colors))
+    if sum(len(m['positions'])//3 for m in meshes)>MAX_VERTICES:raise ValueError('Cena e interferências excedem o orçamento 3D; divida o trecho.')
     # Grade compartilhada: cotas reais quando há MDT, sem inventar relevo.
     xs=np.linspace(box[0],box[2],n);ys=np.linspace(box[3],box[1],n);X,Y=np.meshgrid(xs,ys);ground=local(np.column_stack([X.ravel(),Y.ravel()]),-.03)
     indices=[]
@@ -128,7 +134,7 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
             samples+=1
             if samples>MAX_TRAFFIC_SAMPLES:raise ValueError('Trens e veículos excedem o limite da prévia 3D. Reduza a duração / densidade ou divida o projeto.')
             q=local(np.array([part['p']]),.25)[0];h=part['heading'];train_tracks[key_part]['samples'].append([round(float(t),4),*q.tolist(),float(h[0]),0.,-float(h[1])])
-    heads=[{'p':local(np.array([h['point']]),.25)[0].tolist(),'signal':h['signal'],'axis':h['axis'],'kind':'signal'} for h in tg['heads']]
+    heads=[{'p':local(np.array([h['point']]),.25)[0].tolist(),'signal':h['signal'],'axis':h['axis'],'kind':'signal','arm':local(np.array([h['arm_end']]),.25)[0].tolist()} for h in tg['heads']]
     rail_stops=[];seen=set()
     for stops in transport.stops:
         for stop in stops:

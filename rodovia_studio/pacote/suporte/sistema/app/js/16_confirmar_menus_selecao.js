@@ -107,8 +107,8 @@ if($('hudOn'))$('hudOn').checked=hudOn;
 
 // ---------- fluxos: selecionar uma trajetória e editar o sentido ----------
 let selSeg=null;
-function segOverride(seg,action){const segPts=seg.points.map(P);return M.flow_overrides.findIndex(o=>o.action===action&&distPolyline(o,segPts)<=6)}
-function segToggle(seg,action){checkpoint();const i=segOverride(seg,action);if(i>=0)M.flow_overrides.splice(i,1);else M.flow_overrides.push({id:uid(),x:seg.mid[0],y:seg.mid[1],action,enabled:true});changed();showSegProps();scheduleFlowUpdate()}
+function segOverride(seg,action){const segPts=seg.points.map(P);let index=M.flow_overrides.findIndex(o=>o.enabled!==false&&o.action===action&&(!o.target_key||o.target_key===seg.origin_key)&&distPolyline(o,segPts)<=6);if(index<0&&action==='disable'&&seg.disabled)index=M.flow_overrides.findIndex(o=>o.enabled!==false&&o.action===action&&(seg.protected_overrides?.length?seg.protected_overrides.some(ref=>ref.id===o.id&&Math.abs(ref.x-o.x)<1e-6&&Math.abs(ref.y-o.y)<1e-6&&(ref.target_key||'')===(o.target_key||'')):!!o.id&&seg.override_ids?.includes(o.id)));return index}
+function segToggle(seg,action){checkpoint();const i=segOverride(seg,action);if(i>=0)M.flow_overrides.splice(i,1);else M.flow_overrides.push({id:uid(),x:seg.mid[0],y:seg.mid[1],target_key:seg.origin_key||'',action,enabled:true});changed();showSegProps();scheduleFlowUpdate()}
 let flowTimer=null;function scheduleFlowUpdate(){if(!$('flowAuto')?.checked)return msg('Alteração registrada. Clique “Atualizar fluxos” para recalcular.');clearTimeout(flowTimer);flowTimer=setTimeout(guard(async()=>{await start('analyze');selSeg=null;showSegProps();msg('Fluxos atualizados.')}),1200)}
 function showSegProps(){const box=$('propPanel');if(!box)return;if(!selSeg){if(!sel&&!selSet.length){box.hidden=true}return}const s=editor?.segments?.find(x=>x.id===selSeg.id)||selSeg;
  const rev=segOverride(s,'reverse')>=0,off=segOverride(s,'disable')>=0;const L=polyLen(s.points.map(P));

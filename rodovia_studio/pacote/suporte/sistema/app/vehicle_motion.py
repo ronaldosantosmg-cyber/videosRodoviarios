@@ -57,14 +57,15 @@ def analyze_motion(points,vehicle='car',allowed=None):
     if count>200001:return {'ok':False,'reasons':['rota_excessiva'],'message':'Divida a rota antes da análise cinemática.','max_steering_deg':None}
     s=np.linspace(0,d[-1],count);g=axle_geometry(p,vehicle,s);h=g['heading']
     angle=np.unwrap(np.arctan2(h[:,1],h[:,0]));curvature=np.gradient(angle,s)
-    steering=np.degrees(np.arctan(wb*np.abs(curvature)));peak=float(np.max(steering));reasons=[]
+    steering=np.degrees(np.arctan(wb*np.abs(curvature)));peak=float(np.max(steering));critical=int(np.argmax(steering));reasons=[]
     line=LineString(p)
     if np.any(np.linalg.norm(h,axis=1)<.5):reasons.append('frente_traseira_degeneradas')
     if not line.is_simple:reasons.append('auto_intersecao')
     # Detecta cúspides que o vetor entre eixos poderia mascarar ao atravessar a dobra.
     v=np.diff(p,axis=0);v/=np.maximum(np.linalg.norm(v,axis=1)[:,None],1e-9)
     turn=np.degrees(np.arccos(np.clip(np.sum(v[:-1]*v[1:],axis=1),-1,1)))
-    if len(turn) and np.max(turn)>55:reasons.append('mudanca_brusca')
+    if len(turn) and np.max(turn)>55:
+        reasons.append('mudanca_brusca');critical=int(np.argmin(np.abs(s-d[int(np.argmax(turn))+1])))
     if peak>max_steer+.5:reasons.append('esterco_excessivo')
     # Excursões alternadas de rumo em distância curta, não uma simples curva S longa.
     signs=np.sign(np.where(np.abs(curvature)>.008,curvature,0));runs=[];start=0
@@ -80,8 +81,9 @@ def analyze_motion(points,vehicle='car',allowed=None):
         for x in (-L/2,0.,L/2):
             for y in (-B/2,0.,B/2):
                 q=g['center']+h*x+normal*y
-                if not contains_xy(allowed,q[:,0],q[:,1]).all():
-                    reasons.append('corpo_fora_da_pista');break
+                inside=contains_xy(allowed,q[:,0],q[:,1])
+                if not inside.all():
+                    reasons.append('corpo_fora_da_pista');critical=int(np.flatnonzero(~inside)[0]);break
             if 'corpo_fora_da_pista' in reasons:break
     return {'ok':not reasons,'reasons':list(dict.fromkeys(reasons)),'message':'Trajetória cinemática válida.' if not reasons else 'Trajetória recusada: '+', '.join(dict.fromkeys(reasons))+'.',
-            'max_steering_deg':round(peak,3),'vehicle':vehicle,'samples':count,'critical_station_m':round(float(s[int(np.argmax(steering))]),3),'front_xy':g['front'][int(np.argmax(steering))].round(4).tolist(),'rear_xy':g['rear'][int(np.argmax(steering))].round(4).tolist()}
+            'max_steering_deg':round(peak,3),'vehicle':vehicle,'samples':count,'critical_station_m':round(float(s[critical]),3),'critical_center_xy':g['center'][critical].round(4).tolist(),'front_xy':g['front'][critical].round(4).tolist(),'rear_xy':g['rear'][critical].round(4).tolist()}

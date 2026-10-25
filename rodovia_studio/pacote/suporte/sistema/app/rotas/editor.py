@@ -32,7 +32,7 @@ def editor_file(pid):
     if not path.exists():raise HTTPException(404,'Gere uma prévia para carregar o editor.')
     from ..dependencies import revisions
     try:
-        data=json.loads(path.read_text())
+        data=json.loads(path.read_text(encoding='utf-8'))
         if data.get('engine_revision')!=revisions(path.parent)['editor']:raise HTTPException(409,'Editor desatualizado. Recalcule os fluxos.')
     except (ValueError,OSError):raise HTTPException(409,'Editor inválido. Recalcule os fluxos.')
     from ..artifacts import require_current
@@ -229,7 +229,7 @@ def capture3d_begin(pid,body:Capture3D):
     with dispatch_lock:
         idle(pid)
         if not (d/'scene3d.json').is_file():raise HTTPException(409,'Construa a cena 3D primeiro.')
-        data=json.loads((d/'scene3d.json').read_text())
+        data=json.loads((d/'scene3d.json').read_text(encoding='utf-8'))
         if body.revision!=data.get('revision') or body.revision!=revision(d):raise HTTPException(409,'A cena está desatualizada. Reconstrua o 3D.')
         if body.duration_s>data.get('duration_s',0)+.0001:raise HTTPException(422,'A duração excede a prévia simulada disponível.')
         s=s.model_copy(update={'width':body.width,'fps':body.fps})
@@ -278,3 +278,57 @@ def source_layers(pid):
     from ..layer_catalog import catalog
     try:return catalog(store.directory(pid))
     except (OSError,ValueError) as e:raise HTTPException(422,'Não foi possível ler as camadas originais do DXF: '+str(e))
+
+
+def _full_flow_segments(pid):
+    from ..dependencies import revisions
+    from ..artifacts import require_current
+    d=store.directory(pid);require_current(d,'editor')
+    try:data=json.loads((d/'editor/full_flows.json').read_text(encoding='utf-8'))
+    except (OSError,ValueError):raise HTTPException(409,'Recalcule os fluxos antes de editar a geometria completa.')
+    if data['revision']!=revisions(d)['editor']:raise HTTPException(409,'Os fluxos estão desatualizados. Recalcule antes de editar.')
+    return d,data['segments'],data['revision']
+
+@router.get('/api/projects/{pid}/flow-tools/segment/{index}')
+def full_flow_segment(pid,index:int,revision:str=''):
+    _,rows,current=_full_flow_segments(pid)
+    if revision and revision!=current:raise HTTPException(409,'A geometria mudou. Recalcule e selecione novamente.')
+    if index<0 or index>=len(rows):raise HTTPException(404,'Segmento não encontrado.')
+    return rows[index]
+
+class FlowJoinBody(_BM):
+    first:int=Field(ge=0)
+    second:int=Field(ge=0)
+    revision:str=Field(default='',pattern=r'^([a-f0-9]{64})?$')
+
+@router.post('/api/projects/{pid}/flow-tools/join')
+def join_flow(pid,body:FlowJoinBody):
+    from ..flow_tools import join_segments
+    import shapely
+    d,rows,initial=_full_flow_segments(pid)
+    if body.revision and body.revision!=initial:raise HTTPException(409,'A geometria mudou. Recalcule e selecione novamente.')
+    if body.first==body.second or max(body.first,body.second)>=len(rows):raise HTTPException(422,'Selecione dois segmentos distintos.')
+    if rows[body.first]['disabled'] or rows[body.second]['disabled']:raise HTTPException(422,'Revise as desativações manuais antes de unir os segmentos.')
+    try:allowed=shapely.from_wkb((d/'editor/allowed.wkb').read_bytes())
+    except (OSError,shapely.errors.GEOSException):raise HTTPException(409,'Superfície de validação ausente ou inválida. Recalcule os fluxos.')
+    if allowed.is_empty:raise HTTPException(422,'Não há superfície válida para conferir a junção.')
+    settings=Settings.model_validate_json((d/'config.json').read_text(encoding='utf-8'))
+    try:
+        result=join_segments(rows[body.first],rows[body.second],allowed,settings.min_route_segment_m)
+        if result['ok']:
+            from shapely.geometry import Point,LineString
+            from ..markup import zones_geometry
+            a,b=Point(result['join_from']),Point(result['join_to'])
+            import numpy as np
+            from ..engineering_assets import oae_grade_separated
+            midpoint=Point((a.x+b.x)/2,(a.y+b.y)/2)
+            if oae_grade_separated(settings,midpoint,np.asarray(result['join_from_heading']),np.asarray(result['join_to_heading']),rows[body.first].get('level',0),rows[body.second].get('level',0)):raise ValueError('A junção envolve vias separadas pela cota da OAE. Modele a ligação em desnível antes de juntar.')
+            for rule in settings.connection_rules:
+                if rule.enabled and rule.action=='deny' and a.distance(Point(rule.a.x,rule.a.y))<10 and b.distance(Point(rule.b.x,rule.b.y))<10:raise ValueError('Há uma ligação proibida pelo projeto entre os segmentos. Revise a regra antes de juntar.')
+            if rows[body.first].get('origin_key')!=rows[body.second].get('origin_key'):
+                zones=zones_geometry(settings.no_connection_zones)
+                if not zones.is_empty and zones.intersects(LineString([a,b])):raise ValueError('A junção atravessa uma zona sem conexão. Revise essa restrição antes de juntar.')
+        from ..dependencies import revisions
+        if revisions(d)['editor']!=initial:raise HTTPException(409,'O projeto mudou durante a validação. Selecione novamente os segmentos.')
+        return result
+    except ValueError as e:raise HTTPException(422,str(e))

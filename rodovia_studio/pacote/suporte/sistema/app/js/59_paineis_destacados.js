@@ -70,7 +70,7 @@ save=async function(...args){if(active&&!committing){pauseTimers();if(!await req
 const oldSchedulePreview=scheduleViewPreview,oldViewPreview=runViewPreview;
 scheduleViewPreview=function(...args){if(active){previewStale=true;pauseTimers();return}return oldSchedulePreview(...args)};
 runViewPreview=async function(...args){if(active){previewStale=true;pauseTimers();if(!await requestClose())return false}return oldViewPreview(...args)};
-start=async function(...args){if(active&&!committing){pauseTimers();if(!await requestClose())return false}return originalStart(...args)};
+start=async function(...args){const project=pid,context=projectSession.context;if(active&&!committing){pauseTimers();if(!await requestClose())return false}if(pid!==project||projectSession.context!==context)return false;return originalStart(...args)};
 load=async function(...args){if(active&&!committing&&!args[1]?.resultsOnly){if(!await requestClose()){$('projects').value=pid;return false}}return originalLoad(...args)};
 const oldDock=abrirAba;abrirAba=function(id,click){
  if(closing)return oldDock(id,click);

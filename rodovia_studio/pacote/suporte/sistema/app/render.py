@@ -501,13 +501,17 @@ class Scene:
         def pts(p,stride=1):return np.round(np.asarray(p)[::stride],3).tolist()
         from .flow_diagnostics import flow_diagnostics
         diagnostics=flow_diagnostics(self.network)
+        from . import store
+        full=[{'id':i,'points':np.asarray(r['points'],float).tolist(),'forward':r['forward'],'both':r['both'],'source':r['source'],'origin_id':r.get('origin_id',r['base']),'origin_key':r.get('origin_key',''),'level':r.get('level',0),'disabled':r['disabled']} for i,r in enumerate(self.network.raw_info)]
+        from .dependencies import revisions
+        store.write_json(self.directory/'editor/full_flows.json',{'revision':revisions(self.directory,self.s)['editor'],'segments':full})
         segments=[]
         for i,r in enumerate(self.network.raw_info):
             if r.get('automatic_excluded'):continue
             p=r['points'];stride=max(1,len(p)//400)
             q=p[::stride] if len(p)>2 else p
             if len(q)<2 or not np.array_equal(q[-1],p[-1]):q=np.vstack([q,p[-1:]])
-            segments.append({**diagnostics[i],'route':r.get('route'),'id':i,'base':r['base'],'kind':r['kind'],'forward':r['forward'],'both':r['both'],'disabled':r['disabled'],'reversed':r['reversed'],'manual':r['manual'],'source':r['source'],'points':pts(q),'mid':pts(p[len(p)//2][None])[0],'speed_kmh':r.get('speed_kmh'),'length_m':round(float(np.sum(np.linalg.norm(np.diff(p,axis=0),axis=1))),1)})
+            segments.append({**diagnostics[i],'route':r.get('route'),'id':i,'base':r['base'],'origin_id':r.get('origin_id',r['base']),'origin_key':r.get('origin_key',''),'level':r.get('level',0),'kind':r['kind'],'forward':r['forward'],'both':r['both'],'disabled':r['disabled'],'override_ids':r.get('override_ids',[]),'protected_overrides':r.get('protected_overrides',[]),'reversed':r['reversed'],'manual':r['manual'],'source':r['source'],'points':pts(q),'mid':pts(p[len(p)//2][None])[0],'speed_kmh':r.get('speed_kmh'),'length_m':round(float(np.sum(np.linalg.norm(np.diff(p,axis=0),axis=1))),1)})
         from .dependencies import revisions
         return {'engine_revision':revisions(self.directory,self.s)['editor'],'crs':self.s.crs,'axis':pts(self.axis,step) if step==1 else pts(np.vstack([self.axis[::step],self.axis[-1:]])),'axis_length_m':self.length,
                 'stationing':{**st.info(),'mode':self.s.chainage.mode},
@@ -976,6 +980,8 @@ class Scene:
             antes=self.draw_base(cam,width,-1.);x=int(round(ad*self.W));im[:,x:]=antes[:,x:]
         if getattr(self.s,'lane_blocks',None) and width<3000:self.draw_blocks(im,t,cam,width)
         from . import transport_render
+        from .engineering_assets import draw_map as draw_engineering_assets
+        draw_engineering_assets(self,im,cam,width)
         transport_render.draw_static(self,im,cam,width)
         if self.s.traffic and width<3000 and self.reveal_opacity>.9 and self.enhanced:self.draw_vehicles(im,t,cam,width,progress)
         elif self.s.traffic and width<3000 and self.reveal_opacity>.9:

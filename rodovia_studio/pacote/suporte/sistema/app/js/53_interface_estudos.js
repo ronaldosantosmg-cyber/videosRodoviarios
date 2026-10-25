@@ -121,7 +121,7 @@ function contextItems(w){
  return [{t:'Modelar',sub:modelGroups()},...original.filter(i=>!i.hd&&['Desfazer','Refazer','Enquadrar tudo','Centralizar aqui','Regenerar tela','Comandos e ajuda'].includes(i.t))];
 }
 openCanvasMenu=function(x,y,w){closeMenu();closeMenus();state.focus=canvas;popup(contextItems(w),null,0,{x,y})};
-const flowTools=new Set(['flowadd','flowrev','flowoff','linkforce','noconn','noconnarea','route','routesec','dir','arrowrot','lanes','lanerange','block','crossok','crossno']);
+const flowTools=new Set(['flowcut','flowjoin','flowadd','flowrev','flowoff','linkforce','noconn','noconnarea','route','routesec','dir','arrowrot','lanes','lanerange','block','crossok','crossno']);
 function flowEditing(){return study.editing||flowTools.has(tool)}
 study.isEditing=flowEditing;
 function registerControlTool(){
@@ -221,6 +221,13 @@ function foregroundFlows(){
  for(const lane of routeLanes||[]){const route=M.route_alignments?.[lane.route];const calculated=(editor?.segments||[]).find(s=>s.route===route?.id);line(lane.points,lane.enabled===false?{disabled:true}:calculated,true,false)}
  for(const link of editor?.connections||[])line(link.p,{technical_status:'ok'},true,false,!!link.forced);
  for(const link of editor?.denied||[])line(link.p,{disabled:true},true,false,true);
+ // Resultado técnico da recuperação: geometria original intacta, circulação segregada.
+ for(const seg of editor?.segments||[])for(const report of seg.technical_recovery?.reports||[]){
+  for(const pts of report.retained_geometry||[])line(pts,{technical_status:'ok'},seg.forward,seg.both);
+  for(const pts of report.excluded_geometry||[])line(pts,{technical_status:'problem'},seg.forward,seg.both,true);
+ }
+ for(const seg of editor?.segments||[])for(const problem of seg.technical_points||[]){const [x,y]=W2C(P(problem.point));ctx.beginPath();ctx.arc(x,y,5*DPR(),0,Math.PI*2);ctx.fillStyle='#ef4444';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke()}
+ const conflict=window.RodoviaFlowEditConflict;if(conflict&&conflict.project===pid&&conflict.revision===editor?.engine_revision){const [x,y]=W2C(conflict.point);ctx.beginPath();ctx.arc(x,y,6*DPR(),0,Math.PI*2);ctx.fillStyle='#ef4444';ctx.fill();ctx.strokeStyle='#fff';ctx.stroke()}
  // Preserva os grips de uma rota selecionada acima do próprio realce.
  if(sel&&['route_alignments','traffic_paths'].includes(sel.key)){
   const obj=objOf(sel);for(const grip of obj?.grips||[]){const [x,y]=W2C(gripGet(grip));ctx.fillStyle='#fff';ctx.strokeStyle='#1f2937';ctx.lineWidth=1.5;ctx.fillRect(x-4,y-4,8,8);ctx.strokeRect(x-4,y-4,8,8)}

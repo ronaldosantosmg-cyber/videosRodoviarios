@@ -52,6 +52,9 @@ def test_engine_diagnostics_reach_live_editor_and_update(drawing):
                 except Exception:raise AssertionError(page.evaluate('()=>({popup:RodoviaPanels.opened,pending:RodoviaPanels.pending,disabled:document.querySelector("#rsPanelSave").disabled,open:document.querySelector("#rsPanelPopup").open,decision:!!document.querySelector("#rsPanelDecision"),message:document.querySelector("#message").textContent})'))
                 page.wait_for_function('!RodoviaPanels.opened',timeout=15000)
                 page.evaluate("async()=>{await start('analyze')}")
+                # O salvamento pode ter iniciado o recálculo automático; o comando
+                # manual então retorna false corretamente, sem criar outra tarefa.
+                page.wait_for_function('!task && !taskRequestPending && !!editor',timeout=60000)
                 assert page.evaluate("editor.segments.some(s=>s.disabled&&flowStudyColor(s)==='#ef4444')")
                 screenshot(page,'142_12_motor_editor_fluxo_problema')
                 assert not errors,errors

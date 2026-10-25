@@ -122,7 +122,7 @@ def validate_path(points,roads,obstacles,exclusions,allowed,vehicle=(4.6,1.9)):
     if not ok.all():return first(~ok,'O veículo não cabe nesse ponto: muito próximo da borda, do canteiro ou da barreira.')
     return {'ok':True,'reason':'Trajetória válida: dentro do pavimento e fora de canteiros, barreiras e exclusões.','at':None,'length_m':float(ss[-1])}
 
-def assign(paths,overrides,marks):
+def assign(paths,overrides,marks,path_keys=None):
     """Associa cada override/seta ao único trecho mais próximo (até MATCH_M).
     Evita que um clique numa pista afete a pista paralela do outro lado do canteiro."""
     from .traffic import tangent
@@ -136,7 +136,8 @@ def assign(paths,overrides,marks):
         return None if best is None else best[1]
     for o in overrides or []:
         if not o.enabled:continue
-        i=nearest((o.x,o.y))
+        key=getattr(o,'target_key','')
+        i=nearest((o.x,o.y),check=lambda index:not key or bool(path_keys and path_keys[index]==key))
         if i is not None:
             if o.action=='speed':out[i]['speed_kmh']=getattr(o,'speed_kmh',None)
             else:out[i][o.action]=True

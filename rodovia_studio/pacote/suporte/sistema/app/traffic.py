@@ -1,5 +1,5 @@
 """Connected, directed illustrative traffic. No XY-only turns at bridge crossings."""
-import math,collections
+import math,collections,hashlib
 import numpy as np
 import cv2
 from scipy.spatial import cKDTree
@@ -174,13 +174,20 @@ class TrafficNetwork:
             for i,a in enumerate(axes):raw.append({'points':a['points'],'halfwidth':3.5,'source':'eixo DXF '+str(i),'level':0,'native_id':str(i)})
         for r in settings.traffic_paths:
             if not getattr(r,'enabled',True):continue
-            raw.append({'points':np.array([[p.x,p.y] for p in r.points]),'halfwidth':3.,'source':r.name,'level':r.level,'kind':r.kind,'direction':r.direction,'manual':True,'speed_kmh':getattr(r,'speed_kmh',None)})
+            raw.append({'points':np.array([[p.x,p.y] for p in r.points]),'halfwidth':3.,'source':r.name,'source_id':r.id or r.name,'level':r.level,'kind':r.kind,'direction':r.direction,'manual':True,'speed_kmh':getattr(r,'speed_kmh',None)})
         # 1.30: faixas dos alinhamentos de rota (pista simples, dupla por sentido ou sentido único).
         if getattr(settings,'route_alignments',None):
             from .routes import raw_paths
             raw.extend(raw_paths(settings))
-        for i,r in enumerate(raw):r.setdefault('origin',i)
+        for i,r in enumerate(raw):
+            r.setdefault('origin',i)
+            coordinates=np.round(r['points'],3).astype('<f8');geometry_key=min(coordinates.tobytes(),coordinates[::-1].tobytes())
+            r['origin_key']=hashlib.sha256((str(r.get('source_id') or r.get('route') or r.get('native_id') or r.get('source',''))+'|'+str(r.get('level',0))).encode()+geometry_key).hexdigest()
         raw=self.prune_automatic(raw,'original')
+        from .flow_tools import cut_raw_paths
+        raw,self.cut_report=cut_raw_paths(raw,getattr(settings,'flow_cuts',[]),overrides=getattr(settings,'flow_overrides',[]))
+        unmatched=sum(row['status']!='applied' for row in self.cut_report)
+        if unmatched:self.warnings.append(f'{unmatched} corte(s) não foram associados ao traçado atual. Revise os intervalos após a alteração de geometria.')
         # 1.39: comprimento de cada trecho original (antes dos cortes nos encontros) para ignorar os curtos nas rotas.
         self.original_terminals={r['origin']:np.asarray(r['points'],float)[[0,-1]].copy() for r in raw}
         self.origin_info={}
@@ -191,8 +198,15 @@ class TrafficNetwork:
         raw=self.prune_automatic(self.split_contacts(raw),'contato')
         # Setas e cliques do usuário são resolvidos uma vez, sobre os trechos finais.
         sampled=[sample(r['points'])[0] for r in raw]
-        marks=assign(sampled,getattr(settings,'flow_overrides',[]),getattr(settings,'direction_marks',[]))
-        for r,m in zip(raw,marks.values()):r['user']=m
+        from types import SimpleNamespace
+        recovery_marks=[SimpleNamespace(id=o.id,x=o.x,y=o.y,enabled=o.enabled,action='recover',target_key=o.target_key) for o in getattr(settings,'flow_recoveries',[])]
+        marks=assign(sampled,list(getattr(settings,'flow_overrides',[]))+recovery_marks,getattr(settings,'direction_marks',[]),path_keys=[r['origin_key'] for r in raw])
+        keys={r['origin_key'] for r in raw};unmatched=sum(o.enabled and bool(o.target_key) and o.target_key not in keys for o in getattr(settings,'flow_recoveries',[]))
+        if unmatched:self.warnings.append(f'{unmatched} recuperação(ões) não correspondem mais à geometria atual. Selecione novamente o eixo para revisar.')
+        recovery_origins={r['origin'] for r,m in zip(raw,marks.values()) if m.get('recover')}
+        for r,m in zip(raw,marks.values()):
+            if r.get('cut_disable_ids'):m={**m,'disable':True,'override_ids':list(dict.fromkeys(m['override_ids']+r['cut_disable_ids']))}
+            r['user']={**m,'recover':r['origin'] in recovery_origins or r.get('explicit_cut',False)}
         # Roundabout islands supply a counter-clockwise direction field.
         self.islands=[];self.splitters=[]
         for poly in (list(self.allowed.geoms) if hasattr(self.allowed,'geoms') else [self.allowed]):
@@ -223,7 +237,7 @@ class TrafficNetwork:
             self.warnings.append(f'Nenhuma rota segura permaneceu após excluir trechos menores que {self.min_route:g} m; tráfego não foi habilitado nesses trechos.')
         if self.rejected_connectors:self.warnings.append(f'{sum(self.rejected_connectors.values())} tentativa(s) de ligação recusada(s) por geometria ou sentido incompatível. Consulte o diagnóstico de circulação.')
         self.finalize_signage()
-        self.report={'directed_edges':len(self.edges),'connections':sum(map(len,self.connections.values())),'itineraries':len(self.paths),'coverage':dict(collections.Counter(e['kind'] for e in self.edges)),'used_kinds':dict(collections.Counter(k for p in self.paths for k in p['kinds'])),'warnings':self.warnings,'signage':getattr(self,'report_signage',{}),'automatic_segments_pruned':len(self.auto_pruned),'minimum_flow_length_m':self.min_route,'short_segments_ignored':len(self.short_ignored),'motion_rejected_paths':len(self.rejected_paths),'motion_rejected_connections':dict(self.rejected_connectors),'motion_scope':'Geometria e restrições disponíveis no projeto; sem certificação CONTRAN.'}
+        self.report={'directed_edges':len(self.edges),'connections':sum(map(len,self.connections.values())),'itineraries':len(self.paths),'coverage':dict(collections.Counter(e['kind'] for e in self.edges)),'used_kinds':dict(collections.Counter(k for p in self.paths for k in p['kinds'])),'warnings':self.warnings,'signage':getattr(self,'report_signage',{}),'automatic_segments_pruned':len(self.auto_pruned),'minimum_flow_length_m':self.min_route,'short_segments_ignored':len(self.short_ignored),'explicit_flow_cuts':getattr(self,'cut_report',[]),'recovered_principal_paths':getattr(self,'recovered_paths',0),'motion_rejected_paths':len(self.rejected_paths),'motion_rejected_connections':dict(self.rejected_connectors),'motion_scope':'Geometria e restrições disponíveis no projeto; sem certificação CONTRAN.'}
     def prune_automatic(self,raw,stage):
         """Candidatos curtos não chegam aos nós, conectores ou ao desenho de fluxos.
 
@@ -333,7 +347,7 @@ class TrafficNetwork:
         disabled=bool(user.get('disable'))
         spd=user.get('speed_kmh') or r.get('speed_kmh')
         route_meta={k:r.get(k) for k in ('route','route_name','route_dir','route_lane','route_start_m','route_end_m','lane_change','lane_change_sections') if r.get(k) is not None}
-        self.raw_info.append({'base':base,'points':p,'kind':kind,'forward':bool(forward),'both':bool(both),'disabled':disabled,'reversed':reversed_by_user,'source':r['source'],'manual':bool(r.get('manual')),'speed_kmh':float(spd) if spd else None,**route_meta,**({'route_fixed':True} if r.get('fixed') else {})})
+        self.raw_info.append({'base':base,'points':p,'kind':kind,'forward':bool(forward),'both':bool(both),'disabled':disabled,'reversed':reversed_by_user,'source':r['source'],'manual':bool(r.get('manual')),'override_ids':user.get('override_ids',[]),'protected_overrides':r.get('cut_disable_refs',[]),'recovery_enabled':bool(user.get('recover')),'recovery_reports':[],'origin_id':r.get('origin',base),'origin_key':r.get('origin_key',''),'level':r['level'],'speed_kmh':float(spd) if spd else None,**route_meta,**({'route_fixed':True} if r.get('fixed') else {})})
         # Paint belongs to the road center, not to an individual vehicle track.
         # 1.10: trechos curtos do esqueleto (ramos de junção) não recebem pintura no modo limpo.
         if r.get('nopaint'):pass   # 1.30: faixas de rota só conduzem veículos (sem pintura)
@@ -360,13 +374,23 @@ class TrafficNetwork:
                 if not r.get('manual') and not r.get('fixed') and d[-1]<max(20.,self.min_route):
                     self.pruned_contacts[r.get('origin')].extend([segment[0].copy(),segment[-1].copy()])
                     self.auto_pruned.append({'source':r['source'],'length_m':float(d[-1]),'stage':'superficie','reason':'mini_rota_automatica'});continue
-                startpt=q[0] if np.linalg.norm(q[a]-q[0])<10 else q[a]
-                endpt=q[-1] if np.linalg.norm(q[b-1]-q[-1])<10 else q[b-1]
-                start=self.node(startpt,r['level']);end=self.node(endpt,r['level'])
-                self.edges.append({'p':segment,'t':tt,'d':d,'length':d[-1],'start':start,'end':end,'base':base,'origin':r.get('origin',base),'kind':kind,'source':r['source'],'sign':1 if self.chain(segment[-1:])[0]>=self.chain(segment[:1])[0] else -1,'level':r['level'],'disabled':disabled,'ring':ring,'both':bool(both),'offset':float(offset),**route_meta,**({'route_fixed':True} if r.get('fixed') else {}),**({'speed':float(spd)/3.6} if spd else {})})
+                recovered=[segment]
+                if user.get('recover') and not disabled:
+                    from .flow_recovery import recover_sections
+                    recovered,recovery_report=recover_sections(segment,self.allowed,max(1.,self.min_route))
+                    self.raw_info[-1]['recovery_reports'].append(recovery_report)
+                for safe_segment in recovered:
+                    self._add_flow_edge(safe_segment,q,a,b,r,base,kind,disabled,ring,both,offset,route_meta,spd,bool(user.get('recover')))
                 if self.arrow_mode=='dense':
                     for k in np.arange(15,d[-1],65 if kind=='main' else 30):
                         j=min(len(segment)-1,np.searchsorted(d,k));self.arrows.append((segment[j],tt[j]))
+    def _add_flow_edge(self,segment,q,a,b,r,base,kind,disabled,ring,both,offset,route_meta,spd,recovery):
+        tt=tangent(segment);d=np.r_[0,np.cumsum(np.linalg.norm(np.diff(segment,axis=0),axis=1))]
+        startpt=q[0] if np.linalg.norm(q[a]-q[0])<10 else q[a]
+        endpt=q[-1] if np.linalg.norm(q[b-1]-q[-1])<10 else q[b-1]
+        if recovery:startpt,endpt=segment[0],segment[-1]
+        start=self.node(startpt,r['level']);end=self.node(endpt,r['level'])
+        self.edges.append({'p':segment,'t':tt,'d':d,'length':d[-1],'start':start,'end':end,'base':base,'origin':r.get('origin',base),'kind':kind,'source':r['source'],'sign':1 if self.chain(segment[-1:])[0]>=self.chain(segment[:1])[0] else -1,'level':r['level'],'cut_run':r.get('cut_run'),'disabled':disabled,'recovery':recovery,'ring':ring,'both':bool(both),'offset':float(offset),**route_meta,**({'route_fixed':True} if r.get('fixed') else {}),**({'speed':float(spd)/3.6} if spd else {})})
     def paint(self,p,half,both,src=-1,edges=True):
         t=tangent(p);n=np.column_stack([t[:,1],-t[:,0]])
         specs=[(-max(1.3,half-.25),'edge'),(max(1.3,half-.25),'edge')] if edges else []
@@ -517,6 +541,7 @@ class TrafficNetwork:
             signage.clean(self,g)
         self.report_signage={'markings':len(self.markings),'arrows':len(self.arrows),'mode':self.arrow_mode,'clean':self.clean,'full':self.full,'paint':len(self.fills),'signs':len(self.signs),'arrow_kinds':dict(collections.Counter(self.arrow_kinds))}
     def connector(self,a,b,force=False):
+        if a.get('origin')==b.get('origin') and a.get('cut_run')!=b.get('cut_run'):return None
         ta=a['t'][-1];tb=b['t'][0];cos=float(np.dot(ta,tb))
         node=self.nodes[a['end']][0]
         if force:
@@ -735,6 +760,18 @@ class TrafficNetwork:
                     e0=route_edges[0];meta={k:e0.get(k) for k in ('route','route_name','route_dir','route_lane','route_start_m','route_end_m','lane_change','lane_change_sections') if e0.get(k) is not None}
             self.paths.append({'p':p,'t':tangent(p),'d':d,'length':d[-1],'edges':seq,'kinds':sorted({self.edges[e]['kind'] for e in seq}),'links':links,**meta});seen.add(key);covered.update(seq)
             if len(self.paths)>=256:break
+        # Recuperação solicitada: os restos válidos são fluxos separados, nunca atalhos.
+        recovered_paths=0
+        for i,e in enumerate(self.edges):
+            if i in covered or e.get('disabled') or i in short or not e.get('recovery'):continue
+            if len(self.paths)>=256:break
+            p=e['p'];d=e['d']
+            if d[-1]<max(1.,min_len) or not analyze_motion(p,allowed=self.allowed)['ok']:continue
+            self.paths.append({'p':p,'t':tangent(p),'d':d,'length':d[-1],'edges':[i],'kinds':[e['kind']],'links':[(('e',i),0.,float(d[-1]))],**{k:e[k] for k in ('route','route_name','route_dir','route_lane','lane_change','lane_change_sections') if k in e}})
+            covered.add(i);recovered_paths+=1
+        self.recovered_paths=sum(any(self.edges[k].get('recovery') for k in row['edges']) for row in self.paths)
+        recovered_paths=self.recovered_paths
+        if recovered_paths:self.warnings.append(f'{recovered_paths} fluxo(s) principal(is) recuperado(s) por solicitação do usuário; partes reprovadas permanecem sem veículos e sem ligação através das lacunas.')
         missing=[i for i in range(len(self.edges)) if i not in covered and not self.edges[i]['disabled'] and i not in short]
         off=sum(1 for e in self.edges if e['disabled'] and not e.get('crossing_blocked'))
         if off:self.warnings.append(f'{off} segmentos desativados pelo usuário (geometria preservada; reative em Fluxos).')

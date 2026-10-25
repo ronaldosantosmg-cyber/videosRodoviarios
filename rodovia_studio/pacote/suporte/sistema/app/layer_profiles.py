@@ -14,7 +14,11 @@ ROLE_LABELS={'axis':'Eixo','pavement':'Pista projetada','existing_pavement':'Pis
              'earthwork':'Talude (corte/aterro pela proximidade)','domain':'Faixa de domínio','water':'Hidrografia',
              'sign_h':'Sinalização horizontal (pintura)','sign_v':'Sinalização vertical (placas)'}
 
+from .asset_catalog import ASSET_ROLES,DXF_RULES,CATALOG
+ROLE_LABELS.update(ASSET_ROLES)
+
 BUILTIN={'name':'Padrão (nomes comuns)','builtin':True,'rules':[
+    *DXF_RULES,
     {'pattern':'*SINALIZ*HORIZ*','role':'sign_h'},{'pattern':'*PINTURA*','role':'sign_h'},{'pattern':'*FAIXA*PEDEST*','role':'sign_h'},{'pattern':'*ZEBRAD*','role':'sign_h'},
     {'pattern':'*SINALIZ*VERT*','role':'sign_v'},{'pattern':'*PLACA*','role':'sign_v'},
     {'pattern':'*DOMIN*','role':'domain'},{'pattern':'*FAIXA*FD*','role':'domain'},{'pattern':'FD_*','role':'domain'},
@@ -69,7 +73,9 @@ def validate(p):
         if not pat:continue
         if role not in ROLE_LABELS:raise ValueError(f'Tipo inválido na regra "{pat}".')
         if len(pat)>200:raise ValueError('Padrão longo demais.')
-        rules.append({'pattern':pat,'role':role})
+        material=r.get('material')
+        if material is not None and material not in CATALOG:raise ValueError('Material não cadastrado no catálogo local.')
+        rules.append({'pattern':pat,'role':role,**({'material':material} if material else {})})
     if not rules:raise ValueError('O perfil precisa de pelo menos uma regra.')
     if len(rules)>500:raise ValueError('Perfil com regras demais (máximo 500).')
     return {'name':name,'rules':rules}

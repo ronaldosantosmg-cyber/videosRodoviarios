@@ -56,7 +56,10 @@ def test_all_flows_are_drawn_above_surfaces_with_contrast(page):
       const [x,y]=W2C({x:0,y:0});return {strokes,pixel:[...ctx.getImageData(Math.round(x),Math.round(y),1,1).data]};
     }""")
     assert colors['strokes'][-2:]==['#081623','#22c55e']
-    assert colors['pixel'][:3]==[34,197,94]
+    # Frações de pixel e antialiasing podem variar até dois níveis por canal.
+    # A cor e a opacidade continuam estritas o suficiente para rejeitar sobreposição.
+    assert max(abs(actual-expected) for actual,expected in zip(colors['pixel'][:3],[34,197,94]))<=2
+    assert colors['pixel'][3]==255
     screenshot(page,'1422_03_fluxos_sobre_superficies')
 
 

@@ -150,8 +150,31 @@ class DirectionMark(BaseModel):
         if ((self.end.x-self.start.x)**2+(self.end.y-self.start.y)**2)**.5<1:raise ValueError('A seta de sentido precisa ter pelo menos 1 m.')
         return self
 
+class FlowRecovery(BaseModel):
+    model_config=ConfigDict(allow_inf_nan=False)
+    target_key: str = Field(default='',pattern=r'^([a-f0-9]{64})?$')
+    id: str = ''
+    x: float
+    y: float
+    enabled: bool = True
+
+
+class FlowCut(BaseModel):
+    model_config=ConfigDict(allow_inf_nan=False)
+    target_key: str = Field(default='',pattern=r'^([a-f0-9]{64})?$')
+    id: str = ''
+    start: Point
+    end: Point
+    enabled: bool = True
+    @model_validator(mode='after')
+    def length(self):
+        if math.hypot(self.end.x-self.start.x,self.end.y-self.start.y)<.1:raise ValueError('Marque início e fim distintos para o corte.')
+        return self
+
+
 class FlowOverride(BaseModel):
     model_config=ConfigDict(allow_inf_nan=False)
+    target_key: str = Field(default='',pattern=r'^([a-f0-9]{64})?$')
     id: str = ''
     x: float
     y: float
@@ -650,6 +673,7 @@ class Settings(BaseModel):
     preview_width_m: float | None = Field(default=None, ge=5, le=50000)
     preview_time_s: float = Field(default=30, ge=0, le=1800)
     imagery_pixels: Literal[2048,4096,8192] = 4096
+    layer_materials: dict[str,str] = Field(default_factory=dict)
     layers: dict[str,list[str]] = Field(default_factory=dict)
     pois: list[POI] = Field(default_factory=list, max_length=500)
     exclusions: list[list[Point]] = Field(default_factory=list, max_length=100)
@@ -675,6 +699,8 @@ class Settings(BaseModel):
     chainage: Chainage = Field(default_factory=Chainage)
     dxf_alignment: DxfAlignment = Field(default_factory=DxfAlignment)
     direction_marks: list[DirectionMark] = Field(default_factory=list,max_length=500)
+    flow_cuts: list[FlowCut] = Field(default_factory=list,max_length=1000)
+    flow_recoveries: list[FlowRecovery] = Field(default_factory=list,max_length=1000)
     flow_overrides: list[FlowOverride] = Field(default_factory=list,max_length=1000)
     oae_marks: list[OAEMark] = Field(default_factory=list,max_length=200)
     no_connection_zones: list[NoConnectionZone] = Field(default_factory=list,max_length=200)

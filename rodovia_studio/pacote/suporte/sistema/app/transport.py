@@ -108,7 +108,10 @@ class Transport:
                 for q,ambiguous in points:
                     d=line.project(q)
                     if level_at(d)!=rail['config'].level:continue
-                    rs=rail['line'].project(q);_,road_h=at(path['p'],path['d'],d);_,rail_h=at(rail['p'],rail['d'],rs);sine=abs(float(road_h[0]*rail_h[1]-road_h[1]*rail_h[0]));permanent=ambiguous or sine<.15
+                    rs=rail['line'].project(q);_,road_h=at(path['p'],path['d'],d);_,rail_h=at(rail['p'],rail['d'],rs)
+                    from .engineering_assets import oae_grade_separated
+                    if oae_grade_separated(self.s,q,road_h,rail_h,level_at(d),rail['config'].level):continue
+                    sine=abs(float(road_h[0]*rail_h[1]-road_h[1]*rail_h[0]));permanent=ambiguous or sine<.15
                     speed=max(.1,self.s.traffic_speed_kmh/3.6*.7*.8)
                     if envelope is not None:
                         mask=np.abs(path['d']-d)<(6/max(sine,.15)+60)

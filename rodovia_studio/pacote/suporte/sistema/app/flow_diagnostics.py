@@ -26,6 +26,25 @@ def flow_diagnostics(network):
         elif not any(i in used for i in active):status,message='adjustment','Trecho sem itinerário utilizável; revise as ligações e o sentido.'
         elif any(e.get('disabled') or e.get('crossing_blocked') for _,e in edges):status,message='adjustment','Parte das faixas está bloqueada; revise as restrições.'
         else:status,message='ok','Fluxo presente nos itinerários calculados.'
+        edge_ids={i for i,_ in edges};critical=[]
+        for item in getattr(network,'rejected_paths',[]):
+            audit=item['audit'];point=audit.get('critical_center_xy') or audit.get('front_xy')
+            if point and edge_ids.intersection(item['edges']):critical.append({'point':point,'reasons':audit.get('reasons',[])})
+        recovery=raw.get('recovery_reports') or []
+        for report in recovery:
+            for points in report.get('excluded_geometry',[]):
+                if points:critical.append({'point':points[len(points)//2],'reasons':report.get('reasons',[])})
+        recovery_info=None
+        if raw.get('recovery_enabled'):
+            retained=sum(b-a for report in recovery for a,b in report['retained'])
+            excluded=sum(b-a for report in recovery for a,b in report['excluded'])
+            recovery_info={'enabled':True,'retained_m':round(retained,2),'excluded_m':round(excluded,2),'reports':recovery}
+            if recovery and any(i in used for i in active):
+                status='adjustment' if excluded>0 else status
+                message=f'Fluxo principal recuperado: {retained:.1f} m revalidados; {excluded:.1f} m excluídos da circulação. O eixo original foi preservado.'
+                if any(report.get('strategy')=='suavizacao_leve_validada' for report in recovery):message+=' Aplicada suavização leve na trajetória dos veículos (até 0,5 m).'
+            elif recovery:
+                status='problem';message='Não foi possível recuperar circulação segura. O eixo original foi preservado; revise os pontos indicados no diagnóstico.'
         # Correção automática conservadora: nunca inventar ligações ou sentido.
         # O motor já exclui geometrias e movimentos recusados dos itinerários.
         if status=='ok':
@@ -41,5 +60,5 @@ def flow_diagnostics(network):
             automatic='Excluir os movimentos inválidos da simulação; preservar o traçado original para revisão.'
             manual='Editar os pontos, o sentido e as ligações; recalcular e conferir o diagnóstico antes de circular.'
         out.append({'technical_status':status,'technical_message':message,
-                    'technical_automatic':automatic,'technical_manual':manual})
+                    'technical_automatic':automatic,'technical_manual':manual,'technical_recovery':recovery_info,'technical_points':critical[:20]})
     return out

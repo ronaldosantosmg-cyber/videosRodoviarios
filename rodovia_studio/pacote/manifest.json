@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.9",
-  "description": "Correções de sincronização de imagens, inventário de camadas, tratamento de rotas e confirmação dos popups antes dos cálculos."
+  "version": "1.42.10",
+  "description": "1.42.10: recuperação, corte e junção validados de fluxos; indicação de conflitos e sentido; ferrovia por seleção de rota; faróis noturnos e braços semafóricos; desnível declarado de OAE; catálogo local de 32 materiais e nomes CAD reutilizáveis."
 }
