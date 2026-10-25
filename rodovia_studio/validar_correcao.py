@@ -26,7 +26,7 @@ AREAS = {
               'tests/test_v14212_modelagem.py::test_requested_vehicle_widths_and_lateral_reservation'],
     'imagem': ['tests/test_v14212_modelagem.py', 'tests/test_v14212_ui.py',
                'tests/test_v14212_presentation.py'],
-    'interface': ['tests/test_v1428_menu_flow.py', 'tests/test_v1423_toolbar.py'],
+    'interface': ['tests/test_v14215_view_retention.py', 'tests/test_v1428_menu_flow.py', 'tests/test_v1423_toolbar.py'],
 }
 
 

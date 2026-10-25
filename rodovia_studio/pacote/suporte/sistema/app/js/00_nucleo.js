@@ -23,7 +23,7 @@ function itemFaixa(aba,grupo,item,{inicio=false,posicao=null}={}){const T=RIBBON
 function itemArquivo(depoisDe,...itens){const F=MENUBAR[0][1];const k=F.findIndex(it=>it&&it[0]===depoisDe);if(k<0)throw Error(`item “${depoisDe}” não existe no menu Arquivo.`);F.splice(k+1,0,...itens)}
 const $=id=>document.getElementById(id);
 let pid='',cfg={},analysis=null,meta=null,task='',baseImage=null,editingPoi=null,lastRender=null,editor=null,alignResult=null;
-const canvas=$('canvas'),ctx=canvas.getContext('2d');
+const canvas=$('canvas');let ctx=canvas.getContext('2d');
 const roles={axis:'Eixo',pavement:'Pista projetada',existing_pavement:'Pista existente',shoulder:'Acostamento',edge_line:'Bordo (linha de borda)',median:'Canteiro',barrier:'Barreira',oae:'OAE',cut:'Corte',fill:'Aterro',earthwork:'Talude (corte/aterro pela proximidade)',domain:'Faixa de domínio',water:'Hidrografia'};
 const ROLE_COLOR={edge_line:'#f4f2e2',water:'#2a80b9',existing_pavement:'#a4a8a9',pavement:'#454c4e',shoulder:'#858983',median:'#7f9b6e',barrier:'#e0ddd2',oae:'#b9bcb7',cut:'#df6262',fill:'#53bb77',domain:'#ffd56b'};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

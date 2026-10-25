@@ -1,0 +1,58 @@
+{
+  "1.42.14": {
+    "1024": {
+      "width": 894,
+      "height": 479,
+      "area": 428226
+    },
+    "1366": {
+      "width": 1236,
+      "height": 479,
+      "area": 592044
+    },
+    "1920": {
+      "width": 1790,
+      "height": 528,
+      "area": 945120
+    }
+  },
+  "1.42.15": {
+    "1024": {
+      "width": 897,
+      "height": 579,
+      "area": 519363
+    },
+    "1366": {
+      "width": 1239,
+      "height": 579,
+      "area": 717381
+    },
+    "1920": {
+      "width": 1793,
+      "height": 579,
+      "area": 1038147
+    }
+  },
+  "synthetic_cpu_paint": {
+    "direct": {
+      "p50_ms": 8,
+      "p95_ms": 17.099999994039536
+    },
+    "cached": {
+      "p50_ms": 0.9000000059604645,
+      "p95_ms": 1.7000000029802322
+    },
+    "stats": {
+      "backgroundBuilds": 7,
+      "technicalBuilds": 7,
+      "hits": 108,
+      "buildMs": 11.799999997019768,
+      "fallbacks": 41,
+      "enabled": true,
+      "bytes": 8305176,
+      "budgetBytes": 33554432,
+      "surfaces": 3
+    }
+  },
+  "limitations": "Área medida com interface real em Chromium Linux. Tempos CPU de pintura em cenário sintético de 15.000 segmentos; não são FPS de um projeto real, memória da GPU ou validação Windows."
+}

@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.14",
-  "description": "1.42.14: fechamento de painéis, assistente técnico local, simplificação de pequenos nós e filtro de eixos pelo limite de fluxo. Validação direcionada."
+  "version": "1.42.15",
+  "description": "1.42.15: continuidade da vista ao editar rotas, preservação de prévia desatualizada, cache 2D limitado e faixa de comandos compacta. Validação direcionada."
 }

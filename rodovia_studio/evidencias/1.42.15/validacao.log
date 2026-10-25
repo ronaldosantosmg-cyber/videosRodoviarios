@@ -1,0 +1,17 @@
+...............................................                          [100%]
+============================= slowest 8 durations ==============================
+10.40s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v1427_state_ui.py::test_open_does_not_discard_edits_made_while_waiting_for_the_project
+9.83s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v1427_state_ui.py::test_video_finished_for_an_older_revision_is_labelled_as_previous
+9.67s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v1427_state_ui.py::test_conflict_keeps_local_edits_and_undo_history
+9.51s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v1427_state_ui.py::test_edit_while_background_response_waits_preserves_the_latest_history
+9.24s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v1427_state_ui.py::test_history_dialog_restores_an_explicit_revision
+9.05s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v1427_state_ui.py::test_edit_during_save_remains_dirty_then_queued_save_wins
+8.74s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v14214_panels_ui.py::test_modified_properties_closes_after_decision_and_stays_closed[save]
+8.67s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v1427_state_ui.py::test_out_of_order_open_does_not_replace_the_latest_project
+47 passed in 209.82s (0:03:29)
+
+WebGL e exportação real:
+...                                                                      [100%]
+3 passed in 124.01s (0:02:04)
+
+Verificações finais de isolamento e entrada inválida: 2 aprovadas; relatório pytest-late.xml.

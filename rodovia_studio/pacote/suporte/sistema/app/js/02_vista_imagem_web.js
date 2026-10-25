@@ -3,6 +3,19 @@ let view={s:1,ox:0,oy:0};
 function resizeCanvas(){const r=canvas.getBoundingClientRect(),d=window.devicePixelRatio||1;const w=Math.max(320,Math.round(r.width*d)),h=Math.max(180,Math.round(r.height*d));if(canvas.width!==w||canvas.height!==h){const k=w/canvas.width;
  // 1.29: o ponto no centro da tela continua no centro quando a tela muda de tamanho.
  const cx=(canvas.width/2-view.ox)/view.s,cy=(canvas.height/2-view.oy)/view.s;canvas.width=w;canvas.height=h;view.s*=k;view.ox=w/2-cx*view.s;view.oy=h/2-cy*view.s}draw()}
+// O espaço de imagem pode mudar após recalcular rotas; conservar a vista em CRS.
+function captureProjectView(){
+ if(!ready())return null;
+ try{const center=C2W(canvas.width/2,canvas.height/2),scale=pxPerM();
+ return [center.x,center.y,scale].every(Number.isFinite)&&scale>0?{center,scale}:null}catch{return null}
+}
+function restoreProjectView(saved){
+ if(!saved||!ready()||![saved.center?.x,saved.center?.y,saved.scale].every(Number.isFinite)||saved.scale<=0)return false;
+ const [x,y]=worldToImg(saved.center),scale=saved.scale*mpp();
+ if(![x,y,scale].every(Number.isFinite)||scale<=0)return false;
+ view={s:scale,ox:canvas.width/2-x*scale,oy:canvas.height/2-y*scale};
+ window.RodoviaLayers?.invalidate();draw();return true;
+}
 function fitView(){if(!ready()){draw();return}let x0=0,y0=0,x1,y1;[x1,y1]=imgSize();
  if(useGeo()&&analysis?.bounds){const [[a,b],[c,d]]=analysis.bounds;const q=[[a,b],[c,b],[a,d],[c,d]].map(([x,y])=>worldToImg({x,y}));x0=Math.min(...q.map(v=>v[0]));x1=Math.max(...q.map(v=>v[0]));y0=Math.min(...q.map(v=>v[1]));y1=Math.max(...q.map(v=>v[1]));const m=.06*Math.max(x1-x0,y1-y0);x0-=m;x1+=m;y0-=m;y1+=m}
  if(![x0,y0,x1,y1].every(Number.isFinite)||x1<=x0||y1<=y0)return msg('Não foi possível enquadrar: limites da geometria inválidos.',true);
@@ -34,8 +47,8 @@ function dot10(t,c){let r=0;for(let i=0;i<10;i++)r+=t[i]*c[i];return r}
 function toMerc(x,y){const t=T10((x-geo.c[0])/geo.s[0],(y-geo.c[1])/geo.s[1]);return [dot10(t,geo.fx),dot10(t,geo.fy)]}
 function toCrs(mx,my){const t=T10((mx-geo.mc[0])/geo.ms[0],(my-geo.mc[1])/geo.ms[1]);return [dot10(t,geo.ix),dot10(t,geo.iy)]}
 async function loadGeo(){const id=pid,context=projectSession.context,keep=geoPid===id&&geo,current=()=>pid===id&&projectSession.context===context;let nextGeo=null,nextVec=null,nextLocal=null;
- if(analysis){try{nextGeo=await api('/api/projects/'+id+'/geo')}catch(e){if(current()&&$('baseInfo'))$('baseInfo').textContent='Imagem web indisponível: '+e.message}
- if(nextGeo){try{nextVec=await api('/api/projects/'+id+'/vectors.json')}catch{}}
+ if(analysis){try{nextGeo=await api('/api/projects/'+id+'/geo')}catch(e){if(keep){nextGeo=geo;nextVec=vec;nextLocal=localInfo}if(current()&&$('baseInfo'))$('baseInfo').textContent='Imagem web indisponível: '+e.message}
+ if(nextGeo){try{nextVec=await api('/api/projects/'+id+'/vectors.json')}catch{if(keep)nextVec=vec}}
  if(nextGeo&&cfg?.local_imagery?.image){try{nextLocal=await api(`/api/projects/${id}/local/info`)}catch{}}}
  if(!current())return;geo=nextGeo;vec=nextVec;vecPaths=null;axisCache=null;localInfo=nextLocal;localTiles.clear();if(geo)buildVectorPaths();
  try{await localUi()}catch{}if(!current())return;if(!keep&&geoPid!==id)tileState={ok:0,fail:0};geoPid=id}
@@ -105,6 +118,6 @@ function setBase(mode){if(mode==='preview'&&!(baseImage&&meta))return msg('Gere 
 function baseUi(){const sel=$('baseMode');if(!sel)return;sel.value=useGeo()?(baseMode==='none'?'none':'map'):'preview';
  sel.querySelector('option[value=preview]').disabled=!(baseImage&&meta);for(const v of ['map','none'])sel.querySelector(`option[value=${v}]`).disabled=!geo;
  $('vecAlpha').value=vecAlpha;$('tileAlpha').value=tileAlpha;
- const roles=vecPaths?Object.keys(VSTYLE).filter(r=>vecPaths[r]).concat(['signage','arrows'].filter(r=>vecPaths[r])):[];if(editor)roles.push('flows');$('vecLayers').innerHTML=roles.length?roles.map(r=>`<label class="vl"><input type="checkbox" data-vrole="${r}" ${vecOn[r]!==false?'checked':''}><span style="background:${(vecPaths[r]||{color:SIGN[r]?.[1]}).color}"></span>${VNAME[r]||SIGN[r]?.[0]||r} <small>(${r==='flows'?editor.segments.length:vecPaths[r].n})</small></label>`).join(''):'<span class="muted">Sem vetores: clique “Analisar arquivos”.</span>';
+ const roles=vecPaths?Object.keys(VSTYLE).filter(r=>vecPaths[r]).concat(['signage','arrows'].filter(r=>vecPaths[r])):[];if(editor)roles.push('flows');$('vecLayers').innerHTML=roles.length?roles.map(r=>`<label class="vl"><input type="checkbox" data-vrole="${r}" ${vecOn[r]!==false?'checked':''}><span style="background:${(vecPaths?.[r]||{color:SIGN[r]?.[1]}).color}"></span>${VNAME[r]||SIGN[r]?.[0]||r} <small>(${r==='flows'?editor.segments.length:vecPaths[r].n})</small></label>`).join(''):'<span class="muted">Sem vetores: clique “Analisar arquivos”.</span>';
  $('baseInfo').textContent=geo?`Conversão CRS ↔ imagem web: erro máx. ${(Math.max(geo.err_fwd_m,geo.err_inv_m)*1000).toFixed(1)} mm`+(vec?` · ${vec.points} vértices simplificados (tolerância 0,25 m)`:' · vetores ainda não gerados: clique “Analisar arquivos”')+(useGeo()?'':' · editando sobre a prévia renderizada'):(analysis?'':'Analise os arquivos para abrir a imagem web.')}
 

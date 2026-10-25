@@ -82,6 +82,7 @@ async function syncWorkerConfig(remote,revision){
 }
 async function load(id,options={}){
  const intent=++projectSession.loadIntent,resultsOnly=!!options.resultsOnly&&pid===id;
+ const previousFrame={meta,baseImage};const retainedView=resultsOnly?captureProjectView():null;
  if(!resultsOnly&&pid&&savePending)await save();
  const openingFingerprint=!resultsOnly&&pid?JSON.stringify(collect()):null;
  const r=await api('/api/projects/'+id);if(intent!==projectSession.loadIntent)return false;
@@ -90,12 +91,14 @@ async function load(id,options={}){
  if(!resultsOnly){clearTimeout(saveTimer);pid=id;projectSession.context++;projectSession.epoch=0;savePending=false;localStorage.setItem('rodovia_project',pid);fill(r.config);projectSession.revision=r.config_revision||null;projectSession.baseConfig=structuredClone(r.config)}
  else if(options.syncConfig)await syncWorkerConfig(r.config,r.config_revision);
  if(!resultsOnly){sourceLayerCatalog=null;if(r.files.dxf)try{sourceLayerCatalog=await api('/api/projects/'+id+'/layers')}catch(e){msg(e.message,true)}if(intent!==projectSession.loadIntent)return false}
- projectSession.artifacts=r.artifacts||{};lastRender=r.render_info||null;analysis=r.analysis||null;meta=r.preview||null;
+ projectSession.artifacts=r.artifacts||{};lastRender=r.render_info||null;analysis=r.analysis||null;meta=r.preview||(resultsOnly?previousFrame.meta:null);
+ const retainedPreview=resultsOnly&&!r.preview&&!!(previousFrame.meta&&previousFrame.baseImage);
  $('fileState').textContent=`DXF: ${r.files.dxf?'carregado':'ausente'} · KMZ: ${r.files.kmz?'carregado':'ausente'}`;{const edits=resultsOnly?[...document.querySelectorAll('#layers select,#routes select')].map(el=>({layer:el.dataset.layer,route:el.dataset.route,value:el.value})):[];showLayers();for(const edit of edits){const el=[...document.querySelectorAll('#layers select,#routes select')].find(el=>edit.layer!==undefined?el.dataset.layer===edit.layer:el.dataset.route===edit.route);if(el)el.value=edit.value}}$('projects').value=pid;$('configDownload').href='/api/projects/'+pid+'/config.json';$('configDownload').hidden=false;
  let nextEditor=null;if(r.editor_ready||meta)try{nextEditor=await api('/api/projects/'+id+'/editor.json')}catch{}
  if(intent!==projectSession.loadIntent||pid!==id)return false;editor=nextEditor;
  const same=geoPid===pid;await loadGeo();if(intent!==projectSession.loadIntent||pid!==id)return false;
- if(meta)await loadImage(same&&useGeo());else{baseImage=null;if(!same||!ready())fitView();else draw()}
+ if(retainedPreview){baseImage=previousFrame.baseImage;previewStale=true;draw()}else if(meta){try{await loadImage(!!retainedView||same&&useGeo())}catch(error){if(intent!==projectSession.loadIntent||pid!==id)return false;if(!resultsOnly||!previousFrame.baseImage)throw error;meta=previousFrame.meta;baseImage=previousFrame.baseImage;msg('A prévia não pôde ser atualizada. A vista anterior foi mantida: '+error.message,true)}}else{baseImage=null;if(!same||!ready())fitView();else draw()}
+ if(intent===projectSession.loadIntent&&pid===id&&retainedView)restoreProjectView(retainedView);
  if(intent!==projectSession.loadIntent||pid!==id)return false;refreshLists();baseUi();
  window.dispatchEvent(new CustomEvent('rodovia:project-state',{detail:{project:id,...r}}));if(r.recovery)msg(r.recovery.message);return true;
 }

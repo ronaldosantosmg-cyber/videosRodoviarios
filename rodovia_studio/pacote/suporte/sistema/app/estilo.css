@@ -553,6 +553,22 @@ body.studio142.wide main{height:auto!important;flex:1 1 0!important;min-height:0
 .studio142 #rsToolRibbon .rsAllGroup{position:relative;padding-top:15px;align-content:start}
 .studio142 #rsToolRibbon .rsAllGroup::before{content:attr(aria-label);position:absolute;top:0;left:2px;font:10px "Segoe UI",sans-serif;color:var(--texto);opacity:.8;white-space:nowrap}
 .studio142 #rsToolRibbon.rsIconMode #rsToolPanel0{max-height:150px}
+.studio142.rsCompactWorkspace #rsToolPanel0{flex-wrap:nowrap!important;max-height:65px!important;overflow-x:auto;overflow-y:hidden}
+.rsCompactWorkspace #rsToolPanel0 .rsAllGroups{flex-wrap:nowrap!important;width:max-content!important}
+.rsCompactWorkspace #rsToolPanel0 .rsAllGroup{flex-wrap:nowrap!important;flex:none;min-width:max-content!important}
+.rsCompactWorkspace #rsTechnicalOptions{display:flex;flex-wrap:nowrap;align-items:center;gap:6px;overflow-x:auto;max-width:100%;padding:3px 0}
+.rsCompactWorkspace #rsTechnicalOptions>*{flex:none}
+.rsCompactWorkspace .rsPresentationChoice{display:inline-flex;align-items:center;gap:4px;font-size:11px}
+.rsCompactWorkspace #rsPresentationBase{max-width:200px;min-height:27px}
+.rsCompactWorkspace #rs3dControls{flex-wrap:nowrap;white-space:nowrap}
+.rsCompactWorkspace #rs3dTime{width:90px}
+.rsCompactWorkspace #rsPresentationImages{font-size:11px;white-space:nowrap}
+.rsCompactWorkspace #atividades{width:43px;min-width:43px}
+.rsCompactWorkspace #atividades button{max-width:42px;font-size:10px;padding:5px 2px}
+.rsCompactWorkspace.rsSidebarCollapsed #atividades{width:27px;min-width:27px}
+.rsSidebarCollapsed #atividades button:not(#rsSidebarToggle){font-size:0}
+.rsSidebarCollapsed #atividades button svg{width:17px;height:17px}
+.rsCompactWorkspace #rsSidebarToggle{width:100%;min-height:26px}
 /* Os campos originais ganham espaço e rolagem, sem recortes laterais. */
 #rsPanelPopup{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;width:min(1040px,calc(100vw - 24px));height:min(780px,calc(100dvh - 32px));max-width:calc(100vw - 24px);max-height:calc(100dvh - 32px);padding:0;border:1px solid var(--cromo-borda);border-radius:9px;background:var(--panel);color:var(--texto);z-index:9000;box-shadow:0 12px 60px #0006;overflow:hidden}
 #rsPanelPopup[open]{display:flex;flex-direction:column}
@@ -574,3 +590,12 @@ dialog:has(.grid):not(#rsPanelPopup):not(#rsPanelDecision){width:min(900px,calc(
 #rsAssetGallery .rsInfraIcon{width:18px;height:18px;margin-right:4px}
 .rsModelDialog{width:min(1080px,95vw);max-height:92vh;padding:0;border:1px solid #8896a3;border-radius:8px}.rsModelDialog[open]{display:flex;flex-direction:column}.rsModelDialog>header,.rsModelDialog>footer{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;border-bottom:1px solid #bdc5cc;flex:none}.rsModelDialog>header h2{margin:0}.rsModelDialog>section{padding:12px;overflow:auto;min-height:0}.rsModelDialog>footer{border-top:1px solid #bdc5cc;border-bottom:0;justify-content:flex-end}.rsSectionBand{display:grid;grid-template-columns:20px 1fr 90px;gap:6px;margin:5px 0}.rsModelDialog [data-error]{color:#b3212d;white-space:pre-wrap}.rsModelDialog fieldset{min-width:0}
 .rsImageGroup{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:6px 0;border-bottom:1px solid #e0e4e8}.rsImageGroup strong{min-width:190px;font-weight:500}.rsImageGroup label{display:inline-flex;align-items:center;gap:4px;margin:0}
+
+body.desktop140.rsCompactWorkspace #atividades{width:43px!important;min-width:43px!important}
+body.desktop140.rsCompactWorkspace.rsSidebarCollapsed #atividades{width:27px!important;min-width:27px!important}
+body.rsCompactWorkspace.paineis main{grid-template-columns:43px 0 0 minmax(0,1fr)!important}
+body.rsCompactWorkspace.paineis.pnAberto.pnFixado main{grid-template-columns:43px var(--side,420px) 8px minmax(0,1fr)!important}
+body.rsCompactWorkspace.rsSidebarCollapsed.paineis main{grid-template-columns:27px 0 0 minmax(0,1fr)!important}
+body.rsCompactWorkspace.rsSidebarCollapsed.paineis.pnAberto.pnFixado main{grid-template-columns:27px var(--side,420px) 8px minmax(0,1fr)!important}
+body.rsSidebarCollapsed #atividades .pnRot{display:none!important}
+body.rsSidebarCollapsed #atividades .pnIco{width:19px!important}

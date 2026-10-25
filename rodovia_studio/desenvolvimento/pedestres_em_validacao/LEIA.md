@@ -1,0 +1,1 @@
+Protótipo incompleto, preservado para continuidade. Não participa do aplicativo nem do pacote de atualização. Faltam integração 2D/3D/vídeo, auditoria de colisões entre pessoas e validação de níveis e cruzamentos. A revisão 1.42.15 prioriza a continuidade da vista ao editar rotas e a área útil. Não ativar este motor antes dos testes de segurança.

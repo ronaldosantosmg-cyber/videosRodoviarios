@@ -1,0 +1,77 @@
+diff --git a/rodovia_studio/pacote/suporte/sistema/app/models.py b/rodovia_studio/pacote/suporte/sistema/app/models.py
+index 54ed020..5c42153 100644
+--- a/rodovia_studio/pacote/suporte/sistema/app/models.py
++++ b/rodovia_studio/pacote/suporte/sistema/app/models.py
+@@ -27,6 +27,7 @@ class POI(BaseModel):
+     anchor: Point | None = None
+     bridge_span_m: float | None = Field(default=None,ge=10,le=160)
+     bridge_width_m: float = Field(default=3,ge=1.5,le=8)
++    bridge_clearance_m: float = Field(default=5.5,ge=5.5,le=15)
+     bridge_angle_deg: float = Field(default=0,ge=-85,le=85)
+     bridge_access: Literal['ramps','stairs','none'] = 'ramps'
+ 
+@@ -826,6 +827,8 @@ class Settings(BaseModel):
+     vegetation_areas: list[VegArea] = Field(default_factory=list,max_length=500)
+     pedestrian_paths: list[PedPath] = Field(default_factory=list,max_length=300)
+     pedestrians: bool = True            # pessoas nas faixas de pedestre, passarelas e caminhos
++    pedestrian_seed: int = Field(default=1729,ge=0,le=10**9)
++    rail_smoke: bool = True
+     vehicle_mix: Literal['classico','variado'] = 'variado'   # variado: carros, motos, vans, caminhões, carretas e ônibus
+     # 1.21: pavimento flexível (asfalto) ou rígido (concreto com juntas), texturas no modo técnico e contraste projeto × imagem.
+     pavement_material: Literal['flexivel','rigido'] = 'flexivel'
+diff --git a/rodovia_studio/pacote/suporte/sistema/app/simulation.py b/rodovia_studio/pacote/suporte/sistema/app/simulation.py
+index 1199079..50f0908 100644
+--- a/rodovia_studio/pacote/suporte/sistema/app/simulation.py
++++ b/rodovia_studio/pacote/suporte/sistema/app/simulation.py
+@@ -89,6 +89,8 @@ class TrafficSim:
+         from .alternating_traffic import AlternatingTraffic
+         from .vehicle_safety import PolygonSafety
+         self.alternating=AlternatingTraffic(settings,network);self.polygon_safety=PolygonSafety(self)
++        from .pedestrian_traffic import PedestrianTraffic
++        self.pedestrians=PedestrianTraffic(settings,network,self.transport,self)
+         self.lane_events=[]
+         self.run(status)
+ 
+@@ -316,7 +318,7 @@ class TrafficSim:
+                 new={'id':vid,'p':j,'s':0.,'v':0.,'L':Lv,'v0':v0,'t':vt,'li':0,'lc':None,'lc_cooldown':-math.inf,'entered_s':t}
+                 dyn=TYPE_DYN.get(vt,TYPE_DYN['car'])
+                 if not self.polygon_safety.admission(new,V):continue
+-                if not self.transport.admission_allowed(j,t,Lv):continue
++                if not self.transport.admission_allowed(j,t,Lv) or not self.pedestrians.admission_allowed(j,Lv):continue
+                 if self.capacity_model:
+                     # Capacidade da faixa: a fila permanece na entrada e é descarregada por headway equivalente PCU.
+                     min_headway=self.admission_headway(j,vt)
+@@ -331,6 +333,7 @@ class TrafficSim:
+                 queue_area[qi]+=q*DT;max_queue_lane[qi]=max(max_queue_lane[qi],q)
+             if k%max(1,int(round(1.0/DT)))==0:occ=self.consider_lane_changes(V,t,occ)
+             self.alternating.update(V,t)
++            self.pedestrians.update(V,t,DT)
+             acc=[self.accel(v,occ,t) for v in V]
+             planned=[]
+             for v,a in zip(V,acc):
+@@ -338,7 +341,7 @@ class TrafficSim:
+                 gap,_=self.leader(v,occ,look=max(30.,ds+10.))
+                 if v.get('lc'):
+                     target=v['lc']['to'];target_gap,_=self.leader(v,occ,path_i=target,s=self.map_s(v['p'],target,v['s']));gap=min(gap,target_gap)
+-                control=min(self.transport.stop_gap(v,t,gap),self.transport.stop_gap(v,t+DT,gap),self.alternating.stop_gap(v))
++                control=min(self.transport.stop_gap(v,t,gap),self.transport.stop_gap(v,t+DT,gap),self.alternating.stop_gap(v),self.pedestrians.stop_gap(v))
+                 if control<math.inf:
+                     if ds>max(0.,control-self.HARD_GAP):self.control_stops+=1
+                     gap=min(gap,control)
+@@ -360,6 +363,7 @@ class TrafficSim:
+             V=alive
+             # Última barreira numérica: qualquer eventual sobreposição é resolvida antes de gravar o quadro.
+             self.enforce_hard_separation(V)
++            self.pedestrians.check(V)
+             if k>=first:
+                 ids=np.array([v['id'] for v in V],np.int32);ss=np.array([v['s'] for v in V],np.float64);ps=np.array([v['p'] for v in V],np.int32)
+                 to=np.array([v['lc']['to'] if v.get('lc') is not None else -1 for v in V],np.int32)
+@@ -429,7 +433,7 @@ class TrafficSim:
+             if not bl.active(t):continue
+             if bl.mode=='partial' and a-40<=s<=b:v0=min(v0,bl.speed);T=max(T,2.4)
+             elif bl.mode=='total' and s<a:v['_stop']=a-2-v['L']/2-s
+-        gap,vl,lead=self.leader_state(v,occ);stop=min(v.pop('_stop',math.inf),self.transport.stop_gap(v,t,gap),self.alternating.stop_gap(v))
++        gap,vl,lead=self.leader_state(v,occ);stop=min(v.pop('_stop',math.inf),self.transport.stop_gap(v,t,gap),self.alternating.stop_gap(v),self.pedestrians.stop_gap(v))
+         if self.heavy_reaction and lead is not None and TYPE_DYN.get(lead.get('t'),{}).get('heavy'):
+             # Reação a pesados: seguidor abre headway e aceita menor velocidade até existir ultrapassagem segura.
+             T=max(T,2.05 if v.get('t') not in ('truck','bus','carreta') else 2.35);s0=max(s0,3.2)

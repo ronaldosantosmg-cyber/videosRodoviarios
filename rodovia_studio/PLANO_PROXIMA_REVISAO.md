@@ -1,6 +1,6 @@
 # Próxima revisão — área gráfica, apresentação e pedestres
 
-Solicitado em 25/10/2026. Implementar somente depois de finalizar e validar a revisão em andamento. Este documento é um plano; não descreve recursos já entregues.
+Solicitado em 25/10/2026. Implementar somente depois de finalizar e validar a revisão em andamento. Situação após a revisão 1.42.15: faixa compacta, recolhimento lateral e dois caches auxiliares 2D implementados e submetidos à validação direcionada. O cache cobre fundo e vetores georreferenciados; marcações editáveis e dinâmica continuam no canvas de interação. A fumaça ferroviária e o novo comportamento seguro dos pedestres permanecem pendentes. Protótipo dos pedestres preservado fora do aplicativo em desenvolvimento/pedestres_em_validacao/, sem ativação no pacote. As medições e limitações desta revisão estão em evidencias/1.42.15/. Os requisitos abaixo continuam como critérios de evolução; não significam que toda a estratégia já foi entregue.
 
 ## Área útil e comandos
 
@@ -44,3 +44,7 @@ Testar fases, amarelo/limpeza, filas, veículo já dentro da travessia, aproxima
 5. Executar a bateria funcional e visual completa, instalação e rollback. Somente então gerar pacote em `atualizacoes/`, preservando projetos, vídeos, originais e cache persistente.
 
 Trabalhar na branch de desenvolvimento; não alterar `main` sem autorização.
+
+## Continuidade da vista — correção prioritária 1.42.15
+
+A API omite a prévia quando ela fica desatualizada. O recarregamento de resultados não deve apagar a imagem já carregada por esse motivo. Conservar a imagem com indicação de desatualização e preservar centro/escala em CRS, mesmo quando os parâmetros da próxima imagem mudam. A referência anterior só pode ser reaproveitada no mesmo projeto; a troca de projeto conserva o isolamento de sessão. Falhas de carregamento não autorizam exportar resultados desatualizados.
