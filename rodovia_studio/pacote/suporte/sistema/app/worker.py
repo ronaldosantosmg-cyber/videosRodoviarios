@@ -147,17 +147,19 @@ def run(jid):
                 world=(dst.stem+'.tfw') if entry['meta'].get('world') else None;prj=(dst.stem+'.prj') if entry['meta'].get('prj') else None
             base=d/'imagem_local'
             info=georef(dst,base/world if world else None,base/prj if prj else None,req.get('crs') or None)
-            s=Settings.model_validate(json.loads((d/'config.json').read_text(encoding='utf-8')))
-            if req.get('mode')=='add' and s.local_imagery.image:
-                s.local_imagery.others.append(LocalSource(name=req['file'],image=dst.name,world=world,prj=prj,crs=req.get('crs') or None))
-            else:
-                s.local_imagery=LocalImagery(name=req['file'],image=dst.name,world=world,prj=prj,crs=req.get('crs') or None,others=s.local_imagery.others)
-                s.imagery='local'
-            if check:(d/'imagem_local'/(dst.stem+'_conferencia.json')).write_text(json.dumps(check,ensure_ascii=False,indent=2),encoding='utf-8')
-            # Pedido de conversão e intermediários já cumpriram sua função; a fonte original e o GeoTIFF validado permanecem.
+            # A referência só é publicada após validar o GeoTIFF; mescla sobre a configuração mais recente.
+            with locked(d):
+                s=Settings.model_validate(read_config(d))
+                if req.get('mode')=='add' and s.local_imagery.image:
+                    s.local_imagery.others.append(LocalSource(name=req['file'],image=dst.name,world=world,prj=prj,crs=req.get('crs') or None))
+                else:
+                    s.local_imagery=LocalImagery(name=req['file'],image=dst.name,world=world,prj=prj,crs=req.get('crs') or None,others=s.local_imagery.others)
+                    s.imagery='local'
+                store.write_json(d/'config.json',s.model_dump())
+            if check:store.write_json(d/'imagem_local'/(dst.stem+'_conferencia.json'),check)
             (d/'imagem_local'/'_converter.json').unlink(missing_ok=True)
             if 'work' in locals():shutil.rmtree(work,ignore_errors=True)
-            store.write_json(d/'config.json',s.model_dump());end_message=f'Convertido: {dst.name} ({info["size"][0]}×{info["size"][1]} px)'
+            end_message=f'Convertido: {dst.name} ({info["size"][0]}×{info["size"][1]} px)'
         elif j['kind']=='install_ecw':
             from .ecw_engine import install
             st=install(status);end_message=f"Leitor ECW interno instalado: GDAL {st['python_gdal']} com ECW."

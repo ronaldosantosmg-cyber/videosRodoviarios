@@ -19,7 +19,7 @@ def guess(layer):
     return role_for(layer,BUILTIN['rules'])
 
 def walk(es, depth=0, parent_layer=None):
-    if depth>16: return
+    if depth>32:raise ValueError('Blocos DXF excedem 32 níveis de aninhamento; confira referências circulares.')
     for e in es:
         if e.dxftype()=='INSERT':
             yield from walk(e.virtual_entities(),depth+1,e.dxf.layer if e.dxf.layer!='0' else parent_layer)
@@ -204,13 +204,15 @@ def analyze(directory,settings,preview=None,hatch_preview=None):
         hidden_n=0
         for e in ents:
             layer=eff_layer(e,split,doc);counts[layer]+=1
-            if layer in hidden:hidden_n+=1;continue   # 1.26: camada oculta: fora do editor e do vídeo (o DXF não muda)
-            role=next((r for r,ls in settings.layers.items() if layer in ls),None);guessed=False
+            if layer in hidden or e.dxf.layer in hidden:hidden_n+=1;continue   # 1.26: camada oculta: fora do editor e do vídeo (o DXF não muda)
+            role=next((r for r,ls in settings.layers.items() if layer in ls),None)
+            if role is None:role=next((r for r,ls in settings.layers.items() if e.dxf.layer in ls),None)
+            guessed=False
             if e.dxftype() in HATCH_TYPES:
                 # 1.24: leitura automática das hachuras pela assinatura (camada + padrão + cor).
                 sig,info=hatch_signature(e,layer,doc,settings.units_to_m);rec=hsig.setdefault(sig,info);rec['count']+=1;rec['area_m2']+=info['_area']
                 if rec is not info:rec['loops']+=info['loops'];rec['islands']+=info['islands']
-                if layer in frozen:rec['frozen']=True
+                if layer in frozen or e.dxf.layer in frozen:rec['frozen']=True
                 if hatch_preview is not None:
                     hp=hatch_preview.setdefault(sig,{'n':0,'p':[]})
                     for r in _last_rings:

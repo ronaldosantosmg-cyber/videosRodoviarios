@@ -66,11 +66,11 @@ async function requestClose(){
  if(answer==='discard'){finish(true);return true}return commitClose();
 }
 scheduleSave=function(...args){if(!active||committing)return originalSchedule(...args);projectSession.epoch++;savePending=true;pauseTimers();$('saveState').textContent='alterações pendentes na janela';if($('rsPanelStatus'))$('rsPanelStatus').textContent='Alterações pendentes — salve ou descarte antes de fechar.'};
-save=async function(...args){if(active&&!committing){savePending=true;pauseTimers();$('rsPanelStatus').textContent='Use Salvar e fechar para confirmar a configuração.';throw Error('Use Salvar e fechar para confirmar os dados da janela.')}return originalSave(...args)};
+save=async function(...args){if(active&&!committing){pauseTimers();if(!await requestClose())throw Error('Gravação cancelada; a janela continua em edição.')}return originalSave(...args)};
 const oldSchedulePreview=scheduleViewPreview,oldViewPreview=runViewPreview;
 scheduleViewPreview=function(...args){if(active){previewStale=true;pauseTimers();return}return oldSchedulePreview(...args)};
-runViewPreview=async function(...args){if(active){previewStale=true;pauseTimers();return}return oldViewPreview(...args)};
-start=async function(...args){if(active&&!committing){pauseTimers();throw Error('Salve ou descarte as alterações da janela antes de iniciar o processamento.')}return originalStart(...args)};
+runViewPreview=async function(...args){if(active){previewStale=true;pauseTimers();if(!await requestClose())return false}return oldViewPreview(...args)};
+start=async function(...args){if(active&&!committing){pauseTimers();if(!await requestClose())return false}return originalStart(...args)};
 load=async function(...args){if(active&&!committing&&!args[1]?.resultsOnly){if(!await requestClose()){$('projects').value=pid;return false}}return originalLoad(...args)};
 const oldDock=abrirAba;abrirAba=function(id,click){
  if(closing)return oldDock(id,click);
@@ -89,14 +89,21 @@ const oldSection=openSection;openSection=function(title){if(active){void request
 // Uma operação que grava arquivos fecha primeiro a edição pendente; os originais não fazem parte de Descartar.
 const oldApi=api;api=async function(url,options={}){
  const mutating=options.method&&!['GET','HEAD'].includes(options.method.toUpperCase());
- if(active&&!committing&&mutating&&/^\/api\/projects\/[^/]+\/(analyze|preview|render|scene3d|frames|export)(\/|$)/.test(url))throw Error('Salve ou descarte os dados da janela antes de processar.');
+ if(active&&!committing&&mutating&&/^\/api\/projects\/[^/]+\/(analyze|preview|render|scene3d|frames|export)(\/|$)/.test(url)){if(!await requestClose())throw Error('Processamento cancelado; a janela continua em edição.');}
  if(active&&!committing&&/\/config$/.test(url)&&options.headers?.['If-Match'])return oldApi(url,options);
  if(active&&!committing&&mutating&&/^\/api\/projects\/[^/]+\//.test(url)&&!/^\/api\/projects\/[^/]+\/(validate_path|sessoes|client_error|client_log)(\/|$)/.test(url)){if(!await requestClose())throw Error('Operação cancelada; a janela continua em edição.')}
  return oldApi(url,options);
 };
 document.addEventListener('click',e=>{const button=e.target.closest('[data-pspn]');if(!button)return;e.preventDefault();e.stopImmediatePropagation();const show=()=>{const id=button.dataset.pspn;pnAbrir(id);if($('psMore'))$('psMore').hidden=true;PS.extraOpen=false;const item=pnItens.find(i=>i.id===id);if(item)open(item.el,item.t,'more:'+id);psUpdateHubState()};if(active)void requestClose().then(ok=>{if(ok)show()});else show()},true);
 // Os cliques fora da janela precisam resolver a edição antes de voltar ao desenho.
-document.addEventListener('pointerdown',e=>{if(!active||e.target.closest('#rsPanelPopup,#rsPanelDecision,#atividades,.dockHead'))return;if(e.target.closest('dialog'))return;e.preventDefault();e.stopImmediatePropagation();void requestClose()},true);
+document.addEventListener('pointerdown',e=>{if(!active||e.target.closest('#rsPanelPopup,#rsPanelDecision,#atividades,.dockHead'))return;if(e.target.closest('dialog,button,a,[role=button]'))return;e.preventDefault();e.stopImmediatePropagation();void requestClose()},true);
+// Resolva a edição e execute o botão original uma única vez, já com os dados gravados.
+document.addEventListener('click',e=>{
+ if(!active||committing||e.target.closest('#rsPanelPopup,#rsPanelDecision,#atividades,.dockHead,dialog'))return;
+ const button=e.target.closest('button,a,[role=button]');if(!button||button.disabled)return;
+ e.preventDefault();e.stopImmediatePropagation();const project=pid;
+ void requestClose().then(ok=>{if(ok&&pid===project&&button.isConnected&&!button.disabled)button.click()}).catch(err=>msg(err.message,true));
+},true);
 document.addEventListener('keydown',e=>{if(active&&!decision&&e.key==='Tab'){const items=[...dialog().querySelectorAll('button,input,select,textarea,a[href]')].filter(el=>!el.disabled&&el.getClientRects().length);if(items.length){const first=items[0],last=items[items.length-1];if(e.shiftKey&&(e.target===first||!dialog().contains(e.target))){e.preventDefault();last.focus()}else if(!e.shiftKey&&(e.target===last||!dialog().contains(e.target))){e.preventDefault();first.focus()}}}if(active&&(e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();e.stopImmediatePropagation();void commitClose();return}if(active&&e.key==='Escape'&&!decision){e.preventDefault();e.stopImmediatePropagation();void requestClose()}},true);
 window.addEventListener('beforeunload',e=>{if(active&&differs()){e.preventDefault();e.returnValue=''}});
 function currentImagery(){const image=$('imagery')?.value||cfg.imagery;if(image==='esri')return cfg.local_imagery?.image&&cfg.local_imagery.detail!==false&&($('imagery_detail')?.value||cfg.imagery_detail)!=='off'?'mixed':'map';return image||'map'}

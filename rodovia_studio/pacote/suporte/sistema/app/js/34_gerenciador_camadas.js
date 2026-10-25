@@ -1,6 +1,6 @@
 // ---------- Gerenciador de camadas ----------
 let lmChecked=new Set(),lmHist=[];
-function lmLayers(){const A=analysis?.layers||[];if(A.length)return A.map(l=>({name:l.name,count:l.count}));return (vec?.layer_names||[]).map(n=>({name:n,count:null}))}
+function lmLayers(){return [...new Map([...(vec?.layer_names||[]).map(name=>({name,count:null})),...(sourceLayerCatalog?.layers||[]),...(analysis?.layers||[])].map(l=>[l.name,{name:l.name,count:l.count}])).values()]}
 function lmRole(n){const e=Object.entries(cfg.layers||{}).find(([,ls])=>(ls||[]).includes(n));return e?e[0]:''}
 function lmMatch(n,q){if(!q)return true;if(q.includes('*')){const re=new RegExp('^'+q.split('*').map(x=>x.replace(/[.+?^${}()|[\]\\]/g,'\\$&')).join('.*')+'$','i');return re.test(n)}return n.toLowerCase().includes(q.toLowerCase())}
 function lmVisible(){const q=$('lmSearch').value.trim(),f=$('lmShow').value,st=layerSets();return lmLayers().filter(l=>lmMatch(l.name,q)&&(f==='all'||(f==='vis'&&!st.h.has(l.name))||(f==='hid'&&st.h.has(l.name))||(f==='frz'&&st.f.has(l.name))||(f==='role'&&lmRole(l.name))))}

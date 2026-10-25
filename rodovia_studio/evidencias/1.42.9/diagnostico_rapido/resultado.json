@@ -1,0 +1,10 @@
+{
+  "mode": "diagnostico_rapido",
+  "release_approved": false,
+  "pytest": {
+    "tests": 14,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  }
+}

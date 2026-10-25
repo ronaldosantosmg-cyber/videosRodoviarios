@@ -244,7 +244,10 @@ function init(){
  const oldDock=aplicarDock;aplicarDock=function(...args){const r=oldDock(...args);sync();return r};
  const oldChanged=changed;changed=function(...args){study.stale=true;const r=oldChanged(...args);sync();return r};
  const oldLoad=load;load=async function(...args){const r=await oldLoad(...args);study.stale=!!(task||savePending);draw();sync();return r};
- const oldShow=showSegProps;showSegProps=function(...args){const r=oldShow(...args);const seg=segById(selSeg?.id);if(seg&&$('propPanel')&&!$('propPanel').hidden){if(pnEstado.aberto)pnAbrir(null);abrirAba('prop',false);const p=document.createElement('p');p.className='rsFlowDiagnostic';p.textContent=study.stale?'Ajuste necessário: recalcule os fluxos após a alteração.':seg.technical_message||'Diagnóstico pendente: atualize os fluxos.';$('propPanel').appendChild(p)}return r};
+ const oldShow=showSegProps;showSegProps=function(...args){const r=oldShow(...args);const seg=segById(selSeg?.id);if(seg&&$('propPanel')&&!$('propPanel').hidden){if(pnEstado.aberto)pnAbrir(null);abrirAba('prop',false);const p=document.createElement('p');p.className='rsFlowDiagnostic';p.textContent=study.stale?'Ajuste necessário: recalcule os fluxos após a alteração.':seg.technical_message||'Diagnóstico pendente: atualize os fluxos.';$('propPanel').appendChild(p);
+ const help=document.createElement('div');help.className='rsFlowRecovery';
+ for(const [label,value] of [['Tratamento automático',seg.technical_automatic],['Correção manual',seg.technical_manual]]){const line=document.createElement('p');const title=document.createElement('strong');title.textContent=label+': ';line.append(title,document.createTextNode(value||'Recalcule os fluxos para obter as orientações deste trecho.'));help.appendChild(line)}
+ $('propPanel').appendChild(help)}return r};
  document.addEventListener('pointerdown',e=>{if(!e.target.closest('.rsCascade,#menuBar'))closeMenus()},true);
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.menus.length&&!e.target.closest('.rsCascade')){e.preventDefault();closeMenus(true)}},true);
  window.addEventListener('resize',()=>closeMenus());

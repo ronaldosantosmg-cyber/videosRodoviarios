@@ -96,7 +96,7 @@ window.addEventListener('pointermove',e=>{if(!drag||!['rot','label','mmove'].inc
   drag.objs.forEach((o,k)=>o.grips.forEach((g,j)=>{const p=drag.base[k][j];gripSet(g,{x:C.x+(p.x-C.x)*co-(p.y-C.y)*si,y:C.y+(p.x-C.x)*si+(p.y-C.y)*co})}));$('cursor').textContent=`Girando ${a.toFixed(1)}° (Shift: passos de 15°)`}
  else if(drag.type==='label'){drag.o.o.label={x:c.w.x,y:c.w.y};drag.moved=true;const li=leaderInfo(drag.o);$('cursor').textContent=`Caixa de chamada: linha ${li.d.toFixed(2)} m · direção ${li.az.toFixed(1)}°`}
  draw()},true);
-window.addEventListener('pointerup',e=>{if(drag&&['rot','label','mmove'].includes(drag.type)){const d=drag;drag=null;e.stopImmediatePropagation();
+window.addEventListener('pointerup',e=>{if(drag&&['rot','label','mmove'].includes(drag.type)){const d=drag;drag=null;canvas.style.cursor=tool==='pan'?'grab':'crosshair';e.stopImmediatePropagation();
   if(d.moved){if(d.objs)d.objs.forEach(o=>afterGeomEdit(o));changed(d.type==='rot'?`Girado ${d.ang.toFixed(1)}°.`:d.type==='label'?`Caixa de chamada reposicionada (linha ${leaderInfo(d.o).d.toFixed(1)} m).`:`${d.objs.length} objeto(s) movido(s) ${d.d.toFixed(3)} m.`);showProps();scheduleViewPreview()}else{undoStack.pop();updateUndo()}draw();return}
  if(!sb||e.target!==canvas&&!canvas.contains(e.target))return;const st=sb;sb=null;const c=canvasPt(e);if(!c.w||Math.hypot(c.cx-st.c0.cx,c.cy-st.c0.cy)>4||tool!=='pan'||e.button!==0)return;
  // Clique simples no vazio: ligação > trajetória > área do desenho (Alt: direto na área).

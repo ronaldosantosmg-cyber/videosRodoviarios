@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.8",
-  "description": "Correção do histórico em caminhos longos, painéis amplos com salvar/descartar e seleção acessível de imagens e comandos."
+  "version": "1.42.9",
+  "description": "Correções de sincronização de imagens, inventário de camadas, tratamento de rotas e confirmação dos popups antes dos cálculos."
 }

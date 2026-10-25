@@ -271,3 +271,10 @@ def capture3d_status(pid,jid,request:Request):
 @router.post('/api/transport/validate')
 def transport_validate(body:Settings):
     return {key:[row.model_dump() for row in getattr(body,key)] for key in ('railways','traffic_signals','signal_links')}
+
+
+@router.get('/api/projects/{pid}/layers')
+def source_layers(pid):
+    from ..layer_catalog import catalog
+    try:return catalog(store.directory(pid))
+    except (OSError,ValueError) as e:raise HTTPException(422,'Não foi possível ler as camadas originais do DXF: '+str(e))

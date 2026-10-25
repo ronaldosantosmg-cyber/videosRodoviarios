@@ -15,7 +15,7 @@ function updateUndo(){$('undo').disabled=!undoStack.length;$('redo').disabled=!r
 let saveTimer=null;
 let savePending=false;
 // Uma fila por projeto impede que uma resposta antiga confirme uma edição nova.
-const projectSession={revision:null,epoch:0,context:0,loadIntent:0,queue:Promise.resolve(),artifacts:{}};
+const projectSession={revision:null,epoch:0,context:0,loadIntent:0,queue:Promise.resolve(),artifacts:{},baseConfig:null};
 window.RodoviaProjectState=Object.freeze({get snapshot(){return {project:pid,revision:projectSession.revision,epoch:projectSession.epoch,dirty:savePending,artifacts:structuredClone(projectSession.artifacts),undo:undoStack.length,redo:redoStack.length}}});
 function scheduleSave(){if(!pid)return;projectSession.epoch++;savePending=true;$('saveState').textContent='alterações não salvas…';clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{try{await save()}catch(e){$('saveState').textContent='não salvo: '+e.message;msg('A alteração NÃO foi salva: '+e.message+' Corrija o valor ou use Desfazer.',true)}},900)}
 
@@ -31,7 +31,7 @@ function fill(s){cfg=s;for(const k of fields){const el=$(k);if(el)el.value=s[k]?
 function collect(){let s={...cfg};for(const k of fields){const el=$(k);if(el)s[k]=numeric.includes(k)?Number(el.value):el.value}for(const k of checks)if($(k))s[k]=$(k).checked;
  s.km_start_m=parseKm($('km_start_m').value);s.km_end_m=parseKm($('km_end_m').value);s.reference_length_m=Number($('reference_length_m').value.replace(',','.'))*1000;
  for(const k of MARK_KEYS)s[k]=JSON.parse(JSON.stringify(M[k]));M.dxf_alignment.mode=$('alignMode').value;s.dxf_alignment.mode=M.dxf_alignment.mode;
- s.layers={};document.querySelectorAll('#layers select').forEach(el=>{if(el.value)(s.layers[el.value]??=[]).push(el.dataset.layer)});if(!analysis)s.layers=cfg.layers||{};
+ s.layers={};document.querySelectorAll('#layers select').forEach(el=>{if(el.value)(s.layers[el.value]??=[]).push(el.dataset.layer)});if(!analysis&&!sourceLayerCatalog?.layers?.length)s.layers=cfg.layers||{};
  s.route_directions={...(cfg.route_directions||{})};document.querySelectorAll('#routes select').forEach(el=>s.route_directions[el.dataset.route]=el.value);return s}
 async function save(){
  requireProject();const id=pid,context=projectSession.context,epoch=projectSession.epoch,s=collect(),payload=JSON.stringify(s);clearTimeout(saveTimer);
@@ -40,7 +40,7 @@ async function save(){
    const options=json('PUT',s);if(projectSession.revision)options.headers['If-Match']=projectSession.revision;
    const result=await api('/api/projects/'+id+'/config',options);
    if(pid!==id||projectSession.context!==context)return result;
-   projectSession.revision=result.config_revision||result.revision||projectSession.revision;projectSession.artifacts=result.artifacts||{};
+   projectSession.revision=result.config_revision||result.revision||projectSession.revision;projectSession.artifacts=result.artifacts||{};projectSession.baseConfig=structuredClone(result.config||s);
    const unchanged=projectSession.epoch===epoch&&JSON.stringify(collect())===payload;
    if(unchanged){cfg=result.config||s;savePending=false;$('saveState').textContent='salvo na configuração';announce({t:'saved'})}
    else{savePending=true;$('saveState').textContent='alterações posteriores aguardam gravação…'}
@@ -50,9 +50,28 @@ async function save(){
 }
 
 async function list(){const rows=await api('/api/projects');$('projects').innerHTML='<option value="">Selecione…</option>'+rows.map(r=>`<option value="${r.id}">${esc(r.name)} · ${esc(r.created)}</option>`).join('');$('projects').value=pid}
-function showLayers(){if(!analysis)return;$('layers').innerHTML=analysis.layers.map(l=>{let current=Object.entries(cfg.layers||{}).find(([k,v])=>v.includes(l.name))?.[0]||(!Object.keys(cfg.layers||{}).length?l.suggested_role:'');return `<tr><td>${esc(l.name)}<br><small>${l.count} entidades</small></td><td><select data-layer="${esc(l.name)}"><option value="">Ignorar</option>${Object.entries(roles).map(([k,v])=>`<option value="${k}" ${k===current?'selected':''}>${v}</option>`).join('')}</select></td><td><button class="mini" data-showlayer="${esc(l.name)}" title="Destacar esta camada no editor">Ver</button></td></tr>`}).join('');showRoleColors();
+let sourceLayerCatalog=null;
+function showLayers(){const rows=[...new Map([...(sourceLayerCatalog?.layers||[]),...(analysis?.layers||[])].map(l=>[l.name,l])).values()];if(!rows)return;$('layers').innerHTML=rows.map(l=>{let current=Object.entries(cfg.layers||{}).find(([k,v])=>v.includes(l.name))?.[0]||(!Object.keys(cfg.layers||{}).length?l.suggested_role:'');return `<tr><td>${esc(l.name)}<br><small>${l.count} entidades</small></td><td><select data-layer="${esc(l.name)}"><option value="">Ignorar</option>${Object.entries(roles).map(([k,v])=>`<option value="${k}" ${k===current?'selected':''}>${v}</option>`).join('')}</select></td><td><button class="mini" data-showlayer="${esc(l.name)}" title="Destacar esta camada no editor">Ver</button></td></tr>`}).join('');showRoleColors();
+ if(!analysis){$('routes').innerHTML='';$('warnings').textContent=(sourceLayerCatalog?.warnings||[]).join('\n');return}
  $('routes').innerHTML=analysis.routes.map(r=>`<tr><td>Eixo ${r.id} · ${r.length_m.toFixed(1)} m<br>${esc(r.layer)}</td><td><select data-route="${r.id}">${[['auto','Automático'],['forward','Crescente (km)'],['reverse','Decrescente (km)'],['off','Sem veículos']].map(([k,v])=>`<option value="${k}" ${(cfg.route_directions||{})[r.id]===k?'selected':''}>${v}</option>`).join('')}</select></td></tr>`).join('');
  $('warnings').textContent=(analysis.warnings||[]).join('\n');$('geom').textContent=`Comprimento geométrico: ${(analysis.geometric_length_m/1000).toFixed(3)} km. A extensão de referência permanece independente.`+(analysis.georef_check?` Conferência DXF × KMZ (${analysis.georef_check.points} pontos ao longo do eixo): desvio mediano ${analysis.georef_check.median_m.toFixed(2)} m, 95% até ${analysis.georef_check.p95_m.toFixed(2)} m, máximo ${analysis.georef_check.max_m.toFixed(2)} m.`:' Sem KMZ: a posição não foi conferida contra outra referência.')}
+function mergeProjectConfig(base,local,remote,path=[],conflicts=[]){
+ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b),copy=v=>v===undefined?undefined:structuredClone(v);
+ if(same(local,base))return copy(remote);if(same(remote,base)||same(local,remote))return copy(local);
+ if([base,local,remote].every(v=>v&&typeof v==='object'&&!Array.isArray(v))){const out={};for(const key of new Set([...Object.keys(base),...Object.keys(local),...Object.keys(remote)])){const v=mergeProjectConfig(base[key],local[key],remote[key],[...path,key],conflicts);if(v!==undefined)out[key]=v}return out}
+ conflicts.push({path,local:copy(local),remote:copy(remote)});return copy(local);
+}
+async function resolveProjectConflicts(conflicts){
+ const d=document.createElement('dialog');d.className='winDlg';d.innerHTML='<h3>Conferir resultado da conversão</h3><p>Estes campos foram alterados durante o processamento: '+esc(conflicts.map(c=>c.path.join(' · ')).join(', '))+'. As demais edições serão preservadas.</p><div class="row"><button type="button" data-choice="local">Manter minha edição</button><button type="button" data-choice="remote">Usar resultado da conversão</button></div>';document.body.appendChild(d);
+ return new Promise(resolve=>{const finish=v=>{d.close();d.remove();resolve(v)};d.onclick=e=>{const value=e.target.closest('[data-choice]')?.dataset.choice;if(value)finish(value)};d.oncancel=e=>{e.preventDefault();finish('local')};d.showModal()});
+}
+async function syncWorkerConfig(remote,revision){
+ const context=projectSession.context,id=pid;clearTimeout(saveTimer);const local=collect(),conflicts=[];const merged=mergeProjectConfig(projectSession.baseConfig||cfg,local,remote,[],conflicts);
+ if(conflicts.length&&await resolveProjectConflicts(conflicts)==='remote')for(const item of conflicts){let target=merged;for(const key of item.path.slice(0,-1))target=target[key];target[item.path.at(-1)]=structuredClone(item.remote)}
+ if(pid!==id||projectSession.context!==context)throw Error('O projeto mudou durante a conferência da conversão. Reabra o projeto para receber o resultado.');
+ const undo=undoStack.slice(),redo=redoStack.slice();fill(merged);undoStack=undo;redoStack=redo;updateUndo();
+ projectSession.baseConfig=structuredClone(remote);projectSession.revision=revision;savePending=JSON.stringify(merged)!==JSON.stringify(remote);$('saveState').textContent=savePending?'Resultado recebido; edições locais aguardam gravação.':'Configuração da conversão recebida.';
+}
 async function load(id,options={}){
  const intent=++projectSession.loadIntent,resultsOnly=!!options.resultsOnly&&pid===id;
  if(!resultsOnly&&pid&&savePending)await save();
@@ -60,9 +79,11 @@ async function load(id,options={}){
  const r=await api('/api/projects/'+id);if(intent!==projectSession.loadIntent)return false;
  if(!resultsOnly&&pid&&(savePending||JSON.stringify(collect())!==openingFingerprint)){savePending=true;throw Error('Existem novas alterações feitas durante a abertura. Salve-as antes de trocar de projeto.')}
 
- if(!resultsOnly){clearTimeout(saveTimer);pid=id;projectSession.context++;projectSession.epoch=0;savePending=false;localStorage.setItem('rodovia_project',pid);fill(r.config);projectSession.revision=r.config_revision||null}
+ if(!resultsOnly){clearTimeout(saveTimer);pid=id;projectSession.context++;projectSession.epoch=0;savePending=false;localStorage.setItem('rodovia_project',pid);fill(r.config);projectSession.revision=r.config_revision||null;projectSession.baseConfig=structuredClone(r.config)}
+ else if(options.syncConfig)await syncWorkerConfig(r.config,r.config_revision);
+ if(!resultsOnly){sourceLayerCatalog=null;if(r.files.dxf)try{sourceLayerCatalog=await api('/api/projects/'+id+'/layers')}catch(e){msg(e.message,true)}if(intent!==projectSession.loadIntent)return false}
  projectSession.artifacts=r.artifacts||{};lastRender=r.render_info||null;analysis=r.analysis||null;meta=r.preview||null;
- $('fileState').textContent=`DXF: ${r.files.dxf?'carregado':'ausente'} · KMZ: ${r.files.kmz?'carregado':'ausente'}`;if(!resultsOnly)showLayers();$('projects').value=pid;$('configDownload').href='/api/projects/'+pid+'/config.json';$('configDownload').hidden=false;
+ $('fileState').textContent=`DXF: ${r.files.dxf?'carregado':'ausente'} · KMZ: ${r.files.kmz?'carregado':'ausente'}`;{const edits=resultsOnly?[...document.querySelectorAll('#layers select,#routes select')].map(el=>({layer:el.dataset.layer,route:el.dataset.route,value:el.value})):[];showLayers();for(const edit of edits){const el=[...document.querySelectorAll('#layers select,#routes select')].find(el=>edit.layer!==undefined?el.dataset.layer===edit.layer:el.dataset.route===edit.route);if(el)el.value=edit.value}}$('projects').value=pid;$('configDownload').href='/api/projects/'+pid+'/config.json';$('configDownload').hidden=false;
  let nextEditor=null;if(r.editor_ready||meta)try{nextEditor=await api('/api/projects/'+id+'/editor.json')}catch{}
  if(intent!==projectSession.loadIntent||pid!==id)return false;editor=nextEditor;
  const same=geoPid===pid;await loadGeo();if(intent!==projectSession.loadIntent||pid!==id)return false;
