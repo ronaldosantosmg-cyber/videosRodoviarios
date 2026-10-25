@@ -38,7 +38,7 @@ function finish(discard){
  base.node.className=base.classes;base.node.hidden=base.hidden;base.placeholder.replaceWith(base.node);dialog().close();document.body.classList.remove('rsPanelOpen');
  if(base.key.startsWith('dock:'))recolherDock(true);else pnAbrir(null);
  closing=false;syncImagery();
- const refresh=()=>{if(active||pid!==base.project)return;if(!task&&!savePending&&analysis&&!editor&&projectSession.artifacts.editor?.state==='stale')void originalStart('analyze').catch(e=>msg(e.message,true));if(!savePending&&typeof autoPrev!=='undefined'&&autoPrev&&previewStale&&previewVisible())scheduleViewPreview()};
+ const refresh=()=>{if(active||pid!==base.project)return;if(!task&&!taskRequestPending&&!savePending&&analysis&&!editor&&projectSession.artifacts.editor?.state==='stale')void originalStart('analyze',undefined,{automatic:true}).catch(e=>msg(e.message,true));if(!savePending&&typeof autoPrev!=='undefined'&&autoPrev&&previewStale&&previewVisible())scheduleViewPreview()};
  if(discard&&base.project&&!savePending)void oldApi('/api/projects/'+base.project).then(r=>{if(pid===base.project&&!savePending&&projectSession.revision===r.config_revision)window.dispatchEvent(new CustomEvent('rodovia:project-state',{detail:{project:base.project,...r}}))}).catch(()=>{});
  if(savePending){clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{try{await originalSave();refresh()}catch(e){msg(e.message,true)}},900)}else setTimeout(refresh,350)
 }
@@ -69,8 +69,8 @@ scheduleSave=function(...args){if(!active||committing)return originalSchedule(..
 save=async function(...args){if(active&&!committing){pauseTimers();if(!await requestClose())throw Error('Gravação cancelada; a janela continua em edição.')}return originalSave(...args)};
 const oldSchedulePreview=scheduleViewPreview,oldViewPreview=runViewPreview;
 scheduleViewPreview=function(...args){if(active){previewStale=true;pauseTimers();return}return oldSchedulePreview(...args)};
-runViewPreview=async function(...args){if(active){previewStale=true;pauseTimers();if(!await requestClose())return false}return oldViewPreview(...args)};
-start=async function(...args){const project=pid,context=projectSession.context;if(active&&!committing){pauseTimers();if(!await requestClose())return false}if(pid!==project||projectSession.context!==context)return false;return originalStart(...args)};
+runViewPreview=async function(...args){if(active){previewStale=true;pauseTimers();return false}return oldViewPreview(...args)};
+start=async function(...args){const project=pid,context=projectSession.context;if(args[2]?.automatic&&document.querySelector('dialog[open]'))return false;if(active&&!committing){pauseTimers();if(!await requestClose())return false}if(pid!==project||projectSession.context!==context)return false;return originalStart(...args)};
 load=async function(...args){if(active&&!committing&&!args[1]?.resultsOnly){if(!await requestClose()){$('projects').value=pid;return false}}return originalLoad(...args)};
 const oldDock=abrirAba;abrirAba=function(id,click){
  if(closing)return oldDock(id,click);

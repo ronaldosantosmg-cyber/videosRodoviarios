@@ -30,7 +30,8 @@ def gl_page(live):
         b=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-dev-shm-usage'])
         page=b.new_page(viewport={'width':1440,'height':900},accept_downloads=True);errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
         page.route('**/*',lambda route:route.continue_() if route.request.url.startswith(live[0]+'/') else route.abort())
-        page.goto(live[0],wait_until='networkidle');page.wait_for_function('!!window.Rodovia3D && !!window.RodoviaNewProject')
+        # Prontidão pelos módulos reais, sem depender de silêncio das consultas de estado.
+        page.goto(live[0],wait_until='domcontentloaded',timeout=60000);page.wait_for_function('!!window.Rodovia3D && !!window.RodoviaNewProject',timeout=60000)
         page.evaluate('(pid)=>load(pid)',live[1]);page.wait_for_timeout(300);page.wait_for_function('!task',timeout=60000)
         yield page
         assert not errors,errors;b.close()

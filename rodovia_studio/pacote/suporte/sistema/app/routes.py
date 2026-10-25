@@ -14,6 +14,7 @@ STEP=1.0
 
 def _resample(P,step=STEP):
     P=np.asarray(P,float);d=np.r_[0,np.cumsum(np.linalg.norm(np.diff(P,axis=0),axis=1))]
+    if not np.isfinite(d).all() or d[-1]>100000:raise ValueError('Divida alinhamentos acima de 100 km antes de gerar faixas.')
     keep=np.r_[True,np.diff(d)>1e-9];P,d=P[keep],d[keep]
     if len(P)<2 or d[-1]<1e-6:return None,None
     s=np.arange(0,d[-1],step);s=np.r_[s,d[-1]] if d[-1]-s[-1]>1e-6 else s
@@ -49,15 +50,25 @@ def lane_offsets(typ,lanes,med,width):
 def _runs(mask):
     ch=np.diff(np.r_[0,mask.astype(np.int8),0]);return list(zip(np.flatnonzero(ch==1),np.flatnonzero(ch==-1)))
 
-def build_lanes(route):
+def build_lanes(route,settings=None):
     """Faixas do alinhamento: lista de dicts {points (no sentido de tráfego), dir 'f'|'r', lane k, length}."""
-    g=lambda k,d:(route.get(k,d) if isinstance(route,dict) else getattr(route,k,d))
+    if isinstance(route,dict):
+        from .models import RouteAlignment
+        route=RouteAlignment.model_validate(route)
+    g=lambda k,d:getattr(route,k,d)
     pts=[(p['x'],p['y']) if isinstance(p,dict) else (p.x,p.y) for p in g('points',[])]
     if len(pts)<2:return []
     Q,s=_resample(pts)
     if Q is None or s[-1]<4:return []
     nrm=_normals(Q);width=float(g('lane_width_m',3.5));T=max(STEP*2,float(g('taper_m',40)))
     typ,lanes,med=section_at(route,s);offs=lane_offsets(typ,lanes,med,width)
+    if g('cross_sections',[]):
+        from .road_sections import section_offsets
+        from .models import RouteAlignment
+        offs=section_offsets(RouteAlignment.model_validate(route) if isinstance(route,dict) else route,s,offs)
+    if settings is not None:
+        from .road_sections import alternating_offsets
+        offs=alternating_offsets(route,settings,s,offs)
     keys=sorted({k for o in offs for k in o})
     W=max(1,int(round(T/STEP)))
     result=[]
@@ -97,7 +108,14 @@ def build_lanes(route):
             L=float(np.sum(np.linalg.norm(np.diff(P,axis=0),axis=1)))
             if L<4:continue
             if d=='r':P=P[::-1]
-            result.append({'points':P,'dir':d,'lane':k,'length':L,'start_m':float(s[J[0]]),'end_m':float(s[J[-1]])})
+            widths=[];coverage=0.
+            for section in g('cross_sections',[]):
+                if section.end_m<s[J[0]] or section.start_m>s[J[-1]]:continue
+                bands=[band for band in (section.right if d=='f' else section.left) if band.kind=='pista']
+                coverage+=max(0.,min(section.end_m,s[J[-1]])-max(section.start_m,s[J[0]]))
+                if bands:widths.append(bands[min(k,len(bands)-1)].width_m)
+            if coverage<float(s[J[-1]]-s[J[0]])-.01 or not widths:widths.append(width)
+            result.append({'points':P,'dir':d,'lane':k,'length':L,'start_m':float(s[J[0]]),'end_m':float(s[J[-1]]),'lane_width_m':min(widths)})
     return result
 
 def raw_paths(settings):
@@ -108,10 +126,10 @@ def raw_paths(settings):
         pts=np.array([[p.x,p.y] for p in r.points],dtype=float)
         route_len=float(np.sum(np.linalg.norm(np.diff(pts,axis=0),axis=1))) if len(pts)>1 else 0.0
         if not np.isfinite(route_len) or route_len < float(getattr(settings,'min_route_segment_m',50)):continue
-        for ln in build_lanes(r):
+        for ln in build_lanes(r,settings):
             out.append({'points':ln['points'],'halfwidth':float(r.lane_width_m)/2,'source':f"{r.name} · {'sentido do desenho' if ln['dir']=='f' else 'sentido oposto'} · faixa {ln['lane']+1}",
                         'level':int(r.level),'kind':'main','manual':True,'fixed':True,'nopaint':True,'free':bool(r.outside_pavement),'speed_kmh':r.speed_kmh,
-                        'route':r.id or r.name,'route_name':r.name,'route_dir':ln['dir'],'route_lane':int(ln['lane']),
+                        'route':r.id or r.name,'route_name':r.name,'route_dir':ln['dir'],'route_lane':int(ln['lane']),'route_lane_width_m':ln['lane_width_m'],
                         'route_start_m':float(ln['start_m']),'route_end_m':float(ln['end_m']),
                         'lane_change':getattr(r,'lane_change','marked'),
                         'lane_change_sections':[x.model_dump() if hasattr(x,'model_dump') else dict(x) for x in (getattr(r,'lane_change_sections',[]) or [])]})
@@ -121,6 +139,6 @@ def preview(settings):
     """Polilinhas das faixas para o editor (mesmo cálculo da rede)."""
     out=[]
     for i,r in enumerate(getattr(settings,'route_alignments',[]) or []):
-        for ln in build_lanes(r):
+        for ln in build_lanes(r,settings):
             out.append({'route':i,'id':r.id,'dir':ln['dir'],'lane':ln['lane'],'enabled':bool(r.enabled),'points':np.round(ln['points'],3).tolist(),'start_m':ln['start_m'],'end_m':ln['end_m']})
     return out

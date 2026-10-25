@@ -17,7 +17,7 @@ function drawPreviewImage(){const im=baseImage,s=view.s;ctx.imageSmoothingEnable
  const sx0=Math.max(0,Math.floor(-view.ox/s)-1),sy0=Math.max(0,Math.floor(-view.oy/s)-1),sx1=Math.min(im.width,Math.ceil((canvas.width-view.ox)/s)+1),sy1=Math.min(im.height,Math.ceil((canvas.height-view.oy)/s)+1);
  if(sx1<=sx0||sy1<=sy0)return;ctx.drawImage(im,sx0,sy0,sx1-sx0,sy1-sy0,view.ox+sx0*s,view.oy+sy0*s,(sx1-sx0)*s,(sy1-sy0)*s)}
 function draw(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c1722';ctx.fillRect(0,0,canvas.width,canvas.height);if(!ready()){ctx.fillStyle='#9cb3bf';ctx.font='16px system-ui';ctx.fillText(pid?'Clique “Analisar arquivos” (seção 1) para editar sobre a imagem web, ou gere uma prévia.':'Crie ou abra um projeto.',24,40);return}
- if(useGeo()){if(baseMode==='map'){drawTiles();drawLocalTiles()}drawVectors()}else drawPreviewImage();ctx.lineJoin='round';ctx.lineCap='round';
+ if(useGeo()){if(baseMode==='map'){drawTiles();drawLocalTiles()}window.RodoviaImageContext?.draw();drawVectors()}else{drawPreviewImage();if(meta?.context_capture)window.RodoviaImageContext?.draw()}ctx.lineJoin='round';ctx.lineCap='round';
  const ad=axisData();
  if(ad){poly(ad.a);ctx.strokeStyle='#ffffff55';ctx.lineWidth=1.5;ctx.setLineDash([6,6]);ctx.stroke();ctx.setLineDash([]);
   const st=station(),L=ad.s[ad.s.length-1],ppm=pxPerM(),step=ppm>.5?100:ppm>.1?500:1000;const ka=cfg.km_start_m+st.dir*st.scale*(0-st.s0),kb=cfg.km_start_m+st.dir*st.scale*(L-st.s0);const first=Math.ceil(Math.min(ka,kb)/step)*step;

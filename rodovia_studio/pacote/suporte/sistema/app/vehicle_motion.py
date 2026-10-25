@@ -9,10 +9,10 @@ from shapely.geometry import LineString
 from shapely import contains_xy
 
 # Entre-eixos e esterçamento equivalente; carreta usa um corpo rígido conservador.
-PROFILES={'car':(4.5,1.85,2.7,35.),'pickup':(5.3,1.9,3.1,35.),
-          'van':(5.4,2.,3.3,35.),'moto':(2.1,.8,1.4,35.),
-          'truck':(12.,2.5,6.,32.),'bus':(12.4,2.55,6.2,32.),
-          'carreta':(18.6,2.6,8.,30.)}
+PROFILES={'car':(4.5,1.8,2.7,35.),'pickup':(5.3,1.8,3.1,35.),
+          'van':(5.4,1.8,3.3,35.),'moto':(2.1,.8,1.4,35.),
+          'truck':(12.,3.,6.,32.),'bus':(12.4,3.,6.2,32.),
+          'carreta':(18.6,3.,8.,30.)}
 
 
 def prepare_points(points):

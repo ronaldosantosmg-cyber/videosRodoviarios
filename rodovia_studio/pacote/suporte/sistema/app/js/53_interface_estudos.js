@@ -42,7 +42,7 @@ function modelGroups(){
   ['Sinalização e estruturas',['sign','crosswalk','gantry','oae','oaepoly','access']],
   ['Apresentação e ambiente',['highlight','poi','city','advzone','veg','pedpath']]
  ].map(([t,ids])=>({t,sub:ids.map(id=>{known.add(id);return toolItem(id)}).filter(Boolean)}));
- const rest=TOOLS.filter(t=>Array.isArray(t)&&!known.has(t[0])&&!['pan','move','mmove','inspect','grip','rot'].includes(t[0])).map(t=>toolItem(t[0]));
+ const rest=TOOLS.filter(t=>Array.isArray(t)&&!t.internal&&!known.has(t[0])&&!['pan','move','mmove','inspect','grip','rot'].includes(t[0])).map(t=>toolItem(t[0]));
  groups.find(g=>g.t==='Tráfego e ligações')?.sub.unshift(leaf('Selecionar e editar fluxos',()=>runCommand('EDITARFLUXOS')));
  if(rest.length)groups.push({t:'Outras ferramentas',sub:rest});
  return groups.filter(g=>g.sub.length);
@@ -170,7 +170,7 @@ function commandRibbon(rail){
  {label:'Paisagem',tools:['veg','pedestres'],commands:[]},
  {label:'Ferrovia e semáforos',tools:['railway','traffic_signal','signal_link'],commands:[]}
  ];
- const assigned=new Set(groups.flatMap(g=>g.tools));const remaining=TOOLS.filter(Array.isArray).map(t=>t[0]).filter(id=>!assigned.has(id));if(remaining.length)groups.push({label:'Outras ferramentas',tools:remaining,commands:[]});
+ const assigned=new Set(groups.flatMap(g=>g.tools));const remaining=TOOLS.filter(t=>Array.isArray(t)&&!t.internal).map(t=>t[0]).filter(id=>!assigned.has(id));if(remaining.length)groups.push({label:'Outras ferramentas',tools:remaining,commands:[]});
  const panels=[];
  const activate=(n,focus=false)=>{groups.forEach((group,i)=>{const tab=tabs.children[i];tab.setAttribute('aria-selected',String(i===n));tab.tabIndex=i===n?0:-1;panels[i].hidden=i!==n});if(focus){tabs.children[n].focus();tabs.children[n].scrollIntoView({block:'nearest',inline:'nearest'})}};
  groups.forEach((group,i)=>{

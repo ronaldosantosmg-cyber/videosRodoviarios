@@ -33,6 +33,8 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
     progress(.02,'Lendo geometria para a cena 3D')
     scene=Scene.light(d,settings,lambda p,m:progress(.02+.22*p,m))
     bounds=np.asarray(scene.report['bounds'],float)
+    if scene.image_context_items:
+        points=np.concatenate([item['points'] for item in scene.image_context_items]);bounds=np.array([np.minimum(bounds[0],points.min(0)),np.maximum(bounds[1],points.max(0))])
     if bounds.shape!=(2,2) or not np.isfinite(bounds).all():raise ValueError('Limites inválidos para o 3D.')
     span=float(np.max(bounds[1]-bounds[0]))
     if span<=0 or span>200000:raise ValueError('Divida o projeto em trechos de até 200 km para visualizar em 3D.')
@@ -63,6 +65,10 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
         return (dem[j,i]*(1-a)*(1-b)+dem[j,i1]*a*(1-b)+dem[j1,i]*(1-a)*b+dem[j1,i1]*a*b-origin[2])*settings.elevation.exaggeration
     def local(points,lift=0):
         p=np.asarray(points,float);return np.column_stack([p[:,0]-origin[0],height(p)+lift,-(p[:,1]-origin[1])])
+    context_meshes=[]
+    context_items=scene.image_context_items
+    from .image_context import meshes as context_geometry
+    context_meshes=context_geometry(context_items,local)
     buffers=defaultdict(list);labels={};total=0
     for index,e in enumerate(scene.items):
         if index%100==0:progress(.3,'Construindo superfícies 3D')
@@ -108,14 +114,16 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
     if sim:
         for t in np.r_[np.arange(0,duration,.2),duration]:
             progress(.82,'Preparando animação de veículos 3D')
+            indicators=sim.indicators(float(t))
             for pos,heading,vid,identity,_ in sim.vehicles_ex(float(t)):
                 vt=sim.info[vid][1]
                 if vid not in tracks:
                     L,W,wb,_=PROFILES.get(vt,PROFILES['car']);color=visual.vehicle_color(identity,vt)
-                    tracks[vid]={'id':int(vid),'type':vt,'length':L,'width':W,'wheelbase':wb,'color':'#'+''.join(f'{int(v):02x}' for v in color),'samples':[]}
+                    tracks[vid]={'id':int(vid),'type':vt,'length':L,'width':W,'wheelbase':wb,'color':'#'+''.join(f'{int(v):02x}' for v in color),'samples':[],'indicators':[]}
                 q=local(np.array([pos]),.07)[0];samples+=1
                 if samples>MAX_TRAFFIC_SAMPLES:raise ValueError('Tráfego excede o orçamento da prévia 3D. Reduza a densidade ou a duração.')
                 tracks[vid]['samples'].append([round(float(t),4),*q.tolist(),float(heading[0]),0.,-float(heading[1])])
+                tracks[vid]['indicators'].append([round(float(t),4),int(indicators.get(int(vid),0))])
     from .transport import Transport,timings,AMBER,CLEARANCE,at
     from .transport_render import geometry as transport_geometry
     transport=sim.transport if sim else Transport(settings,scene.network);tg=transport_geometry(transport)
@@ -160,7 +168,8 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
     transport_data={'lines':transport_lines,'heads':heads,'signal_ids':signal_ids,'states':states,'report':transport.report()}
     if any(e.get('level') for e in scene.network.edges) or scene.oae or any(r.level for r in settings.railways) or any(r.level for r in settings.traffic_signals):warnings.append('As cotas de OAE e os gabaritos verticais exigem conferência técnica; esta vista não certifica cruzamentos em desnível.')
     if cancel():raise InterruptedError('Construção 3D cancelada.')
-    data={'format':'rodovia-scene3d-1','revision':key,'origin_crs':origin.tolist(),'crs':settings.crs,'coordinates_confirmed':settings.coordinates_confirmed,'span_m':span,'meshes':meshes,'terrain':terrain,'markings':markings,'diagnostics':diagnostics,'vehicles':list(tracks.values())+list(train_tracks.values()),'transport':transport_data,'duration_s':duration,'source_duration_s':settings.duration_s,'simulation_report':sim.report() if sim else None,'warnings':warnings[-25:],'scope':'Visualização de projeto e tráfego. Diagnósticos técnicos não integram a captura de apresentação.'}
+    if sum(len(mesh['positions'])//3 for mesh in context_meshes+meshes)>MAX_VERTICES:raise ValueError('Cena e objetos da imagem excedem o orçamento 3D. Reduza a área.')
+    data={'format':'rodovia-scene3d-1','revision':key,'origin_crs':origin.tolist(),'crs':settings.crs,'coordinates_confirmed':settings.coordinates_confirmed,'span_m':span,'meshes':context_meshes+meshes,'terrain':terrain,'markings':markings,'diagnostics':diagnostics,'vehicles':list(tracks.values())+list(train_tracks.values()),'transport':transport_data,'duration_s':duration,'source_duration_s':settings.duration_s,'simulation_report':sim.report() if sim else None,'warnings':warnings[-25:],'scope':'Visualização de projeto e tráfego. Diagnósticos técnicos não integram a captura de apresentação.'}
     if not np.isfinite(origin).all():raise ValueError('Origem 3D inválida.')
     if key!=revision(d):raise ValueError('O projeto mudou durante o processamento. Reconstrua o 3D.')
     encoded=json.dumps(data,ensure_ascii=False,allow_nan=False,separators=(',',':')).encode()

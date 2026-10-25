@@ -1,0 +1,29 @@
+{
+  "version": "1.42.12",
+  "status": "provisoria",
+  "release_approved": false,
+  "early_packaging_authorized_by_user": true,
+  "source_sha256": "5ce584886144a30243e447242480ea939cd60bb3f312c0996391e74043b0474a",
+  "previous_run": {
+    "tests": 439,
+    "passed": 438,
+    "failures": 1
+  },
+  "targeted_fix": {
+    "tests": 13,
+    "passed": 13,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "interrupted_run": {
+    "passed": 198,
+    "failures": 0,
+    "errors": 0
+  },
+  "interrupted_run_complete": false,
+  "expected_full_tests": 440,
+  "launcher": "C# compilado com e sem WebView2",
+  "splash": "Mono/Xvfb; versão, fabricante e animação",
+  "windows_native_executed": false
+}

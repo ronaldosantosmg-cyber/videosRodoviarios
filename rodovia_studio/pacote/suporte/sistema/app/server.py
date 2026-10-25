@@ -101,8 +101,8 @@ async def not_found(request,e):return JSONResponse({'detail':str(e)},404)
 
 # 1.31: as rotas ficam em app/rotas/<assunto>.py; aqui só a criação do aplicativo, o despachante de tarefas,
 # a segurança (somente local) e o tratamento de erros.
-from .rotas import paginas,projetos,modelos,editor,tarefas,arquivos,web,suporte,camadas,videos,sistema,obras
-for _m in (paginas,projetos,modelos,editor,tarefas,arquivos,web,suporte,camadas,videos,sistema,obras):app.include_router(_m.router)
+from .rotas import paginas,projetos,modelos,editor,tarefas,arquivos,web,suporte,camadas,videos,sistema,obras,modelagem
+for _m in (paginas,projetos,modelos,editor,tarefas,arquivos,web,suporte,camadas,videos,sistema,obras,modelagem):app.include_router(_m.router)
 
 from starlette.staticfiles import StaticFiles
 app.mount('/vendor',StaticFiles(directory=BASE/'app/vendor'),name='vendor-local')

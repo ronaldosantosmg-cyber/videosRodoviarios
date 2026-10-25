@@ -218,6 +218,8 @@ class LaneChangeSection(BaseModel):
         if self.end_m<self.start_m:self.start_m,self.end_m=self.end_m,self.start_m
         return self
 
+from .road_sections import CrossSection,AlternatingZone
+
 class RouteAlignment(BaseModel):
     """1.30: alinhamento de rota dos veículos. As faixas são geradas como fluxos paralelos ao alinhamento:
     pista simples (um sentido de cada lado), pista dupla por sentido (com canteiro) ou sentido único,
@@ -237,11 +239,18 @@ class RouteAlignment(BaseModel):
     outside_pavement: bool = False                          # deixa os veículos andarem fora do pavimento do desenho
     source: str = 'cliques'
     sections: list[RouteSection] = Field(default_factory=list,max_length=100)
+    cross_sections: list[CrossSection] = Field(default_factory=list,max_length=100)
+    km_origin_m: float | None = None
     # 1.40.4: ultrapassagem/mudança de faixa. "marked" é o padrão conservador: somente em trechos allow.
     lane_change: Literal['off','marked','safe'] = 'marked'
     lane_change_sections: list[LaneChangeSection] = Field(default_factory=list,max_length=200)
     @model_validator(mode='after')
     def disable_micro_route(self):
+        length=sum(math.hypot(b.x-a.x,b.y-a.y) for a,b in zip(self.points,self.points[1:]))
+        ordered=sorted(self.cross_sections,key=lambda section:section.start_m)
+        for i,section in enumerate(ordered):
+            if section.end_m>length+.01:raise ValueError('Seção ultrapassa o comprimento do alinhamento.')
+            if i and section.start_m<ordered[i-1].end_m-1e-6:raise ValueError('Seções não podem se sobrepor.')
         # O limite de circulação pertence ao projeto; não altera a opção manual da rota.
         L=sum(math.hypot(b.x-a.x,b.y-a.y) for a,b in zip(self.points,self.points[1:]))
         if not math.isfinite(L) or L <= 0.0:self.enabled=False
@@ -638,7 +647,32 @@ class LaneRange(BaseModel):
 
 from .transport_models import Railway,TrafficSignal,SignalLink,validate_network
 
+from .image_context_models import ImageFeature,ImageGroup,ImageRole,ImageProvenance
+
 class Settings(BaseModel):
+    alternating_zones:list[AlternatingZone]=Field(default_factory=list,max_length=100)
+    image_features:list[ImageFeature]=Field(default_factory=list,max_length=1000)
+    image_groups:dict[ImageRole,ImageGroup]=Field(default_factory=dict)
+    image_context_source:ImageProvenance | None = None
+    @model_validator(mode="after")
+    def image_ids_unique(self):
+        if sum(len(f.points)+sum(len(h) for h in f.holes) for f in self.image_features)>100000:raise ValueError('Objetos da imagem excedem 100 mil vértices. Reduza a área ou simplifique contornos.')
+        if len({f.id for f in self.image_features})!=len(self.image_features):raise ValueError("Objetos de imagem com identificadores repetidos.")
+        active=[]
+        for zone in self.alternating_zones:
+            if not zone.enabled:continue
+            route=next((r for r in self.route_alignments if r.id==zone.route_id and r.enabled),None)
+            if route is None:raise ValueError('Pare e siga precisa de alinhamento ativo existente.')
+            length=sum(math.hypot(b.x-a.x,b.y-a.y) for a,b in zip(route.points,route.points[1:]))
+            if zone.start_m<route.taper_m+25 or zone.end_m>length-route.taper_m-25:raise ValueError('Reserve transição e 25 m de aproximação em cada ponta do pare e siga.')
+            if route.type!='simples' or route.lanes!=1 or any(section.type!='simples' or section.lanes!=1 for section in route.sections):raise ValueError('Pare e siga exige pista simples, uma faixa por sentido.')
+            for section in route.cross_sections:
+                if max(section.start_m,zone.start_m-route.taper_m)<min(section.end_m,zone.end_m+route.taper_m):
+                    if section.type!='simples' or any(sum(b.kind=='pista' for b in side)!=1 for side in (section.left,section.right)):raise ValueError('Pare e siga exige uma faixa operacional por sentido no trecho.')
+            for other in active:
+                if other.route_id==zone.route_id and max(other.start_m-route.taper_m,zone.start_m-route.taper_m)<min(other.end_m+route.taper_m,zone.end_m+route.taper_m):raise ValueError('Zonas de pare e siga não podem sobrepor transições.')
+            active.append(zone)
+        return self
     railways:list[Railway]=Field(default_factory=list,max_length=50)
     traffic_signals:list[TrafficSignal]=Field(default_factory=list,max_length=100)
     signal_links:list[SignalLink]=Field(default_factory=list,max_length=100)

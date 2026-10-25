@@ -20,6 +20,7 @@ def test_flow_selection_opens_properties_after_other_object_selection(page):
     page.locator('#rsToolPanel0 [data-rs-command=EDITARFLUXOS]').click()
     assert page.evaluate('sel===null && selSet.length===0 && RodoviaFlowStudy.isEditing()')
     point=page.evaluate('W2C({x:0,y:0})');box=page.locator('#canvas').bounding_box()
+    assert 0<=point[0]<box['width'] and 0<=point[1]<box['height']
     page.mouse.click(box['x']+point[0],box['y']+point[1]);page.wait_for_timeout(150)
     assert page.evaluate('selSeg?.id')==0
     assert page.locator('#propPanel').is_visible()

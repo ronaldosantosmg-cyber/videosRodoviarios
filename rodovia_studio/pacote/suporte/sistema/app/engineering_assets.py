@@ -89,25 +89,25 @@ def asset_meshes(items,local,role_colors=None):
         if role not in ASSET_ROLES or material not in CATALOG:continue
         if role in ('building','erosion','anchored_wall','earthwork') and feature.get('closed') and len(p)>=3:
             poly=Polygon(p,holes=feature.get('holes',[])).buffer(0)
-            height=6. if role=='building' else 3. if role=='anchored_wall' else .05
+            height=float(feature.get('height_m',6.)) if role=='building' else 3. if role=='anchored_wall' else .05
             for triangle in shapely.constrained_delaunay_triangles(poly).geoms:add(role,layer,local(np.asarray(triangle.exterior.coords)[:3],height),material)
             if role in ('building','anchored_wall'):
-                for a,b in zip(p,np.roll(p,-1,axis=0)):prism(role,layer,a,b,.12,height,material)
+                for a,b in zip(p,np.roll(p,-1,axis=0)):prism(role,layer,a,b,.12,height,feature.get('wall_material',material) if role=='building' else material)
         elif role=='vegetation':
             candidates=p[:1]
             if feature.get('closed') and len(p)>=3:
                 poly=Polygon(p,holes=feature.get('holes',[])).buffer(0);x0,y0,x1,y1=poly.bounds;step=max(10.,math.sqrt(max(poly.area,1)/tree_limit))
                 X,Y=np.meshgrid(np.arange(x0+step/2,x1,step),np.arange(y0+step/2,y1,step));candidates=np.column_stack([X.ravel(),Y.ravel()]);candidates=candidates[shapely.contains_xy(poly,candidates[:,0],candidates[:,1])][:tree_limit]
             for center in candidates:
-                angles=np.arange(9)*math.pi/4;ring=center+np.column_stack([np.cos(angles),np.sin(angles)])*2.4;tip=local(center[None],6.)[0];base=local(ring,1.5)
+                angles=np.arange(9)*math.pi/4;ring=center+np.column_stack([np.cos(angles),np.sin(angles)])*2.4;height=float(feature.get('height_m',6.));tip=local(center[None],height)[0];base=local(ring,height*.25)
                 add(role,layer,np.concatenate([np.array([base[i],base[i+1],tip]) for i in range(8)]),material)
-                prism(role,layer,center+[-.1,0],center+[.1,0],.25,2.,'wood')
+                prism(role,layer,center+[-.1,0],center+[.1,0],.25,min(2.,height*.35),'wood')
         elif role in ('gas','fiber','electric','railway') and len(p)>1:
-            height=(2. if material=='fence' else 8.) if role=='electric' else .18;width=.15 if role!='railway' else 1.6
+            height=float(feature.get('height_m',2. if material=='fence' else 8.)) if role=='electric' else .18;width=.15 if role!='railway' else 1.6
             for a,b in zip(p,p[1:]):
-                if np.linalg.norm(b-a)>.01:prism(role,layer,a,b,width,height,material,7.85 if role=='electric' and material!='fence' else 0.)
+                if np.linalg.norm(b-a)>.01:prism(role,layer,a,b,width,height,material,max(0,height-.15) if role=='electric' and material!='fence' else 0.)
             if role=='electric':
-                for center in p[::max(1,len(p)//100)]:prism('pole',layer,center+[-.1,0],center+[.1,0],.25,8.,'pole')
+                for center in p[::max(1,len(p)//100)]:prism('pole',layer,center+[-.1,0],center+[.1,0],.25,height,'pole')
         elif role in ('pole','tower','radar'):
             center=p[0];height={'pole':8.,'tower':20.,'radar':3.}[role];prism(role,layer,center+[-.1,0],center+[.1,0],.3,height,material)
             if role in ('radar','tower'):prism(role,layer,center+[-1.,0],center+[1.,0],.8,height,material)

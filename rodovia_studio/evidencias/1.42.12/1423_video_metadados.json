@@ -1,0 +1,254 @@
+{
+  "frames": 72,
+  "fps": 24,
+  "duration_s": 3.0,
+  "width": 1280,
+  "height": 720,
+  "video_quality": "alta",
+  "superamostragem": 1,
+  "codec": "H.264 High",
+  "encoder": "libx264",
+  "encoder_reason": "NVENC indisponível; usando CPU. Unrecognized option 'rc'.\nError splitting the argument list: Option not found",
+  "quality": {
+    "crf": 14,
+    "nivel": "alta"
+  },
+  "pix_fmt": "yuv420p",
+  "geometric_length_m": 400.0,
+  "reference_length_m": 1000,
+  "geometry_cache_hit": false,
+  "visual_quality": "enhanced",
+  "render_profile": "final",
+  "workers": 1,
+  "workers_reason": "definido na configuração",
+  "camera": "aerial",
+  "cabin_reaches_path_end": null,
+  "preparation_seconds": 0.662,
+  "total_seconds": 10.977,
+  "validation": {
+    "codec": "h264",
+    "pix_fmt": "yuv420p",
+    "width": 1280,
+    "height": 720,
+    "fps": 24.0,
+    "frames_decoded": 72,
+    "frames_expected": 72,
+    "decode_errors": "",
+    "faststart": true,
+    "ok": true,
+    "problems": []
+  },
+  "motion_audit": {
+    "model": "microssimulacao",
+    "lateral_clearance_m": 0.5,
+    "lateral_buffer_per_vehicle_m": 0.25,
+    "narrow_corridor_admission_holds": 0,
+    "minimum_following_gap_m": 2.0,
+    "polygon_safety_interventions": 0,
+    "alternating_traffic": {
+      "zones": 0,
+      "release_s": [],
+      "clearance": "até o último veículo desocupar; sem inversão forçada",
+      "phase_changes": 1
+    },
+    "vehicles": 5,
+    "rear_collisions": 0,
+    "side_collisions": 0,
+    "min_gap_m": null,
+    "max_waiting_at_entries": 1,
+    "transport_controls": {
+      "coverage": [],
+      "warnings": [],
+      "ambiguous_railway_conflicts": 0,
+      "railways": 0,
+      "signals": 0,
+      "crossings": 0,
+      "stop_lines": 0,
+      "signal_offsets_s": {},
+      "scope": "Simulação ilustrativa com temporização informada pelo usuário; sem certificação de sinalização."
+    },
+    "control_stop_interventions": 0,
+    "rerouted": 0,
+    "blocks": 0,
+    "density": 1.0,
+    "lane_changes": 0,
+    "lane_change_blocked_rule": 0,
+    "lane_change_blocked_safety": 0,
+    "safety_interventions": 0,
+    "collision_free": true,
+    "demand_vph_per_lane": null,
+    "capacity_vph_per_lane": 1900,
+    "entry_demand_study": [],
+    "saturation_indicator": {
+      "status": "nível de serviço não determinado",
+      "demand_capacity_ratio": null,
+      "scope": "Estimativa com fatores de equivalência internos; não é classificação DNIT/HCM. Depende de tipo de via, velocidade, densidade, atrasos e método aplicável."
+    },
+    "motion_blocked_vehicles": 0,
+    "lane_change_blocked_geometry": 0,
+    "motion_profiles": {
+      "0:carreta": {
+        "ok": true,
+        "reasons": [],
+        "message": "Trajetória cinemática válida.",
+        "max_steering_deg": 0.0,
+        "vehicle": "carreta",
+        "samples": 801,
+        "critical_station_m": 0.0,
+        "critical_center_xy": [
+          500050.0,
+          7799998.35
+        ],
+        "front_xy": [
+          500059.3,
+          7799998.35
+        ],
+        "rear_xy": [
+          500040.7,
+          7799998.35
+        ]
+      },
+      "0:moto": {
+        "ok": true,
+        "reasons": [],
+        "message": "Trajetória cinemática válida.",
+        "max_steering_deg": 0.0,
+        "vehicle": "moto",
+        "samples": 801,
+        "critical_station_m": 0.0,
+        "critical_center_xy": [
+          500050.0,
+          7799998.35
+        ],
+        "front_xy": [
+          500051.05,
+          7799998.35
+        ],
+        "rear_xy": [
+          500048.95,
+          7799998.35
+        ]
+      },
+      "0:car": {
+        "ok": true,
+        "reasons": [],
+        "message": "Trajetória cinemática válida.",
+        "max_steering_deg": 0.0,
+        "vehicle": "car",
+        "samples": 801,
+        "critical_station_m": 0.0,
+        "critical_center_xy": [
+          500050.0,
+          7799998.35
+        ],
+        "front_xy": [
+          500052.25,
+          7799998.35
+        ],
+        "rear_xy": [
+          500047.75,
+          7799998.35
+        ]
+      },
+      "0:truck": {
+        "ok": true,
+        "reasons": [],
+        "message": "Trajetória cinemática válida.",
+        "max_steering_deg": 0.0,
+        "vehicle": "truck",
+        "samples": 801,
+        "critical_station_m": 0.0,
+        "critical_center_xy": [
+          500050.0,
+          7799998.35
+        ],
+        "front_xy": [
+          500056.0,
+          7799998.35
+        ],
+        "rear_xy": [
+          500044.0,
+          7799998.35
+        ]
+      }
+    },
+    "max_queue_by_lane": [
+      1
+    ],
+    "current_queue_by_lane": [
+      0
+    ],
+    "queue_vehicle_seconds_by_lane": [
+      1.4
+    ],
+    "queue_discharged_by_lane": [
+      5
+    ],
+    "body_samples": [
+      {
+        "width_m": 3.0,
+        "polygon": [
+          [
+            500172.74528718746,
+            7799996.85
+          ],
+          [
+            500184.74528718746,
+            7799996.85
+          ],
+          [
+            500184.74528718746,
+            7799999.85
+          ],
+          [
+            500172.74528718746,
+            7799999.85
+          ],
+          [
+            500172.74528718746,
+            7799996.85
+          ]
+        ],
+        "collision_envelope": [
+          [
+            500172.74528718746,
+            7799996.6
+          ],
+          [
+            500184.74528718746,
+            7799996.6
+          ],
+          [
+            500184.74528718746,
+            7800000.1
+          ],
+          [
+            500172.74528718746,
+            7800000.1
+          ],
+          [
+            500172.74528718746,
+            7799996.6
+          ]
+        ],
+        "id": 4,
+        "front": [
+          500184.74528718746,
+          7799998.35
+        ],
+        "rear": [
+          500172.74528718746,
+          7799998.35
+        ],
+        "heading": [
+          1.0,
+          0.0
+        ]
+      }
+    ]
+  },
+  "network_safety": {
+    "rejected_paths": 0,
+    "rejected_connections": {}
+  }
+}

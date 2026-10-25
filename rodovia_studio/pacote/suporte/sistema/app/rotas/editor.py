@@ -15,6 +15,7 @@ router=APIRouter()
 
 class RoutesBody(_BM):
     route_alignments:list=[]
+    alternating_zones:list=[]
 
 @router.post('/api/rotas_previa')
 def routes_preview(body:RoutesBody):
@@ -23,6 +24,8 @@ def routes_preview(body:RoutesBody):
     from ..routes import preview
     class _S:pass
     s=_S();s.route_alignments=[RouteAlignment.model_validate(r) for r in body.route_alignments]
+    from ..road_sections import AlternatingZone
+    s.alternating_zones=[AlternatingZone.model_validate(z) for z in body.alternating_zones]
     return {'lanes':preview(s)}
 
 

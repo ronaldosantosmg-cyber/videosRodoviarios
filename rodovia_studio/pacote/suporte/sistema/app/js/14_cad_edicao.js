@@ -27,7 +27,7 @@ const OBJ_SPECS=[
 const ENUMS={kind:{pavement_areas:PAV_LABEL},material:MAT_LABEL,color:{white:'Branco',yellow:'Amarelo'},code:SIGN_LABEL,mode:{both:'Entrada e saída',in:'Só entrada',out:'Só saída',partial:'Parcial',total:'Total',allow:'Permitida',deny:'Proibida'},category:HL_LABEL};
 function gripGet([c,k]){return k===null?{x:c.x,y:c.y}:c[k]}
 function gripSet([c,k],w){const p={x:+w.x,y:+w.y};if(k===null){c.x=p.x;c.y=p.y}else c[k]=p}
-function objList(){const out=[];for(const [key,label,shape,fn] of OBJ_SPECS){const L=M[key];if(!Array.isArray(L))continue;L.forEach((o,i)=>{try{const g=fn(o).filter(r=>{const p=gripGet(r);return p&&isFinite(p.x)});if(g.length)out.push({key,i,label,shape:shape==='auto'?(g.length===1?'pt':g.length===2?'line':'area'):shape,o,grips:g})}catch{}})}
+function objList(){const out=[];for(const [key,label,shape,fn] of OBJ_SPECS){const L=M[key];if(!Array.isArray(L))continue;L.forEach((o,i)=>{try{if(key==='image_features'&&(!o.enabled||!o.visible||M.image_groups?.[o.role]?.visible===false))return;const g=fn(o).filter(r=>{const p=gripGet(r);return p&&isFinite(p.x)});if(g.length)out.push({key,i,label,shape:shape==='auto'?(g.length===1?'pt':g.length===2?'line':'area'):shape,o,grips:g})}catch{}})}
  if(M.custom_axis&&M.custom_axis.points?.length)out.push({key:'custom_axis',i:0,label:'Alinhamento',shape:'poly',o:M.custom_axis,grips:M.custom_axis.points.map((_,i)=>[M.custom_axis.points,i])});return out}
 function objOf(s){return s?objList().find(o=>o.key===s.key&&o.i===s.i)||null:null}
 function segDist(px,py,ax,ay,bx,by){const dx=bx-ax,dy=by-ay,L=dx*dx+dy*dy;let t=L?((px-ax)*dx+(py-ay)*dy)/L:0;t=Math.max(0,Math.min(1,t));return Math.hypot(px-ax-t*dx,py-ay-t*dy)}
@@ -75,7 +75,7 @@ function propInput(path,v,key,listKey){const id='pp_'+path.replace(/\W/g,'_');
  if(typeof v==='number')return `<input id="${id}" data-pp="${path}" type="number" step="any" value="${v}">`;
  return `<input id="${id}" data-pp="${path}" value="${esc(v??'')}">`}
 function showProps(){const box=$('propPanel');if(!box)return;const o=objOf(sel);if(!o){box.hidden=true;box.innerHTML='';return}box.hidden=false;
- const fields=Object.entries(o.key==='clean_areas'||o.key==='exclusions'?{}:o.o).filter(([k,v])=>!['id','points','polygon','x','y'].includes(k)&&(v===null||['string','number','boolean'].includes(typeof v)));
+ const fields=Object.entries(o.key==='clean_areas'||o.key==='exclusions'?{}:o.o).filter(([k,v])=>(o.key!=='image_features'||['name','enabled','visible'].includes(k))&&!['id','points','polygon','x','y'].includes(k)&&(v===null||['string','number','boolean'].includes(typeof v)));
  box.innerHTML=`<h3>Propriedades · ${esc(o.label)}</h3><table>`+fields.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${propInput(k,v,k,o.key)}</td></tr>`).join('')+'</table>'+
   `<h4>Grips (coordenadas ${esc(cfg.crs||'')}, m)</h4><table>`+o.grips.map((g,k)=>{const p=gripGet(g);return `<tr><td>${k+1}</td><td>X<input data-grip="${k}" data-ax="x" type="number" step="0.001" value="${p.x.toFixed(3)}"></td><td>Y<input data-grip="${k}" data-ax="y" type="number" step="0.001" value="${p.y.toFixed(3)}"></td></tr>`}).join('')+'</table>'+
   `<div class="row"><button type="button" data-ppact="move">Mover (M)</button><button type="button" data-ppact="del" class="danger">Apagar (Del)</button><button type="button" data-ppact="zoom">Ver</button><button type="button" data-ppact="close">Fechar</button></div><p class="muted">Altere um valor e pressione Enter para confirmar (Esc desfaz a digitação).</p>`}

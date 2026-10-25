@@ -1,0 +1,13 @@
+{
+  "source": "https://raw.githubusercontent.com/rasterio/rasterio/main/tests/data/RGB.byte.tif",
+  "sha256": "d7cbe932c7ed74a627706a9e9df99f706df3e5abc7d45a49e9d00677a6b09eb4",
+  "crs": "EPSG:32618",
+  "pixel_resolution_m": [
+    300.0379266750948,
+    300.041782729805
+  ],
+  "features": 500,
+  "unreviewed": true,
+  "seconds": 6.25,
+  "limitation": "Amostra pública de satélite de resolução grosseira. Teste de processamento, sem acurácia semântica medida e sem validação de edificações/faixas."
+}

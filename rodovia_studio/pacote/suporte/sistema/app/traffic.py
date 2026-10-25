@@ -346,7 +346,7 @@ class TrafficNetwork:
         elif reversed_by_user and not both:forward=not forward
         disabled=bool(user.get('disable'))
         spd=user.get('speed_kmh') or r.get('speed_kmh')
-        route_meta={k:r.get(k) for k in ('route','route_name','route_dir','route_lane','route_start_m','route_end_m','lane_change','lane_change_sections') if r.get(k) is not None}
+        route_meta={k:r.get(k) for k in ('route','route_name','route_dir','route_lane','route_lane_width_m','route_start_m','route_end_m','lane_change','lane_change_sections') if r.get(k) is not None}
         self.raw_info.append({'base':base,'points':p,'kind':kind,'forward':bool(forward),'both':bool(both),'disabled':disabled,'reversed':reversed_by_user,'source':r['source'],'manual':bool(r.get('manual')),'override_ids':user.get('override_ids',[]),'protected_overrides':r.get('cut_disable_refs',[]),'recovery_enabled':bool(user.get('recover')),'recovery_reports':[],'origin_id':r.get('origin',base),'origin_key':r.get('origin_key',''),'level':r['level'],'speed_kmh':float(spd) if spd else None,**route_meta,**({'route_fixed':True} if r.get('fixed') else {})})
         # Paint belongs to the road center, not to an individual vehicle track.
         # 1.10: trechos curtos do esqueleto (ramos de junção) não recebem pintura no modo limpo.
@@ -541,6 +541,10 @@ class TrafficNetwork:
             signage.clean(self,g)
         self.report_signage={'markings':len(self.markings),'arrows':len(self.arrows),'mode':self.arrow_mode,'clean':self.clean,'full':self.full,'paint':len(self.fills),'signs':len(self.signs),'arrow_kinds':dict(collections.Counter(self.arrow_kinds))}
     def connector(self,a,b,force=False):
+        # Pontas dos sentidos opostos da mesma rota não são retornos. Recusar
+        # essa ligação não pode invalidar os portais legítimos de ambas as faixas.
+        if a.get('route') is not None and a.get('route')==b.get('route') and a.get('route_dir')!=b.get('route_dir'):
+            self.rejected_connectors['contramao_rota']+=1;return None
         if a.get('origin')==b.get('origin') and a.get('cut_run')!=b.get('cut_run'):return None
         ta=a['t'][-1];tb=b['t'][0];cos=float(np.dot(ta,tb))
         node=self.nodes[a['end']][0]
@@ -672,6 +676,15 @@ class TrafficNetwork:
         ends=getattr(self,'original_terminals',{}).get(origin,[])
         if any(np.linalg.norm(p-q)<4 for q in ends):return True
         return not any(np.linalg.norm(p-q)<4 for q in getattr(self,'pruned_contacts',{}).get(origin,[]))
+    def endpoint_available(self,edge,start):
+        node=edge['start' if start else 'end']
+        if node not in self.rejected_nodes:return True
+        if not edge.get('route_fixed'):return False
+        # Um conector recusado de outra via não fecha a ponta explicitamente
+        # desenhada da rota. Cortes internos/superfície inválida não ganham portais.
+        p=edge['p'][0 if start else -1]
+        return any(np.linalg.norm(p-q)<.2 for q in self.original_terminals.get(edge.get('origin'),[]))
+
     def make_itineraries(self,min_len=0.):
         self.paths=[]
         short=self.short_edges(min_len);self.short_ignored=short
@@ -714,7 +727,7 @@ class TrafficNetwork:
         for a_,bs_ in self.connections.items():
             for b_ in bs_:
                 if not self.edges[a_]['disabled']:rfull[b_].append(a_)
-        entries={i for i in live if not reverse[i] and not rfull[i] and self.edges[i]['start'] not in self.rejected_nodes and self.portal_allowed(self.edges[i],True)};exits={i for i in live if not conn[i] and not self.connections[i] and self.edges[i]['end'] not in self.rejected_nodes and self.portal_allowed(self.edges[i],False)}
+        entries={i for i in live if not reverse[i] and not rfull[i] and self.endpoint_available(self.edges[i],True) and self.portal_allowed(self.edges[i],True)};exits={i for i in live if not conn[i] and not self.connections[i] and self.endpoint_available(self.edges[i],False) and self.portal_allowed(self.edges[i],False)}
         main_entries={i for i in entries if self.edges[i]['kind']=='main'};main_exits={i for i in exits if self.edges[i]['kind']=='main'}
         entries=main_entries or entries;exits=main_exits or exits
         # 1.18: a ponta de um acesso desenhado pelo operador também é origem/destino dos veículos.
@@ -757,7 +770,7 @@ class TrafficNetwork:
             if route_edges and len(route_edges)==len(seq):
                 rid={e.get('route') for e in route_edges};rdir={e.get('route_dir') for e in route_edges};rlane={e.get('route_lane') for e in route_edges}
                 if len(rid)==len(rdir)==len(rlane)==1:
-                    e0=route_edges[0];meta={k:e0.get(k) for k in ('route','route_name','route_dir','route_lane','route_start_m','route_end_m','lane_change','lane_change_sections') if e0.get(k) is not None}
+                    e0=route_edges[0];meta={k:e0.get(k) for k in ('route','route_name','route_dir','route_lane','route_lane_width_m','route_start_m','route_end_m','lane_change','lane_change_sections') if e0.get(k) is not None}
             self.paths.append({'p':p,'t':tangent(p),'d':d,'length':d[-1],'edges':seq,'kinds':sorted({self.edges[e]['kind'] for e in seq}),'links':links,**meta});seen.add(key);covered.update(seq)
             if len(self.paths)>=256:break
         # Recuperação solicitada: os restos válidos são fluxos separados, nunca atalhos.
@@ -767,7 +780,7 @@ class TrafficNetwork:
             if len(self.paths)>=256:break
             p=e['p'];d=e['d']
             if d[-1]<max(1.,min_len) or not analyze_motion(p,allowed=self.allowed)['ok']:continue
-            self.paths.append({'p':p,'t':tangent(p),'d':d,'length':d[-1],'edges':[i],'kinds':[e['kind']],'links':[(('e',i),0.,float(d[-1]))],**{k:e[k] for k in ('route','route_name','route_dir','route_lane','lane_change','lane_change_sections') if k in e}})
+            self.paths.append({'p':p,'t':tangent(p),'d':d,'length':d[-1],'edges':[i],'kinds':[e['kind']],'links':[(('e',i),0.,float(d[-1]))],**{k:e[k] for k in ('route','route_name','route_dir','route_lane','route_lane_width_m','lane_change','lane_change_sections') if k in e}})
             covered.add(i);recovered_paths+=1
         self.recovered_paths=sum(any(self.edges[k].get('recovery') for k in row['edges']) for row in self.paths)
         recovered_paths=self.recovered_paths

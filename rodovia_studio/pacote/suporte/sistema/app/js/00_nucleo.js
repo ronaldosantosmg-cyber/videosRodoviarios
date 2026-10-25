@@ -16,7 +16,7 @@ function estender(nome,fabrica,rotulo=''){const original=globalThis[nome];if(typ
 //   itemArquivo('depois de…',[rótulo,atalho?,fn] | null …)               — menu Arquivo
 const FERRAMENTAS={},COMANDOS=new Map();
 function ferramenta(id,def){if(FERRAMENTAS[id])throw Error(`ferramenta “${id}” registrada duas vezes.`);FERRAMENTAS[id]=def;if(def.icone)ICON_PATHS[id]=def.icone;
- if(def.rotulo&&!TOOLS.some(t=>t[0]===id)){const at=def.antesDe?TOOLS.findIndex(t=>t[0]===def.antesDe):-1;const row=[id,def.rotulo,def.dica||''];if(at>=0)TOOLS.splice(at,0,row);else TOOLS.push(row)}return def}
+ if(def.rotulo&&!TOOLS.some(t=>t[0]===id)){const at=def.antesDe?TOOLS.findIndex(t=>t[0]===def.antesDe):-1;const row=[id,def.rotulo,def.dica||''];row.internal=!!def.internal;if(at>=0)TOOLS.splice(at,0,row);else TOOLS.push(row)}return def}
 function comando(nomes,fn,ajuda){for(const n of nomes){if(COMANDOS.has(n))throw Error(`comando “${n}” registrado duas vezes.`);COMANDOS.set(n,fn)}if(ajuda)CMD_HELP.push([nomes.join(' / '),ajuda])}
 function itemFaixa(aba,grupo,item,{inicio=false,posicao=null}={}){const T=RIBBON.find(t=>t[0]===aba);if(!T||!T[1])throw Error(`aba “${aba}” não existe na faixa de opções.`);
  let g=T[1].find(x=>x[0]===grupo);if(!g){g=[grupo,[]];T[1].push(g)}if(posicao!=null)g[1].splice(posicao,0,item);else if(inicio)g[1].unshift(item);else g[1].push(item)}

@@ -44,6 +44,8 @@ def seed(page):
       editor={segments:[{id:0,base:0,points:[[-120,0],[120,0]],forward:true,both:false,technical_status:'ok',technical_message:'Fluxo válido'}],connections:[],denied:[]};
       M.pavement_areas=[{id:'p',name:'Superfície sobre a rota',kind:'pista_nova',points:[{x:-150,y:-30},{x:150,y:-30},{x:150,y:30},{x:-150,y:30}]}];
       vecOn.flows=true;RodoviaFlowStudy.stale=false;
+      // Enquadra a imagem de teste na área real, sem presumir 1000 px de altura.
+      fitView();draw();
     }""")
 
 

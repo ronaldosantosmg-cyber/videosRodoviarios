@@ -117,6 +117,8 @@ class Scene:
     def __init__(self,directory,s,status=lambda *a:None):
         self.directory=Path(directory);self.s=s;self.W=s.width;self.H=s.width*9//16;self.scale=self.W/2560
         status(.02,'Lendo geometria');self.items,self.axis,self.ds,self.axes,self.report=analyze(directory,s)
+        from .image_context import accepted_items
+        self.image_context_items=accepted_items(s,self.items,directory)
         self.map,self.box,self.attribution=mosaic(directory,s,self.report['bounds'],status,warnings=self.report.setdefault('warnings',[]))
         self.n=self.map.shape[0];self.px=(self.box[2]-self.box[0])/self.n
         self.hydro=Hydrography(directory,s,[self.report['bounds'][0][0]-250,self.report['bounds'][0][1]-250,self.report['bounds'][1][0]+250,self.report['bounds'][1][1]+250],status)
@@ -195,6 +197,8 @@ class Scene:
         Usada pela análise para o editor mostrar fluxos, sentidos e sinalização sem gerar a prévia."""
         self=cls.__new__(cls);self.directory=Path(directory);self.s=s;self.W=s.width;self.H=s.width*9//16;self.scale=self.W/2560
         status(.1,'Lendo geometria');self.items,self.axis,self.ds,self.axes,self.report=analyze(directory,s)
+        from .image_context import accepted_items
+        self.image_context_items=accepted_items(s,self.items,directory)
         self.length=self.ds[-1]
         ch=np.arange(0,self.length+2,2);p=np.column_stack([np.interp(ch,self.ds,self.axis[:,k]) for k in range(2)]);self.ch=ch;self.dense=p;self.tree=cKDTree(p)
         self.stationing=Stationing.from_settings(self.axis,s);self.km_active=s.chainage.mode!='off'
@@ -621,6 +625,8 @@ class Scene:
                 ov=dov if wd>=1 else cv2.addWeighted(dov,wd,base_ov(),1-wd,0)
                 if wd<.5:dsurf=None
         if im is None:im=base_im()
+        from .image_context import draw as draw_context
+        draw_context(self,im,cam,width)
         q=getattr(self.s,'video_quality','padrao')
         if q!='padrao' and getattr(self,'_matte',None) is None and self.s.imagery!='neutral':im=sharpen_imagery(im,q)
         if ov is None:ov=base_ov()
@@ -1002,6 +1008,8 @@ class Scene:
             if getattr(self.s,'vegetation_points',None) or getattr(self.s,'vegetation_areas',None):vida.draw_vegetation(self,im,cam,width,progress,hv,fv)
             if getattr(self.s,'pedestrians',False):vida.draw_pedestrians(self,im,t,cam,width,progress,hv,fv)
         if self._night>0 and getattr(self,'_matte',None) is None:self.apply_night(im,cam,width,progress)
+        from .traffic_indicators import draw as draw_indicators
+        draw_indicators(self,im,t,cam,width)
         transport_render.draw_dynamic(self,im,t,cam,width)
         if getattr(self.s,'weather','limpo')!='limpo' and getattr(self,'_matte',None) is None:   # 1.36: clima
             v=getattr(self,'_via',None) if not (key and key in self.static) else getattr(self,'_via_static',None);via=None

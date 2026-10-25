@@ -34,6 +34,10 @@ def run(jid):
         if reusable:
             end_message='Fluxos e geometria já estão atualizados; nenhum recálculo necessário'
             status(1,end_message)
+        elif j['kind']=='image_context':
+            from .image_context import run as image_run
+            request=json.loads((d/'contexto_imagem/pedido.json').read_text(encoding='utf-8'))
+            image_run(d,s,request,status,cancel,jid);end_message='Contornos sugeridos; revise os grupos antes de aplicar'
         elif j['kind']=='scene3d':
             from .scene3d import build
             build(d,s,status,cancel);end_message='Cena 3D pronta'

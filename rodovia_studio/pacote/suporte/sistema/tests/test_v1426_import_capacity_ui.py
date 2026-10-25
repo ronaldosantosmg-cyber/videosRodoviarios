@@ -10,6 +10,10 @@ def test_saves_3500_capacity_and_higher_demand_through_real_api(gl_page):
     assert p.evaluate('cfg.traffic_capacity_vphpl')==3500 and p.evaluate('cfg.traffic_demand_vphpl')==5000
     assert 'sobressaturação' in p.locator('#rsTrafficStudy').inner_text()
     screenshot(p,'1426_06_demanda_sobressaturacao')
+    # A seção pode voltar recolhida após salvar e reabrir o painel de vídeo.
+    # Abra-a pela interface antes de testar a recusa de zero.
+    if not p.locator('#traffic_capacity_vphpl').is_visible():
+        p.get_by_text('Tráfego: simulação, engarrafamento e canteiro',exact=True).click()
     p.locator('#traffic_capacity_vphpl').fill('0')
     result=p.evaluate('()=>{try{collect();return ""}catch(e){return e.message}}');assert 'maior que zero' in result
 
