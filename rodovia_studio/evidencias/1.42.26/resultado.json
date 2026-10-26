@@ -28,7 +28,8 @@
   },
   "launcher": "C# compilado com e sem WebView2",
   "splash": "Mono/Xvfb; versão, fabricante e animação",
-  "windows_native_executed": false,
-  "windows_scope": "Pendente nesta revisão; compilação/splash local em Mono não equivale a Windows.",
-  "browser": "Chromium real; Firefox indisponível por HTTP 403 da política de rede; Edge nativo não executado."
+  "windows_native_executed": true,
+  "windows_scope": "Backend/proteção/instalação, compilação nativa e Defender das fontes, iniciador e ZIP final em GitHub Actions 40382495871. GUI Windows completa não executada.",
+  "browser": "Chromium real; Firefox indisponível por HTTP 403 da política de rede; Edge nativo não executado.",
+  "windows_evidence": "auditoria_windows_zip.json"
 }

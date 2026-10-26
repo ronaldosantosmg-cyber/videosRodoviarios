@@ -11,3 +11,7 @@ Compilação com/sem WebView2 e splash em Mono/Xvfb. Isso não equivale à valid
 Firefox: download bloqueado por política de rede, HTTP 403. Edge nativo não executado. A interface usa recursos nativos e bibliotecas locais existentes, sem plugin novo; o motor/servidor continua necessário para cálculos e vídeo.
 
 A auditoria estática não prova ausência de malware nem desfaz o alerta corporativo. O index.html foi reestruturado; o núcleo 00_nucleo.js permanece utilizado. Não há mudanças de evasão do antivírus, restauração automática ou exclusões.
+
+Windows atual: [execução das fontes](https://github.com/ronaldosantosmg-cyber/videosRodoviarios/actions/runs/40382106850) aprovada, incluindo testes de backend, compilação e Defender das fontes/iniciador. O ZIP final tem uma execução separada; consultar auditoria_windows_zip.json quando concluída.
+
+ZIP final: [execução Windows](https://github.com/ronaldosantosmg-cyber/videosRodoviarios/actions/runs/40382495871) concluída com sucesso, incluindo Defender do ZIP de SHA-256 219152cccbdd65be223a5b08c98e5754061c369f256f1433295e4770360d817a. Evidências Windows posteriores à geração estão neste diretório do repositório; o ZIP histórico não foi refeito.

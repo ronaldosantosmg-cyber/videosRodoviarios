@@ -30,12 +30,13 @@
   "backend": "Módulos de cálculo preservados, ensaios de integração e MP4 atuais.",
   "full_historical_suite": false,
   "scope": "Reestruturação da interface e integração, não substituição do motor.",
-  "av_status": "Auditoria estática sem achados nos padrões pesquisados; não equivale a antivírus. CI Windows em andamento. Alerta corporativo permanece dependente de análise da TI.",
+  "av_status": "Defender das fontes, iniciador compilado e ZIP final aprovado na execução Windows 40382495871. Não equivale a aprovação corporativa ou garantia universal.",
   "performance": "Sem comparação controlada de FPS ou memória; nenhum ganho numérico alegado.",
   "readiness": {
     "score": 7.5,
     "scale": 10,
     "provisional": true,
     "basis": "54 testes dirigidos aprovados, página responsiva, integração real 2D/3D e MP4; faltam homologação corporativa do alerta, Edge/Firefox nativos e carga prolongada."
-  }
+  },
+  "windows_backend": "Testes de execução/proteção/instalação e compilação nativa aprovados em GitHub Actions; GUI Windows completa não validada."
 }

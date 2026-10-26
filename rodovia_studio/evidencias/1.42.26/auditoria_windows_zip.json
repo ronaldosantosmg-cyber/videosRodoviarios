@@ -1,0 +1,21 @@
+{
+  "revision": "1.42.26",
+  "commit": "b1b0cff53c89d3d1192660a6cc053eac06bb8be4",
+  "zip_sha256": "219152cccbdd65be223a5b08c98e5754061c369f256f1433295e4770360d817a",
+  "url": "https://github.com/ronaldosantosmg-cyber/videosRodoviarios/actions/runs/40382495871",
+  "steps": {
+    "Set up job": "success",
+    "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262": "success",
+    "Run actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065": "success",
+    "Dados isolados do ensaio": "success",
+    "Dependencias com hashes": "success",
+    "Testes de execucao e protecao no Windows": "success",
+    "Compilar iniciador de fonte para inspecao": "success",
+    "Verificar com Microsoft Defender sem alterar protecoes": "success",
+    "Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02": "success",
+    "Post Run actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065": "success",
+    "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262": "success",
+    "Complete job": "success"
+  },
+  "scope": "Testes backend/proteção/instalação, compilação nativa, Defender atualizado das fontes, iniciador compilado e ZIP final. Não valida GUI Windows completa nem invalida alerta corporativo."
+}

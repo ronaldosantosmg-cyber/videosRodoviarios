@@ -1,0 +1,13 @@
+{
+  "20": {
+    "pacote/suporte/sistema/app/index.html": "ce0293a52007332c435119d8da933fca8b9a83d7e3e53a8a9eb7c1a31fed55d9",
+    "pacote/suporte/sistema/app/app.js": "7ee129314426f1e88fd16ba6972ee52cfabb1c2ac8fbdc08bbb3c9967d977eac",
+    "pacote/suporte/sistema/app/js/00_nucleo.js": "045e1d72caeef5bdd98bd169db03d55e1d2fd197765c61d9683e2ead698ab319"
+  },
+  "26": {
+    "pacote/suporte/sistema/app/index.html": "2a1c83e8e630deb209dd1d2bc1e0c80ddc4d6d3c2fdb9b9642f354ad3bdf9747",
+    "pacote/suporte/sistema/app/app.js": "7ee129314426f1e88fd16ba6972ee52cfabb1c2ac8fbdc08bbb3c9967d977eac",
+    "pacote/suporte/sistema/app/js/00_nucleo.js": "045e1d72caeef5bdd98bd169db03d55e1d2fd197765c61d9683e2ead698ab319"
+  },
+  "scope": "Rastreabilidade dos arquivos apontados no alerta. index.html reestruturado; app.js e 00_nucleo.js não reescritos para contornar antivírus. Comparação de hash não diagnostica malware."
+}
