@@ -80,12 +80,12 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
         key_mesh=e['role']+'|'+str(e.get('layer',''))
         labels[key_mesh]={'role':e['role'],'layer':str(e.get('layer','')),'name':str(e.get('layer') or e['role'])}
         from .asset_catalog import CATALOG
-        material=e.get('asset_material')
+        material='concrete' if e.get('material')=='rigido' or e['role']=='oae' else e.get('asset_material')
         if material in CATALOG:labels[key_mesh].update(asset_material=material,texture_pattern=CATALOG[material]['pattern'],color=settings.role_colors.get(e['role']) or CATALOG[material]['color'])
         for triangle in shapely.constrained_delaunay_triangles(geom).geoms:
             q=np.asarray(triangle.exterior.coords)[:3,:2];total+=3
             if total>MAX_VERTICES:raise ValueError('Cena 3D muito detalhada. Divida o desenho em trechos menores.')
-            lift={'pavement':.06,'existing_pavement':.05,'shoulder':.04,'water':-.1}.get(e['role'],.02)
+            lift={'pavement':.06,'existing_pavement':.05,'shoulder':.04,'oae':.085,'water':-.1}.get(e['role'],.02)
             buffers[key_mesh].extend(local(q,lift).ravel().tolist())
     meshes=[dict(labels[k],id=f'surface-{i}',positions=p) for i,(k,p) in enumerate(buffers.items())]
     from .engineering_assets import asset_meshes

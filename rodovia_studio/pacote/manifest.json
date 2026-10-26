@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.19",
-  "description": "1.42.19: densidade acessível, OAE sem falha de concreto, sincronização de gravações/importação, KMZ incremental, reconstrução contínua validada e curvas paramétricas. Reconhecimento semântico condicionado a modelo local avaliado."
+  "version": "1.42.20",
+  "description": "1.42.20: seção típica de fluxo direto do eixo DXF, faixas e acostamentos por lado/intervalo, densidade editável e materiais naturais com classificação de hachuras corrigida."
 }

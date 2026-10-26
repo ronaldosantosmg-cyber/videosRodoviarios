@@ -1,0 +1,14 @@
+[
+  {
+    "density": 1.0,
+    "vehicles": 6,
+    "rear_collisions": 0,
+    "side_collisions": 0
+  },
+  {
+    "density": 6.0,
+    "vehicles": 35,
+    "rear_collisions": 0,
+    "side_collisions": 0
+  }
+]

@@ -609,3 +609,6 @@ dialog#rsNewProject{padding:20px 24px;box-sizing:border-box;border:1px solid var
 .rsCompactWorkspace .rsToolPanel{max-width:100%;flex-wrap:wrap;overflow-x:hidden}
 #rsToolTabs{max-width:100%;overflow-x:auto}#rsToolRibbon{min-width:0;max-width:100%}
 @media(max-width:600px){dialog#rsNewProject{padding:14px 16px}#rsNewProject .grid{grid-template-columns:minmax(0,1fr)}}
+
+/* Montagem de seção: largura e circulação na mesma linha, sem cobrir o projeto. */
+#rsRoadSections .rsSectionBand{grid-template-columns:20px minmax(90px,1fr)75px 85px;align-items:center}#rsRoadSections .rsSectionBand label{display:flex;align-items:center;gap:4px;margin:0;font-size:12px}#rsRoadSections .rsSectionBand input[type=checkbox]{width:auto}@media(max-width:850px){#rsRoadSections .rsSectionBand{grid-template-columns:20px 1fr 70px}#rsRoadSections .rsSectionBand label{grid-column:2/4}}

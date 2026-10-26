@@ -249,6 +249,7 @@ class Scene:
             if dump.get('accesses'):config['accesses']=dump['accesses']
             if dump.get('style_profile','padrao')!='padrao':config['style_profile']=dump['style_profile']
             if dump.get('pavement_styles'):config['pavement_styles']=dump['pavement_styles']
+            if dump.get('natural_materials_only'):config.update(natural_materials_only=True,texture_style=dump.get('texture_style'))
             if dump.get('custom_axis'):config['custom_axis']=dump['custom_axis']
             if dump.get('hatch_roles'):config['hatch_roles']=dump['hatch_roles']
             if dump.get('hatch_auto'):config['hatch_auto']=True

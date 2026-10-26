@@ -376,8 +376,9 @@ def custom_axis_points(ca,step=1.):
         return cs(ss)
     return P
 
-HATCH_KW=[('existing_pavement',('EXIST','ATUAL','ANTIG')),('shoulder',('ACOST','SHOULDER')),('median',('CANTEIRO','MEDIAN','ILHA','GRAMA')),
+HATCH_KW=[('shoulder',('ACOST','SHOULDER')),('median',('CANTEIRO','MEDIAN','ILHA','GRAMA')),
           ('cut',('CORTE','CUT')),('fill',('ATERRO','FILL')),('water',('AGUA','RIO','CORREGO','LAGO')),('oae',('OAE','PONTE','VIADUTO','TABULEIRO')),
+          ('existing_pavement',('EXIST','ATUAL','ANTIG')),
           ('pavement',('PAV','PISTA','ASFALT','CBUQ','CAUQ','REVEST','RIGID','CONCRET','CCP','PCC'))]
 
 # 1.26: padrões de hachura do AutoCAD/ISO mais usados em projeto rodoviário -> tipo e material prováveis.
@@ -431,9 +432,13 @@ def hatch_signature(e,layer,doc,units=1.):
             ps=_polygons(shape);area=float(sum(p.area for p in ps));islands=sum(len(p.interiors) for p in ps)
     except Exception:pass
     n=norm(layer+' '+pat);role=None;mat=None;conf=None;why=''
-    for r,kws in HATCH_KW:
-        k=next((k for k in kws if k in n),None)
-        if k:role=r;conf='alta';why=f'nome contém “{k}”';break
+    g=guess(layer)
+    if g in ('pavement','existing_pavement','shoulder','median','cut','fill','water','oae'):
+        role=g;conf='alta';why='perfil de camadas'
+    if role is None:
+        for r,kws in HATCH_KW:
+            k=next((k for k in kws if k in n),None)
+            if k:role=r;conf='alta';why=f'nome contém “{k}”';break
     pinfo=HATCH_PATTERNS.get(pat)
     if role is None:
         g=guess(layer)

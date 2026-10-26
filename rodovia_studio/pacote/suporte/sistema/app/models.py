@@ -240,8 +240,11 @@ class RouteAlignment(BaseModel):
     level: int = Field(default=0,ge=-5,le=5)
     outside_pavement: bool = False                          # deixa os veículos andarem fora do pavimento do desenho
     source: str = 'cliques'
+    source_axis_fingerprint: str = Field(default='',pattern=r'^([a-f0-9]{64})?$')
     sections: list[RouteSection] = Field(default_factory=list,max_length=100)
     cross_sections: list[CrossSection] = Field(default_factory=list,max_length=100)
+    sections_only: bool = False
+    section_surface: bool = False
     km_origin_m: float | None = None
     # 1.40.4: ultrapassagem/mudança de faixa. "marked" é o padrão conservador: somente em trechos allow.
     lane_change: Literal['off','marked','safe'] = 'marked'
@@ -866,6 +869,7 @@ class Settings(BaseModel):
     # 1.16: texturas. 'anterior' reproduz a 1.15; 'realistic' acrescenta agregado, remendos, fissuras,
     # trilhas de roda, acostamento e cor da imagem detalhada casada com o mosaico.
     texture_style: Literal['artistico','realistic','anterior'] = 'artistico'   # 1.34: artístico realista (novos projetos)
+    natural_materials_only: bool = False
     earthwork_look: Literal['hatch','natural'] = 'hatch'
     detail_resolution_m: Literal[0.2,0.1] = 0.2
     @model_validator(mode='before')

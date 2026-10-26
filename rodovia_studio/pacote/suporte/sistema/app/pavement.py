@@ -155,4 +155,6 @@ def paint_style(color,mask,role,x0,y1,px,st,field=None,spacing=5.):
 
 def chosen(settings,role):
     st=(getattr(settings,'pavement_styles',None) or {}).get(role)
+    if st is not None and getattr(settings,'natural_materials_only',False) and getattr(settings,'texture_style','')=='artistico' and getattr(settings,'style_profile','padrao')=='padrao' and st.pattern in ('diagonal','cruzada','pontilhado'):
+        return None  # Representação técnica preservada no projeto, fora da maquete natural.
     return st if st is not None and st.pattern!='auto' else None

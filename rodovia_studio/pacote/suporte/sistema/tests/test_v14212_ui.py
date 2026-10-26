@@ -63,7 +63,7 @@ def test_image_tool_only_appears_after_local_image_and_runs_real_background_job(
 def test_sections_dialog_applies_asymmetric_bands_to_the_actual_engine(gl_page,live):
     p=gl_page;p.evaluate("async()=>{M.route_alignments=[{id:'section-route',name:'Eixo das seções',points:[{x:500050,y:7800000},{x:500450,y:7800000}],type:'simples',lanes:1,median_m:0,lane_width_m:3.5,taper_m:40,enabled:true,level:0,sections:[]}];changed();await save();RodoviaSections.open(0)}")
     p.locator('#rsRoadSections [name=template]').select_option('simples3');p.locator('#rsRoadSections [name=rightCount]').select_option('3')
-    p.locator('#rsRoadSections [data-right] select').nth(2).select_option('acostamento');p.locator('#rsRoadSections [data-right] input').nth(2).fill('2.5')
+    p.locator('#rsRoadSections [data-right] select').nth(2).select_option('acostamento');p.locator('#rsRoadSections [data-right] input[type=number]').nth(2).fill('2.5')
     p.locator('#rsRoadSections [data-add-section]').click();screenshot(p,'14212_03_secoes_assimetricas')
     p.locator('#rsRoadSections footer [data-calculate]').click();p.wait_for_selector('#rsRoadSections',state='detached',timeout=15000)
     try:p.wait_for_function('!task && !taskRequestPending && !!editor',timeout=60000)

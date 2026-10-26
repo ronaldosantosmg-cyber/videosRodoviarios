@@ -32,7 +32,7 @@ function drawSwatch(tr){const c=tr.querySelector('canvas'),g=c.getContext('2d'),
 function readStyle(tr){const o={};tr.querySelectorAll('[data-k]').forEach(el=>{o[el.dataset.k]=el.type==='number'?Number(el.value):el.value});return o}
 $('pavStyles')?.addEventListener('change',e=>{const tr=e.target.closest('tr[data-role]');if(!tr||!pid)return;const v=readStyle(tr),r=tr.dataset.role;const st={...(cfg.pavement_styles||{})};
  if(v.pattern==='auto')delete st[r];else st[r]={...v,fill:v.fill.toLowerCase()===PAV_DEF[r][0]?'':v.fill,hatch:v.hatch.toLowerCase()===PAV_DEF[r][1]?'':v.hatch};
- cfg.pavement_styles=st;drawSwatch(tr);scheduleSave();msg(`Representação de “${ROLE_LABEL[r]}”: ${PAT_LABEL[v.pattern]}. Gere a prévia para ver no vídeo.`)});
+ cfg.natural_materials_only=false;if($('natural_materials_only'))$('natural_materials_only').checked=false;cfg.pavement_styles=st;drawSwatch(tr);scheduleSave();msg(`Representação de “${ROLE_LABEL[r]}”: ${PAT_LABEL[v.pattern]}. Gere a prévia para ver no vídeo.`)});
 $('pavStyles')?.addEventListener('input',e=>{const tr=e.target.closest('tr[data-role]');if(tr)drawSwatch(tr)});
 estender('load',_l3=>async (id,options={})=>{const loaded=await _l3(id,options);if(loaded===false||pid!==id)return false;if(options.resultsOnly)return loaded;try{pavStylesUi()}catch{};return loaded},'1.21: representação do pavimento (escolha e alteração)');
 

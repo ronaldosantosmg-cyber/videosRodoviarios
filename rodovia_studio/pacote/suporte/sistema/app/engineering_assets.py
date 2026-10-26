@@ -40,9 +40,14 @@ def draw_map(scene,image,cam,width):
                 mask=np.zeros((y1-y0,x1-x0),np.uint8);cv2.fillPoly(mask,[q-[x0,y0]],255)
                 for hole in feature.get('holes',[]):cv2.fillPoly(mask,[screen(hole)-[x0,y0]],0)
                 if row['id'] not in cache:cache[row['id']]=texture_image(row['id'],128)
-                tex=cache[row['id']];Y,X=np.indices(mask.shape)
-                tile=tex[(Y+y0-q[0,1])%128,(X+x0-q[0,0])%128]
-                roi=image[y0:y1,x0:x1];roi[mask>0]=tile[mask>0]
+                tex=cache[row['id']];right=getattr(scene,'right',np.array([1.,0.]));up=getattr(scene,'up',np.array([0.,1.]));m=width/scene.W
+                # Amostragem em metros do projeto; a textura não muda de escala/posição com pan e zoom.
+                for start in range(0,y1-y0,256):
+                    count=min(256,y1-y0-start);Y,X=np.indices((count,x1-x0));Y+=start
+                    wx=cam[0]+(X+x0-scene.W/2)*m*right[0]-(Y+y0-scene.H/2)*m*up[0]
+                    wy=cam[1]+(X+x0-scene.W/2)*m*right[1]-(Y+y0-scene.H/2)*m*up[1]
+                    tile=tex[np.floor(wy/.1).astype(np.int64)%128,np.floor(wx/.1).astype(np.int64)%128]
+                    roi=image[y0+start:y0+start+count,x0:x1];inside=mask[start:start+count]>0;roi[inside]=tile[inside]
             cv2.polylines(image,[q],True,tuple(int(v*.6) for v in color),max(1,min(4,round(.15*scale))),cv2.LINE_AA)
         elif len(q)>1:
             cv2.polylines(image,[q],False,(35,40,44),max(2,min(10,round(.35*scale)+2)),cv2.LINE_AA)

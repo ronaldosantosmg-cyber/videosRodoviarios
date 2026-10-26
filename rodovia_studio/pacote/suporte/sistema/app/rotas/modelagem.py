@@ -7,6 +7,23 @@ from ..image_context_models import ImageRequest
 from ..models import RouteAlignment
 router=APIRouter()
 
+@router.get('/api/projects/{pid}/traffic-axes')
+def traffic_axes(pid):
+    from ..geometry import analyze
+    from ..dependencies import revisions
+    from shapely.geometry import LineString
+    from ..native_axes import axis_fingerprint
+    d,s=_config(pid);before=revisions(d)['geometry']
+    _,_,_,axes,_=analyze(d,s)
+    if revisions(d)['geometry']!=before:raise HTTPException(409,'O desenho mudou durante a leitura. Abra novamente a seleção de eixo.')
+    result=[]
+    for index,axis in enumerate(axes):
+        if axis.get('reference_only'):continue
+        points=axis['points'];length=float(LineString(points).length)
+        if length<s.min_route_segment_m or len(points)>20000:continue
+        result.append(dict(index=index,fingerprint=axis_fingerprint(points,axis.get('layer',''),axis.get('level',0)),level=axis.get('level',0),name=axis.get('layer') or f'Eixo {index+1}',length_m=length,points=points.tolist()))
+    return dict(axes=result,revision=before,minimum_m=s.min_route_segment_m)
+
 @router.post('/api/projects/{pid}/image_context',status_code=202)
 def analyze_image(pid,body:ImageRequest):
     with dispatch_lock:

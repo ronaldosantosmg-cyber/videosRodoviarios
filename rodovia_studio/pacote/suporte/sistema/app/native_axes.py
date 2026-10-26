@@ -7,12 +7,22 @@ from shapely.geometry import LineString
 from .vehicle_motion import prepare_points
 
 
+def axis_fingerprint(points,layer='',level=0):
+    q=np.round(np.asarray(points,float),3).astype('<f8')
+    if q.ndim!=2 or q.shape[1]!=2 or len(q)<2 or not np.isfinite(q).all():raise ValueError('Eixo inválido.')
+    return hashlib.sha256((str(layer)+'|'+str(level)+'|').encode()+min(q.tobytes(),q[::-1].tobytes())).hexdigest()
+
+
 def native_paths(axes, settings, allowed, tolerance=.25):
     if not math.isfinite(tolerance) or not 0<=tolerance<=.25:
         raise ValueError('Tolerância de junção inválida.')
     rows=[];invalid=0;removed_nodes=0;ignored_sources=0
+    replaced={r.source_axis_fingerprint for r in getattr(settings,'route_alignments',[]) if r.source_axis_fingerprint}
     bound={o.target_key for name in ('flow_overrides','flow_cuts','flow_recoveries') for o in getattr(settings,name,[]) if getattr(o,'target_key','')}
     for i,axis in enumerate(axes):
+        try:fingerprint=axis_fingerprint(axis['points'],axis.get('layer',''),axis.get('level',0))
+        except (ValueError,TypeError,KeyError,OverflowError):invalid+=1;continue
+        if fingerprint in replaced:continue
         direction=settings.route_directions.get(str(i),'auto')
         if direction=='off':continue
         if axis.get('reference_only') and direction not in ('forward','reverse'):ignored_sources+=1;continue

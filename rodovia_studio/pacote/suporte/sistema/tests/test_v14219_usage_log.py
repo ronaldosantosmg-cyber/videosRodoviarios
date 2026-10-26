@@ -80,7 +80,7 @@ def test_ui_can_switch_from_manual_demand_to_density_and_save(gl_page,live):
     p=gl_page
     p.evaluate("()=>{$('traffic_demand_vphpl').value='3500';fill({...collect(),traffic_demand_vphpl:3500});psOpenHub('video')}")
     p.get_by_text('Tráfego: simulação, engarrafamento e canteiro',exact=True).click()
-    assert p.locator('#traffic_density').is_disabled()
+    assert p.locator('#traffic_density').is_enabled()
     p.locator('#rsUseDensity').click();assert p.locator('#traffic_density').is_enabled()
     p.locator('#traffic_density').fill('6');p.locator('#traffic_density').dispatch_event('change')
     p.locator('#rsPanelSave').click();p.wait_for_function('!RodoviaPanels.opened',timeout=15000)

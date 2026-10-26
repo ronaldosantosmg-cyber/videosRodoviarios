@@ -7,6 +7,7 @@ class SectionBand(BaseModel):
     model_config=ConfigDict(allow_inf_nan=False)
     kind:Literal['pista','acostamento','seguranca']='pista'
     width_m:float=Field(default=3.5,ge=.2,le=10)
+    traffic_enabled:bool=True
     @model_validator(mode='after')
     def driving_width(self):
         if self.kind=='pista' and self.width_m<2.5:raise ValueError('Faixa de pista precisa de pelo menos 2,5 m.')
@@ -36,7 +37,9 @@ def section_offsets(route,stations,fallback):
         for sign,side,direction in [(1,section.right,'f'),(-1,section.left,'r')]:
             offset=section.median_m/2 if section.type=='dupla' else 0.;lane=0
             for band in side:
-                if band.kind=='pista':offsets[(direction,lane)]=sign*(offset+band.width_m/2);lane+=1
+                if band.kind=='pista':
+                    if band.traffic_enabled:offsets[(direction,lane)]=sign*(offset+band.width_m/2)
+                    lane+=1
                 offset+=band.width_m
         for i in np.flatnonzero((stations>=section.start_m)&(stations<section.end_m+1e-8)):out[i]=dict(offsets)
     return out

@@ -65,7 +65,7 @@ def build_lanes(route,settings=None):
     if g('cross_sections',[]):
         from .road_sections import section_offsets
         from .models import RouteAlignment
-        offs=section_offsets(RouteAlignment.model_validate(route) if isinstance(route,dict) else route,s,offs)
+        offs=section_offsets(RouteAlignment.model_validate(route) if isinstance(route,dict) else route,s,[{} for _ in s] if g('sections_only',False) else offs)
     if settings is not None:
         from .road_sections import alternating_offsets
         offs=alternating_offsets(route,settings,s,offs)
@@ -127,6 +127,7 @@ def raw_paths(settings):
         route_len=float(np.sum(np.linalg.norm(np.diff(pts,axis=0),axis=1))) if len(pts)>1 else 0.0
         if not np.isfinite(route_len) or route_len < float(getattr(settings,'min_route_segment_m',50)):continue
         for ln in build_lanes(r,settings):
+            if ln['length']<float(getattr(settings,'min_route_segment_m',50)):continue
             out.append({'points':ln['points'],'halfwidth':float(r.lane_width_m)/2,'source':f"{r.name} · {'sentido do desenho' if ln['dir']=='f' else 'sentido oposto'} · faixa {ln['lane']+1}",
                         'level':int(r.level),'kind':'main','manual':True,'fixed':True,'nopaint':True,'free':bool(r.outside_pavement),'speed_kmh':r.speed_kmh,
                         'route':r.id or r.name,'route_name':r.name,'route_dir':ln['dir'],'route_lane':int(ln['lane']),'route_lane_width_m':ln['lane_width_m'],
@@ -140,5 +141,25 @@ def preview(settings):
     out=[]
     for i,r in enumerate(getattr(settings,'route_alignments',[]) or []):
         for ln in build_lanes(r,settings):
+            if ln['length']<float(getattr(settings,'min_route_segment_m',50)):continue
             out.append({'route':i,'id':r.id,'dir':ln['dir'],'lane':ln['lane'],'enabled':bool(r.enabled),'points':np.round(ln['points'],3).tolist(),'start_m':ln['start_m'],'end_m':ln['end_m']})
     return out
+
+
+def section_corridors(settings):
+    """Geometria operacional explicitamente declarada; nunca inclui acostamentos.
+
+    Aceita a seção como fonte de pista quando a hachura DXF é incompleta. As
+    barreiras físicas são subtraídas posteriormente pelo mesmo motor comum.
+    """
+    from shapely.geometry import LineString
+    result=[]
+    for route in getattr(settings,'route_alignments',[]):
+        if not route.enabled or not route.section_surface or not route.cross_sections:continue
+        for lane in build_lanes(route,settings):
+            if lane['length']<settings.min_route_segment_m:continue
+            p=lane['points'];a=p[1]-p[0];b=p[-1]-p[-2]
+            a/=max(np.linalg.norm(a),1e-9);b/=max(np.linalg.norm(b),1e-9)
+            extended=np.vstack([p[0]-a*12,p,p[-1]+b*12])
+            result.append(LineString(extended).buffer(lane['lane_width_m']/2,cap_style='flat',join_style='round'))
+    return result
