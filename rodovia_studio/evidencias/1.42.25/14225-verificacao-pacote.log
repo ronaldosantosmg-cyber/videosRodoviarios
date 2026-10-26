@@ -1,0 +1,59 @@
+Verificação prévia concluída: pacote íntegro e sintaxe Python válida / JavaScript validada com Node.
+Rodovia Studio 1.42.24 -> 1.42.25 em /tmp/rs_delivery_io4s14r3/Instalação com espaços e acentos
+Atualização 1.42.25 aplicada: 67 arquivos novos/alterados, 20 anteriores guardados em sistema/backups/antes_v1_42_25_20261026_153609_5080de16.
+Verificação prévia concluída: pacote íntegro e sintaxe Python válida / JavaScript validada com Node.
+Versão 1.42.24 restabelecida: 20 arquivos restaurados, 47 arquivos novos removidos. Snapshot de segurança: sistema/backups/antes_restaurar_20261026_153616_057e52d8.
+{
+  "aplicacao_do_zip": "aprovada",
+  "residuos_arquivados": 0,
+  "inicializacao_servidor_s": 3.956,
+  "recursos_locais": {
+    "dependencias_locais": {
+      "fastapi": true,
+      "uvicorn": true,
+      "pydantic": true,
+      "ezdxf": true,
+      "numpy": true,
+      "scipy": true,
+      "shapely": true,
+      "pyproj": true,
+      "cv2": true,
+      "PIL": true,
+      "imageio_ffmpeg": true,
+      "rasterio": true,
+      "tifffile": true,
+      "skimage": true
+    },
+    "ffmpeg": {
+      "disponivel": true,
+      "detalhe": "ffmpeg version 7.0.2-static https://johnvansickle.com/ffmpeg/  Copyright (c) 2000-2024 the FFmpeg developers"
+    },
+    "fontes_locais": true,
+    "recursos": {
+      "DXF": true,
+      "KMZ": true,
+      "GeoTIFF": true,
+      "ECW": false,
+      "MrSID": false,
+      "DWG_ODA": false
+    },
+    "dependem_de_internet": [
+      "Imagem aérea online sem cache",
+      "Consulta de cidades e hidrografia online",
+      "Download de atualizações e componentes opcionais"
+    ],
+    "observacao": "Disponibilidade de driver não certifica um arquivo real. ECW/MrSID e DWG dependem de componentes opcionais; DXF, KMZ, GeoTIFF, edição, simulação, MP4 e prompt IA podem funcionar localmente."
+  },
+  "modulos_webgl_locais": "disponiveis",
+  "sprite_infrarail_instalado": "32 símbolos e módulo local disponíveis",
+  "assistencia_local_instalada": "módulo e biblioteca de perfis disponíveis",
+  "modelagem_instalada": "módulos de imagem/seções e validação local disponíveis",
+  "inicializacao_fora_da_raiz": "aprovada",
+  "encerramento_controlado": "aprovado",
+  "rollback_apos_mover_instalacao": "aprovado",
+  "restauracao_byte_a_byte": "aprovada",
+  "kmz_geotiff_videos": "preservados",
+  "perfis_e_relatorios_ia": "preservados",
+  "zip_sha256": "1191abc4d7720bd5df519aafa7e2901adfd302294c35fd16b02e4701068314b8",
+  "windows_native_executed": false
+}
