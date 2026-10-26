@@ -51,7 +51,10 @@ jobs:
           $csc = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
           $ErrorActionPreference = 'Continue'
           $PSNativeCommandUseErrorActionPreference = $false
-          $output = & $csc /nologo /target:winexe /r:System.Windows.Forms.dll /r:System.Drawing.dll "/out:$env:RUNNER_TEMP/RodoviaStudio-auditoria.exe" iniciador/RodoviaStudio.cs 2>&1 | Out-String
+          $source = (Resolve-Path '.\iniciador\RodoviaStudio.cs').Path
+          $exe = Join-Path $env:RUNNER_TEMP 'RodoviaStudio-auditoria.exe'
+          $compilerArgs = @('/nologo','/codepage:65001','/target:winexe','/r:System.Windows.Forms.dll','/r:System.Drawing.dll',('/out:'+$exe),$source)
+          $output = & $csc @compilerArgs 2>&1 | Out-String
           Write-Host $output
           if ($LASTEXITCODE -ne 0) {
             $message = $output.Replace('%','%25').Replace("`r",'%0D').Replace("`n",'%0A')
