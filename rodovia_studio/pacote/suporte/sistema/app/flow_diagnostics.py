@@ -80,12 +80,13 @@ def flow_diagnostics(network):
             automatic='Excluir os movimentos inválidos da simulação; preservar o traçado original para revisão.'
             manual='Editar os pontos, o sentido e as ligações; recalcular e conferir o diagnóstico antes de circular.'
         if 'corpo_fora_da_pista' in reasons:
-            manual='Confira a área de pavimento no ponto vermelho: corrija a classificação/hachura ou reposicione a faixa dentro da pista. Linhas de bordo não são barreiras; canteiros, obstáculos e cortes continuam bloqueando.'
+            manual='Confira a área de pavimento no ponto indicado: corrija a classificação/hachura ou reposicione a faixa dentro da pista. Linhas de bordo não são barreiras; canteiros, obstáculos e cortes continuam bloqueando.'
         elif status=='adjustment' and effective_length>=minimum:
             manual='Confira as pontas, o sentido e a camada Eixo. Para escolha explícita, use Rota de veículos → Selecionar uma linha / Seleção contínua, confirme o sentido e recalcule.'
         from .flow_assistant import guidance
         assistant=guidance(status,reasons,disabled=bool(raw.get('disabled')),length=effective_length,minimum=minimum,points=critical)
         out.append({'technical_status':status,'technical_message':message,'technical_assistant':assistant,
+                    'technical_exclusion':('manual' if raw.get('disabled') else 'length_limit' if finite and length>0 and effective_length<minimum else None),
                     'technical_circulation':{'enabled':bool(circulating),'used_edges':len(circulating),'active_edges':len(active),'blocked_edges':sum(bool(e.get('disabled')) for _,e in edges)},
                     'technical_lateral_fits':raw.get('lateral_fits',[]),'technical_automatic':automatic,'technical_manual':manual,'technical_recovery':recovery_info,'technical_points':critical[:20],'technical_reasons':reasons})
     return out

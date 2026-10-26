@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.26",
-  "description": "1.42.26: estrutura de interface responsiva, contrato de integração com motor preservado e inicialização explícita."
+  "version": "1.42.27",
+  "description": "1.42.27: diagnóstico amarelo clicável dos fluxos, correção do modo Projeto, configuração de vídeo por abas e assistência local ampliada."
 }

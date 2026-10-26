@@ -30,30 +30,29 @@ function psOpenHub(id){
   if(id==='video')openSection('5. Exportar vídeo');
 }
 function psMoreMenu(anchor){
-  if(PS.extraOpen){PS.extraOpen=false;if($('psMore'))$('psMore').hidden=true;psUpdateHubState();return}
-  let pop=$('psMore');if(!pop){pop=document.createElement('div');pop.id='psMore';pop.className='psMore';pop.hidden=true;document.body.appendChild(pop)}
-  const primary=new Set(['project','layers','video']);
-  const rows=pnItens.filter(i=>{
-    if(/Projeto e arquivos/i.test(i.t))return false;
-    if(/Camadas, imagem local/i.test(i.t))return false;
-    if(/Exportar vídeo/i.test(i.t))return false;
-    return true;
-  });
-  pop.innerHTML=rows.map(i=>`<button type="button" data-pspn="${esc(i.id)}"><span>${i.ico||'▣'}</span><span>${esc(i.t)}</span></button>`).join('');
-  const r=anchor.getBoundingClientRect();pop.style.left=Math.round(r.right+6)+'px';pop.style.top=Math.round(r.top)+'px';pop.hidden=false;PS.extraOpen=true;psUpdateHubState();
-  pop.onclick=e=>{const b=e.target.closest('[data-pspn]');if(!b)return;pnAbrir(b.dataset.pspn);pop.hidden=true;PS.extraOpen=false;psUpdateHubState()};
+ if(!window.RodoviaMenus){msg('Os menus ainda estão sendo carregados. Aguarde a inicialização.');return}
+ if(PS.moreWasOpen||document.querySelector('.rsMoreCascade')){PS.moreWasOpen=false;RodoviaMenus.close();return}
+ const groups=[{t:'Projeto e configuração',sub:[]},{t:'Cena e apresentação',sub:[]},{t:'Manutenção e assistência',sub:[]}];
+ for(const item of pnItens){
+  if(/Projeto e arquivos|Camadas, imagem local|Exportar vídeo/i.test(item.t))continue;
+  const group=/Manutenção/i.test(item.t)?2:/Materiais|Vista|Câmera|clima|apresentação/i.test(item.t)?1:0;
+  groups[group].sub.push({t:item.t.replace(/^\d+\.\s*/,''),f:()=>openSection(item.t)});
+ }
+ groups[2].sub.push({t:'Diagnóstico do aplicativo / IA',f:()=>window.RodoviaIA.open('logs')},{t:'Resolver problemas dos fluxos',f:()=>window.RodoviaExecution.open(),dis:!pid},{t:'Proteção e recuperação de dados',f:()=>window.RodoviaProtection.open(),dis:!pid});
+ const r=anchor.getBoundingClientRect();RodoviaMenus.open(groups.filter(g=>g.sub.length),{x:r.right+4,y:r.top},anchor);
+ const menu=document.querySelector('.rsCascade');if(menu){menu.classList.add('rsMoreCascade');menu.setAttribute('aria-label','Outros painéis por função');menu.querySelector('button')?.focus()}psUpdateHubState();
 }
 function psUpdateHubState(){
  const item=pnItens.find(i=>i.id===pnEstado.aberto);let active=null;
- if(PS.extraOpen)active='more';
+ if(PS.extraOpen||document.querySelector('.rsMoreCascade'))active='more';
  else if(item)active=/Projeto e arquivos/i.test(item.t)?'project':/Camadas, imagem local/i.test(item.t)?'layers':/Exportar vídeo/i.test(item.t)?'video':'more';
  else if(!dockState.recolhida&&dockState.aba==='prop')active='props';
- document.querySelectorAll('#atividades .psHub').forEach(b=>{const on=(b.dataset.pshub||'more')===active;b.classList.toggle('on',on);b.setAttribute('aria-expanded',String(on));b.setAttribute('aria-pressed',String(on))});
+ document.querySelectorAll('#atividades .psHub').forEach(b=>{const on=(b.dataset.pshub||'more')===active;b.classList.toggle('on',on);b.setAttribute('aria-expanded',String(b.matches('[data-psmore]')?!!document.querySelector('.rsMoreCascade'):on));b.setAttribute('aria-pressed',String(on))});
 }
 function psSyncActivities(){
   const bar=$('atividades');if(!bar||bar.dataset.ps==='1')return;bar.dataset.ps='1';bar.classList.add('psActivityBar');
   bar.innerHTML=PS.hubs.map(h=>`<button type="button" class="psHub" data-pshub="${h.id}" title="${esc(h.hint)}"><span class="pnIco">${h.ico}</span><span class="pnRot">${esc(h.rotulo)}</span></button>`).join('')+
-    '<button type="button" class="psHub psMoreBtn" data-psmore title="Outros painéis"><span class="pnIco">⋯</span><span class="pnRot">Mais</span></button>';
+    '<button type="button" class="psHub psMoreBtn" data-psmore aria-haspopup="menu" title="Outros painéis"><span class="pnIco">⋯</span><span class="pnRot">Mais</span></button>';
   bar.onclick=e=>{const h=e.target.closest('[data-pshub]');if(h){psOpenHub(h.dataset.pshub);return}const m=e.target.closest('[data-psmore]');if(m)psMoreMenu(m)};
 }
 function psRibbon(){
@@ -117,10 +116,10 @@ function psRibbon(){
     ]],
     ['Exibir',[
       ['Área de trabalho',[
-        ['Modo Projeto','⛶',()=>RodoviaDesktopWorkspace?.toggleProjectFocus?.(),1],
+        ['Modo Projeto','⛶',()=>window.RodoviaDesktopWorkspace.toggleProjectFocus(),1],
         ['Projeto','▣',()=>psOpenHub('project')],
         ['Propriedades','☰',()=>psOpenHub('props')],
-        ['Linha de comando','>_',()=>RodoviaDesktopWorkspace?.toggleCommand?.()]
+        ['Linha de comando','>_',()=>window.RodoviaDesktopWorkspace.toggleCommand()]
       ]],
       ['Vista',[
         ['Enquadrar','⤧',()=>fitView(),1],['Regenerar','⟲',()=>regenScreen()],['Tela cheia','⛶',()=>toggleFullscreen()],
@@ -140,6 +139,6 @@ function psInit(){
   for(const name of ['pnAplicar','aplicarDock'])estender(name,previous=>function(...args){const r=previous(...args);psUpdateHubState();return r},'Sincroniza o botão lateral com o painel aberto');
   try{estender('pnEntrar',anterior=>function(){const r=anterior();queueMicrotask(()=>{psSyncActivities();psUpdateHubState()});return r},'1.40.1: quatro hubs principais no workspace')}catch{}
   queueMicrotask(()=>{psSyncActivities();psUpdateHubState()});
-  document.addEventListener('pointerdown',e=>{const p=$('psMore');if(p&&!p.hidden&&!e.target.closest('#psMore,[data-psmore]')){p.hidden=true;PS.extraOpen=false;psUpdateHubState()}},true);
+  document.addEventListener('pointerdown',e=>{PS.moreWasOpen=!!e.target.closest('[data-psmore]')&&!!document.querySelector('.rsMoreCascade');const p=$('psMore');if(p&&!p.hidden&&!e.target.closest('#psMore,[data-psmore]')){p.hidden=true;PS.extraOpen=false;psUpdateHubState()}},true);
 }
 queueMicrotask(psInit);

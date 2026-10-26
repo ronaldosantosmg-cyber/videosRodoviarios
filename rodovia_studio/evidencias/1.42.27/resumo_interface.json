@@ -1,0 +1,22 @@
+{
+  "revision": "1.42.27",
+  "tests_unique": 110,
+  "full_historical_suite": false,
+  "feature_cases": "Modo Projeto, menus laterais/cascatas, vídeo por assunto, marcadores de fluxo e orientação local ampliada.",
+  "marker_scope": "Editor 2D, DOM separado do Canvas, sem geração de quadros por piscada; máximo de 200 pontos visíveis.",
+  "video": "H264 1280x720 24fps; 72 quadros decodificados, nos ensaios de materiais e dois processos.",
+  "browser_tested": "Chromium/Linux",
+  "native_gui_windows": "Não homologada por estes ensaios.",
+  "performance": "Sem comparação universal de desempenho; ensaio de 250ms não dispara draw contínuo ao piscar.",
+  "main": "4a4e47011ce44f6a33d4fc6f7bc31cac3ec472c3 intacta",
+  "readiness": {
+    "score": 7.5,
+    "provisional": true,
+    "pending": [
+      "Carga prolongada",
+      "Homologação do ambiente final",
+      "Teste de projetos adicionais complexos",
+      "Edge/Firefox e GUI Windows completos"
+    ]
+  }
+}

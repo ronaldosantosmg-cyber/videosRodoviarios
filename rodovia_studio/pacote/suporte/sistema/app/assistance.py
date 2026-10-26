@@ -111,7 +111,7 @@ def diagnostics(d):
         if identity not in grouped:
             rule=guidance(kind,message)
             grouped[identity]={'id':identity,'kind':kind,'message':message,'occurrences':0,'task':str(event.get('tarefa') or '')[:100],'first':str(event.get('t') or '')[:100],'last':str(event.get('t') or '')[:100],
-                'version':str(event.get('versao')) if event.get('versao') else versions.get(str(event.get('tarefa'))),'causes':rule['causes'],'steps':rule['steps'],'certainty':'Hipóteses de regras locais; confirmar por reprodução.','evidence':str(event.get('rastreamento') or event.get('pilha') or '')[-3000:]}
+                'version':str(event.get('versao')) if event.get('versao') else versions.get(str(event.get('tarefa'))),'causes':rule['causes'],'steps':rule['steps'],'actions':rule.get('actions',[]),'certainty':'Hipóteses de regras locais; confirmar por reprodução.','evidence':str(event.get('rastreamento') or event.get('pilha') or '')[-3000:]}
         grouped[identity]['occurrences']+=1;grouped[identity]['last']=str(event.get('t') or grouped[identity]['last'])[:100]
     issues=list(grouped.values())[-100:]
     return {'method':'regras_locais','current_version':app_version(),'issues':issues,'usage':summarize(events,errors),

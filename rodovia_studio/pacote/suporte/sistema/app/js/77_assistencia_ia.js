@@ -17,7 +17,7 @@ async function open(tab='logs'){
  active.activate=activate;for(const b of d.querySelectorAll('[data-tab]'))b.onclick=()=>activate(b.dataset.tab);activate(tab);
  function mark(row){if(row&&rows.includes(row))row.edited=true;dirty=true;status('Preferências editadas; salve o perfil ou revise a aplicação.');q('#rsIAMode').value='manual'}
  async function guarded(fn){try{if(!alive())throw Error('O projeto mudou. Reabra o assistente.');if(busy)throw Error('Aguarde a leitura atual.');return await fn()}catch(e){if(alive())status(e.message,true);return false}}
- function close(){controller?.abort();if(dirty&&!confirm('Descartar as alterações não salvas do perfil?'))return;d.close();d.remove();active=null}
+ function close(){controller?.abort();if(dirty&&!confirm('Descartar as alterações não salvas do perfil?'))return false;d.close();d.remove();active=null;return true}
  for(const b of d.querySelectorAll('[data-close]'))b.onclick=close;d.oncancel=e=>{e.preventDefault();close()};
  function diagnostics(){
   const out=q('#rsIAIssues');out.replaceChildren();const diag=data.diagnostics;
@@ -25,7 +25,9 @@ async function open(tab='logs'){
   if(!diag.issues.length)out.append(element('p','Nenhum erro encontrado nos registros disponíveis. Isso não comprova ausência de falhas.'));
   for(const issue of diag.issues){const item=element('details'),summary=element('summary',issue.causes.join(' · ')+' — '+issue.occurrences+' ocorrência(s)');item.append(summary,element('p','Tarefa: '+(issue.task||'não identificada')+' · registro: '+(issue.last||'sem data')+' · versão: '+(issue.version||'não informada')));
    if(issue.version&&issue.version!==diag.current_version)item.append(element('p','Registro de outra versão; confirme se o problema ainda ocorre.'));
-   item.append(element('p',issue.certainty),element('pre',issue.message+'\n'+issue.evidence));const steps=element('ol');for(const s of issue.steps)steps.append(element('li',s));item.append(steps);out.append(item)}
+   item.append(element('p',issue.certainty),element('pre',issue.message+'\n'+issue.evidence));const steps=element('ol');for(const s of issue.steps)steps.append(element('li',s));item.append(steps);
+   const actions={protection:()=>window.RodoviaProtection.open(),flow:()=>window.RodoviaExecution.open(),sections:()=>window.RodoviaSections.chooseAxis(),materials:()=>window.RodoviaMaterialsHub.open(),video:()=>psOpenHub('video'),maintenance:()=>openSection('Manutenção'),logs:()=>window.RodoviaIA.open('logs')};
+   for(const action of issue.actions||[]){if(!actions[action.id])continue;const b=element('button',action.label);b.type='button';b.dataset.iaAction=action.id;b.onclick=guard(async()=>{if(!alive())throw Error('O projeto mudou. Reabra o diagnóstico.');if(close()===false)return;await actions[action.id]()});item.append(b)}out.append(item)}
   for(const warning of data.catalog.warnings||[])out.append(element('p',warning,'error'));out.append(element('p',diag.limitations,'muted'));const usage=q('#rsIAUsage');usage.replaceChildren();
   for(const [name,v] of Object.entries(diag.usage.tarefas)){usage.append(element('p',`${name}: ${v.concluidas} término(s), ${v.falhas} falha(s); máximo ${v.execucao.max_s??'—'} s, p95 ${v.execucao.p95_s??'—'} s (${v.execucao.amostras} amostra(s)); espera máxima ${v.espera.max_s??'—'} s.`))}
   for(const rec of diag.usage.melhorias_sugeridas)usage.append(element('p',rec.funcao+' · '+rec.evidencia+' → '+rec.acao));

@@ -61,6 +61,7 @@ function menuDefinitions(){
 function closeMenus(restore=false){
  state.menus.forEach(m=>m.el.remove());state.menus=[];state.top=-1;
  document.querySelectorAll('[data-rs-menu]').forEach(b=>{b.classList.remove('on');b.setAttribute('aria-expanded','false')});
+ if(typeof psUpdateHubState==='function')psUpdateHubState();
  if(restore)state.focus?.focus();
 }
 function trimMenus(depth){while(state.menus.length>depth)state.menus.pop().el.remove()}
@@ -233,8 +234,7 @@ function foregroundFlows(){
   for(const pts of report.retained_geometry||[])line(pts,{technical_status:'ok'},seg.forward,seg.both);
   for(const pts of report.excluded_geometry||[])line(pts,{technical_status:'problem'},seg.forward,seg.both,true);
  }
- for(const seg of editor?.segments||[])for(const problem of seg.technical_points||[]){const [x,y]=W2C(P(problem.point));ctx.beginPath();ctx.arc(x,y,5*DPR(),0,Math.PI*2);ctx.fillStyle='#ef4444';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke()}
- const conflict=window.RodoviaFlowEditConflict;if(conflict&&conflict.project===pid&&conflict.revision===editor?.engine_revision){const [x,y]=W2C(conflict.point);ctx.beginPath();ctx.arc(x,y,6*DPR(),0,Math.PI*2);ctx.fillStyle='#ef4444';ctx.fill();ctx.strokeStyle='#fff';ctx.stroke()}
+ // Pontos de diagnóstico são apresentados pela camada DOM técnica, fora do raster de vídeo.
  // Preserva os grips de uma rota selecionada acima do próprio realce.
  if(sel&&['route_alignments','traffic_paths'].includes(sel.key)){
   const obj=objOf(sel);for(const grip of obj?.grips||[]){const [x,y]=W2C(gripGet(grip));ctx.fillStyle='#fff';ctx.strokeStyle='#1f2937';ctx.lineWidth=1.5;ctx.fillRect(x-4,y-4,8,8);ctx.strokeRect(x-4,y-4,8,8)}
@@ -266,7 +266,7 @@ function init(){
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.menus.length&&!e.target.closest('.rsCascade')){e.preventDefault();closeMenus(true)}},true);
  window.addEventListener('resize',()=>closeMenus());
  // API de leitura para conferência e testes de interação, sem dados no modelo do vídeo.
- window.RodoviaMenus=Object.freeze({definitions:menuDefinitions,close:closeMenus,modelGroups,contextItems,open:(items,point)=>{closeMenus();popup(items,null,0,point)}});
+ window.RodoviaMenus=Object.freeze({definitions:menuDefinitions,close:closeMenus,modelGroups,contextItems,open:(items,point,focus=null)=>{closeMenus();state.focus=focus;popup(items,null,0,point)}});
 }
 queueMicrotask(init);
 })();

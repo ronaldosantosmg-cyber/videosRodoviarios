@@ -33,3 +33,29 @@
 @media (prefers-reduced-motion: reduce) {
   .rsInterface26 *, .rsInterface26 *::before, .rsInterface26 *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+/* Diagnóstico de estudo: sobreposição DOM, nunca pintada no canvas exportável. */
+#rsFlowProblemOverlay { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 12; }
+#rsFlowProblemOverlay[hidden] { display: none; }
+.rsFlowProblemPoint { position: absolute; width: 16px; height: 16px; min-width: 16px; min-height: 16px; padding: 0; border: 2px solid #6b5000; border-radius: 50%; background: #ffdd25; box-shadow: 0 0 0 3px #fff9; transform: translate(-50%,-50%); pointer-events: auto; cursor: help; animation: rsProblemPulse 1.4s ease-in-out infinite; }
+.rsFlowProblemPoint:hover, .rsFlowProblemPoint:focus-visible { background: #fff080; outline: 3px solid #164b82; animation: none; }
+@keyframes rsProblemPulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+.rsVideoSettings .rsVideoTabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 0; margin-bottom: 10px; border-bottom: 1px solid var(--border); }
+.rsVideoTabs button { font-size: 13px; padding: 7px 12px; }
+.rsVideoTabs [aria-selected=true] { background: var(--accent); color: #102b35; font-weight: 600; }
+.rsVideoSettings .rsVideoPane[hidden] { display: none !important; }
+.rsVideoSettings .rsVideoFields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px 18px; }
+.rsVideoSettings .rsVideoFields > details, .rsVideoSettings .rsVideoFields > p { grid-column: 1 / -1; margin: 0; }
+.rsVideoSettings .rsVideoFields > label { margin: 0; min-width: 0; }
+.rsVideoSettings .grid { grid-template-columns: repeat(2,minmax(0,1fr)); align-items: start; gap: 12px 18px; }
+.rsVideoSettings details { padding: 10px; border: 1px solid var(--border); border-radius: 6px; }
+.rsVideoSettings details summary { line-height: 1.5; }
+.rsVideoSettings .rsVideoGenerate { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--border); }
+.rsVideoGenerate span { font-size: 12px; flex: 1; min-width: 170px; }
+.rsMoreCascade { min-width: 230px; }
+@media (max-width: 760px) { .rsVideoSettings .rsVideoFields, .rsVideoSettings .grid { grid-template-columns: minmax(0,1fr); } }
+@media (prefers-reduced-motion: reduce) { .rsFlowProblemPoint { animation: none !important; } }
+.rsInterface26 dialog.rsFlowIssue { width: min(720px,calc(100vw - 24px)); max-width: min(720px,calc(100vw - 24px)); }
+#rsPanelPopup:has(.rsVideoSettings) { height: auto; min-height: 0; max-height: calc(100dvh - 32px); }
+#rsPanelPopup .rsVideoSettings > h2 { display: none; }
+#rsPanelBody .rsVideoSettings .grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+@media (max-width: 760px) { #rsPanelBody .rsVideoSettings .grid { grid-template-columns: minmax(0,1fr); } }

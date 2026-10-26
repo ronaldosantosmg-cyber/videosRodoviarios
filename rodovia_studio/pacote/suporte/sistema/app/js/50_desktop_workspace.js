@@ -98,3 +98,9 @@ function dwInit(){
 queueMicrotask(dwInit);
 comando(['COMANDO','CMD'],()=>{const d=$('dwCommandDrawer');d?.hidden?dwCommandOpen():dwCommandClose()},'Abre/fecha a linha de comando (Ctrl+Espaço)');
 comando(['FOCO','PROJETO'],()=>dwProjectFocus(),'Maximiza a área do projeto (F11)');
+
+// Contrato público usado pelos menus, sem duplicar os comandos da área de trabalho.
+window.RodoviaDesktopWorkspace=Object.freeze({
+ toggleProjectFocus:()=>dwProjectFocus(),
+ toggleCommand:()=>{const d=$('dwCommandDrawer');if(d?.hidden)window.dwCommandOpen?.();else window.dwCommandClose?.()}
+});
