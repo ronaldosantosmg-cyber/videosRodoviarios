@@ -6,7 +6,9 @@ BASE=Path(__file__).resolve().parent
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--preparar-apenas',action='store_true');args=parser.parse_args()
     if sys.version_info[:2]!=(3,12):raise RuntimeError('Use Python 3.12 de origem oficial, aprovado pela TI. Nenhuma política de segurança será alterada.')
-    runtime=BASE/'runtime';python=runtime/('python.exe' if os.name=='nt' else 'bin/python')
+    runtime=BASE/'runtime'
+    python=runtime/('python.exe' if os.name=='nt' else 'bin/python')
+    if os.name=='nt' and not python.is_file():python=runtime/'Scripts/python.exe'
     if not python.exists():
         import venv
         venv.EnvBuilder(with_pip=True).create(runtime)

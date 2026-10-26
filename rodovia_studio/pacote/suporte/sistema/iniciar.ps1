@@ -3,6 +3,7 @@ param([switch]$PrepararApenas)
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
 $py = Join-Path $PSScriptRoot 'runtime\python.exe'
+if (-not (Test-Path $py)) { $py = Join-Path $PSScriptRoot 'runtime\Scripts\python.exe' }
 $argsPython = @((Join-Path $PSScriptRoot 'preparar.py'))
 if ($PrepararApenas) { $argsPython += '--preparar-apenas' }
 if (Test-Path $py) { & $py @argsPython }

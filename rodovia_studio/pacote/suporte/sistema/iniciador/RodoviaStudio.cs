@@ -26,7 +26,7 @@ namespace RodoviaStudioLauncher
 {
     static class Program
     {
-        public const string Version = "1.4";
+        public const string Version = "1.5";
 
         [STAThread]
         static void Main(string[] args)
@@ -199,6 +199,7 @@ namespace RodoviaStudioLauncher
                         Logs = Path.Combine(Root, l[1]);
                         Directory.CreateDirectory(Logs);
                         Py = Path.Combine(Sys, "runtime\\python.exe");
+                        if (!File.Exists(Py) && File.Exists(Path.Combine(Sys, "runtime\\Scripts\\python.exe"))) Py = Path.Combine(Sys, "runtime\\Scripts\\python.exe");
                         return true;
                     }
                 }
@@ -307,7 +308,7 @@ namespace RodoviaStudioLauncher
         {
             if (!File.Exists(Py)) return true;
             string stamp = Path.Combine(Sys, "runtime\\dependencias.ok");
-            string req = Path.Combine(Sys, "requirements.txt");
+            string req = Path.Combine(Sys, "requirements-windows.lock");
             if (!File.Exists(stamp) || !File.Exists(req)) return true;
             return File.ReadAllText(stamp).Trim().ToUpperInvariant() != Sha256Upper(req);
         }
@@ -317,15 +318,16 @@ namespace RodoviaStudioLauncher
         {
             if (!NeedsPreparation()) return true;
             Say("Preparando Python, bibliotecas e FFmpeg (primeira vez ou dependências novas).\nAcompanhe na janela que vai abrir.");
-            ProcessStartInfo si = new ProcessStartInfo("powershell.exe",
-                "-NoProfile -File \"" + Path.Combine(Sys, "iniciar.ps1") + "\" -PrepararApenas");
+            ProcessStartInfo si = new ProcessStartInfo(File.Exists(Py) ? Py : "py.exe",
+                (File.Exists(Py) ? "" : "-3.12 ") + "-X utf8 \"" + Path.Combine(Sys, "preparar.py") + "\" --preparar-apenas");
             si.WorkingDirectory = Sys;
             si.UseShellExecute = false;
             Process p = Process.Start(si);
             while (!p.WaitForExit(200)) Application.DoEvents();
+            if (!File.Exists(Py) && File.Exists(Path.Combine(Sys, "runtime\\Scripts\\python.exe"))) Py = Path.Combine(Sys, "runtime\\Scripts\\python.exe");
             if (p.ExitCode != 0 || NeedsPreparation())
             {
-                MessageBox.Show("A preparação não terminou. Confira a mensagem na janela do PowerShell e sistema\\logs\\instalacao.log.\n\nSe a empresa bloqueia downloads ou PowerShell, peça a liberação ao suporte de TI.",
+                MessageBox.Show("A preparação não terminou. Confira a mensagem na janela de preparação.\n\nUse Python e dependências de origem oficial, aprovados pela TI. Não altere as proteções.",
                     "Rodovia Studio", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
@@ -355,8 +357,8 @@ namespace RodoviaStudioLauncher
         {
             if (!HasUpdateZip() || !File.Exists(Py)) { if (interactive) Info("Nenhum ZIP de atualização pendente em \"atualizacoes\"."); return false; }
             Say("Procurando e aplicando atualização…");
-            ProcessStartInfo si = new ProcessStartInfo("powershell.exe",
-                "-NoProfile -File \"" + Path.Combine(Sys, "atualizar.ps1") + "\" -Raiz \"" + Root + "\"");
+            ProcessStartInfo si = new ProcessStartInfo(Py,
+                "-X utf8 \"" + Path.Combine(Sys, "atualizar_portatil.py") + "\" --raiz \"" + Root + "\"");
             si.WorkingDirectory = Root;
             si.UseShellExecute = false;
             si.CreateNoWindow = true;
@@ -454,8 +456,8 @@ namespace RodoviaStudioLauncher
             try
             {
                 if (!PrepareUpdateSession()) return;
-                ProcessStartInfo si = new ProcessStartInfo("powershell.exe",
-                    "-NoProfile -File \"" + Path.Combine(Sys, "atualizar.ps1") + "\" -Raiz \"" + Root + "\" -RestaurarAnterior");
+                ProcessStartInfo si = new ProcessStartInfo(Py,
+                    "-X utf8 \"" + Path.Combine(Sys, "atualizar_portatil.py") + "\" --raiz \"" + Root + "\" --restaurar-anterior");
                 si.WorkingDirectory = Root; si.UseShellExecute = false;
                 Process p = Process.Start(si);
                 while (!p.WaitForExit(200)) Application.DoEvents();
@@ -686,7 +688,7 @@ namespace RodoviaStudioLauncher
                 if (!File.Exists(src)) return;
                 Match m = Regex.Match(File.ReadAllText(src), "Version\\s*=\\s*\"([^\"]+)\"");
                 if (m.Success && m.Groups[1].Value != Program.Version)
-                    Notify("Nova versão do iniciador", "Feche o Rodovia Studio e execute \"COMPILAR INICIADOR.cmd\" para atualizar o .exe (" + Program.Version + " → " + m.Groups[1].Value + ").");
+                    Notify("Nova versão do iniciador", "Solicite à TI a compilação e assinatura da nova fonte para atualizar o .exe (" + Program.Version + " → " + m.Groups[1].Value + ").");
             }
             catch { }
         }

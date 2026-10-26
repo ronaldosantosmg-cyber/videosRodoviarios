@@ -32,17 +32,22 @@ jobs:
           python -m pip check
       - name: Testes de execucao e protecao no Windows
         run: |
-          python -m pytest tests/test_v14225_execution.py tests/test_v14225_protection.py -q --junitxml="$env:RUNNER_TEMP/windows-testes.xml"
+          python -m pytest tests/test_v14225_execution.py tests/test_v14225_protection.py tests/test_v14225_install.py -q --junitxml="$env:RUNNER_TEMP/windows-testes.xml"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -m compileall -q app preparar.py atualizador.py
       - name: Compilar iniciador de fonte para inspecao
         shell: pwsh
         run: |
           $csc = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
+          $ErrorActionPreference = 'Continue'
           $PSNativeCommandUseErrorActionPreference = $false
           $output = & $csc /nologo /target:winexe /r:System.Windows.Forms.dll /r:System.Drawing.dll "/out:$env:RUNNER_TEMP/RodoviaStudio-auditoria.exe" iniciador/RodoviaStudio.cs 2>&1 | Out-String
           Write-Host $output
-          if ($LASTEXITCODE -ne 0) { throw ("Compilacao falhou: "+$output) }
+          if ($LASTEXITCODE -ne 0) {
+            $message = $output.Replace('%','%25').Replace("`r",'%0D').Replace("`n",'%0A')
+            Write-Host "::error title=Compilacao do iniciador::$message"
+            exit 1
+          }
       - name: Verificar com Microsoft Defender sem alterar protecoes
         if: always()
         shell: pwsh

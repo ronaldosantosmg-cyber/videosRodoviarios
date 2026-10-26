@@ -14,11 +14,16 @@ if not defined P (
 cd /d "%P%"
 if exist "%P%\runtime\python.exe" (
  "%P%\runtime\python.exe" "%P%\preparar.py"
+) else if exist "%P%\runtime\Scripts\python.exe" (
+ "%P%\runtime\Scripts\python.exe" "%P%\preparar.py"
 ) else (
  py.exe -3.12 "%P%\preparar.py"
 )
-if errorlevel 1 (
+set "RC=%ERRORLEVEL%"
+if not "%RC%"=="0" (
  echo.
  echo O aplicativo nao iniciou. Consulte a mensagem acima e sistema\logs\instalacao.log
  pause
 )
+
+exit /b %RC%
