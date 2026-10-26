@@ -15,6 +15,7 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parent
 SYSTEM = ROOT / 'pacote/suporte/sistema'
 AREAS = {
+    'atualizacao': ['tests/test_v14223_update_policy.py','tests/test_v1425_capture3d.py'],
     'confiabilidade': ['tests/test_v14222_reliability.py','tests/test_v14216_flow_repair.py','tests/test_v1423_toolbar.py','tests/test_v1424_ribbon.py'],
     'operacao': ['tests/test_v14221_simplification.py', 'tests/test_v1429_popup_calculation.py', 'tests/test_v1427_state.py'],
     'secoes': ['tests/test_v14220_sections_materials.py','tests/test_v14212_modelagem.py','tests/test_v14212_ui.py'],

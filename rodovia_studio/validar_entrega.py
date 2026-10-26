@@ -18,6 +18,7 @@ PACKAGE=ROOT/'pacote'
 SYSTEM=PACKAGE/'suporte/sistema'
 EVIDENCE=ROOT/'evidencias'/json.loads((PACKAGE/'manifest.json').read_text())['version']
 TESTS=[
+ 'tests/test_v14223_update_policy.py',
  'tests/test_v14222_reliability.py',
  'tests/test_v14221_simplification.py','tests/test_v14220_sections_materials.py','tests/test_v14219_reconstruction_curves_semantics.py',
  'tests/test_v14218_agents.py','tests/test_v14218_axis_policy.py','tests/test_v14218_scene_agents.py','tests/test_v14218_live_agents.py','tests/test_v14218_layers_ui.py',

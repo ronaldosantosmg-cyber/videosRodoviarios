@@ -33,7 +33,9 @@ def cached_analyze(original,directory,settings,preview=None,hatch_preview=None):
         return revisions(d,settings)['geometry']
     key=cache_key();target=folder/(key+'.json.z')
     safe=not any(p.is_symlink() for p in (d/'_cache',folder,target))
-    if safe and target.is_file() and target.stat().st_size<=MAX_COMPRESSED:
+    from .full_update import required,rebuilt
+    force=required('geometry',str(target))
+    if not force and safe and target.is_file() and target.stat().st_size<=MAX_COMPRESSED:
         try:
             decoder=zlib.decompressobj();raw=decoder.decompress(target.read_bytes(),MAX_RAW+1)
             if len(raw)>MAX_RAW or not decoder.eof or decoder.unconsumed_tail or decoder.unused_data:raise ValueError('Cache excede o limite de leitura.')
@@ -59,7 +61,7 @@ def cached_analyze(original,directory,settings,preview=None,hatch_preview=None):
             if len(raw)<=MAX_RAW and cache_key()==key:
                 compressed=zlib.compress(raw,3)
                 if len(compressed)<=MAX_COMPRESSED:
-                    folder.mkdir(parents=True,exist_ok=True);temp=folder/('.'+uuid.uuid4().hex+'.tmp');temp.write_bytes(compressed);temp.replace(target)
+                    folder.mkdir(parents=True,exist_ok=True);temp=folder/('.'+uuid.uuid4().hex+'.tmp');temp.write_bytes(compressed);temp.replace(target);rebuilt('geometry',str(target))
                     for previous in sorted(folder.glob('*.json.z'),key=lambda p:p.stat().st_mtime,reverse=True)[2:]:
                         if not previous.is_symlink():previous.unlink(missing_ok=True)
         except (ValueError,TypeError,OSError):pass

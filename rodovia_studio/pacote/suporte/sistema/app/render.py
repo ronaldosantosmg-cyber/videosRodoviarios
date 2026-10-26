@@ -236,7 +236,8 @@ class Scene:
             self.domain_dashes.extend([[ln.interpolate(v).coords[0],ln.interpolate(min(ln.length,v+6)).coords[0]] for v in np.arange(0,ln.length,10)])
         self.domain_dashes=np.array(self.domain_dashes).reshape(-1,2,2)
         self.domain_centers=self.domain_dashes.mean(1)
-        self.geometry_cache_hit=False;cache_dir=None
+        from .full_update import required,rebuilt
+        self.geometry_cache_hit=False;cache_dir=None;force_surface=False
         try:
             signature=hashlib.sha256()
             extra=sorted((self.directory/'camadas').glob('*.dxf')) if (self.directory/'camadas').exists() else []
@@ -263,7 +264,8 @@ class Scene:
                 if dump.get(k):config[k]=sorted(dump[k])
             signature.update(json.dumps([config,self.box,self.n],sort_keys=True).encode())
             self.geometry_signature=signature.hexdigest();cache_dir=self.directory/'cache_geometria'/signature.hexdigest()[:24]
-            if (cache_dir/'ready.json').exists():
+            force_surface=required('surface',str(cache_dir))
+            if not force_surface and (cache_dir/'ready.json').exists():
                 overlay=np.load(cache_dir/'overlay.npy',mmap_mode='r',allow_pickle=False);stations=np.load(cache_dir/'stations.npy',mmap_mode='r',allow_pickle=False)
                 if not (cache_dir/'surface.npy').exists():raise ValueError('Cache anterior à 1.5')
                 self.surface=np.load(cache_dir/'surface.npy',mmap_mode='r',allow_pickle=False)
@@ -386,7 +388,12 @@ class Scene:
                 np.save(temp/'overlay.npy',self.overlay,allow_pickle=False);np.save(temp/'stations.npy',self.stations,allow_pickle=False);np.save(temp/'surface.npy',self.surface,allow_pickle=False)
                 (temp/'ready.json').write_text(json.dumps({'shape':self.n,'version':'1.5'}),encoding='utf-8')
                 if not cache_dir.exists():temp.replace(cache_dir)
+                elif force_surface:
+                    from . import store
+                    for name in ('overlay.npy','stations.npy','surface.npy','ready.json'):store.replace(temp/name,cache_dir/name)
+                    temp.rmdir()
                 else:shutil.rmtree(temp,ignore_errors=True)
+                rebuilt('surface',str(cache_dir))
                 # Retain at most two previous variants; source files and user results are untouched.
                 previous=sorted([p for p in cache_dir.parent.iterdir() if p.is_dir() and p!=cache_dir],key=lambda p:p.stat().st_mtime,reverse=True)
                 for old in previous[1:]:shutil.rmtree(old,ignore_errors=True)
@@ -1226,6 +1233,13 @@ def render(directory,s,status=lambda *a:None,cancel=lambda:False):
     if not check['ok']:
         out.unlink(missing_ok=True);raise RuntimeError('O vídeo gravado não passou na conferência: '+'; '.join(check['problems'])+'. Gere novamente.')
     from .store import replace
+    # A exportação publica também os resultados calculados, sem anunciar vetores antigos como atuais.
+    from .store import write_json
+    from .webmap import write_vectors
+    write_json(directory/'analysis.json',scene.report)
+    write_json(directory/'editor.json',scene.editor_data())
+    write_vectors(directory,scene.items,scene.axis,scene.s.crs)
+    if cancel():raise InterruptedError('Exportação cancelada antes de publicar o vídeo.')
     final=directory/'video.mp4';replace(out,final)
     meta={'frames':frames,'fps':s.fps,'duration_s':frames/s.fps,'width':OW,'height':OH,'video_quality':getattr(s,'video_quality','padrao'),'superamostragem':1.5 if ssaa else 1,'codec':'H.264 High','encoder':encoding['encoder'],'encoder_reason':encoding['reason'],'quality':encoding['quality'],'pix_fmt':'yuv420p','geometric_length_m':scene.length,'reference_length_m':s.reference_length_m,'geometry_cache_hit':scene.geometry_cache_hit,'visual_quality':s.visual_quality,'render_profile':s.render_profile,'workers':workers,'workers_reason':why,'camera':'cabin' if cabin else 'aerial','cabin_reaches_path_end':bool(cabin.reaches_end) if cabin else None,'preparation_seconds':round(prepared,3),'total_seconds':round(time.monotonic()-start,3),'validation':check,'motion_audit':scene.report.get('traffic_simulation'),'network_safety':{'rejected_paths':len(getattr(scene.network,'rejected_paths',[])),'rejected_connections':dict(getattr(scene.network,'rejected_connectors',{}))}}
     ped_control=scene._sim.pedestrians if getattr(scene,'_sim',None) is not None else getattr(scene,'_ped_control',None)

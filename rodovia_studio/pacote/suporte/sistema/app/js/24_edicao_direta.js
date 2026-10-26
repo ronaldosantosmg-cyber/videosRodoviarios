@@ -153,10 +153,10 @@ async function openTexDialog(){const L=selObjs();let base={kind:'pavement',mater
  $('td_kind').value=base.kind||'pavement';$('td_mat').value=base.material||'auto';const t=base.texture||{};for(const [k,d] of [['grao',1],['tom',1],['remendos',1],['fissuras',1],['brilho',0]])$('td_'+k).value=t[k]??d;
  $('td_scope').value='area';$('td_title').textContent=texTarget.dxf?`Trocar textura — área do desenho (camada ${dxfSel.layer})`:L.length>1?`Trocar textura — ${L.length} áreas`:`Trocar textura — ${base.name}`;tdPreview();$('texDlg').showModal()}
 function texApply(){const kind=$('td_kind').value,material=$('td_mat').value,v=tdVals(),neutral=v.grao===1&&v.tom===1&&v.remendos===1&&v.fissuras===1&&v.brilho===0;
- if($('td_scope').value==='tipo'){const surf=tdPreview();cfg.texture_params={...(cfg.texture_params||{}),[surf]:v};scheduleSave();try{texUi&&texUi()}catch{}$('texDlg').close();msg(`Textura de “${TEX_LABEL[surf]}” alterada para todas as áreas deste tipo. Gere a prévia para ver.`);scheduleViewPreview();return}
+ if($('td_scope').value==='tipo'){const surf=tdPreview();cfg.texture_params={...(cfg.texture_params||{}),[surf]:v};scheduleSave();try{texUi&&texUi()}catch{}$('texDlg').close();msg(`Textura de “${TEX_LABEL[surf]}” alterada para todas as áreas deste tipo. Gere a prévia para ver.`);scheduleViewPreview();window.RodoviaUpdatePolicy?.committed();return}
  if(texTarget?.dxf){dxfSel=texTarget.dxf;dxfToArea({kind,material,texture:neutral?null:v})}
  else if(texTarget?.areas){checkpoint();for(const o of texTarget.areas){o.o.kind=kind;o.o.material=material;o.o.texture=neutral?null:v}changed(`Textura aplicada a ${texTarget.areas.length} área(s). Gere a prévia para ver no vídeo.`);showProps();scheduleViewPreview()}
- $('texDlg').close()}
+ $('texDlg').close();window.RodoviaUpdatePolicy?.committed()}
 document.addEventListener('input',e=>{if(e.target.closest&&e.target.closest('#texDlg'))tdPreview()});
 document.addEventListener('change',e=>{if(e.target.closest&&e.target.closest('#texDlg'))tdPreview()});
 $('td_ok')?.addEventListener('click',texApply);$('td_cancel')?.addEventListener('click',()=>$('texDlg').close());

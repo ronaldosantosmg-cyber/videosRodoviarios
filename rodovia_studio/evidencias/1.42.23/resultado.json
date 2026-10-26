@@ -1,0 +1,31 @@
+{
+  "version": "1.42.23",
+  "status": "validacao_direcionada",
+  "release_approved": false,
+  "full_suite_executed": false,
+  "simplified_validation_requested_by_user": true,
+  "source_sha256": "e42d7e5229423dc15c40544c71fc99f29dc9a922857bf91c5ce2db337ab5b5a2",
+  "pytest": {
+    "tests": 118,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "real_dxf": {
+    "source_sha256": "7936e09e195212a85a894dbc48f5ad337f0cbe4f3195225e6f8137297e3e4538",
+    "flows": 6,
+    "revalidated_flows": 6,
+    "axes": 31,
+    "original_preserved": true,
+    "full_geometry_recalculated": true,
+    "full_surface_recalculated": true,
+    "width": 1280,
+    "height": 720,
+    "imagery_pixels": 2048,
+    "seconds": 39.96,
+    "limitations": "DXF disponível em prévia neutra HD com mosaico limitado a 2048 para ensaio dirigido. Não é o projeto salvo atual do usuário nem teste de carga/Windows."
+  },
+  "launcher": "C# compilado com e sem WebView2",
+  "splash": "Mono/Xvfb; versão, fabricante e animação",
+  "windows_native_executed": false
+}

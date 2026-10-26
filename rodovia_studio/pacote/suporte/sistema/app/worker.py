@@ -11,7 +11,9 @@ def run(jid):
     j=store.job(jid);d=store.directory(j['project'])
     from .execlog import JobLog
     jl=JobLog(d,jid,j['kind'])   # 1.26: registro de execução do projeto
-    def status(p,msg):store.update(jid,progress=float(p),message=msg);jl.status(p,msg)
+    def status(p,msg):
+        if float(p)<1 and store.job(jid)['state']=='cancel_requested':raise InterruptedError('Atualização cancelada.')
+        store.update(jid,progress=float(p),message=msg);jl.status(p,msg)
     def cancel():return store.job(jid)['state']=='cancel_requested'
     end_message='Concluído';ticket=None
     try:
@@ -59,7 +61,7 @@ def run(jid):
             except Exception as exc:r['warnings'].append('Fluxos do editor não calculados: '+str(exc)[:160])
             store.write_json(d/'analysis.json',r)
             status(1,'Análise concluída')
-        elif j['kind']=='preview':
+        elif j['kind'] in ('preview','refresh'):
             sc=Scene(d,s,status);s=sc.s
             view=None
             if s.preview_mode=='custom' and s.preview_center is not None:view=((s.preview_center.x,s.preview_center.y),s.preview_width_m or s.view_width_m)
@@ -195,4 +197,10 @@ def run(jid):
         store.update(jid,state='cancelled' if isinstance(e,InterruptedError) else 'failed',message=str(e)[:400],error=type(e).__name__)
         if not isinstance(e,InterruptedError):return 1
     return 0
+_run_job=run
+def run(jid):
+    from .full_update import complete_update
+    with complete_update(store.job(jid)['kind'] in ('refresh','preview','render','scene3d')):
+        return _run_job(jid)
+
 if __name__=='__main__':raise SystemExit(run(sys.argv[1]))

@@ -2,29 +2,30 @@
 (()=>{
 'use strict';
 let viewer=null,active=false,pending=false,currentPid='',token=0,selection=null,stale=false;
-const state={context:'ready'};let exporting=null;
+const state={context:'ready'};let exporting=null,exportPreparing=false;
 const q=id=>document.getElementById(id);
 function say(text,error=false){q('rs3dState').textContent=text;msg(text,error)}
 function button(id,name,help,action){const b=document.createElement('button');b.type='button';b.dataset.rs3d=id;b.setAttribute('aria-label',name);b.title=name+' — '+help;b.setAttribute('aria-describedby','rsToolHelp');const show=()=>{const tip=q('rsToolHelp');tip.textContent=b.title;tip.hidden=false;const r=b.getBoundingClientRect();tip.style.left=Math.max(5,Math.min(innerWidth-tip.offsetWidth-5,r.left))+'px';tip.style.top=(r.bottom+5)+'px'};b.addEventListener('pointerenter',show);b.addEventListener('focus',show);for(const event of ['pointerleave','blur','click'])b.addEventListener(event,()=>q('rsToolHelp').hidden=true);b.innerHTML=RodoviaInfraRail.forTool(id)||RodoviaIcons[id]||RodoviaIcons.view3d;b.onclick=guard(action,name);return b}
 function sync(){document.querySelectorAll('[data-rs3d=view3d]').forEach(b=>{b.classList.toggle('on',active);b.setAttribute('aria-pressed',String(active))});q('rs3dControls').hidden=!active;q('rs3dTime').disabled=!viewer||stale||!!exporting;document.querySelectorAll('#rs3dControls button').forEach(b=>b.disabled=!!exporting||pending||(state.context==='lost'&&b.dataset.rs3d!=='view2d')||(!viewer&&b.dataset.rs3d!=='rebuild3d'));}
 function close(){if(exporting){exporting.cancelled=true;void cancelExport(exporting)}token++;pending=false;if(viewer){viewer.dispose();viewer=null}active=false;currentPid='';q('rsViewport3D').hidden=true;canvas.hidden=false;if(selection){sel=selection.sel;selSet=selection.selSet;dxfSel=selection.dxfSel;selection=null;showProps()}resizeCanvas();q('rs3dState').textContent='';sync()}
-async function open(force=false){
- requireProject();if(pending)return;
+async function open(force=false,options={}){
+ requireProject();if(pending)return false;
  if(active&&!force){close();return}
+ const retained=force&&viewer?{camera:viewer.cameraState(),origin:viewer.data.origin_crs,time:viewer.time,playing:viewer.playing,diagnostics:viewer.technical.visible}:null;
  const request=++token,project=pid;pending=true;sync();say('Preparando a vista 3D…');
  try{
   await save();let data;
   if(!force)try{data=await api(`/api/projects/${project}/scene3d.json`)}catch(e){if(!/404|409|Construa|desatualizada|Cena inválida/.test(e.message))throw e}
-  if(!data){if(task)throw Error('Aguarde ou cancele a operação atual antes de construir o 3D.');await start('scene3d');data=await api(`/api/projects/${project}/scene3d.json`)}
+  if(!data){if(task)throw Error('Aguarde ou cancele a operação atual antes de construir o 3D.');if(await start('scene3d',undefined,options)===false)return false;data=await api(`/api/projects/${project}/scene3d.json`)}
   if(request!==token||project!==pid)return;
   const {RoadViewer}=await import('/webgl/viewer.mjs');
   if(request!==token||project!==pid)return;
   if(viewer)viewer.dispose();else selection={sel,selSet:[...selSet],dxfSel};
   currentPid=project;canvas.hidden=true;q('rsViewport3D').hidden=false;
   viewer=new RoadViewer(q('rsViewport3D'),{onStatus:text=>{q('rs3dState').textContent=text;if(viewer)q('rs3dTime').value=String(viewer.time)},onContext:kind=>{state.context=kind;sync();if(kind==='lost'&&exporting){exporting.cancelled=true;void cancelExport(exporting)}if(kind==='lost')reportClient('Contexto WebGL perdido','','visualização 3D');},onPick:inspect});
-  viewer.load(data);active=true;state.context='ready';stale=false;q('rs3dTime').max=String(data.duration_s);q('rs3dTime').value='0';say(`3D · ${data.terrain.label} · ${data.vehicles.length} veículos · prévia de ${data.duration_s.toFixed(0)} s${data.coordinates_confirmed?'':' · CRS não confirmado'}`);
-  viewer.canvas.addEventListener('contextmenu',e=>{e.preventDefault();RodoviaMenus.open([{t:'Enquadrar 3D',f:()=>viewer?.fit()},{t:'Vista de planta 3D',f:()=>viewer?.fit(true)},{t:'Capturar imagem PNG',f:capture},{t:'Voltar ao editor 2D',f:close}],{x:e.clientX,y:e.clientY})});
- }catch(e){if(request===token){if(viewer){viewer.dispose();viewer=null}active=false;q('rsViewport3D').hidden=true;canvas.hidden=false;resizeCanvas();say('Não foi possível abrir o 3D: '+e.message,true)}}
+  viewer.load(data);if(retained){const shift=[retained.origin[0]-data.origin_crs[0],retained.origin[2]-data.origin_crs[2],data.origin_crs[1]-retained.origin[1]];for(const [value,target] of [[retained.camera.position,viewer.camera.position],[retained.camera.target,viewer.controls.target]])target.fromArray(value.map((v,i)=>v+shift[i]));viewer.controls.update();viewer.setLight(retained.camera.light);viewer.setDiagnostics(retained.diagnostics);if(data.vehicles.some(v=>v.id===retained.camera.follow_id))viewer.followId=retained.camera.follow_id;viewer.setTime(Math.min(retained.time,data.duration_s));viewer.render();if(retained.playing)viewer.play()}active=true;state.context='ready';stale=false;q('rs3dTime').max=String(data.duration_s);q('rs3dTime').value=String(viewer.time);say(`3D · ${data.terrain.label} · ${data.vehicles.length} veículos · prévia de ${data.duration_s.toFixed(0)} s${data.coordinates_confirmed?'':' · CRS não confirmado'}`);
+  viewer.canvas.addEventListener('contextmenu',e=>{e.preventDefault();RodoviaMenus.open([{t:'Enquadrar 3D',f:()=>viewer?.fit()},{t:'Vista de planta 3D',f:()=>viewer?.fit(true)},{t:'Capturar imagem PNG',f:capture},{t:'Voltar ao editor 2D',f:close}],{x:e.clientX,y:e.clientY})});return true;
+ }catch(e){if(request===token){if(viewer){active=true;stale=true;say('Atualização 3D falhou; vista anterior mantida: '+e.message,true)}else{active=false;q('rsViewport3D').hidden=true;canvas.hidden=false;resizeCanvas();say('Não foi possível abrir o 3D: '+e.message,true)}}return false}
  finally{if(request===token){pending=false;sync()}}
 }
 function inspect(info){const world=info.world.map(n=>Number(n).toFixed(3));q('rs3dState').textContent=`${info.name||'Objeto'} · X ${world[0]} · Y ${world[1]} · Z ${world[2]} m`;const panel=q('propPanel');if(!panel)return;psOpenHub('props');panel.hidden=false;panel.innerHTML='<h3>Inspeção 3D</h3><p>'+esc(info.name||'Objeto')+'</p><p>'+esc(info.layer||info.role||'')+'</p><p>X: '+world[0]+' m<br>Y: '+world[1]+' m<br>Z: '+world[2]+' m</p><p class="muted">Use o editor 2D para modificar a geometria original.</p>'}
@@ -36,7 +37,9 @@ function exportDialog(){
  q('rs3dDuration').max=String(viewer.data.duration_s);q('rs3dDuration').value=String(Math.min(10,Math.floor(viewer.data.duration_s)));q('rs3dExportInfo').textContent='Prévia disponível: até '+viewer.data.duration_s+' s. A exportação é local e pode ser cancelada.';dialog.showModal();
 }
 async function exportVideo(){
- if(exporting||!viewer||stale||task)throw Error('Aguarde a tarefa atual ou reconstrua a cena.');
+ if(exporting||exportPreparing||!viewer||task)throw Error('Aguarde a tarefa atual ou abra a cena.');
+ exportPreparing=true;q('rs3dExportStart').disabled=true;q('rs3dExportInfo').textContent='Atualizando o projeto antes de capturar os quadros…';
+ try{const project=pid;if(!await open(true)||pid!==project)throw Error('A atualização completa não terminou. O vídeo não foi iniciado.')}finally{exportPreparing=false;q('rs3dExportStart').disabled=false}
  const local=viewer,project=pid,duration=Number(q('rs3dDuration').value),width=Number(q('rs3dWidth').value),fps=Number(q('rs3dFps').value);
  if(!Number.isFinite(duration)||duration<3||duration>local.data.duration_s)throw Error('Duração inválida para esta prévia.');
  const session={cancelled:false,url:null,headers:null,id:null};exporting=session;sync();q('rs3dExportStart').disabled=true;q('rs3dExportCancel').hidden=false;let restore;

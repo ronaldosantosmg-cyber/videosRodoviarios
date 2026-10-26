@@ -17,8 +17,8 @@ start=function(kind,payload,options={}){
  if(pending.length>=8)return Promise.reject(Error('A fila já tem oito operações. Aguarde a conclusão.'));
  let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b});const row={id:++serial,key,promise,resolve,reject,kind,payload,options,project:pid,context:projectSession.context};requests.set(key,row);pending.push(row);queueState();void drain();return promise;
 };
-function updateState(){const b=$('rsUpdateProject');if(!b)return;const three=window.Rodovia3D?.stats(),artifact=projectSession.artifacts?.[three?.ready?'scene3d':'preview'];const stale=!!pid&&(savePending||previewStale||artifact?.state!=='ready');b.classList.toggle('rsPending',stale);b.title=stale?'Atualização pendente. Salvar preserva os dados sem iniciar cálculos.':'Atualizar a apresentação do projeto';$('rsUpdateState').textContent=stale?'Atualização pendente':'Resultados atuais'}
-async function update(){requireProject();const three=window.Rodovia3D?.stats(),stable=!savePending&&!window.RodoviaPanels?.opened;
+function updateState(){const b=$('rsUpdateProject');if(!b)return;const three=window.Rodovia3D?.stats(),artifact=projectSession.artifacts?.[three?.ready?'scene3d':'preview'];const stale=!!pid&&(savePending||(three?.ready?three.stale:previewStale)||artifact?.state!=='ready');b.classList.toggle('rsPending',stale);b.title=stale?'Atualização pendente. Salvar projeto executa a atualização completa.':'Atualizar a apresentação do projeto';$('rsUpdateState').textContent=stale?'Atualização pendente':'Resultados atuais'}
+async function update(){if(window.RodoviaUpdatePolicy)return RodoviaUpdatePolicy.refresh();requireProject();const three=window.Rodovia3D?.stats(),stable=!savePending&&!window.RodoviaPanels?.opened;
  if(three?.ready){if(stable&&!three.stale&&projectSession.artifacts?.scene3d?.state==='ready'){msg('Cena 3D atual; nenhum recálculo necessário.');return true}return Rodovia3D.open(true)}
  if(stable&&!previewStale&&projectSession.artifacts?.preview?.state==='ready'&&baseImage){draw();msg('Prévia atual; nenhum recálculo necessário.');return true}
  return start('preview')}

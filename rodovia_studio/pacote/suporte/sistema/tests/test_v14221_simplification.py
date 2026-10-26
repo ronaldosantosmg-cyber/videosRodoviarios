@@ -112,13 +112,13 @@ def test_repeated_request_shares_one_real_job(gl_page):
     assert result['queue']['requests']==0
 
 
-def test_update_reuses_a_current_preview_without_starting_another_job(gl_page):
+def test_explicit_update_refreshes_even_a_current_preview(gl_page):
     p=gl_page;p.evaluate("async()=>{await start('preview')}")
-    p.wait_for_function('!task&&!taskRequestPending')
-    posts=[];p.on('request',lambda r:posts.append(r.url) if r.method=='POST' and '/jobs' in r.url else None)
-    p.evaluate('RodoviaUpdates.update()');p.wait_for_timeout(500)
-    assert not posts and p.evaluate('!!baseImage&&!previewStale')
-    assert 'nenhum recálculo' in p.locator('#message').inner_text()
+    before=p.evaluate('lastPolled');posts=[]
+    p.on('request',lambda r:posts.append(r.url) if r.method=='POST' and r.url.endswith('/refresh') else None)
+    p.evaluate('RodoviaUpdates.update()')
+    assert len(posts)==1 and p.evaluate('lastPolled')!=before
+    assert p.evaluate('!!baseImage&&!previewStale')
 
 
 def test_queued_request_is_discarded_if_project_context_changes(page):

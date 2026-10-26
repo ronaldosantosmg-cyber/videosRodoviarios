@@ -23,5 +23,5 @@ estender('changed',_ch=>function(text){_ch(text);if(pid&&ready())scheduleViewPre
 estender('showProps',_sp=>function(){_sp();const el=document.getElementById('autoPrev');if(el){el.checked=false;el.closest('label').hidden=true}},'Recarregar o mesmo projeto (ao terminar uma tarefa) não apaga o histór');
 // Área com textura própria: indicação no editor.
 estender('draw',_d=>function(){_d();if(!ready())return;try{for(const a of M.pavement_areas||[])if(a.texture&&a.points?.length>2){const c=a.points.reduce((s,p)=>({x:s.x+p.x/a.points.length,y:s.y+p.y/a.points.length}),{x:0,y:0});label('🖌 textura própria',c,'#ffe7a3')}}catch{}},'Área com textura própria: indicação no editor.');
-estender('start',_st=>async function(kind,...args){const result=await _st(kind,...args);if(result===false)return false;if(kind==='preview'||kind==='render'){previewStale=false;draw()}return result},'Área com textura própria: indicação no editor.');
+estender('start',_st=>async function(kind,...args){const result=await _st(kind,...args);if(result===false)return false;if(kind==='preview'||kind==='render'||kind==='refresh'){previewStale=false;draw()}return result},'Área com textura própria: indicação no editor.');
 

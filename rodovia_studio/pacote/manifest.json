@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.22",
-  "description": "1.42.22: diagnóstico de circulação parcial, lacunas de seções, cache por eixo, central simplificada e materiais/imagens consistentes."
+  "version": "1.42.23",
+  "description": "1.42.23: modo automático/manual, atualização completa ao abrir/salvar/prévia/vídeo e proteção contra cálculos recursivos."
 }

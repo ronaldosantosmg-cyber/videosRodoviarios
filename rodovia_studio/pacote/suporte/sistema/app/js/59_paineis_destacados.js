@@ -55,7 +55,7 @@ async function commitClose(){
  if(pane.project!==pid){msg('O projeto mudou. Feche e reabra esta janela.',true);return false}
  if(!pid){msg('Crie ou abra um projeto antes de salvar.',true);return false}
  committing=true;
- try{flushPropertyInputs(pane.node);dialog().querySelectorAll('button,input,select,textarea').forEach(e=>{e.dataset.rsWasDisabled=String(e.disabled);e.disabled=true});if(['name','origin','destination'].some(key=>!String($(key)?.value||'').trim()))throw Error('Informe nome, origem e destino antes de salvar.');await originalSave();if(savePending)throw Error('Há novas alterações pendentes. Revise e salve novamente.');finish(false);return true}
+ try{flushPropertyInputs(pane.node);dialog().querySelectorAll('button,input,select,textarea').forEach(e=>{e.dataset.rsWasDisabled=String(e.disabled);e.disabled=true});if(['name','origin','destination'].some(key=>!String($(key)?.value||'').trim()))throw Error('Informe nome, origem e destino antes de salvar.');await originalSave();if(savePending)throw Error('Há novas alterações pendentes. Revise e salve novamente.');finish(false);window.dispatchEvent(new CustomEvent('rodovia:form-committed',{detail:{project:pane.project,context:projectSession.context}}));return true}
  catch(e){$('rsPanelStatus').textContent='Não foi salvo: '+e.message;msg(e.message,true);return false}
  finally{document.querySelectorAll('[data-rs-was-disabled]').forEach(e=>{e.disabled=e.dataset.rsWasDisabled==='true';delete e.dataset.rsWasDisabled});committing=false}
 }
@@ -82,7 +82,7 @@ save=async function(...args){if(active&&!committing){pauseTimers();if(!await req
 const oldSchedulePreview=scheduleViewPreview,oldViewPreview=runViewPreview;
 scheduleViewPreview=function(...args){if(active){previewStale=true;pauseTimers();return}return oldSchedulePreview(...args)};
 runViewPreview=async function(...args){if(active){previewStale=true;pauseTimers();return false}return oldViewPreview(...args)};
-start=async function(...args){const project=pid,context=projectSession.context;if(args[2]?.automatic&&document.querySelector('dialog[open]'))return false;if(active&&!committing){pauseTimers();if(!await requestClose())return false}if(pid!==project||projectSession.context!==context)return false;return originalStart(...args)};
+start=async function(...args){const project=pid,context=projectSession.context;if(args[2]?.automatic&&document.querySelector('dialog[open]'))return false;if(args[2]?.policyAuto&&active)return false;if(active&&!committing){pauseTimers();if(!await requestClose())return false}if(pid!==project||projectSession.context!==context)return false;if(['refresh','preview','render','scene3d'].includes(args[0]))window.RodoviaUpdatePolicy?.consumePending();return originalStart(...args)};
 load=async function(...args){if(active&&!committing&&!args[1]?.resultsOnly){if(!await requestClose()){$('projects').value=pid;return false}}return originalLoad(...args)};
 const oldDock=abrirAba;abrirAba=function(id,click){
  if(closing)return oldDock(id,click);
@@ -101,7 +101,7 @@ const oldSection=openSection;openSection=function(title){if(active){void request
 // Uma operação que grava arquivos fecha primeiro a edição pendente; os originais não fazem parte de Descartar.
 const oldApi=api;api=async function(url,options={}){
  const mutating=options.method&&!['GET','HEAD'].includes(options.method.toUpperCase());
- if(active&&!committing&&mutating&&/^\/api\/projects\/[^/]+\/(analyze|preview|render|scene3d|frames|export)(\/|$)/.test(url)){if(!await requestClose())throw Error('Processamento cancelado; a janela continua em edição.');}
+ if(active&&!committing&&mutating&&/^\/api\/projects\/[^/]+\/(analyze|preview|refresh|render|scene3d|frames|export)(\/|$)/.test(url)){if(!await requestClose())throw Error('Processamento cancelado; a janela continua em edição.');}
  if(active&&!committing&&/\/config$/.test(url)&&options.headers?.['If-Match'])return oldApi(url,options);
  if(active&&!committing&&mutating&&/^\/api\/projects\/[^/]+\//.test(url)&&!/^\/api\/projects\/[^/]+\/(validate_path|sessoes|client_error|client_log)(\/|$)/.test(url)){if(!await requestClose())throw Error('Operação cancelada; a janela continua em edição.')}
  return oldApi(url,options);
@@ -116,7 +116,7 @@ document.addEventListener('click',e=>{
  e.preventDefault();e.stopImmediatePropagation();const project=pid;
  void requestClose().then(ok=>{if(ok&&pid===project&&button.isConnected&&!button.disabled)button.click()}).catch(err=>msg(err.message,true));
 },true);
-document.addEventListener('keydown',e=>{if(active&&!decision&&e.key==='Tab'){const items=[...dialog().querySelectorAll('button,input,select,textarea,a[href]')].filter(el=>!el.disabled&&el.getClientRects().length);if(items.length){const first=items[0],last=items[items.length-1];if(e.shiftKey&&(e.target===first||!dialog().contains(e.target))){e.preventDefault();last.focus()}else if(!e.shiftKey&&(e.target===last||!dialog().contains(e.target))){e.preventDefault();first.focus()}}}if(active&&(e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();e.stopImmediatePropagation();void commitClose();return}if(active&&e.key==='Escape'&&!decision){e.preventDefault();e.stopImmediatePropagation();void requestClose()}},true);
+document.addEventListener('keydown',e=>{if(active&&!decision&&e.key==='Tab'){const items=[...dialog().querySelectorAll('button,input,select,textarea,a[href]')].filter(el=>!el.disabled&&el.getClientRects().length);if(items.length){const first=items[0],last=items[items.length-1];if(e.shiftKey&&(e.target===first||!dialog().contains(e.target))){e.preventDefault();last.focus()}else if(!e.shiftKey&&(e.target===last||!dialog().contains(e.target))){e.preventDefault();first.focus()}}}if(active&&(e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();e.stopImmediatePropagation();void (async()=>{if(await commitClose()&&window.RodoviaUpdatePolicy)await RodoviaUpdatePolicy.saveProject()})().catch(e=>msg(e.message,true));return}if(active&&e.key==='Escape'&&!decision){e.preventDefault();e.stopImmediatePropagation();void requestClose()}},true);
 window.addEventListener('beforeunload',e=>{if(active&&differs()){e.preventDefault();e.returnValue=''}});
 function currentImagery(){const image=$('imagery')?.value||cfg.imagery;if(image==='esri')return cfg.local_imagery?.image&&cfg.local_imagery.detail!==false&&($('imagery_detail')?.value||cfg.imagery_detail)!=='off'?'mixed':'map';return image||'map'}
 function syncImagery(){const select=$('rsPresentationBase');if(select){const mode=currentImagery();select.value=mode;const legacy=select.querySelector('option[value=cache]');if(legacy){legacy.hidden=mode!=='cache';legacy.disabled=mode!=='cache'}}}

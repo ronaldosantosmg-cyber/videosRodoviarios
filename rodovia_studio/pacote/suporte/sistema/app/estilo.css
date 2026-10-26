@@ -627,3 +627,5 @@ dialog#rsNewProject{padding:20px 24px;box-sizing:border-box;border:1px solid var
 .rsSimplified21 .rsToolHeader{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}.rsSimplified21 .rsToolHeader #rsToolTabs{flex:1;min-width:280px;max-width:100%}.rsSimplified21 .rsToolHeader #rsQuickNavigation{margin:0;max-width:100%;flex-wrap:wrap}.rsSimplified21 .rsToolHeader #rsUpdateState{max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 .rsFlowRepairDialog>p,.rsFlowRepairDialog>.row,.rsFlowRepairDialog>[data-flow-results]{margin-left:16px;margin-right:16px}.rsFlowRepairDialog>[data-flow-results]{margin-bottom:12px}.rsFlowRepairAdvanced{margin-top:10px}.rsSectionGaps{padding:8px;border-left:3px solid #c38b23;background:#c38b2310}
+
+.rsUpdateModeChoice{display:flex;align-items:center;gap:4px;font-size:12px;white-space:nowrap}.rsUpdateModeChoice select{padding:3px 4px;width:auto!important;min-width:0!important}

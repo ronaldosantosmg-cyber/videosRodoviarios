@@ -23,7 +23,9 @@ class RouteLaneCache:
         identity=hashlib.sha256((route.id or route.name).encode()).hexdigest()
         target=self.folder/(identity+'.json.z') if self.folder else None
         safe=target is not None and not any(p.is_symlink() for p in (self.folder.parent,self.folder,target))
-        if safe and target.is_file() and target.stat().st_size<=MAX_FILE:
+        from .full_update import required,rebuilt
+        force=required('lanes',str(target)+'|'+key)
+        if not force and safe and target.is_file() and target.stat().st_size<=MAX_FILE:
             try:
                 decoder=zlib.decompressobj();data=decoder.decompress(target.read_bytes(),MAX_RAW+1)
                 if len(data)>MAX_RAW or not decoder.eof or decoder.unconsumed_tail or decoder.unused_data:raise ValueError('Cache excessivo.')
@@ -51,7 +53,7 @@ class RouteLaneCache:
                 if len(data)<=MAX_RAW:
                     compressed=zlib.compress(data,3)
                     if len(compressed)<=MAX_FILE:
-                        self.folder.mkdir(parents=True,exist_ok=True);temp=self.folder/('.'+uuid.uuid4().hex+'.tmp');temp.write_bytes(compressed);temp.replace(target)
+                        self.folder.mkdir(parents=True,exist_ok=True);temp=self.folder/('.'+uuid.uuid4().hex+'.tmp');temp.write_bytes(compressed);temp.replace(target);rebuilt('lanes',str(target)+'|'+key)
                         files=sorted((p for p in self.folder.glob('*.json.z') if not p.is_symlink()),key=lambda p:p.stat().st_mtime,reverse=True);total=0
                         for p in files:
                             total+=p.stat().st_size
