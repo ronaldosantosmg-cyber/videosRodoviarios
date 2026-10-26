@@ -1,0 +1,55 @@
+{
+  "run": "https://github.com/ronaldosantosmg-cyber/videosRodoviarios/actions/runs/40351189588",
+  "commit": "516c99e7e60fae6570a18716bd6d9ba48f7e6066",
+  "zip_sha256": "1191abc4d7720bd5df519aafa7e2901adfd302294c35fd16b02e4701068314b8",
+  "steps": [
+    [
+      "Set up job",
+      "success"
+    ],
+    [
+      "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+      "success"
+    ],
+    [
+      "Run actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065",
+      "success"
+    ],
+    [
+      "Dados isolados do ensaio",
+      "success"
+    ],
+    [
+      "Dependencias com hashes",
+      "success"
+    ],
+    [
+      "Testes de execucao e protecao no Windows",
+      "success"
+    ],
+    [
+      "Compilar iniciador de fonte para inspecao",
+      "success"
+    ],
+    [
+      "Verificar com Microsoft Defender sem alterar protecoes",
+      "success"
+    ],
+    [
+      "Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+      "success"
+    ],
+    [
+      "Post Run actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065",
+      "success"
+    ],
+    [
+      "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+      "success"
+    ],
+    [
+      "Complete job",
+      "success"
+    ]
+  ]
+}
