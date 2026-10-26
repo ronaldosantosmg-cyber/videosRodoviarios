@@ -1,0 +1,26 @@
+{
+  "status": "preparacao_sem_modelo_real",
+  "tests_unique_last_pass": 70,
+  "real_3b_inference_tested": false,
+  "real_online_provider_tested": false,
+  "windows_llama_runtime_tested": false,
+  "generative_weights_included": false,
+  "package_generated": false,
+  "transport_test": "Processo HTTP de teste, não generativo, iniciado e encerrado pelo adaptador. Não valida LLM.",
+  "blocked_download": "huggingface.co HTTP 403 pela política de rede; permissão genérica de rede foi concedida mas não alterou a política de destinos.",
+  "draft_network_status": "Salvo, requires_publish=true; não aplicado.",
+  "domains_requested": [
+    "huggingface.co",
+    "cdn-lfs.huggingface.co",
+    "cas-bridge.xethub.hf.co"
+  ],
+  "remaining": [
+    "Publicar configuração de rede",
+    "Selecionar modelo 3B e conferir licença/arquivos/checksums",
+    "Obter motor portátil oficial compatível",
+    "Medir inferência real, RAM, latência, acerto e cancelamento",
+    "Executar testes de entrega e somente então empacotar nova revisão"
+  ],
+  "candidate": "SmolLM3-3B GGUF Q4_K_M; português confirmado na documentação; pesos/licença/distribuição GGUF ainda não conferidos.",
+  "runtime": "llama.cpp b11669: arquivos oficiais Linux e Windows obtidos, hashes registrados; CLI --help Linux e opções conferidos; nenhum GGUF real carregado."
+}

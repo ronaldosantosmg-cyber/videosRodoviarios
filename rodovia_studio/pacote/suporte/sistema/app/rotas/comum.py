@@ -14,11 +14,15 @@ BASE=Path(__file__).resolve().parents[2]
 stop=threading.Event();dispatch_lock=threading.RLock();maintenance_pending=threading.Event()
 VERSION=json.loads((BASE/'VERSAO.json').read_text(encoding='utf-8')).get('version','1.3.0') if (BASE/'VERSAO.json').exists() else '1.3.0'
 def idle(pid):
+    from ..small_ai import active as ai_active
+    if ai_active():raise HTTPException(409,'Consulta IA em andamento. Cancele ou aguarde o descarregamento antes de alterar arquivos ou iniciar cálculos.')
     store.directory(pid)
     with store.connect() as c:r=c.execute("SELECT id FROM jobs WHERE project=? AND state IN ('queued','running','cancel_requested')",(pid,)).fetchone()
     if r:raise HTTPException(409,'Aguarde a tarefa atual terminar ou cancele-a.')
 def enqueue(pid,kind):
     with dispatch_lock:
+        from ..small_ai import active as ai_active
+        if ai_active():raise HTTPException(409,'Aguarde a IA descarregar ou cancele a consulta antes de iniciar o cálculo/vídeo.')
         if maintenance_pending.is_set():raise HTTPException(409,'Atualização em preparação. Aguarde a conclusão.')
         store.directory(pid);jid=uuid.uuid4().hex
         with store.connect() as c:

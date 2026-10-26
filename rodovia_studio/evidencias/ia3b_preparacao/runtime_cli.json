@@ -1,0 +1,19 @@
+{
+  "release": "b11669",
+  "help_exit_code": 0,
+  "required_flags": {
+    "--host": true,
+    "--port": true,
+    "--model": true,
+    "--alias": true,
+    "--ctx-size": true,
+    "--parallel": true,
+    "--threads": true,
+    "--batch-size": true,
+    "--ubatch-size": true,
+    "--n-gpu-layers": true,
+    "--api-key": true
+  },
+  "real_model_inference": false,
+  "windows_executable_executed": false
+}

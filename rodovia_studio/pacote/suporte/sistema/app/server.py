@@ -66,6 +66,8 @@ async def lifespan(app):
         yield
     finally:
         stop.set()
+        from .small_ai import cancel as cancel_ai
+        cancel_ai()
         from .capture3d import abort_all
         abort_all();thread.join(timeout=5)
         # Workers já foram encerrados. Agora temporários de projeto e da sessão podem sair com segurança.

@@ -115,3 +115,29 @@ async def import_profile(request:Request):
 def export_profile(body:Profile):
     value={'format':'rodovia-perfil-camadas-1','profile':checked_profile(body)}
     return Response(json.dumps(value,ensure_ascii=False,indent=2)+'\n',media_type='application/json',headers={'Content-Disposition':'attachment; filename="perfil_camadas_rodovia.json"'})
+
+
+# Provedor pequeno: mini prompts revisáveis e respostas estritamente tipadas.
+from .. import small_ai as S
+
+@router.get('/api/assistencia/modelo')
+def model_status():return S.status()
+
+@router.post('/api/projects/{pid}/assistencia/mini_prompt')
+def mini_prompt(pid,body:S.Query):
+    with dispatch_lock:
+        idle(pid)
+        return S.prepare(store.directory(pid),body)
+
+@router.post('/api/projects/{pid}/assistencia/modelo')
+def model_run(pid,body:S.Run):
+    try:return S.run(store.directory(pid),body)
+    except (ValueError,TimeoutError,OSError,InterruptedError,KeyError,IndexError,TypeError) as error:
+        if isinstance(error,(KeyError,IndexError,TypeError)):raise HTTPException(422,'Resposta da IA incompatível; nada foi aplicado.') from None
+        if isinstance(error,OSError):raise HTTPException(503,'Provedor IA indisponível ou consulta interrompida; nada foi aplicado.') from None
+        raise HTTPException(422,str(error)[:500]) from None
+
+@router.post('/api/projects/{pid}/assistencia/modelo/cancelar')
+def model_cancel(pid):
+    store.directory(pid)
+    return {'requested':S.cancel(pid),'notice':'Cancelamento solicitado. Aguarde o encerramento; nada será aplicado.'}
