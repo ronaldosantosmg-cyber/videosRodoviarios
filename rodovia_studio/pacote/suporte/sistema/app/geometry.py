@@ -482,3 +482,9 @@ def write_layer_preview(directory,entities,unmapped,limit=40000):
         d['p'].append(q);d['n']+=len(q)
     f=Path(directory)/'camadas_previa.json';tmp=f.with_suffix('.tmp');tmp.write_text(_json.dumps(by,separators=(',',':')),encoding='utf-8');tmp.replace(f)
     return {k:v['n'] for k,v in by.items()}
+
+# Uma entrada comum para leitura pesada; chamadas de prévia de camadas continuam completas.
+_analyze_uncached=analyze
+def analyze(directory,settings,preview=None,hatch_preview=None):
+    from .geometry_cache import cached_analyze
+    return cached_analyze(_analyze_uncached,directory,settings,preview,hatch_preview)

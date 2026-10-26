@@ -54,7 +54,7 @@ function drawProjectAnnotations(){
  for(const h of M.highlights||[]){const st=HL_STYLE[h.category]||HL_STYLE.outro,col=h.color||st[0];const [x,y]=W2C(h.point);let [bx,by]=h.label?W2C(h.label):[x+60,y-60];ctx.strokeStyle=col;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(bx,by);ctx.stroke();ctx.fillStyle=col;ctx.beginPath();ctx.arc(x,y,8,0,7);ctx.fill();ctx.fillStyle='#0a1620';ctx.font='bold 10px system-ui';ctx.fillText(st[1],x-3,y+4);ctx.font='bold 12px system-ui';const tw=ctx.measureText(h.name).width+16;ctx.fillStyle='#081623e6';ctx.fillRect(bx-tw/2,by-12,tw,24);ctx.strokeStyle=col;ctx.strokeRect(bx-tw/2,by-12,tw,24);ctx.fillStyle='#fff';ctx.fillText(h.name,bx-tw/2+8,by+4)}
 }
 function drawSceneLayers(){
- const annotationsInMain=drag?.type==='pan';
+ const annotationsInMain=drag?.type==='pan'&&canvas.width*canvas.height>1500000;
  const background=()=>{if(useGeo()){if(baseMode==='map'){drawTiles();drawLocalTiles()}}else drawPreviewImage()};
  const technical=()=>{ctx.lineJoin='round';ctx.lineCap='round';if(useGeo()){window.RodoviaImageContext?.draw();drawVectors()}else if(meta?.context_capture)window.RodoviaImageContext?.draw();if(!annotationsInMain)drawProjectAnnotations()};
  if(window.RodoviaLayers)RodoviaLayers.compose(background,technical);else{background();technical()}

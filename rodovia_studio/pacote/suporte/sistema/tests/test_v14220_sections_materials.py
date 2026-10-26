@@ -113,7 +113,7 @@ def test_axis_chooser_builds_section_from_real_dxf_and_shows_lane_controls(gl_pa
 
 
 def test_artistic_preset_preserves_geometries_and_sets_natural_materials(gl_page):
-    p=gl_page;p.evaluate("()=>{window.marksBefore=JSON.stringify(M);psOpenHub('video')}")
+    p=gl_page;p.evaluate("()=>{window.marksBefore=JSON.stringify(M);RodoviaMaterialsHub.open()}")
     p.locator('#rsArtisticPreset').click()
     values=p.evaluate("()=>({same:JSON.stringify(M)===marksBefore,profile:$('style_profile').value,texture:$('texture_style').value,earth:$('earthwork_look').value})")
     assert values==dict(same=True,profile='padrao',texture='artistico',earth='natural')

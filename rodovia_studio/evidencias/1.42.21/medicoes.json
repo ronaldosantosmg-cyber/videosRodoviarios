@@ -1,0 +1,194 @@
+{
+  "1.42.20": {
+    "DPI1": {
+      "results": {
+        "stationary": {
+          "p50_ms": 0.7999999970197678,
+          "p95_ms": 1.199999988079071
+        },
+        "pan": {
+          "p50_ms": 7.9000000059604645,
+          "p95_ms": 10
+        }
+      },
+      "cache": {
+        "backgroundBuilds": 46,
+        "technicalBuilds": 48,
+        "hits": 98,
+        "buildMs": 16.19999995827675,
+        "fallbacks": 0,
+        "enabled": true,
+        "bytes": 5154240,
+        "budgetBytes": 33554432,
+        "surfaces": 3
+      },
+      "width": 1239,
+      "height": 520,
+      "css_area": 644280
+    },
+    "DPI2": {
+      "results": {
+        "stationary": {
+          "p50_ms": 2.800000011920929,
+          "p95_ms": 4.399999991059303
+        },
+        "pan": {
+          "p50_ms": 27.400000005960464,
+          "p95_ms": 33.099999994039536
+        }
+      },
+      "cache": {
+        "backgroundBuilds": 46,
+        "technicalBuilds": 48,
+        "hits": 98,
+        "buildMs": 32.599999979138374,
+        "fallbacks": 0,
+        "enabled": true,
+        "bytes": 20616960,
+        "budgetBytes": 33554432,
+        "surfaces": 3
+      },
+      "width": 2478,
+      "height": 1040,
+      "css_area": 644280
+    }
+  },
+  "1.42.21": {
+    "DPI1": {
+      "results": {
+        "stationary": {
+          "p50_ms": 0.9000000059604645,
+          "p95_ms": 1.2999999970197678
+        },
+        "pan": {
+          "p50_ms": 7,
+          "p95_ms": 8.599999994039536
+        }
+      },
+      "cache": {
+        "backgroundBuilds": 2,
+        "technicalBuilds": 3,
+        "hits": 97,
+        "buildMs": 11.799999967217445,
+        "fallbacks": 0,
+        "panReuses": 90,
+        "enabled": true,
+        "bytes": 5957112,
+        "budgetBytes": 33554432,
+        "surfaces": 3
+      },
+      "width": 1239,
+      "height": 601,
+      "css_area": 744639
+    },
+    "DPI2": {
+      "results": {
+        "stationary": {
+          "p50_ms": 2.7999999970197678,
+          "p95_ms": 3.4000000059604645
+        },
+        "pan": {
+          "p50_ms": 26.299999997019768,
+          "p95_ms": 29.799999997019768
+        }
+      },
+      "cache": {
+        "backgroundBuilds": 46,
+        "technicalBuilds": 48,
+        "hits": 98,
+        "buildMs": 24.200000062584877,
+        "fallbacks": 0,
+        "panReuses": 0,
+        "enabled": true,
+        "bytes": 23828448,
+        "budgetBytes": 33554432,
+        "surfaces": 3
+      },
+      "width": 2478,
+      "height": 1202,
+      "css_area": 744639
+    }
+  },
+  "limitations": "Pintura CPU da interface real em Chromium/Linux, 1366×900, com 100 hachuras sintéticas. Não mede FPS de projeto real, consumo total de RAM/GPU, Windows ou renderização do vídeo. Pan reutiliza translações em superfícies menores e mantém desenho direto em superfícies grandes; caches têm teto adicional de 32 MiB.",
+  "real_dxf_geometry": {
+    "1.42.20": {
+      "source_sha256": "7936e09e195212a85a894dbc48f5ad337f0cbe4f3195225e6f8137297e3e4538",
+      "runs": [
+        {
+          "operation": "initial",
+          "seconds": 17.3218,
+          "dxf_reads_total": 1,
+          "entities": 9538,
+          "axis_points": 1898,
+          "cache": null
+        },
+        {
+          "operation": "density",
+          "seconds": 17.617,
+          "dxf_reads_total": 2,
+          "entities": 9538,
+          "axis_points": 1898,
+          "cache": null
+        }
+      ]
+    },
+    "1.42.21": {
+      "source_sha256": "7936e09e195212a85a894dbc48f5ad337f0cbe4f3195225e6f8137297e3e4538",
+      "runs": [
+        {
+          "operation": "initial",
+          "seconds": 17.3345,
+          "dxf_reads_total": 1,
+          "entities": 9538,
+          "axis_points": 1898,
+          "cache": {
+            "hit": false,
+            "seconds": 17.333665530008147
+          }
+        },
+        {
+          "operation": "density",
+          "seconds": 0.2608,
+          "dxf_reads_total": 1,
+          "entities": 9538,
+          "axis_points": 1898,
+          "cache": {
+            "hit": true,
+            "seconds": 0.25461100100073963
+          }
+        }
+      ]
+    }
+  },
+  "additional": {
+    "1.42.20": {
+      "offline_interface_open_seconds": [
+        1.3250951599911787,
+        1.2206002489983803,
+        1.1809475040063262
+      ],
+      "median": 1.2206002489983803,
+      "simulation_600m_30s": {
+        "seconds": 6.557377285993425,
+        "vehicles": 25,
+        "rear_collisions": 0,
+        "side_collisions": 0
+      }
+    },
+    "1.42.21": {
+      "offline_interface_open_seconds": [
+        1.2678367250045994,
+        1.2784048770117806,
+        1.2443630619964097
+      ],
+      "median": 1.2678367250045994,
+      "simulation_600m_30s": {
+        "seconds": 5.516362231006497,
+        "vehicles": 25,
+        "rear_collisions": 0,
+        "side_collisions": 0
+      }
+    }
+  },
+  "additional_limitations": "Abertura da interface em harness offline local (3 amostras), não inclui inicialização do servidor/importação. Simulação sintética de 600 m por 30 s, uma amostra; não é teste de carga."
+}

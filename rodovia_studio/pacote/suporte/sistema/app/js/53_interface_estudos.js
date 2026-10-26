@@ -48,8 +48,15 @@ function modelGroups(){
  return groups.filter(g=>g.sub.length);
 }
 function menuDefinitions(){
- const project=(MENUBAR[0]?.[1]||[]).map(i=>i?leaf(i[0],i.at(-1),typeof i[1]==='string'?i[1]:null):{sep:true});
- return [{t:'Arquivo',sub:project},...RIBBON.map(([t,groups])=>({t:t==='Layers'?'Camadas':t,sub:t==='Modelar'?modelGroups():(groups||[]).map(([label,items])=>({t:label,sub:items.map(i=>leaf(i[0].replace(/layers/ig,'camadas'),i[2]))}))}))];
+ const original=RIBBON.map(([t,groups])=>({t,sub:(groups||[]).map(([label,items])=>({t:label,sub:items.map(i=>leaf(i[0].replace(/layers/ig,'camadas'),i[0]==='Pavimento'?()=>RodoviaMaterialsHub.open():i[2]))}))}));
+ const find=t=>original.find(m=>m.t===t)?.sub||[];const groups=modelGroups();
+ const choose=(...names)=>groups.filter(g=>names.includes(g.t));
+ return [{t:'Arquivo',sub:(MENUBAR[0]?.[1]||[]).map(i=>i?leaf(i[0],i.at(-1),typeof i[1]==='string'?i[1]:null):{sep:true})},
+ {t:'Editar',sub:[...find('Editar'),leaf('Desfazer',undo,'Ctrl+Z'),leaf('Refazer',redo,'Ctrl+Y'),...['MOVER','GIRAR','COPIAR','ESCALA','ESPELHAR','OFFSET','APAGAR'].map(k=>leaf(k.charAt(0)+k.slice(1).toLowerCase(),()=>runCommand(k))),{t:'Propriedades',sub:find('Propriedades')},...choose('Outras ferramentas')]},
+ {t:'Projeto',sub:[...find('Projeto'),...find('Início').filter(g=>['Arquivos'].includes(g.t)),...choose('Traçado e referências')]},
+ {t:'Tráfego',sub:[...find('Fluxos'),leaf('Escolher eixo e configurar faixas',()=>RodoviaSections.chooseAxis()),leaf('Gerar e visualizar',()=>window.RodoviaUpdates?.update()),leaf('Corrigir problemas',()=>RodoviaFlowRepair.open()),...choose('Tráfego e ligações','Ferrovia e semáforos')]},
+ {t:'Cena',sub:[...find('Aparência'),...choose('Pavimento e superfícies','Sinalização e estruturas','Apresentação e ambiente'),leaf('Materiais e texturas',()=>window.RodoviaMaterialsHub?.open())]},
+ {t:'Vídeo',sub:find('Vídeo')},{t:'Exibir',sub:find('Exibir')},{t:'Ajuda',sub:find('Ajuda')}];
 }
 function closeMenus(restore=false){
  state.menus.forEach(m=>m.el.remove());state.menus=[];state.top=-1;
@@ -259,7 +266,7 @@ function init(){
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.menus.length&&!e.target.closest('.rsCascade')){e.preventDefault();closeMenus(true)}},true);
  window.addEventListener('resize',()=>closeMenus());
  // API de leitura para conferência e testes de interação, sem dados no modelo do vídeo.
- window.RodoviaMenus=Object.freeze({close:closeMenus,modelGroups,contextItems,open:(items,point)=>{closeMenus();popup(items,null,0,point)}});
+ window.RodoviaMenus=Object.freeze({definitions:menuDefinitions,close:closeMenus,modelGroups,contextItems,open:(items,point)=>{closeMenus();popup(items,null,0,point)}});
 }
 queueMicrotask(init);
 })();

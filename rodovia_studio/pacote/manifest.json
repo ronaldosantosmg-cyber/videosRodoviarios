@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.20",
-  "description": "1.42.20: seção típica de fluxo direto do eixo DXF, faixas e acostamentos por lado/intervalo, densidade editável e materiais naturais com classificação de hachuras corrigida."
+  "version": "1.42.21",
+  "description": "1.42.21: cinco abas, progresso único, atualização explícita, fila sem duplicação e cache de geometria/camadas."
 }

@@ -163,7 +163,8 @@ def test_reconstruct_action_is_available_in_visual_repair_dialog(page):
     from test_v1422_layout import seed
     from visual_harness import screenshot
     seed(page);page.evaluate("()=>{pid='repair';editor.segments[0].technical_status='problem';}")
-    page.locator('#rsRepairFlows').click()
+    page.get_by_role('tab',name='Tráfego',exact=True).click()
+    page.get_by_role('button',name='Corrigir problemas',exact=True).click()
     assert page.get_by_role('button',name='Reconstruir ligação contínua').is_visible()
     assert '8 m' in page.get_by_role('dialog',name='Corrigir fluxos').inner_text()
     screenshot(page,'14219_reconstrucao_continua')

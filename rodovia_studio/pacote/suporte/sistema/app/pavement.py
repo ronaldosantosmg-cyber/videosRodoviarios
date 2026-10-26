@@ -25,11 +25,12 @@ def tag_materials(entities,settings):
     """Material de cada superfície: palavra no nome da camada (RIGIDO, CONCRETO, CCP… / FLEXIVEL, ASFALTO, CBUQ…)
     ou o padrão do projeto para o tipo. Marcações do editor podem definir o seu."""
     for e in entities:
+        if e.get('material_source')=='project_default':e.pop('material',None)
         if e.get('role') not in SURF_ROLES or 'material' in e:continue
         n=_norm(e.get('layer',''))
         if any(w in n for w in RIGID_WORDS):e['material']='rigido'
         elif any(w in n for w in FLEX_WORDS):e['material']='flexivel'
-        else:e['material']=default_material(settings,e['role'])
+        else:e['material']=default_material(settings,e['role']);e['material_source']='project_default'
     return entities
 
 def any_rigid(entities):return any(e.get('material')=='rigido' for e in entities if e.get('role') in SURF_ROLES)

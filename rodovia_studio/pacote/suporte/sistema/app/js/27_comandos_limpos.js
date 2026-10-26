@@ -11,21 +11,16 @@ estender('placeSelBar',_psb=>function(){_psb();const b=$('selBar');if(b&&(cadCmd
 estender('texApply',_ta=>function(){_ta();if(!$('texDlg').open)setTimeout(clearSelection,0)},'• A prévia é atualizada sozinha depois das alterações (pode desligar),');
 $('td_ok')?.addEventListener('click',()=>{if(!$('texDlg').open)setTimeout(clearSelection,0)});
 estender('renameSel',_rn=>async function(){await _rn();if(!window.RodoviaSelectionPolicy?.preserveAfterCommand)clearSelection()},'• A prévia é atualizada sozinha depois das alterações (pode desligar),');
-// Prévia automática depois das alterações (padrão: ligada).
-try{if(localStorage.getItem('rodovia_autoprev')===null)autoPrev=true}catch{autoPrev=true}
-let prevQueued=false;
+// Edições não iniciam tarefas; a prévia anterior continua visível até Atualizar.
+autoPrev=false;let prevQueued=false;
 function previewVisible(){return !useGeo()||baseMode==='preview'}
-scheduleViewPreview=function(){previewStale=true;draw();if(!autoPrev||!pid||!ready()||!previewVisible())return;clearTimeout(prevTimer);prevTimer=setTimeout(runViewPreview,2500)};
-$('baseMode')?.addEventListener('change',()=>{if(previewStale&&autoPrev&&previewVisible()){clearTimeout(prevTimer);prevTimer=setTimeout(runViewPreview,300)}});
+scheduleViewPreview=function(){previewStale=true;clearTimeout(prevTimer);window.dispatchEvent(new CustomEvent('rodovia:update-state'));draw()};
 // Recarregar o mesmo projeto (ao terminar uma tarefa) não apaga o histórico de desfazer nem a seleção.
 estender('load',_l=>async (id,options={})=>{const same=id===pid&&!!pid;const u=undoStack.slice(),r=redoStack.slice(),S=sel,SS=selSet.slice(),seg=selSeg;const loaded=await _l(id,options);if(loaded===false||pid!==id)return false;if(options.resultsOnly||options.resetHistory)return loaded;
  if(same){undoStack=u;redoStack=r;updateUndo();if(S&&objOf(S)){sel=S;selSet=SS.filter(x=>objOf(x));showProps()}if(seg&&segById(seg.id)){selSeg=seg;showSegProps()}draw()}return loaded},'Recarregar o mesmo projeto (ao terminar uma tarefa) não apaga o histór');
-async function runViewPreview(){if(!autoPrev||!pid||!ready())return;if(task||drag||draft||cadCmd){prevQueued=true;clearTimeout(prevTimer);prevTimer=setTimeout(runViewPreview,1500);return}
- prevQueued=false;try{const c=C2W(canvas.width/2,canvas.height/2),a=C2W(0,canvas.height/2),b=C2W(canvas.width,canvas.height/2);cfg.preview_center=c;cfg.preview_width_m=Math.max(5,Math.min(50000,Math.hypot(b.x-a.x,b.y-a.y)));$('preview_mode').value='custom';
-  msg('Aplicando as alterações à prévia desta vista…');const completed=await start('preview',undefined,{automatic:true});if(completed===false)return;previewStale=false;draw();msg('Prévia atualizada com as alterações.')}catch(e){msg('A prévia não foi atualizada: '+e.message,true)}}
+async function runViewPreview(){if(!pid||!ready())return false;const c=C2W(canvas.width/2,canvas.height/2),a=C2W(0,canvas.height/2),b=C2W(canvas.width,canvas.height/2);cfg.preview_center=c;cfg.preview_width_m=Math.max(5,Math.min(50000,Math.hypot(b.x-a.x,b.y-a.y)));$('preview_mode').value='custom';return start('preview')}
 estender('changed',_ch=>function(text){_ch(text);if(pid&&ready())scheduleViewPreview()},'Recarregar o mesmo projeto (ao terminar uma tarefa) não apaga o histór');
-estender('draw',_d=>function(){_d();if(!ready()||!previewStale)return;try{ctx.save();ctx.setTransform(1,0,0,1,0,0);const t=autoPrev&&previewVisible()?(task?'Prévia desatualizada · aguardando a tarefa atual…':'Prévia desatualizada · atualizando em instantes…'):'Alterações salvas · a prévia renderizada e o vídeo usam ao gerar (⟳ Regenerar prévia)';ctx.font='bold 13px system-ui';const w=ctx.measureText(t).width+20;ctx.fillStyle='#ffcf5ce6';ctx.fillRect(10,10,w,26);ctx.fillStyle='#1b1b1b';ctx.fillText(t,20,28);ctx.restore()}catch{}},'Recarregar o mesmo projeto (ao terminar uma tarefa) não apaga o histór');
-estender('showProps',_sp=>function(){_sp();const el=document.getElementById('autoPrev');if(el)el.checked=autoPrev},'Recarregar o mesmo projeto (ao terminar uma tarefa) não apaga o histór');
+estender('showProps',_sp=>function(){_sp();const el=document.getElementById('autoPrev');if(el){el.checked=false;el.closest('label').hidden=true}},'Recarregar o mesmo projeto (ao terminar uma tarefa) não apaga o histór');
 // Área com textura própria: indicação no editor.
 estender('draw',_d=>function(){_d();if(!ready())return;try{for(const a of M.pavement_areas||[])if(a.texture&&a.points?.length>2){const c=a.points.reduce((s,p)=>({x:s.x+p.x/a.points.length,y:s.y+p.y/a.points.length}),{x:0,y:0});label('🖌 textura própria',c,'#ffe7a3')}}catch{}},'Área com textura própria: indicação no editor.');
 estender('start',_st=>async function(kind,...args){const result=await _st(kind,...args);if(result===false)return false;if(kind==='preview'||kind==='render'){previewStale=false;draw()}return result},'Área com textura própria: indicação no editor.');

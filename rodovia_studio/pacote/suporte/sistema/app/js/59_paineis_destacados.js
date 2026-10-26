@@ -45,7 +45,7 @@ function finish(discard){
  }
  try{syncImagery()}catch(e){refreshError??=e}
  if(refreshError)msg((discard?'Alterações descartadas. ':'Alterações salvas. ')+'A janela foi fechada; não foi possível atualizar uma parte do painel: '+refreshError.message,true);
- const refresh=()=>{if(active||pid!==base.project)return;if(!task&&!taskRequestPending&&!savePending&&analysis&&!editor&&projectSession.artifacts.editor?.state==='stale')void originalStart('analyze',undefined,{automatic:true}).catch(e=>msg(e.message,true));if(!savePending&&typeof autoPrev!=='undefined'&&autoPrev&&previewStale&&previewVisible())scheduleViewPreview()};
+ const refresh=()=>{if(active||pid!==base.project)return;window.dispatchEvent(new CustomEvent('rodovia:update-state'))};
  if(discard&&base.project&&!savePending)void oldApi('/api/projects/'+base.project).then(r=>{if(pid===base.project&&!savePending&&projectSession.revision===r.config_revision)window.dispatchEvent(new CustomEvent('rodovia:project-state',{detail:{project:base.project,...r}}))}).catch(()=>{});
  if(savePending){clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{try{await originalSave();refresh()}catch(e){msg(e.message,true)}},900)}else setTimeout(refresh,350)
 }

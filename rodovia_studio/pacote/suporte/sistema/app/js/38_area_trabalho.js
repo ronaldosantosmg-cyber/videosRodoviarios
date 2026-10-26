@@ -108,11 +108,7 @@ function montarRodape(){const ta=$('taskArea');if(!ta||ta.dataset.ok)return;ta.d
  const prog=[...document.querySelectorAll('main section')].find(s=>/Progresso e resultado/.test(s.querySelector('h2')?.textContent||''));
  if(prog){prog.classList.add('retirada');prog.id=prog.id||'progressSection'}
  $('render')?.classList.add('retirada')}
-let taskStart=0,taskTimer=null;
-function marcarTarefa(on){const ta=$('taskArea');if(!ta)return;ta.classList.toggle('running',on);$('taskTime').hidden=!on;clearInterval(taskTimer);
- if(on){taskStart=taskStart||Date.now();const tick=()=>{const el=(Date.now()-taskStart)/1000,pv=Number($('progress').value)||0;
-   const rest=pv>.03?el*(1-pv)/pv:null;$('taskTime').textContent=`${Math.round(pv*100)}% · ${tempo(el)}${rest!=null?` · falta ~${tempo(rest)}`:''}`};tick();taskTimer=setInterval(tick,1000)}
- else taskStart=0}
+function marcarTarefa(on){const ta=$('taskArea');if(ta)ta.classList.toggle('running',on);if($('taskTime'))$('taskTime').hidden=true}
 estender('poll',anterior=>async function(jid){marcarTarefa(true);try{return await anterior(jid)}finally{marcarTarefa(false)}},'rodapé: progresso e tempo da tarefa');
 estender('msg',anterior=>function(s,error=false){const t=tempoTexto(s);anterior(t,error);const m=$('message');if(m){m.title=t+'\n\n(Clique para ver a mensagem inteira)';m.classList.remove('pisca');void m.offsetWidth;m.classList.add('pisca')}},'rodapé: mensagens com tempos em minutos');
 function abrirMensagem(){const m=$('message');let d=$('msgDlg');

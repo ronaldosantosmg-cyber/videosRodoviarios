@@ -1,28 +1,14 @@
-// =====================================================================================================
-// 1.34: progresso sempre visível. Durante qualquer tarefa (análise, prévia, vídeo, exportação) e em todo arquivo
-// baixado (registros, prompt para IA, vídeos, exportações), um quadro de progresso aparece no canto inferior
-// direito — o que está sendo feito, a barra, a porcentagem, o tempo e Cancelar — além do rodapé.
-// =====================================================================================================
-const TAREFA_NOME={render:'Gerando vídeo',preview:'Gerando prévia',analyze:'Analisando arquivos',export:'Exportando',frames:'Exportando quadros PNG',
- reference:'Exportando vídeo de referência',compare:'Comparando vídeos',convert_imagery:'Convertendo imagem',install_ecw:'Instalando leitor ECW',reference_profile:'Medindo vídeo',reference_profile_remove:'Medindo vídeo'};
-let progCard=null,progAtual=null;
-function progQuadro(){if(progCard)return progCard;document.body.insertAdjacentHTML('beforeend','<div id="progCard" class="progCard" hidden role="status" aria-live="polite"><div class="pcTop"><b id="pcTitulo"></b><span class="grow"></span><span id="pcPct" class="pcPct"></span><button type="button" id="pcMin" title="Esconder este quadro (o progresso continua no rodapé)">–</button></div><div class="pcBar"><i id="pcFill"></i></div><div id="pcInfo" class="pcInfo"></div><div class="pcRow"><span id="pcTempo" class="pcTempo"></span><span class="grow"></span><button type="button" id="pcCancel" class="danger">Cancelar</button></div></div>');
- progCard=$('progCard');$('pcMin').onclick=()=>{progCard.hidden=true;if(progAtual)progAtual.escondido=true};$('pcCancel').onclick=()=>{progAtual?.cancelar?.()};return progCard}
-// estado: {titulo, valor 0–1 ou null (indeterminado), info, inicio, cancelar}
-function progMostrar(st){progQuadro();progAtual={inicio:Date.now(),...progAtual&&progAtual.id===st.id?progAtual:{},...st};const p=progAtual;
- if(!p.escondido)progCard.hidden=false;$('pcTitulo').textContent=p.titulo||'Processando';
- const v=p.valor==null?null:Math.max(0,Math.min(1,p.valor));progCard.classList.toggle('indet',v==null);$('pcFill').style.width=v==null?'30%':(v*100).toFixed(1)+'%';$('pcPct').textContent=v==null?'':Math.round(v*100)+'%';
- $('pcInfo').textContent=tempoTexto(p.info||'');const el=(Date.now()-p.inicio)/1000,rest=v>.03?el*(1-v)/v:null;$('pcTempo').textContent=`${tempo(el)}${rest!=null&&v<1?` · falta ~${tempo(rest)}`:''}`;
- $('pcCancel').hidden=!p.cancelar}
-function progFim(id,texto,erro){if(!progAtual||progAtual.id!==id)return;const card=progQuadro();
- if(texto){$('pcInfo').textContent=texto;$('pcFill').style.width='100%';card.classList.remove('indet');card.classList.toggle('erro',!!erro);$('pcCancel').hidden=true}
- const fim=progAtual;setTimeout(()=>{if(progAtual===fim){card.hidden=true;card.classList.remove('erro');progAtual=null}},texto?2500:0)}
-// Tarefas do servidor: o quadro acompanha o progresso e a mensagem enquanto a tarefa roda.
-estender('poll',anterior=>async function(jid){let kind='';try{kind=(await api('/api/jobs/'+jid)).kind||''}catch{}
- const id='job:'+jid;progMostrar({id,titulo:TAREFA_NOME[kind]||'Processando',valor:0,info:'',cancelar:()=>$('cancel')?.click()});
- const t=setInterval(()=>{if(progAtual?.id===id)progMostrar({id,valor:Number($('progress').value)||0,info:$('message').textContent})},700);
- let r,estado='';try{r=await anterior(jid);try{estado=(await api('/api/jobs/'+jid)).state}catch{}}finally{clearInterval(t)}
- progFim(id,estado==='done'?'Concluído.':estado==='cancelled'?'Cancelado.':estado==='failed'?'Falhou — veja a mensagem no rodapé.':'',estado==='failed');return r},'progresso: quadro durante a tarefa');
+// Estado único de progresso, compartilhado por tarefas e downloads no rodapé.
+const TAREFA_NOME={render:'Gerando vídeo',preview:'Gerando prévia',analyze:'Atualizando projeto',scene3d:'Construindo 3D',reference:'Exportando referência',convert_imagery:'Convertendo imagem',frames:'Exportando quadros',image_context:'Analisando imagem'};
+let progCard=null,progAtual=null;const progressItems=new Map();
+function progQuadro(){if(progCard)return progCard;progCard=document.createElement('div');progCard.id='progCard';progCard.className='rsProgressDock';progCard.setAttribute('role','status');progCard.setAttribute('aria-label','Progresso único');progCard.innerHTML='<b id="pcTitulo">Pronto</b><span id="pcPct"></span><span id="pcTempo"></span><span id="pcQueue"></span><button type="button" id="pcCancel" hidden>Cancelar</button>';
+ document.body.appendChild(progCard);const bar=$('progress');if(bar){bar.setAttribute('aria-label','Progresso da operação');progCard.insertBefore(bar,$('pcPct'))}if($('message'))progCard.insertBefore($('message'),$('pcTempo'));$('pcCancel').onclick=()=>{const p=progAtual;if(!p?.cancelar||p.cancelling)return;p.cancelling=true;$('pcCancel').disabled=true;$('message').textContent='Concluindo cancelamento…';Promise.resolve(p.cancelar()).catch(e=>{p.cancelling=false;$('pcCancel').disabled=false;msg(e.message,true)})};return progCard}
+function paintProgress(p){progQuadro();progAtual=p;if(!p)return;const v=Number.isFinite(p.valor)?Math.max(0,Math.min(1,p.valor)):null;const bar=$('progress');if(v===null)bar.removeAttribute('value');else bar.value=v;$('pcTitulo').textContent=p.titulo||'Processando';$('pcPct').textContent=p.ended?(p.error?'Falhou':p.cancelled?'Cancelado':'Concluído'):v===null?'':Math.round(v*100)+'%';$('message').textContent=p.info||'';$('message').title=p.info||'';const elapsed=Math.max(0,(Date.now()-p.inicio)/1000);$('pcTempo').textContent=tempo(elapsed);$('pcCancel').hidden=!p.cancelar||!!p.ended;$('pcCancel').disabled=!!p.cancelling;progCard.classList.toggle('erro',!!p.error);}
+function progMostrar(st){const previous=progressItems.get(st.id);const p={inicio:Date.now(),...previous,...st};progressItems.set(p.id,p);paintProgress([...progressItems.values()].find(x=>!x.ended)||p)}
+function progFim(id,texto,erro=false){const p=progressItems.get(id);if(!p)return;p.ended=true;p.cancelar=null;p.info=texto||'Concluído.';p.error=erro;p.cancelled=/cancelad/i.test(p.info);p.valor=erro?0:p.cancelled?(Number.isFinite(p.valor)?p.valor:0):1;progressItems.delete(id);paintProgress([...progressItems.values()].find(x=>!x.ended)||p)}
+window.RodoviaProgress=Object.freeze({snapshot:()=>({active:progAtual?{id:progAtual.id,title:progAtual.titulo,ended:!!progAtual.ended,error:!!progAtual.error,value:progAtual.valor}:null,count:progressItems.size})});
+window.addEventListener('rodovia:job',e=>{const j=e.detail,id='job:'+j.id;progMostrar({id,titulo:TAREFA_NOME[j.kind]||'Processando',valor:Number.isFinite(j.progress)?j.progress:null,info:j.message||'',cancelar:()=>api('/api/jobs/'+j.id+'/cancel',{method:'POST'})});if(['done','failed','cancelled','interrupted'].includes(j.state))progFim(id,j.state==='done'?'Concluído.':j.state==='cancelled'?'Cancelado.':j.message||'Falhou.',j.state==='failed'||j.state==='interrupted')});
+queueMicrotask(progQuadro);
 // Arquivos baixados: lidos em partes para mostrar o progresso; depois salvos com o nome do servidor.
 function nomeDoArquivo(resp,url){const cd=resp.headers.get('content-disposition')||'';const m=/filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i.exec(cd);
  if(m)return decodeURIComponent(m[1]||m[2]);try{return decodeURIComponent(new URL(url,location.href).pathname.split('/').pop())||'arquivo'}catch{return 'arquivo'}}

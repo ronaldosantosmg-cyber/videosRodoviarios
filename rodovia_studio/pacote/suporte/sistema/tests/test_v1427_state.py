@@ -40,7 +40,7 @@ def test_old_job_and_file_replacement_cannot_be_advertised_current(project):
     d=project;s=ps.read_config(d);ticket=artifacts.begin(d,'job','analyze',s)
     for name in ('analysis.json','editor.json','vectors.json'):store.write_json(d/name,{'job':'job'})
     artifacts.finish(d,ticket);assert artifacts.status(d)['editor']['state']=='ready'
-    ps.save_config(d,{**s,'traffic_speed_kmh':s['traffic_speed_kmh']+5})
+    ps.save_config(d,{**s,'lane_width_m':s['lane_width_m']+.1})
     assert artifacts.status(d)['editor']['state']=='stale'
     ps.save_config(d,s);store.write_json(d/'editor.json',{'outro':'resultado'})
     assert artifacts.status(d)['editor']['state']=='stale'

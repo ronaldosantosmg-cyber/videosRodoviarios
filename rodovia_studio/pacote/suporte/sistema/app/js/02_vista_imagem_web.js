@@ -78,10 +78,11 @@ function getTile(z,x,y){const k=tileKey(z,x,y);let t=tiles.get(k);if(t&&t.fail&&
  if(tiles.size>700){const old=[...tiles.entries()].sort((a,b)=>a[1].used-b[1].used).slice(0,200);for(const [kk] of old)tiles.delete(kk)}return t}
 /* 1.17: imagem local em ladrilhos Web Mercator (servidor local), por cima da Esri, até o zoom da resolução dela. */
 const localTiles=new Map();
-function getLocalTile(z,x,y){const k=z+'/'+x+'/'+y;let t=localTiles.get(k);if(t){t.used=performance.now();return t}
- t={img:new Image(),ok:false,empty:false,used:performance.now()};t.img.onload=()=>{t.ok=true;tileRedraw()};t.img.onerror=()=>{t.empty=true};
- fetch(`/api/projects/${pid}/local_tiles/${z}/${y}/${x}.png?k=${localInfo?.key||''}`).then(r=>{if(r.status===204){t.empty=true;return null}if(!r.ok){t.empty=true;return null}return r.blob()}).then(b=>{if(b)t.img.src=URL.createObjectURL(b)}).catch(()=>{t.empty=true});
- localTiles.set(k,t);if(localTiles.size>500){const old=[...localTiles.entries()].sort((a,b)=>a[1].used-b[1].used).slice(0,150);for(const [kk,v] of old){if(v.img.src.startsWith('blob:'))URL.revokeObjectURL(v.img.src);localTiles.delete(kk)}}return t}
+function localTileKey(z,x,y){return pid+'|'+(localInfo?.key||'')+'|'+z+'/'+x+'/'+y}
+function getLocalTile(z,x,y){const project=pid,context=projectSession.context,source=localInfo?.key;const k=localTileKey(z,x,y);let t=localTiles.get(k);if(t){t.used=performance.now();return t}
+ t={img:new Image(),ok:false,empty:false,used:performance.now()};t.img.onload=()=>{t.ok=true;if(t.img.src.startsWith('blob:'))URL.revokeObjectURL(t.img.src);if(pid===project&&projectSession.context===context&&localInfo?.key===source)tileRedraw()};t.img.onerror=()=>{t.empty=true};
+ fetch(`/api/projects/${pid}/local_tiles/${z}/${y}/${x}.png?k=${localInfo?.key||''}`).then(r=>{if(r.status===204){t.empty=true;return null}if(!r.ok){t.empty=true;return null}return r.blob()}).then(b=>{if(b&&pid===project&&projectSession.context===context&&localInfo?.key===source)t.img.src=URL.createObjectURL(b);else t.empty=true}).catch(()=>{t.empty=true});
+ localTiles.set(k,t);if(localTiles.size>256){const old=[...localTiles.entries()].sort((a,b)=>a[1].used-b[1].used).slice(0,64);for(const [kk,v] of old){if(v.img.src.startsWith('blob:'))URL.revokeObjectURL(v.img.src);localTiles.delete(kk)}}return t}
 function drawLocalTiles(){if(!localInfo||!localInfo.sources?.length||localInfo.editor===false||!geo)return;
  const res=geo.R0/view.s;const z=Math.max(10,Math.min(localInfo.max_zoom,Math.ceil(Math.log2(2*MERC/256/res)-.25))),n=2**z,size=2*MERC/n;
  const corners=[[0,0],[canvas.width,0],[0,canvas.height],[canvas.width,canvas.height]].map(([cx,cy])=>[geo.m0x+(cx-view.ox)/view.s*geo.R0,geo.m0y-(cy-view.oy)/view.s*geo.R0]);
@@ -90,7 +91,11 @@ function drawLocalTiles(){if(!localInfo||!localInfo.sources?.length||localInfo.e
  mx0=Math.max(mx0,B[0]);my0=Math.max(my0,B[1]);mx1=Math.min(mx1,B[2]);my1=Math.min(my1,B[3]);if(mx1<=mx0||my1<=my0)return;
  const tx0=Math.floor((mx0+MERC)/size),tx1=Math.floor((mx1+MERC)/size),ty0=Math.floor((MERC-my1)/size),ty1=Math.floor((MERC-my0)/size);if((tx1-tx0+1)*(ty1-ty0+1)>300)return;
  ctx.save();ctx.setTransform(view.s,0,0,view.s,view.ox,view.oy);ctx.globalAlpha=tileAlpha;const px=size/geo.R0,pad=.6/view.s;
- for(let ty=ty0;ty<=ty1;ty++)for(let tx=tx0;tx<=tx1;tx++){const t=getLocalTile(z,tx,ty);if(t.ok){const ix=(-MERC+tx*size-geo.m0x)/geo.R0,iy=(geo.m0y-(MERC-ty*size))/geo.R0;ctx.drawImage(t.img,ix,iy,px+pad,px+pad)}}
+ for(let ty=ty0;ty<=ty1;ty++)for(let tx=tx0;tx<=tx1;tx++){const t=getLocalTile(z,tx,ty),ix=(-MERC+tx*size-geo.m0x)/geo.R0,iy=(geo.m0y-(MERC-ty*size))/geo.R0;
+  if(t.ok){ctx.drawImage(t.img,ix,iy,px+pad,px+pad);continue}
+  let retained=false;for(let k=1;k<=6&&z-k>=0;k++){const parent=localTiles.get(localTileKey(z-k,tx>>k,ty>>k));if(!parent?.ok)continue;const sub=parent.img.width/2**k,sx=(tx-((tx>>k)<<k))*sub,sy=(ty-((ty>>k)<<k))*sub;ctx.drawImage(parent.img,sx,sy,sub,sub,ix,iy,px+pad,px+pad);retained=true;break}
+  if(!retained)for(let cy=0;cy<2;cy++)for(let cx=0;cx<2;cx++){const child=localTiles.get(localTileKey(z+1,tx*2+cx,ty*2+cy));if(child?.ok)ctx.drawImage(child.img,ix+cx*px/2,iy+cy*px/2,px/2+pad,px/2+pad)}
+ }
  ctx.restore()}
 function peekTile(z,x,y){const t=tiles.get(tileKey(z,x,y));return t&&t.ok?t:null}
 function tileZoom(){const res=geo.R0/view.s;return Math.max(0,Math.min(tileMaxZ(),Math.ceil(Math.log2(2*MERC/256/res)-.25)))}

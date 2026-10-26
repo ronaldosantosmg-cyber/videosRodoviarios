@@ -38,6 +38,7 @@ def gl_page(live):
 
 
 def open3d(page):
+    if page.get_by_role('tab',name='Cena',exact=True).count():page.get_by_role('tab',name='Cena',exact=True).click()
     page.locator('[data-rs3d=view3d]').click()
     try:page.wait_for_function('Rodovia3D.stats().ready',timeout=45000)
     except Exception as exc:raise AssertionError(page.locator('#rs3dState').inner_text()+' | '+page.locator('#message').inner_text()) from exc
