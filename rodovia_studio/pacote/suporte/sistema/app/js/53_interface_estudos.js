@@ -53,8 +53,8 @@ function menuDefinitions(){
  const choose=(...names)=>groups.filter(g=>names.includes(g.t));
  return [{t:'Arquivo',sub:(MENUBAR[0]?.[1]||[]).map(i=>i?leaf(i[0],i.at(-1),typeof i[1]==='string'?i[1]:null):{sep:true})},
  {t:'Editar',sub:[...find('Editar'),leaf('Desfazer',undo,'Ctrl+Z'),leaf('Refazer',redo,'Ctrl+Y'),...['MOVER','GIRAR','COPIAR','ESCALA','ESPELHAR','OFFSET','APAGAR'].map(k=>leaf(k.charAt(0)+k.slice(1).toLowerCase(),()=>runCommand(k))),{t:'Propriedades',sub:find('Propriedades')},...choose('Outras ferramentas')]},
- {t:'Projeto',sub:[leaf('Analisar layers e eixos / IA',()=>window.RodoviaIA?.open('layers')),...find('Projeto'),...find('Início').filter(g=>['Arquivos'].includes(g.t)),...choose('Traçado e referências')]},
- {t:'Tráfego',sub:[...find('Fluxos'),leaf('Escolher eixo e configurar faixas',()=>RodoviaSections.chooseAxis()),leaf('Gerar e visualizar',()=>window.RodoviaUpdates?.update()),leaf('Corrigir problemas',()=>RodoviaFlowRepair.open()),...choose('Tráfego e ligações','Ferrovia e semáforos')]},
+ {t:'Projeto',sub:[leaf('Proteção e recuperação de dados',()=>window.RodoviaProtection?.open()),leaf('Analisar layers e eixos / IA',()=>window.RodoviaIA?.open('layers')),...find('Projeto'),...find('Início').filter(g=>['Arquivos'].includes(g.t)),...choose('Traçado e referências')]},
+ {t:'Tráfego',sub:[leaf('IA assistida de execução',()=>window.RodoviaExecution?.open()),...find('Fluxos'),leaf('Escolher eixo e configurar faixas',()=>RodoviaSections.chooseAxis()),leaf('Gerar e visualizar',()=>window.RodoviaUpdates?.update()),leaf('Corrigir problemas',()=>RodoviaFlowRepair.open()),...choose('Tráfego e ligações','Ferrovia e semáforos')]},
  {t:'Cena',sub:[...find('Aparência'),...choose('Pavimento e superfícies','Sinalização e estruturas','Apresentação e ambiente'),leaf('Materiais e texturas',()=>window.RodoviaMaterialsHub?.open())]},
  {t:'Vídeo',sub:find('Vídeo')},{t:'Exibir',sub:find('Exibir')},{t:'Ajuda',sub:[leaf('Diagnóstico dos logs / IA',()=>window.RodoviaIA?.open('logs')),...find('Ajuda')]}];
 }

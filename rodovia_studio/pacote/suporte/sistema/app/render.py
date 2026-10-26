@@ -945,11 +945,15 @@ class Scene:
         for k in ('static','headers'):state[k]={}
         for k in [k for k in state if k.startswith('_shade') or k in ('_footer','_revealed')]:state.pop(k,None)
         with open(folder/'scene.pkl','wb') as f:pickle.dump(state,f,protocol=5)
+        from .snapshot_auth import sign
+        return sign(folder,['scene.pkl']+[k+'.npy' for k in self.BIG if state.get('_npy_'+k)])
     @classmethod
-    def load_snapshot(cls,folder,settings=None):
+    def load_snapshot(cls,folder,settings=None,*,key=None):
         import pickle
         folder=Path(folder);obj=cls.__new__(cls)
-        with open(folder/'scene.pkl','rb') as f:state=pickle.load(f)
+        from .snapshot_auth import verify
+        payload=verify(folder,key,['scene.pkl']+[k+'.npy' for k in cls.BIG])
+        state=pickle.loads(payload)
         for k in cls.BIG:
             if state.pop('_npy_'+k,False):state[k]=np.load(folder/(k+'.npy'),mmap_mode='r',allow_pickle=False)
             else:state.setdefault(k,None)
@@ -1169,13 +1173,13 @@ def render(directory,s,status=lambda *a:None,cancel=lambda:False):
     snap=directory/'render_tmp'
     if workers>1:
         status(.25,f'Preparando {workers} processos de montagem ({why})')
-        shutil.rmtree(snap,ignore_errors=True);scene.snapshot(snap)
+        shutil.rmtree(snap,ignore_errors=True);snapshot_key=scene.snapshot(snap)
     def encode_attempt(profile):
         log=open(directory/'ffmpeg.log','ab')
         log.write(('\nEncoder: '+profile['label']+' — '+profile['reason']+'\n').encode('utf-8'));log.flush()
         cmd=[ff,'-y','-v','error','-f','rawvideo','-pix_fmt','rgb24','-s',f'{OW}x{OH}','-r',str(s.fps),'-i','-','-an']+profile['args']+['-g','250','-pix_fmt','yuv420p','-movflags','+faststart',str(out)]
         enc=subprocess.Popen(cmd,stdin=subprocess.PIPE,stderr=log);run_start=time.monotonic()
-        pool=Pool(snap,workers,0,frames-1,'cabin' if cabin else 'aerial',snap) if workers>1 else None
+        pool=Pool(snap,workers,0,frames-1,'cabin' if cabin else 'aerial',snap,key=snapshot_key) if workers>1 else None
         shape=(scene.H,scene.W,3);nbytes=scene.H*scene.W*3;tag=f' · {workers} processos' if workers>1 else ''
         # Reset callout state if GPU failed and a CPU retry is required.
         scene.shown_poi=None;scene.poi_since=-100

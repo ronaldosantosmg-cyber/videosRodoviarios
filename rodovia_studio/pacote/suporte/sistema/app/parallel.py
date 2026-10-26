@@ -35,9 +35,10 @@ def plan_workers(requested,W,H,frames,cpu_encoder,cores=None,memory=None):
     return n,why
 
 class Pool:
-    def __init__(self,snapshot,n,first,last,mode,logdir):
+    def __init__(self,snapshot,n,first,last,mode,logdir,*,key):
         self.n=n;self.procs=[];self.logs=[]
         env=dict(os.environ,OMP_NUM_THREADS='1',OPENBLAS_NUM_THREADS='1')
+        env['RODOVIA_SNAPSHOT_KEY']=key
         base=Path(__file__).resolve().parents[1]
         for i in range(n):
             log=open(Path(logdir)/f'processo_{i}.log','wb');self.logs.append(log)
@@ -63,7 +64,7 @@ def main(snapshot,index,n,first,last,mode):
     import cv2
     cv2.setNumThreads(1)
     from .render import Scene
-    sc=Scene.load_snapshot(snapshot);fps=sc.s.fps;out=sys.stdout.buffer
+    sc=Scene.load_snapshot(snapshot,key=os.environ.pop('RODOVIA_SNAPSHOT_KEY',None));fps=sc.s.fps;out=sys.stdout.buffer
     cab=None
     if mode=='cabin':
         from .cabin import CabinView

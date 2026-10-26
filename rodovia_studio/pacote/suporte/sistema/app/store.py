@@ -30,7 +30,7 @@ init()
 def directory(pid):
     if len(pid)!=32 or any(x not in '0123456789abcdef' for x in pid):raise ValueError('Identificador inválido.')
     p=ROOT/pid
-    if not p.is_dir():raise FileNotFoundError('Projeto não encontrado.')
+    if p.is_symlink() or not p.is_dir():raise FileNotFoundError('Pasta do projeto ausente ou inválida. Localize a pasta original; não foi criado um projeto vazio.')
     return p
 
 def replace(src,dst,attempts=25):

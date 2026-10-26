@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.24",
-  "description": "1.42.24: assistência local de logs, prompt/resposta JSON revisável, correlação de layers com materiais e eixos e perfis reutilizáveis."
+  "version": "1.42.25",
+  "description": "1.42.25: preparação auditável, proteção/recuperação, execução assistida pelo motor e modo CAD compacto."
 }

@@ -1,4 +1,4 @@
-﻿param([string]$Raiz,[string]$Pacote='',[int]$Aguardar=0,[switch]$RestaurarAnterior,[string]$Backup='')
+param([string]$Raiz,[string]$Pacote='',[int]$Aguardar=0,[switch]$RestaurarAnterior,[string]$Backup='')
 # Executa o atualizador com uma copia temporaria do Python portatil, para que a pasta do
 # programa possa ser reorganizada e atualizada sem arquivos em uso.
 $ErrorActionPreference = 'Stop'

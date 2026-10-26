@@ -36,6 +36,11 @@ def run(jid):
         if reusable:
             end_message='Fluxos e geometria já estão atualizados; nenhum recálculo necessário'
             status(1,end_message)
+        elif j['kind']=='assisted_plan':
+            from .assisted_execution import preview,folder
+            request=json.loads((folder(d)/'pedido.json').read_text())
+            plan=preview(d,request,status,cancel);store.write_json(folder(d)/'ultima.json',{'id':plan['id']})
+            end_message='Proposta pronta; revise e confirme antes de aplicar'
         elif j['kind']=='image_context':
             from .image_context import run as image_run
             request=json.loads((d/'contexto_imagem/pedido.json').read_text(encoding='utf-8'))

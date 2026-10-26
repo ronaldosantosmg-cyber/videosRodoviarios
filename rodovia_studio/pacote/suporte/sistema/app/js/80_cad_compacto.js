@@ -1,0 +1,18 @@
+// Preferências de interface: mesmos comandos, sem alterar o projeto ou cálculos.
+(()=>{'use strict';
+let mode=false,favorites=[];try{mode=localStorage.getItem('rodovia_cad_mode')==='1';const v=JSON.parse(localStorage.getItem('rodovia_favorites')||'[]');if(Array.isArray(v))favorites=v.filter(x=>typeof x==='string').slice(0,8)}catch{}
+function init(){const nav=$('rsQuickNavigation');if(!nav||$('rsCadMode'))return;const tools=new Map();
+ for(const b of document.querySelectorAll('#rsToolRibbon button[data-rs-tool],#rsToolRibbon button[data-rs-command],#rsToolRibbon .rsPrimaryAction')){
+  const label=b.getAttribute('aria-label')||b.title||b.textContent.trim(),key=b.dataset.rsTool?'tool:'+b.dataset.rsTool:b.dataset.rsCommand?'command:'+b.dataset.rsCommand:'action:'+label;
+  if(!label||tools.has(key))continue;b.title=b.title||label;b.setAttribute('aria-label',label);
+  if(!b.querySelector('svg')&&b.classList.contains('rsPrimaryAction')){b.replaceChildren();const icon=document.createElement('span');icon.innerHTML=toolIcon('inspect');icon.className='rsCadIcon';const text=document.createElement('span');text.textContent=label;b.append(icon,text)}
+  tools.set(key,{b,label});
+ }
+ const toggle=document.createElement('button');toggle.id='rsCadMode';toggle.type='button';toggle.title='Alternar modo CAD compacto';toggle.setAttribute('aria-label',toggle.title);toggle.innerHTML=toolIcon('fit');nav.append(toggle);
+ function paint(){document.body.classList.toggle('rsCadMode',mode);toggle.setAttribute('aria-pressed',String(mode));try{localStorage.setItem('rodovia_cad_mode',mode?'1':'0');localStorage.setItem('rodovia_favorites',JSON.stringify(favorites))}catch{}requestAnimationFrame(scheduleCanvasResize)}toggle.onclick=()=>{mode=!mode;paint()};
+ const host=document.createElement('div');host.id='rsFavoriteTools';host.setAttribute('role','toolbar');host.setAttribute('aria-label','Favoritos');nav.append(host);
+ function draw(){host.replaceChildren();for(const key of favorites){const item=tools.get(key);if(!item)continue;const b=document.createElement('button');b.type='button';b.title=item.label;b.setAttribute('aria-label','Favorito: '+item.label);b.innerHTML=item.b.querySelector('svg')?.outerHTML||toolIcon('inspect');b.onclick=()=>{if(item.b.disabled)return msg('Este comando está indisponível no contexto atual.');item.b.click()};host.append(b)}paint()}
+ const configure=document.createElement('button');configure.id='rsFavoriteSettings';configure.type='button';configure.title='Configurar até oito favoritos';configure.setAttribute('aria-label',configure.title);configure.textContent='☆';configure.onclick=()=>{const d=document.createElement('dialog');d.className='winDlg rsFavoriteDialog';const h=document.createElement('h3');h.textContent='Favoritos — até oito comandos';d.append(h);const chosen=new Set(favorites);for(const [key,item] of tools){const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';input.checked=chosen.has(key);input.onchange=()=>{if(input.checked&&chosen.size>=8){input.checked=false;return msg('Limite de oito favoritos.')}if(input.checked)chosen.add(key);else chosen.delete(key)};label.append(input,document.createTextNode(item.label));d.append(label)}const apply=document.createElement('button');apply.textContent='Salvar preferências';apply.onclick=()=>{favorites=[...chosen];draw();d.close();d.remove()};const cancel=document.createElement('button');cancel.textContent='Cancelar';cancel.onclick=()=>{d.close();d.remove()};d.append(apply,cancel);d.oncancel=e=>{e.preventDefault();cancel.click()};document.body.append(d);d.showModal()};nav.append(configure);draw();
+}
+queueMicrotask(()=>queueMicrotask(()=>queueMicrotask(init)));
+})();

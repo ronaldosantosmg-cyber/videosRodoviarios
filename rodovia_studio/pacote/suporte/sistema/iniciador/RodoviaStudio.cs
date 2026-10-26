@@ -1,4 +1,4 @@
-﻿// Rodovia Studio — iniciador para Windows (.exe).
+// Rodovia Studio — iniciador para Windows (.exe).
 //
 // O executável é pequeno e quase nunca muda: ele só prepara, atualiza, inicia e encerra o aplicativo.
 // Os comandos e todo o programa continuam em arquivos separados (sistema\programa\app, .py/.js/.html),
@@ -318,7 +318,7 @@ namespace RodoviaStudioLauncher
             if (!NeedsPreparation()) return true;
             Say("Preparando Python, bibliotecas e FFmpeg (primeira vez ou dependências novas).\nAcompanhe na janela que vai abrir.");
             ProcessStartInfo si = new ProcessStartInfo("powershell.exe",
-                "-NoProfile -ExecutionPolicy Bypass -File \"" + Path.Combine(Sys, "iniciar.ps1") + "\" -PrepararApenas");
+                "-NoProfile -File \"" + Path.Combine(Sys, "iniciar.ps1") + "\" -PrepararApenas");
             si.WorkingDirectory = Sys;
             si.UseShellExecute = false;
             Process p = Process.Start(si);
@@ -356,7 +356,7 @@ namespace RodoviaStudioLauncher
             if (!HasUpdateZip() || !File.Exists(Py)) { if (interactive) Info("Nenhum ZIP de atualização pendente em \"atualizacoes\"."); return false; }
             Say("Procurando e aplicando atualização…");
             ProcessStartInfo si = new ProcessStartInfo("powershell.exe",
-                "-NoProfile -ExecutionPolicy Bypass -File \"" + Path.Combine(Sys, "atualizar.ps1") + "\" -Raiz \"" + Root + "\"");
+                "-NoProfile -File \"" + Path.Combine(Sys, "atualizar.ps1") + "\" -Raiz \"" + Root + "\"");
             si.WorkingDirectory = Root;
             si.UseShellExecute = false;
             si.CreateNoWindow = true;
@@ -455,7 +455,7 @@ namespace RodoviaStudioLauncher
             {
                 if (!PrepareUpdateSession()) return;
                 ProcessStartInfo si = new ProcessStartInfo("powershell.exe",
-                    "-NoProfile -ExecutionPolicy Bypass -File \"" + Path.Combine(Sys, "atualizar.ps1") + "\" -Raiz \"" + Root + "\" -RestaurarAnterior");
+                    "-NoProfile -File \"" + Path.Combine(Sys, "atualizar.ps1") + "\" -Raiz \"" + Root + "\" -RestaurarAnterior");
                 si.WorkingDirectory = Root; si.UseShellExecute = false;
                 Process p = Process.Start(si);
                 while (!p.WaitForExit(200)) Application.DoEvents();

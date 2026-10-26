@@ -14,5 +14,5 @@ if not defined R (
 set "A=%R%\sistema\programa\atualizar.ps1"
 if not exist "%A%" set "A=%R%\suporte\sistema\atualizar.ps1"
 echo Procurando atualizacoes somente na pasta "atualizacoes"...
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%A%" -Raiz "%R%"
+powershell.exe -NoProfile -File "%A%" -Raiz "%R%"
 if not defined RODOVIA_SEM_PAUSA pause

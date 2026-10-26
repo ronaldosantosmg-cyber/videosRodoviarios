@@ -12,7 +12,11 @@ if not defined P (
  exit /b 1
 )
 cd /d "%P%"
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%P%\iniciar.ps1"
+if exist "%P%\runtime\python.exe" (
+ "%P%\runtime\python.exe" "%P%\preparar.py"
+) else (
+ py.exe -3.12 "%P%\preparar.py"
+)
 if errorlevel 1 (
  echo.
  echo O aplicativo nao iniciou. Consulte a mensagem acima e sistema\logs\instalacao.log

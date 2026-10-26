@@ -152,7 +152,7 @@ def handle_old_exe(raiz,stamp,say=print):
     except OSError as e:say(f'Aviso: não consegui guardar o Rodovia Studio.exe antigo ({e}).');return False
     (raiz/'sistema/logs').mkdir(parents=True,exist_ok=True)
     (raiz/'sistema/logs/recompilar_iniciador.txt').write_text('O Rodovia Studio.exe anterior à 1.32 foi guardado em '+str(dst.relative_to(raiz))+'. Recompilar.',encoding='utf-8')
-    say('O Rodovia Studio.exe antigo foi guardado em sistema\\backups; ele será recompilado sozinho na próxima abertura (ou use sistema\\COMPILAR INICIADOR.cmd).')
+    say('O Rodovia Studio.exe antigo foi guardado em sistema\\backups; solicite à TI a compilação/assinatura ou use o iniciador CMD com Python aprovado.')
     return True
 
 def organize_root(raiz,stamp=None,say=print,keep=()):

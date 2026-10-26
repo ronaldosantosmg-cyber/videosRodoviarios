@@ -72,7 +72,7 @@ def _launch_operation(request,restore=False):
             store.write_json(signal,{'operacao':'restaurar' if restore else 'atualizar'})
             return {'iniciado':True,'aguardando_iniciador':True}
         callback=_shutdown_callback(request)
-        args=['powershell.exe','-NoProfile','-ExecutionPolicy','Bypass','-File',str(BASE/'atualizar.ps1'),'-Raiz',str(root),'-Aguardar','90']
+        args=['powershell.exe','-NoProfile','-File',str(BASE/'atualizar.ps1'),'-Raiz',str(root),'-Aguardar','90']
         if restore:args+=['-RestaurarAnterior','-Backup',info['rollback']['path']]
         # Argumentos Unicode preservados; sem .cmd interpolado nem encoding ASCII.
         subprocess.Popen(args,cwd=str(root),creationflags=getattr(subprocess,'CREATE_NEW_CONSOLE',0x10),close_fds=True)

@@ -83,7 +83,7 @@ def test_offline_detail_imagery_gives_up_fast_and_frame_renders(drawing):
 def test_snapshot_keeps_detail_layer(drawing,tmp_path):
     from app.render import Scene
     sc=Scene(drawing,S(traffic=False));a=sc.frame(0,view=V)[0]
-    sc.snapshot(tmp_path/'snap');b=Scene.load_snapshot(tmp_path/'snap')
+    key=sc.snapshot(tmp_path/'snap');b=Scene.load_snapshot(tmp_path/'snap',key=key)
     assert b.detail.sc is b and np.array_equal(b.frame(0,view=V)[0],a)
 
 QUAD=[{'x':500095,'y':7799990},{'x':500140,'y':7799988},{'x':500145,'y':7800010},{'x':500092,'y':7800012}]

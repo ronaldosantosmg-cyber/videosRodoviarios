@@ -81,7 +81,9 @@ async def local_only(request:Request,call_next):
     origin=request.headers.get('origin','')
     if request.method not in ['GET','HEAD','OPTIONS'] and origin:
         from urllib.parse import urlsplit
-        if urlsplit(origin).hostname not in ['localhost','127.0.0.1','testserver']:return JSONResponse({'detail':'Origem não autorizada.'},403)
+        parsed=urlsplit(origin)
+        if parsed.hostname not in ['localhost','127.0.0.1','testserver'] or (parsed.port or (443 if parsed.scheme=='https' else 80))!=(request.url.port or (443 if request.url.scheme=='https' else 80)):return JSONResponse({'detail':'Origem não autorizada.'},403)
+    if request.method not in ['GET','HEAD','OPTIONS'] and request.headers.get('sec-fetch-site')=='cross-site':return JSONResponse({'detail':'Requisição externa recusada.'},403)
     return await call_next(request)
 @app.exception_handler(Exception)
 async def unexpected(request,e):
@@ -101,8 +103,8 @@ async def not_found(request,e):return JSONResponse({'detail':str(e)},404)
 
 # 1.31: as rotas ficam em app/rotas/<assunto>.py; aqui só a criação do aplicativo, o despachante de tarefas,
 # a segurança (somente local) e o tratamento de erros.
-from .rotas import paginas,projetos,modelos,editor,tarefas,arquivos,web,suporte,camadas,videos,sistema,obras,modelagem,assistencia
-for _m in (paginas,projetos,modelos,editor,tarefas,arquivos,web,suporte,camadas,videos,sistema,obras,modelagem,assistencia):app.include_router(_m.router)
+from .rotas import paginas,projetos,modelos,editor,tarefas,arquivos,web,suporte,camadas,videos,sistema,obras,modelagem,assistencia,protecao
+for _m in (paginas,projetos,modelos,editor,tarefas,arquivos,web,suporte,camadas,videos,sistema,obras,modelagem,assistencia,protecao):app.include_router(_m.router)
 
 from starlette.staticfiles import StaticFiles
 app.mount('/vendor',StaticFiles(directory=BASE/'app/vendor'),name='vendor-local')

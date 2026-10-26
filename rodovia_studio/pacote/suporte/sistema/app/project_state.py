@@ -18,7 +18,9 @@ def _state(d):
 
 @contextlib.contextmanager
 def locked(directory):
-    d=Path(directory).resolve();key=str(d)
+    source=Path(directory)
+    if source.is_symlink() or not source.is_dir():raise FileNotFoundError('Pasta do projeto ausente ou inválida. Localize a pasta original; nenhum projeto vazio foi criado.')
+    d=source.resolve();key=str(d)
     with _guard:lock=_locks.setdefault(key,threading.RLock())
     with lock:
         depths=getattr(_local,'depths',{});_local.depths=depths
@@ -88,16 +90,22 @@ def read_config(directory):
     d=Path(directory)
     with locked(d):
         _recover_import(d);base=_state(d);path=d/'config.json'
+        if path.is_symlink():raise ValueError('Configuração não pode ser um link simbólico.')
         try:
             data=_json(path);Settings.model_validate(data);key=revision(data)
-        except (ValueError,OSError,TypeError):
-            meta=_json(base/'config_atual.json') if (base/'config_atual.json').exists() else {}
+        except (ValueError,FileNotFoundError,UnicodeError,TypeError):
+            try:meta=_json(base/'config_atual.json') if (base/'config_atual.json').exists() else {}
+            except (ValueError,UnicodeError):raise ValueError('Configuração e índice de recuperação inválidos. Abra Proteção de dados para escolher uma cópia conferida.')
             key=meta.get('revision','')
             if len(key)!=64 or any(c not in '0123456789abcdef' for c in key):raise ValueError('Configuração inválida e não há cópia válida registrada para recuperação.')
-            saved=base/'historico'/(key+'.json');data=_json(saved)
+            saved=base/'historico'/(key+'.json')
+            if saved.is_symlink() or saved.parent.is_symlink():raise ValueError('Cópia de recuperação inválida.')
+            data=_json(saved)
             if revision(data)!=key:raise ValueError('A cópia da configuração falhou na conferência.')
             Settings.model_validate(data)
-            bad=base/'corrompidos';bad.mkdir(exist_ok=True)
+            bad=base/'corrompidos'
+            if bad.is_symlink():raise ValueError('Pasta de recuperação inválida.')
+            bad.mkdir(exist_ok=True)
             if path.exists():shutil.copy2(path,bad/('config_'+uuid.uuid4().hex+'.json'))
             _write(path,data);_write(base/'recuperacao.json',{'revision':key,'time':time.time(),'message':'Configuração recuperada da última gravação válida.'})
         _snapshot(d,data)
@@ -113,7 +121,7 @@ def save_config(directory,data,expected=None):
     d=Path(directory);data=data.model_dump() if hasattr(data,'model_dump') else data
     Settings.model_validate(data);key=revision(data)
     with locked(d):
-        base=_state(d);old=read_config(d) if (d/'config.json').exists() else None;previous=revision(old) if old is not None else None
+        base=_state(d);old=read_config(d) if (d/'config.json').exists() or (base/'config_atual.json').exists() or (base/'historico').exists() else None;previous=revision(old) if old is not None else None
         if expected is not None and expected.strip('"')!=previous:raise Conflict('O projeto foi alterado em outra janela. Reabra a versão atual antes de salvar; suas alterações locais foram mantidas.')
         if key==previous:return {'revision':key,'previous':previous,'changed':False}
         if old is not None:_snapshot(d,old)
