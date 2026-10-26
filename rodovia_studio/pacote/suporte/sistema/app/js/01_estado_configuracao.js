@@ -34,11 +34,19 @@ function collect(){let s={...cfg};for(const k of fields){const el=$(k);if(el)s[k
  s.layers={};document.querySelectorAll('#layers select').forEach(el=>{if(el.value)(s.layers[el.value]??=[]).push(el.dataset.layer)});if(!analysis&&!sourceLayerCatalog?.layers?.length)s.layers=cfg.layers||{};
  s.route_directions={...(cfg.route_directions||{})};document.querySelectorAll('#routes select').forEach(el=>s.route_directions[el.dataset.route]=el.value);return s}
 async function save(){
- requireProject();const id=pid,context=projectSession.context,epoch=projectSession.epoch,s=collect(),payload=JSON.stringify(s);clearTimeout(saveTimer);
+ requireProject();const id=pid,context=projectSession.context;clearTimeout(saveTimer);
  const pending=projectSession.queue.catch(()=>{}).then(async()=>{
    if(pid!==id||projectSession.context!==context)throw Error('O projeto mudou antes da gravação.');
-   const options=json('PUT',s);if(projectSession.revision)options.headers['If-Match']=projectSession.revision;
-   const result=await api('/api/projects/'+id+'/config',options);
+   let epoch=projectSession.epoch,s=collect(),payload=JSON.stringify(s);
+   let options=json('PUT',s);if(projectSession.revision)options.headers['If-Match']=projectSession.revision;
+   let result;try{result=await api('/api/projects/'+id+'/config',options)}catch(error){
+    if(error.status!==409||pid!==id||projectSession.context!==context)throw error;
+    const remote=await api('/api/projects/'+id);if(pid!==id||projectSession.context!==context)throw error;
+    const conflicts=[];mergeProjectConfig(projectSession.baseConfig||cfg,collect(),remote.config,[],conflicts);
+    if(conflicts.length)throw Error('Conflito de gravação nos campos: '+conflicts.map(c=>c.path.join(' · ')).join(', ')+'. Suas edições foram preservadas; confira a outra janela antes de gravar.');
+    await syncWorkerConfig(remote.config,remote.config_revision);s=collect();payload=JSON.stringify(s);epoch=projectSession.epoch;options=json('PUT',s);options.headers['If-Match']=projectSession.revision;
+    result=await api('/api/projects/'+id+'/config',options);
+   }
    if(pid!==id||projectSession.context!==context)return result;
    projectSession.revision=result.config_revision||result.revision||projectSession.revision;projectSession.artifacts=result.artifacts||{};projectSession.baseConfig=structuredClone(result.config||s);
    const unchanged=projectSession.epoch===epoch&&JSON.stringify(collect())===payload;

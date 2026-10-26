@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.18",
-  "description": "1.42.18: tráfego somente por eixos designados/seleção, sentido por intervalo, camadas 2D em cache, pedestres controlados e fumaça ferroviária 2D/3D/vídeo. Validação direcionada."
+  "version": "1.42.19",
+  "description": "1.42.19: densidade acessível, OAE sem falha de concreto, sincronização de gravações/importação, KMZ incremental, reconstrução contínua validada e curvas paramétricas. Reconhecimento semântico condicionado a modelo local avaliado."
 }

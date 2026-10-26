@@ -13,7 +13,7 @@ def _preview(p):
     return np.round(q,3).tolist()
 
 
-def recover_sections(points,allowed,minimum=50.):
+def recover_sections(points,allowed,minimum=50.,reconstruct=False):
     """Localiza falhas com janelas sobrepostas e revalida integralmente cada resto.
 
     Falhas não localizadas e geometria inválida permanecem bloqueadas.
@@ -32,6 +32,14 @@ def recover_sections(points,allowed,minimum=50.):
     if total<minimum:report['reasons']=['abaixo_do_limite'];return [],report
     if audit['ok']:
         report.update(status='unchanged',retained=[[0.,total]],retained_geometry=[_preview(p)]);return [p.copy()],report
+    if reconstruct:
+        from .flow_reconstruction import reconstruct as rebuild
+        candidate,reconstruction=rebuild(p,allowed,minimum)
+        report['reconstruction']=reconstruction
+        if candidate is not None:
+            report.update(status='reconstructed',strategy='reconstrucao_continua_validada',
+                          retained=[[0.,total]],retained_geometry=[_preview(candidate)])
+            return [candidate],report
     if total>100000 or len(p)>50000:
         report['message']='Extensão excessiva: divida a análise antes de recuperar.';return [],report
     # Primeiro tenta uma correção leve da trajetória derivada, limitada a 0,5 m.

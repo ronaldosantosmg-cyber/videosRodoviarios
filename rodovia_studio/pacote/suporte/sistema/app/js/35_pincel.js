@@ -18,7 +18,7 @@ async function brushClick(w,e){if(!brush)brush={src:null,n:0};const [cx,cy]=W2C(
   else{if(s.mode==='tex')o.o.surface=s.surface;o.o.texture=s.texture?{...s.texture}:null}
   brush.n++;changed(`Pincel: textura aplicada a “${o.o.name}” (${brush.n}). Continue clicando; Esc encerra.`);toolOptions();return}
  if(o)return msg(`“${o.label}” não tem textura. Clique numa área de pista, região de textura ou área do desenho.`,true);
- let r;try{r=await api(`/api/projects/${pid}/area?x=${w.x}&y=${w.y}`)}catch(err){return msg('Nenhuma área fechada do desenho neste ponto.',true)}
+ let r;try{r=await api(`/api/projects/${pid}/area?x=${w.x}&y=${w.y}`)}catch(err){return msg(err.status===404?'O ponto não está dentro de uma área fechada. Clique no interior da hachura ou desenhe uma área de pista; linhas abertas não recebem textura.':err.message,true)}
  checkpoint();
  if(s.mode==='pav'){const n=M.pavement_areas.length+1;M.pavement_areas.push({id:uid(),name:`${PAV_LABEL[s.kind]||'Área'} ${n} (${r.layer})`.slice(0,80),kind:s.kind,points:r.points.map(P_),source:'picked',material:s.material,enabled:true,texture:s.texture?{...s.texture}:null})}
  else{const n=M.texture_areas.length+1;M.texture_areas.push({id:uid(),name:`${SURF_NAME[s.surface]||s.surface} ${n} (${r.layer})`.slice(0,80),surface:s.surface,points:r.points.map(P_),texture:s.texture?{...s.texture}:null,enabled:true})}

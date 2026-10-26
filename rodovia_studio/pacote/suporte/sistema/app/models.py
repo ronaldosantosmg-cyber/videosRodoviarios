@@ -158,6 +158,7 @@ class FlowRecovery(BaseModel):
     x: float
     y: float
     enabled: bool = True
+    reconstruct: bool = False
 
 
 class FlowCut(BaseModel):

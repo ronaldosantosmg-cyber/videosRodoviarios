@@ -23,7 +23,7 @@ def test_edit_during_save_remains_dirty_then_queued_save_wins(gl_page,live):
 def test_conflict_keeps_local_edits_and_undo_history(gl_page,live):
     p=gl_page;url=live[0]+'/api/projects/'+live[1];current=p.request.get(url).json();remote={**current['config'],'name':'Outra janela'}
     assert p.request.put(url+'/config',data=remote,headers={'If-Match':current['config_revision']}).ok
-    result=p.evaluate("async()=>{checkpoint();const before=undoStack.length;cfg.destination='Destino local preservado';projectSession.epoch++;savePending=true;try{await save();return null}catch(e){return {message:e.message,dirty:savePending,undo:undoStack.length===before,destination:cfg.destination}}}")
+    result=p.evaluate("async()=>{checkpoint();const before=undoStack.length;$('name').value='Nome local concorrente';cfg.destination='Destino local preservado';projectSession.epoch++;savePending=true;try{await save();return null}catch(e){return {message:e.message,dirty:savePending,undo:undoStack.length===before,destination:cfg.destination}}}")
     assert 'outra janela' in result['message'] and result['dirty'] and result['undo']
     assert result['destination']=='Destino local preservado'
     screenshot(p,'1427_02_conflito_preserva_edicao')

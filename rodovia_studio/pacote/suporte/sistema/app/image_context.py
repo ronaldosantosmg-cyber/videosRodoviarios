@@ -17,7 +17,7 @@ def source_signature(directory,settings,request):
     return digest([images,settings.crs,li,web,request])
 
 
-def segment(rgb,bounds,*,clusters=12,min_area_m2=4.,samples=(),hints=(),limit=500,status=lambda *a:None,cancel=lambda:False):
+def segment(rgb,bounds,*,clusters=12,min_area_m2=4.,samples=(),hints=(),limit=500,status=lambda *a:None,cancel=lambda:False,semantic=None):
     image=np.asarray(rgb)
     if image.dtype!=np.uint8 or image.ndim!=3 or image.shape[2] not in (3,4) or min(image.shape[:2])<8 or image.size>2048*2048*4:raise ValueError('Imagem RGB inválida ou acima do limite de análise.')
     x0,y0,x1,y1=map(float,bounds)
@@ -29,16 +29,23 @@ def segment(rgb,bounds,*,clusters=12,min_area_m2=4.,samples=(),hints=(),limit=50
     lab=cv2.cvtColor(rgb,cv2.COLOR_RGB2LAB).astype(np.float32);gray=cv2.cvtColor(rgb,cv2.COLOR_RGB2GRAY).astype(np.float32)
     mean=cv2.blur(gray,(7,7));texture=np.sqrt(np.maximum(0,cv2.blur(gray*gray,(7,7))-mean*mean))
     values=np.dstack([lab,texture*.6]);flat=values.reshape(-1,4);idx=np.flatnonzero(valid.ravel());rng=np.random.default_rng(1729)
-    training=flat[rng.choice(idx,min(len(idx),32768),replace=False)]
-    # Trava e semente próprias: resultados não dependem de execuções anteriores.
-    import threading
-    with _cluster_lock:
-        cv2.setRNGSeed(1729);_,_,centers=cv2.kmeans(training,min(clusters,len(training)),None,(cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER,30,.3),1,cv2.KMEANS_PP_CENTERS)
-    labels=np.full(H*W,-1,np.int16)
-    for start in range(0,len(idx),32768):
-        if cancel():raise InterruptedError('Análise da imagem cancelada.')
-        ids=idx[start:start+32768];labels[ids]=((flat[ids,None]-centers[None])**2).sum(2).argmin(1)
-    labels=labels.reshape(H,W);alpha=image[:,:,3] if image.shape[2]==4 else np.full((H,W),255,np.uint8);source_hash=hashlib.sha256(rgb.tobytes()+alpha.tobytes()+np.asarray(bounds,'<f8').tobytes()).hexdigest()
+    labels=None
+    if semantic is None:
+        training=flat[rng.choice(idx,min(len(idx),32768),replace=False)]
+        # Trava e semente próprias: resultados não dependem de execuções anteriores.
+        import threading
+        with _cluster_lock:
+            cv2.setRNGSeed(1729);_,_,centers=cv2.kmeans(training,min(clusters,len(training)),None,(cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER,30,.3),1,cv2.KMEANS_PP_CENTERS)
+        labels=np.full(H*W,-1,np.int16)
+        for start in range(0,len(idx),32768):
+            if cancel():raise InterruptedError('Análise da imagem cancelada.')
+            ids=idx[start:start+32768];labels[ids]=((flat[ids,None]-centers[None])**2).sum(2).argmin(1)
+        labels=labels.reshape(H,W)
+    if semantic is not None:
+        labels=np.asarray(semantic['labels']);centers=np.zeros((len(semantic['classes']),4),np.float32)
+        if labels.shape!=(H,W) or not np.isfinite(labels).all():raise ValueError('Máscara semântica incompatível.')
+        labels=labels.copy();labels[~valid]=-1
+    alpha=image[:,:,3] if image.shape[2]==4 else np.full((H,W),255,np.uint8);source_hash=hashlib.sha256(rgb.tobytes()+alpha.tobytes()+np.asarray(bounds,'<f8').tobytes()).hexdigest()
     prepared=[]
     for sample in samples:
         role=sample['role'];px=int((sample['x']-x0)/dx);py=int((y1-sample['y'])/dy)
@@ -47,6 +54,7 @@ def segment(rgb,bounds,*,clusters=12,min_area_m2=4.,samples=(),hints=(),limit=50
     out=[];truncated=False;vertex_count=0
     for cluster in range(len(centers)):
         if cancel():raise InterruptedError('Análise da imagem cancelada.')
+        if semantic is not None and semantic['classes'][cluster]=='unclassified':continue
         status(.45+.45*cluster/len(centers),'Agrupando contornos por cor e textura')
         mask=(labels==cluster).astype(np.uint8)
         count,components,stats,_=cv2.connectedComponentsWithStats(mask,8)
@@ -70,11 +78,14 @@ def segment(rgb,bounds,*,clusters=12,min_area_m2=4.,samples=(),hints=(),limit=50
                 geometry=Polygon(outer,holes)
                 if not geometry.is_valid or geometry.area<min_area_m2 or len(outer)>2000 or any(len(hole)>2000 for hole in holes) or len(holes)>100:continue
                 role='unclassified';confidence=0.;evidence='Grupo de semelhança; classe não confirmada.'
+                if semantic is not None:
+                    role=semantic['classes'][cluster];confidence=float(np.mean(semantic['confidence'][b:b+h,a:a+w][crop>0]))
+                    evidence='Modelo semântico local '+semantic['model_sha256'][:12]+'; conferir objeto e altura.'
                 inside=[s for s in prepared if geometry.covers(s[0])]
                 if inside:
                     classes={s[1] for s in inside}
                     if len(classes)==1:role=inside[0][1];confidence=.9;evidence='Amostra manual dentro deste contorno.'
-                elif prepared:
+                elif prepared and semantic is None:
                     distances=[np.linalg.norm(centers[cluster]-s[2]) for s in prepared];best=int(np.argmin(distances))
                     if distances[best]<28:role=prepared[best][1];confidence=.55;evidence='Semelhança com amostra manual; requer revisão.'
                 if role=='unclassified':
@@ -94,7 +105,10 @@ def segment(rgb,bounds,*,clusters=12,min_area_m2=4.,samples=(),hints=(),limit=50
                 if len(out)>=limit:truncated=True;break
             if truncated:break
         if truncated:break
-    return dict(features=out,source_hash=source_hash,groups=LABELS,resolution_m=[dx,dy],truncated=truncated,method='similaridade_local_com_amostras_e_referencias',warning='Sugestões de cor/textura não equivalem a reconhecimento semântico certificado. OAE, ferrovia, transmissão e sinalização exigem referência ou amostra/revisão. Alturas são ilustrativas até edição.')
+    result=dict(features=out,source_hash=source_hash,groups=LABELS,resolution_m=[dx,dy],truncated=truncated,method='similaridade_local_com_amostras_e_referencias',warning='Sugestões de cor/textura não equivalem a reconhecimento semântico certificado. OAE, ferrovia, transmissão e sinalização exigem referência ou amostra/revisão. Alturas são ilustrativas até edição.')
+    if semantic is not None:
+        result.update(method='modelo_semantico_local',model_sha256=semantic['model_sha256'],evaluation=semantic['evaluation'],warning='Reconhecimento limitado às classes e às condições avaliadas do modelo instalado. Revise os objetos; alturas e desníveis não são inferidos da fotografia.')
+    return result
 
 import threading
 _cluster_lock=threading.Lock()
@@ -132,7 +146,12 @@ def run(directory,settings,request,status,cancel,jid=None):
                 poly=Polygon(item['points'],holes=item.get('holes',[]))
                 if poly.is_valid:hints.append(dict(role=item['role'],geometry=poly))
     except (ValueError,FileNotFoundError):pass
-    result=segment(image,box,clusters=request['clusters'],min_area_m2=request['min_area_m2'],samples=request['samples'],hints=hints,status=status,cancel=cancel)
+    semantic=None
+    if request.get('method')=='semantic':
+        from .image_semantic import predict
+        status(.3,'Reconhecendo classes com modelo semântico local')
+        semantic=predict(image,store.ROOT/'modelos'/'imagem_aerea',cancel=cancel)
+    result=segment(image,box,clusters=request['clusters'],min_area_m2=request['min_area_m2'],samples=request['samples'],hints=hints,status=status,cancel=cancel,semantic=semantic)
     result.update(signature=signature,request=request,bounds=box,attribution=attribution,job_id=jid)
     from .project_state import read_config
     from .models import Settings

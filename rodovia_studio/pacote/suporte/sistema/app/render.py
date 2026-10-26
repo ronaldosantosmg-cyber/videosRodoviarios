@@ -278,7 +278,7 @@ class Scene:
             mask=np.zeros((n,n),np.uint8);lines=np.zeros_like(mask);rmask=None
             for e in self.items:
                 if e['role']!=role:continue
-                if e.get('material')=='rigido' and e['closed']:
+                if role in ('pavement','existing_pavement','shoulder','oae') and e.get('material')=='rigido' and e['closed']:
                     # 1.21: pavimento rígido (placas de concreto).
                     if rmask is None:rmask=np.zeros_like(mask)
                     cv2.fillPoly(rmask,[np.rint(self.worldpx(e['points'])).astype(np.int32)],255)

@@ -77,6 +77,8 @@ class JointField:
 
 TECH_RIGID={'pavement':((190,192,186),(60,66,70)),'existing_pavement':((168,182,194),(62,74,86)),'shoulder':((182,178,164),(70,68,60))}
 ART_RIGID={'pavement':(176,177,172),'existing_pavement':(160,162,158),'shoulder':(170,169,162)}
+TECH_RIGID['oae']=((190,192,186),(60,66,70))
+ART_RIGID['oae']=(182,183,178)
 
 def _hash(a,b):
     h=(a.astype(np.int64)*73856093)^(b.astype(np.int64)*19349663);return ((h%1000+1000)%1000)/1000.
@@ -87,6 +89,8 @@ def paint_rigid(color,rmask,role,x0,y1,px,field,spacing=5.,tech=False):
     out=np.array(color,np.float32,copy=True)
     if out.ndim==1:out=np.broadcast_to(out,rmask.shape+(3,)).copy()
     if not rmask.any():return out.astype(np.uint8)
+    if role not in TECH_RIGID or role not in ART_RIGID:return np.clip(out,0,255).astype(np.uint8)
+    if not np.isfinite([px,spacing,x0,y1]).all() or px<=0 or spacing<=0:raise ValueError('Escala e espaçamento das juntas devem ser positivos e finitos.')
     base=np.array(TECH_RIGID[role][0] if tech else ART_RIGID[role],np.float32)
     ys,xs=np.nonzero(rmask)
     vals=np.broadcast_to(base,(len(ys),3)).copy()

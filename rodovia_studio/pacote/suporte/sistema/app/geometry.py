@@ -34,25 +34,24 @@ def walk(es, depth=0, parent_layer=None):
 
 def read_kmz(path,crs):
     if not path or not Path(path).exists(): return [],[]
-    from .kmz_validation import documents
+    from .kmz_validation import placemarks
     tr=Transformer.from_crs(4326,crs,always_xy=True);lines=[];pois=[];total=0
     local=lambda element:element.tag.rsplit('}',1)[-1]
-    for name,root in documents(path):
-        for pm in (element for element in root.iter() if local(element)=='Placemark'):
-            title=next((node.text or 'Referência KMZ' for node in pm if local(node)=='name'),'Referência KMZ')
-            for co in (node for node in pm.iter() if local(node)=='coordinates'):
-                values=(co.text or '').split();total+=len(values)
-                if total>1000000:raise ValueError('KML excede um milhão de coordenadas. Divida o trecho.')
-                try:rows=[tuple(map(float,v.split(',')[:2])) for v in values]
-                except (ValueError,TypeError) as exc:raise ValueError('KML contém coordenadas numéricas inválidas.') from exc
-                if not rows:continue
-                if any(len(row)!=2 for row in rows):raise ValueError('KML contém coordenadas incompletas.')
-                coords=np.asarray(rows,float)
-                if not np.isfinite(coords).all() or np.any(np.abs(coords[:,0])>180) or np.any(np.abs(coords[:,1])>90):raise ValueError('KML contém longitude/latitude fora do intervalo ou não finitas.')
-                lon,lat=coords.T;x,y=tr.transform(lon,lat);p=np.column_stack([x,y])
-                if not np.isfinite(p).all():raise ValueError('KML não pode ser transformado para o CRS escolhido.')
-                if len(p)==1:pois.append({'id':f'kmz-{len(pois)}','title':title[:100],'subtitle':'Referência do KMZ','kind':'outro','x':float(x[0]),'y':float(y[0])})
-                else:lines.append(p)
+    for name,pm in placemarks(path):
+        title=next((node.text or 'Referência KMZ' for node in pm if local(node)=='name'),'Referência KMZ')
+        for co in (node for node in pm.iter() if local(node)=='coordinates'):
+            values=(co.text or '').split();total+=len(values)
+            if total>1000000:raise ValueError('KML excede um milhão de coordenadas. Divida o trecho.')
+            try:rows=[tuple(map(float,v.split(',')[:2])) for v in values]
+            except (ValueError,TypeError) as exc:raise ValueError('KML contém coordenadas numéricas inválidas.') from exc
+            if not rows:continue
+            if any(len(row)!=2 for row in rows):raise ValueError('KML contém coordenadas incompletas.')
+            coords=np.asarray(rows,float)
+            if not np.isfinite(coords).all() or np.any(np.abs(coords[:,0])>180) or np.any(np.abs(coords[:,1])>90):raise ValueError('KML contém longitude/latitude fora do intervalo ou não finitas.')
+            lon,lat=coords.T;x,y=tr.transform(lon,lat);p=np.column_stack([x,y])
+            if not np.isfinite(p).all():raise ValueError('KML não pode ser transformado para o CRS escolhido.')
+            if len(p)==1:pois.append({'id':f'kmz-{len(pois)}','title':title[:100],'subtitle':'Referência do KMZ','kind':'outro','x':float(x[0]),'y':float(y[0])})
+            else:lines.append(p)
     return lines,pois
 
 def convert(e,layer,role,units,entities,warnings,extra=None):
@@ -63,9 +62,12 @@ def convert(e,layer,role,units,entities,warnings,extra=None):
             p=e.dxf.location;entities.append({'layer':layer,'role':role,'closed':False,'points':np.array([[p.x*units,p.y*units]]),'holes':[],**extra});return
         hatch=e.dxftype() in HATCH_TYPES
         paths=list(from_hatch(e)) if hatch else [make_path(e)]
+        from .cad_curves import from_entity
+        curve=from_entity(e,units) if not hatch else None
         ps=[]
         for p in paths:
-            pts=np.array([(v.x,v.y) for v in p.flattening(.12/units,segments=8)])*units
+            tolerance=.005 if role=='axis' else .12
+            pts=np.array([(v.x,v.y) for v in p.flattening(tolerance/units,segments=8)])*units
             if len(pts)>=2: ps.append(pts)
         if hatch and ps:
             # Even/odd fill respects islands rather than filling every loop independently.
@@ -78,7 +80,7 @@ def convert(e,layer,role,units,entities,warnings,extra=None):
         else:
             for pts in ps:
                 closed=bool(e.dxf.get('flags',0)&1) if e.dxftype() in ['LWPOLYLINE','POLYLINE'] else np.linalg.norm(pts[0]-pts[-1])<.05
-                entities.append({'layer':layer,'role':role,'closed':bool(closed and len(pts)>=3),'points':pts,'holes':[],**extra})
+                entities.append({'layer':layer,'role':role,'closed':bool(closed and len(pts)>=3),'points':pts,'holes':[],**({'cad_curve':curve} if curve else {}),**extra})
     except (ValueError,TypeError,ezdxf.DXFError,NotImplementedError):
         warnings.append(f'Entidade não convertida: {layer} / {e.dxftype()}')
 
@@ -117,9 +119,14 @@ def read_overlays(directory,settings,warnings):
             tr=Transformer.from_crs(CRS.from_user_input(ov.crs),target,always_xy=True)
             for e in ents:
                 e['points']=np.column_stack(tr.transform(e['points'][:,0],e['points'][:,1]));e['holes']=[np.column_stack(tr.transform(h[:,0],h[:,1])) for h in e['holes']]
+                # Projeção não linear não preserva círculos/NURBS nos mesmos parâmetros.
+                e.pop('cad_curve',None)
         if ov.alignment.applied and ov.alignment.pairs:
             params=fit(ov.alignment.pairs,ov.alignment.mode)
-            for e in ents:e['points']=apply(e['points'],params);e['holes']=[apply(h,params) for h in e['holes']]
+            from .cad_curves import transformed
+            for e in ents:
+                e['points']=apply(e['points'],params);e['holes']=[apply(h,params) for h in e['holes']]
+                if e.get('cad_curve'):e['cad_curve']=transformed(e['cad_curve'],params)
         out.extend(ents)
     return out
 
@@ -259,8 +266,10 @@ def analyze(directory,settings,preview=None,hatch_preview=None):
     from .alignment import active,apply
     alignment=active(settings)
     if alignment:
+        from .cad_curves import transformed
         for e in entities+(preview if preview is not None else []):
             e['points']=apply(e['points'],alignment);e['holes']=[apply(h,alignment) for h in e.get('holes',[])]
+            if e.get('cad_curve'):e['cad_curve']=transformed(e['cad_curve'],alignment)
     if getattr(settings,'accesses',None):
         from .access import items as access_items
         axes0=[v for v in entities if v['role']=='axis' and len(v['points'])>=2]

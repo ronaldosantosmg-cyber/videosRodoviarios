@@ -206,14 +206,15 @@ class TrafficNetwork:
         # Setas e cliques do usuário são resolvidos uma vez, sobre os trechos finais.
         sampled=[sample(r['points'])[0] for r in raw]
         from types import SimpleNamespace
-        recovery_marks=[SimpleNamespace(id=o.id,x=o.x,y=o.y,enabled=o.enabled,action='recover',target_key=o.target_key) for o in getattr(settings,'flow_recoveries',[])]
+        recovery_marks=[SimpleNamespace(id=o.id,x=o.x,y=o.y,enabled=o.enabled,action='reconstruct' if o.reconstruct else 'recover',target_key=o.target_key) for o in getattr(settings,'flow_recoveries',[])]
         marks=assign(sampled,list(getattr(settings,'flow_overrides',[]))+recovery_marks,[],path_keys=[r['origin_aliases'] for r in raw])
         keys={key for r in raw for key in r['origin_aliases']};unmatched=sum(o.enabled and bool(o.target_key) and o.target_key not in keys for o in getattr(settings,'flow_recoveries',[]))
         if unmatched:self.warnings.append(f'{unmatched} recuperação(ões) não correspondem mais à geometria atual. Selecione novamente o eixo para revisar.')
-        recovery_origins={r['origin'] for r,m in zip(raw,marks.values()) if m.get('recover')}
+        recovery_origins={r['origin'] for r,m in zip(raw,marks.values()) if m.get('recover') or m.get('reconstruct')}
+        rebuild_origins={r['origin'] for r,m in zip(raw,marks.values()) if m.get('reconstruct')}
         for r,m in zip(raw,marks.values()):
             if r.get('cut_disable_ids'):m={**m,'disable':True,'override_ids':list(dict.fromkeys(m['override_ids']+r['cut_disable_ids']))}
-            r['user']={**m,'recover':r['origin'] in recovery_origins or r.get('explicit_cut',False)}
+            r['user']={**m,'recover':r['origin'] in recovery_origins or r.get('explicit_cut',False),'reconstruct':r['origin'] in rebuild_origins}
         # Roundabout islands supply a counter-clockwise direction field.
         self.islands=[];self.splitters=[]
         for poly in (list(self.allowed.geoms) if hasattr(self.allowed,'geoms') else [self.allowed]):
@@ -401,7 +402,7 @@ class TrafficNetwork:
                 recovered=[segment]
                 if user.get('recover') and not disabled:
                     from .flow_recovery import recover_sections
-                    recovered,recovery_report=recover_sections(segment,self.allowed,max(1.,self.min_route))
+                    recovered,recovery_report=recover_sections(segment,self.allowed,max(1.,self.min_route),reconstruct=user.get('reconstruct',False) and not r.get('explicit_cut',False))
                     self.raw_info[-1]['recovery_reports'].append(recovery_report)
                 for safe_segment in recovered:
                     portals=(run_index==0,run_index==len(runs)-1)

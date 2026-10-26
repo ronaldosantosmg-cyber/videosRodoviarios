@@ -48,6 +48,7 @@ class ImageRequest(BaseModel):
     bounds:list[float]=Field(min_length=4,max_length=4)
     crs:str=Field(min_length=1,max_length=120)
     source:Literal['local','web']='local'
+    method:Literal['similarity','semantic']='similarity'
     pixels:Literal[512,1024,1536,2048]=1024
     clusters:int=Field(default=12,ge=2,le=32)
     min_area_m2:float=Field(default=4,ge=.1,le=10000)

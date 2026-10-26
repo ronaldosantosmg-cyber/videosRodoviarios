@@ -1,5 +1,7 @@
 /* ---------- Vista: imagem <-> canvas <-> mundo ---------- */
 let view={s:1,ox:0,oy:0};
+let canvasResizeFrame=0;
+function scheduleCanvasResize(){if(canvasResizeFrame)return;canvasResizeFrame=requestAnimationFrame(()=>{canvasResizeFrame=0;resizeCanvas()})}
 function resizeCanvas(){const r=canvas.getBoundingClientRect(),d=window.devicePixelRatio||1;const w=Math.max(320,Math.round(r.width*d)),h=Math.max(180,Math.round(r.height*d));if(canvas.width!==w||canvas.height!==h){const k=w/canvas.width;
  // 1.29: o ponto no centro da tela continua no centro quando a tela muda de tamanho.
  const cx=(canvas.width/2-view.ox)/view.s,cy=(canvas.height/2-view.oy)/view.s;canvas.width=w;canvas.height=h;view.s*=k;view.ox=w/2-cx*view.s;view.oy=h/2-cy*view.s}draw()}

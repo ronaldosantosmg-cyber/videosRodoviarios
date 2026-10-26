@@ -1,0 +1,17 @@
+{
+  "source_sha256": "7936e09e195212a85a894dbc48f5ad337f0cbe4f3195225e6f8137297e3e4538",
+  "axes": 31,
+  "native_axes": {
+    "joined": 0,
+    "invalid": 1,
+    "max_gap_m": 0.0,
+    "removed_nodes": 1271,
+    "ignored_sources": 0
+  },
+  "flows": 6,
+  "revalidated_flows": 6,
+  "longest_flow_m": 286.29,
+  "original_preserved": true,
+  "seconds": 31.11,
+  "limitations": "DXF disponível usado como regressão; não é o projeto salvo atual do usuário."
+}

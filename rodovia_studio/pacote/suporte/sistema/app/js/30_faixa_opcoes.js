@@ -46,5 +46,5 @@ estender('commitProp',_cp=>function(el){if(el.dataset&&el.dataset.pp==='color'&&
 // 1.29: opções da ferramenta flutuando sobre a tela (a área de desenho não muda de tamanho ao trocar de ferramenta).
 {const to=$('toolOptions'),wrap=document.querySelector('.canvasWrap');if(to&&wrap&&to.parentElement!==wrap)wrap.appendChild(to)}
 // Mudança de tamanho da tela: só redesenha quando o tamanho realmente muda (evita saltos).
-try{new ResizeObserver(()=>{const r=canvas.getBoundingClientRect(),d=window.devicePixelRatio||1;if(Math.round(r.width*d)!==canvas.width||Math.round(r.height*d)!==canvas.height)resizeCanvas()}).observe(canvas)}catch{}
+try{new ResizeObserver(()=>{const r=canvas.getBoundingClientRect(),d=window.devicePixelRatio||1;if(Math.round(r.width*d)!==canvas.width||Math.round(r.height*d)!==canvas.height)scheduleCanvasResize()}).observe(canvas)}catch{}
 

@@ -56,7 +56,8 @@ def image_status(pid):
             import numpy as np
             pts=np.vstack(corners);bounds=[float(pts[:,0].min()),float(pts[:,1].min()),float(pts[:,0].max()),float(pts[:,1].max())]
         except (ValueError,OSError):available=False
-    return {'available':available,'current':current,'groups':LABELS,'bounds':bounds}
+    from ..image_semantic import status
+    return {'available':available,'current':current,'groups':LABELS,'bounds':bounds,'semantic':status(store.ROOT/'modelos'/'imagem_aerea')}
 
 @router.get('/api/projects/{pid}/image_context/capture.png')
 def image_capture(pid):

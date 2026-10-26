@@ -201,15 +201,16 @@ def snap_points(directory,x0,y0,x1,y1,limit=8000):
 
 # ---------------- 1.26: linhas exatas do DXF para selecionar o alinhamento ----------------
 def write_lines(directory,items):
-    xy=[];off=[0];lay=[];names={};closed=[];roles=[]
+    xy=[];off=[0];lay=[];names={};closed=[];roles=[];curves=[]
     for e in items:
         if e.get('frozen') or e.get('role') in ('sign_v',):continue
         r=np.asarray(e['points'],float)
         if len(r)<2:continue
         xy.append(r);off.append(off[-1]+len(r));lay.append(names.setdefault(str(e.get('layer','')),len(names)));closed.append(bool(e.get('closed')));roles.append(str(e.get('role','')))
+        curves.append(json.dumps(e.get('cad_curve'),allow_nan=False))
     f=Path(directory)/'linhas.npz';tmp=Path(directory)/'linhas_tmp.npz'
     np.savez_compressed(tmp,xy=np.concatenate(xy) if xy else np.zeros((0,2)),off=np.asarray(off,np.int64),lay=np.asarray(lay,np.int32),
-                        closed=np.asarray(closed,bool),names=np.asarray(list(names) or [''],dtype=str),roles=np.asarray(roles or [''],dtype=str));tmp.replace(f)
+                        closed=np.asarray(closed,bool),names=np.asarray(list(names) or [''],dtype=str),roles=np.asarray(roles or [''],dtype=str),curves=np.asarray(curves,dtype=str));tmp.replace(f)
 
 _lines_cache={}
 def _lines(directory):
@@ -222,6 +223,10 @@ def _lines(directory):
         box=np.array([[l[:,0].min(),l[:,1].min(),l[:,0].max(),l[:,1].max()] for l in lines]) if lines else np.zeros((0,4))
         d={'lines':lines,'box':box,'lay':z['lay'],'closed':z['closed'],'names':[str(v) for v in z['names']],'roles':[str(v) for v in z['roles']] if 'roles' in z.files else ['']*len(lines)}
         _lines_cache.clear();_lines_cache[key]=d
+        d['curves']=[json.loads(str(c)) for c in z['curves']] if 'curves' in z.files else [None]*len(lines)
+        from .cad_curves import bounds
+        for i,c in enumerate(d['curves']):
+            if c:d['box'][i]=bounds(c)
     return d
 
 def _dist(line,p):
@@ -234,13 +239,19 @@ def pick_line(directory,x,y,tol=5.):
     if not len(B):return None
     cand=np.flatnonzero((B[:,0]-tol<=x)&(B[:,2]+tol>=x)&(B[:,1]-tol<=y)&(B[:,3]+tol>=y))
     best=None
+    from .cad_curves import closest,length as curve_length
     for i in cand:
         dist,_,_=_dist(d['lines'][i],p)
+        curve=d['curves'][i]
+        if curve:dist=closest(curve,p)['distance_m']
         if dist<=tol and (best is None or dist<best[0]):best=(dist,i)
     if best is None:return None
     i=best[1];L=d['lines'][i];pts=L.tolist()
     if d['closed'][i] and np.hypot(*(L[0]-L[-1]))>1e-6:pts.append(pts[0])
-    return {'index':int(i),'points':pts,'layer':d['names'][int(d['lay'][i])],'distance_m':round(best[0],3),'length_m':round(float(np.hypot(*np.diff(np.asarray(pts),axis=0).T).sum()),3),'closed':bool(d['closed'][i])}
+    result={'index':int(i),'points':pts,'layer':d['names'][int(d['lay'][i])],'distance_m':float(best[0]),'length_m':float(np.hypot(*np.diff(np.asarray(pts),axis=0).T).sum()),'closed':bool(d['closed'][i])}
+    if d['curves'][i]:
+        result.update(cad_curve=d['curves'][i],curve_projection=closest(d['curves'][i],p),length_m=curve_length(d['curves'][i]))
+    return result
 
 def chain_lines(directory,x,y,tol=5.,join=.05,max_parts=500):
     """Seleção contínua: a linha clicada e as que continuam dela (pontas coincidentes, sem bifurcação), na ordem."""

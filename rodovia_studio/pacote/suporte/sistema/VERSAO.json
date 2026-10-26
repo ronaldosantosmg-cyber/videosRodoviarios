@@ -1,5 +1,5 @@
 {
-  "version": "1.42.18",
+  "version": "1.42.19",
   "schema_version": 33,
   "reference_video_sha256": "1d8cc8267015132a80ec4363bb1e5a66f39361d2a7e897ba509c7974f97e488b",
   "reference_note": "O vídeo TH57 aprovado foi substituído pela ficha técnica assets/th57/referencia_ficha.json (dados do arquivo e métricas de imagem para comparação). SHA-256 histórico mantido.",
@@ -57,7 +57,8 @@
     "1.42.15": "Vista em CRS preservada na atualização de rotas; prévia antiga mantida e marcada desatualizada; correção de camadas sem vetores; caches 2D com limite de 32 MiB e faixa compacta.",
     "1.42.16": "Central Corrigir fluxos, recorte/recuperação acessíveis, revisão explícita da inferência de canteiro, redução de afastamento e barreiras lineares físicas.",
     "1.42.17": "Orientação local de cálculos, cadastros residuais recuperáveis, janela Novo com respiro, faixa Todas em linhas limitadas por grupo e logo retornando à pose inicial.",
-    "1.42.18": "Fontes de tráfego restritas a eixos designados ou seleção explícita; indicação de sentido por intervalo recalcula a via; cache de marcações, agentes pedestres e fumaça compartilhados em planta/3D/vídeo."
+    "1.42.18": "Fontes de tráfego restritas a eixos designados ou seleção explícita; indicação de sentido por intervalo recalcula a via; cache de marcações, agentes pedestres e fumaça compartilhados em planta/3D/vídeo.",
+    "1.42.19": "Correções do log de uso: densidade, concreto OAE, revisão de gravação/importação, recálculo sem fechar painéis e KMZ incremental; reconstrução contínua optativa e curvas paramétricas; adaptador semântico local ainda sem pesos de modelo."
   },
   "automated_tests_passed": 306,
   "test_environment": "Linux, Python 3.13; shapely 2.1.2/GEOS 3.13.1 e pyproj 3.7.2/PROJ 9.6.2 compilados no ambiente (as versões fixadas para Windows são shapely 2.2.0 e pyproj 3.8.0); interface verificada em Chromium (Playwright)",
