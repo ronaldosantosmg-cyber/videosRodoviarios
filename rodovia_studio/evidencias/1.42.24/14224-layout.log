@@ -1,0 +1,19 @@
+....F.                                                                   [100%]
+=================================== FAILURES ===================================
+___ test_progress_is_unique_in_footer_and_reports_failure_and_indeterminate ____
+
+page = <Page url='about:blank'>
+
+    def test_progress_is_unique_in_footer_and_reports_failure_and_indeterminate(page):
+        page.evaluate("progMostrar({id:'test',titulo:'Analisando',valor:null,info:'Etapa sem total conhecido'})")
+>       assert page.locator('#rsStudyFooter #progress').count()==1
+E       AssertionError: assert 0 == 1
+E        +  where 0 = count()
+E        +    where count = <Locator frame=<Frame name= url='about:blank'> selector='#rsStudyFooter #progress'>.count
+E        +      where <Locator frame=<Frame name= url='about:blank'> selector='#rsStudyFooter #progress'> = locator('#rsStudyFooter #progress')
+E        +        where locator = <Page url='about:blank'>.locator
+
+tests/test_v14221_simplification.py:72: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_v14221_simplification.py::test_progress_is_unique_in_footer_and_reports_failure_and_indeterminate
+1 failed, 5 passed in 19.79s

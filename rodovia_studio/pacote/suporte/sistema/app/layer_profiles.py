@@ -8,6 +8,8 @@ do projeto e pode ser alterado camada a camada.
 """
 import json,re,unicodedata,fnmatch,threading
 from pathlib import Path
+from .project_state import locked,revision
+from .store import write_json
 
 ROLE_LABELS={'axis':'Eixo','pavement':'Pista projetada','existing_pavement':'Pista existente','shoulder':'Acostamento',
              'edge_line':'Bordo (linha de borda)','median':'Canteiro','barrier':'Barreira','oae':'OAE','cut':'Corte','fill':'Aterro',
@@ -80,16 +82,23 @@ def validate(p):
     if len(rules)>500:raise ValueError('Perfil com regras demais (máximo 500).')
     return {'name':name,'rules':rules}
 
-def save(root,p):
+def save(root,p,*,create_only=False,expected=None):
     p=validate(p)
-    with _lock:
+    with _lock,locked(root):
+        previous=next((x for x in load(root)[1:] if x['name']==p['name']),None)
+        if create_only and previous is not None:raise ValueError('Já existe um perfil com esse nome. Escolha outro em Salvar como.')
+        if expected is not None and (previous is None or revision(validate(previous))!=expected):raise ValueError('O perfil mudou. Reabra antes de salvar; o rascunho foi preservado.')
         user=[x for x in load(root)[1:] if x['name']!=p['name']]+[p]
-        f=_file(root);tmp=f.with_suffix('.tmp');tmp.write_text(json.dumps(user,ensure_ascii=False,indent=2),encoding='utf-8');tmp.replace(f)
+        f=_file(root)
+        if f.is_symlink():raise ValueError('Perfil não pode ser um link simbólico.')
+        write_json(f,user)
     return p
 
 def delete(root,name):
-    with _lock:
+    with _lock,locked(root):
         user=load(root)[1:];left=[x for x in user if x['name']!=name]
         if len(left)==len(user):return False
-        f=_file(root);tmp=f.with_suffix('.tmp');tmp.write_text(json.dumps(left,ensure_ascii=False,indent=2),encoding='utf-8');tmp.replace(f)
+        f=_file(root)
+        if f.is_symlink():raise ValueError('Perfil não pode ser um link simbólico.')
+        write_json(f,left)
     return True

@@ -1,0 +1,4 @@
+Ambiente: Linux, Python do ambiente /workspace/.venvs/rodovia-studio, Chromium /usr/bin/chromium.
+Verificações executadas nesta revisão: pip check sem dependências quebradas; compileall app/tests/atualizador.py/run.py; node --check em 83 módulos JS/MJS próprios.
+Testes dirigidos e métricas: consultar pytest-direcionado.xml, logs 14224-*.log e dxf_real.json.
+Ensaios de iniciador/splash e atualização/rollback: consultar iniciador_splash.log e verificacao_pacote.json.

@@ -69,7 +69,7 @@ def test_five_tabs_eight_menus_and_no_duplicate_visible_tool_catalog(page):
 
 def test_progress_is_unique_in_footer_and_reports_failure_and_indeterminate(page):
     page.evaluate("progMostrar({id:'test',titulo:'Analisando',valor:null,info:'Etapa sem total conhecido'})")
-    assert page.locator('#rsStudyFooter #progress').count()==1
+    assert page.locator('#bottomBar #progress').count()==1
     assert page.locator('progress:visible').count()==1
     assert page.locator('#progress').get_attribute('value') is None
     page.evaluate("progFim('test','Falha controlada',true)")

@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.23",
-  "description": "1.42.23: modo automático/manual, atualização completa ao abrir/salvar/prévia/vídeo e proteção contra cálculos recursivos."
+  "version": "1.42.24",
+  "description": "1.42.24: assistência local de logs, prompt/resposta JSON revisável, correlação de layers com materiais e eixos e perfis reutilizáveis."
 }

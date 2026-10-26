@@ -13,7 +13,9 @@ MAX_BYTES=2*1024*1024
 _lock=threading.Lock()
 
 def _dir(project_dir):
-    d=Path(project_dir)/'logs';d.mkdir(exist_ok=True);return d
+    d=Path(project_dir)/'logs'
+    if d.is_symlink():raise ValueError('Pasta de logs não pode ser um link simbólico.')
+    d.mkdir(exist_ok=True);return d
 
 def _rotate(f):
     if f.exists() and f.stat().st_size>MAX_BYTES:
@@ -23,6 +25,9 @@ def write(project_dir,kind,event,**data):
     """Acrescenta um registro. kind: 'execucao' ou 'erros'. Nunca levanta exceção (registro é auxiliar)."""
     try:
         f=_dir(project_dir)/f'{kind}.jsonl';rec={'t':time.strftime('%Y-%m-%d %H:%M:%S'),'evento':event,**data}
+        if kind=='erros':
+            from .calculation_guidance import guidance
+            rec['orientacao_local']=guidance(str(data.get('tipo') or event),str(data.get('mensagem') or data.get('erro') or '')[:4000])
         line=json.dumps(rec,ensure_ascii=False,default=str)
         with _lock:
             _rotate(f)
@@ -31,10 +36,13 @@ def write(project_dir,kind,event,**data):
 
 def read(project_dir,kind,limit=300):
     out=[];d=Path(project_dir)/'logs'
+    if d.is_symlink():return []
     for f in (d/f'{kind}.1.jsonl',d/f'{kind}.jsonl'):
-        if not f.exists():continue
+        if not f.exists() or f.is_symlink():continue
         for line in f.read_text(encoding='utf-8',errors='replace').splitlines():
-            try:out.append(json.loads(line))
+            try:
+                event=json.loads(line)
+                if isinstance(event,dict):out.append(event)
             except ValueError:continue
     return out[-limit:]
 

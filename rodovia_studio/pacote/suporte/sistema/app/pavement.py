@@ -27,6 +27,9 @@ def tag_materials(entities,settings):
     for e in entities:
         if e.get('material_source')=='project_default':e.pop('material',None)
         if e.get('role') not in SURF_ROLES or 'material' in e:continue
+        mapped=getattr(settings,'layer_materials',{}).get(e.get('layer',''))
+        if mapped in ('concrete','asphalt','asphalt_old'):
+            e['material']='rigido' if mapped=='concrete' else 'flexivel';e['material_source']='layer_mapping';continue
         n=_norm(e.get('layer',''))
         if any(w in n for w in RIGID_WORDS):e['material']='rigido'
         elif any(w in n for w in FLEX_WORDS):e['material']='flexivel'

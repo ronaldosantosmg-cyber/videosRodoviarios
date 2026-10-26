@@ -1,0 +1,40 @@
+........................................................................ [ 63%]
+.......................................F.F                               [100%]
+=================================== FAILURES ===================================
+_________________ test_diagnostics_from_engine[n5-adjustment] __________________
+
+n = namespace(raw_info=[{'base': 0, 'points': array([[  0.,   0.],
+       [100.,   0.]]), 'disabled': False, 'diagnostic_a...nt_xy': [2.25, 0.0], 'rear_xy': [-2.25, 0.0]}}], edges=[{'base': 0, 'disabled': False}], paths=[], short_ignored=set())
+status = 'adjustment'
+
+    @pytest.mark.parametrize('n,status',[(net(),'ok'),(net(disabled=True),'problem'),(net(0),'problem'),(net(float('nan')),'problem'),(net(49.9),'adjustment'),(net(used=False),'adjustment'),(net(edge_disabled=True),'problem')])
+    def test_diagnostics_from_engine(n,status):
+>       assert flow_diagnostics(n)[0]['technical_status']==status
+E       AssertionError: assert 'problem' == 'adjustment'
+E         
+E         - adjustment
+E         + problem
+
+tests/test_v142_diagnostics.py:13: AssertionError
+_________________ test_diagnostics_do_not_modify_video_frames __________________
+
+drawing = PosixPath('/tmp/pytest-of-agent/pytest-239/test_diagnostics_do_not_modify0')
+
+    def test_diagnostics_do_not_modify_video_frames(drawing):
+        from app.render import Scene
+        from test_workflow import settings
+        scene=Scene(drawing,settings())
+        a,_=scene.frame(1.)
+        data=scene.editor_data()
+        assert data['segments'] and all('technical_status' in s for s in data['segments'])
+        # A fonte longa fora da pista permanece vermelha; os 18 m utilizáveis não geram veículo.
+>       assert not scene.network.edges and scene.network.auto_pruned
+E       AssertionError: assert (not [{'p': array([[ 500197.92169682, 7800002.77964313],\n       [ 500198.50396095, 7800002.92520917],\n       [ 500199.08622....20497146, 16.80515558, 17.40533971,\n       18.00552384, 18.60570797]), 'length': np.float64(18.605707966950536), ...}])
+E        +  where [{'p': array([[ 500197.92169682, 7800002.77964313],\n       [ 500198.50396095, 7800002.92520917],\n       [ 500199.08622....20497146, 16.80515558, 17.40533971,\n       18.00552384, 18.60570797]), 'length': np.float64(18.605707966950536), ...}] = <app.traffic.TrafficNetwork object at 0x7f55de751190>.edges
+E        +    where <app.traffic.TrafficNetwork object at 0x7f55de751190> = <app.render.Scene object at 0x7f55c446bc50>.network
+
+tests/test_v142_diagnostics.py:24: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_v142_diagnostics.py::test_diagnostics_from_engine[n5-adjustment]
+FAILED tests/test_v142_diagnostics.py::test_diagnostics_do_not_modify_video_frames
+2 failed, 112 passed, 1 warning in 490.39s (0:08:10)
