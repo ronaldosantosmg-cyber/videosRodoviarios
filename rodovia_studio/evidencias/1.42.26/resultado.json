@@ -1,0 +1,34 @@
+{
+  "version": "1.42.26",
+  "status": "validacao_direcionada",
+  "release_approved": false,
+  "full_suite_executed": false,
+  "simplified_validation_requested_by_user": true,
+  "scope": "Interface e integração; testes dirigidos desta revisão. Auditoria estática não equivale a antivírus.",
+  "source_sha256": "155d3665be9ae00dd7c31f17359b18ec42ab056c26955f82b0b8f3b8741600e1",
+  "pytest": {
+    "tests": 54,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "real_dxf": {
+    "source_sha256": "7936e09e195212a85a894dbc48f5ad337f0cbe4f3195225e6f8137297e3e4538",
+    "flows": 6,
+    "revalidated_flows": 6,
+    "axes": 31,
+    "original_preserved": true,
+    "full_geometry_recalculated": true,
+    "full_surface_recalculated": true,
+    "width": 1280,
+    "height": 720,
+    "imagery_pixels": 2048,
+    "seconds": 41.33,
+    "limitations": "DXF disponível em prévia neutra HD com mosaico limitado a 2048 para ensaio dirigido. Não é o projeto salvo atual do usuário nem teste de carga/Windows."
+  },
+  "launcher": "C# compilado com e sem WebView2",
+  "splash": "Mono/Xvfb; versão, fabricante e animação",
+  "windows_native_executed": false,
+  "windows_scope": "Pendente nesta revisão; compilação/splash local em Mono não equivale a Windows.",
+  "browser": "Chromium real; Firefox indisponível por HTTP 403 da política de rede; Edge nativo não executado."
+}

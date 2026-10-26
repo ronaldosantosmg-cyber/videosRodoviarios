@@ -1,0 +1,41 @@
+{
+  "revision": "1.42.26",
+  "tests": 54,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "baseline_ids": 477,
+  "baseline_fields_and_canvas": 227,
+  "viewport_matrix": [
+    [
+      1920,
+      1080
+    ],
+    [
+      1366,
+      768
+    ],
+    [
+      1024,
+      768
+    ],
+    [
+      760,
+      720
+    ]
+  ],
+  "browser_executed": "Chromium / Linux",
+  "firefox": "Download bloqueado por política de rede, HTTP 403; não executado.",
+  "edge_native": "Não executado.",
+  "backend": "Módulos de cálculo preservados, ensaios de integração e MP4 atuais.",
+  "full_historical_suite": false,
+  "scope": "Reestruturação da interface e integração, não substituição do motor.",
+  "av_status": "Auditoria estática sem achados nos padrões pesquisados; não equivale a antivírus. CI Windows em andamento. Alerta corporativo permanece dependente de análise da TI.",
+  "performance": "Sem comparação controlada de FPS ou memória; nenhum ganho numérico alegado.",
+  "readiness": {
+    "score": 7.5,
+    "scale": 10,
+    "provisional": true,
+    "basis": "54 testes dirigidos aprovados, página responsiva, integração real 2D/3D e MP4; faltam homologação corporativa do alerta, Edge/Firefox nativos e carga prolongada."
+  }
+}
