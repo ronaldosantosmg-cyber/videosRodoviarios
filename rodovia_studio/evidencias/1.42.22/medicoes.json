@@ -1,0 +1,49 @@
+{
+  "1.42.21": [
+    {
+      "phase": "first",
+      "seconds": 0.32052,
+      "derived_routes": 12,
+      "reused_routes": 0,
+      "lanes": 48
+    },
+    {
+      "phase": "unchanged",
+      "seconds": 0.45771,
+      "derived_routes": 12,
+      "reused_routes": 0,
+      "lanes": 48
+    },
+    {
+      "phase": "one_section_changed",
+      "seconds": 0.31265,
+      "derived_routes": 12,
+      "reused_routes": 0,
+      "lanes": 48
+    }
+  ],
+  "1.42.22": [
+    {
+      "phase": "first",
+      "seconds": 0.45865,
+      "derived_routes": 12,
+      "reused_routes": 0,
+      "lanes": 48
+    },
+    {
+      "phase": "unchanged",
+      "seconds": 0.20536,
+      "derived_routes": 0,
+      "reused_routes": 12,
+      "lanes": 48
+    },
+    {
+      "phase": "one_section_changed",
+      "seconds": 0.15292,
+      "derived_routes": 1,
+      "reused_routes": 11,
+      "lanes": 48
+    }
+  ],
+  "scope": "Derivação de faixas de 12 eixos sintéticos de 5 km, 4 faixas por eixo. Uma amostra por fase, sem concorrência de testes. Não mede atualização completa, rede, simulação, vídeo, RAM total ou Windows."
+}

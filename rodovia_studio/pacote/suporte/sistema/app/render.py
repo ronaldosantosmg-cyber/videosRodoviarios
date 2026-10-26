@@ -240,7 +240,7 @@ class Scene:
         try:
             signature=hashlib.sha256()
             extra=sorted((self.directory/'camadas').glob('*.dxf')) if (self.directory/'camadas').exists() else []
-            for file in [self.directory/'input.dxf',self.directory/'input.kmz',Path(__file__),Path(__file__).with_name('geometry.py'),Path(__file__).with_name('earthworks.py'),Path(__file__).with_name('visual.py')]+extra:
+            for file in [self.directory/'input.dxf',self.directory/'input.kmz',Path(__file__),Path(__file__).with_name('geometry.py'),Path(__file__).with_name('earthworks.py'),Path(__file__).with_name('visual.py'),Path(__file__).with_name('surface_marks.py'),Path(__file__).with_name('pavement.py'),Path(__file__).with_name('asset_catalog.py')]+extra:
                 if file.exists():
                     with file.open('rb') as f:
                         while chunk:=f.read(1024*1024):signature.update(chunk)
@@ -400,7 +400,7 @@ class Scene:
         decks=[o['deck'] for o in self.oae]
         roads.extend(decks)
         from .markup import oae_direction_marks
-        self.network=TrafficNetwork(roads,obstacles,self.axes,self.axis,self.ds,self.s,[poly(e) for e in self.items if e['closed'] and e['role']=='oae']+decks,oae_direction_marks(self.oae,self.stationing),[e['points'] for e in self.items if e['role']=='edge_line' and len(e['points'])>=2],[e for e in self.items if e['role']=='sign_h'],[e for e in self.items if e['role']=='sign_v'])
+        self.network=TrafficNetwork(roads,obstacles,self.axes,self.axis,self.ds,self.s,[poly(e) for e in self.items if e['closed'] and e['role']=='oae']+decks,oae_direction_marks(self.oae,self.stationing),[e['points'] for e in self.items if e['role']=='edge_line' and len(e['points'])>=2],[e for e in self.items if e['role']=='sign_h'],[e for e in self.items if e['role']=='sign_v'],directory=self.directory)
         self.allowed=self.network.allowed
         self.save_editor_geometry(roads,obstacles)
         self.routes=[(e['p'],e['t'],np.ones(len(e['p']),bool),e['length'],i) for i,e in enumerate(self.network.edges)]
@@ -524,7 +524,7 @@ class Scene:
                 'alignment':self.report.get('alignment'),'segments':segments,
                 'pois':[{'id':p.get('id'),'title':p.get('title'),'kind':p.get('kind'),'x':p['x'],'y':p['y'],'km_m':p.get('km_m'),'km_auto_m':p.get('km_auto_m'),'km_mode':p.get('km_mode','auto'),'anchor':p.get('anchor'),'source':p.get('source','')} for p in self.pois],
                 'oae':[{'id':o['id'],'name':o['name'],'km_start_m':o['km_start_m'],'km_end_m':o['km_end_m'],'km_auto':o['km_auto'],'line':pts(o['line']),'level_m':o['level_m'],'width_m':o['width_m'],'direction':o.get('direction','both'),'polygon':bool(o.get('polygon'))} for o in self.oae],
-                'itineraries':len(self.network.paths),'warnings':self.report['warnings'][-20:],
+                'itineraries':len(self.network.paths),'section_continuity':self.network.report.get('section_continuity',[]),'route_lane_cache':self.network.route_lane_cache.report(),'warnings':self.report['warnings'][-20:],
                 # 1.11: sinalização e setas como no vídeo (vetores nítidos no editor).
                 'markings':[[round(float(a[0]),2),round(float(a[1]),2),round(float(b[0]),2),round(float(b[1]),2),1 if tuple(c)==(244,200,70) else 0] for a,b,c in self.network.markings],
                 'arrows':[[round(float(p[0]),2),round(float(p[1]),2),round(float(t[0]),4),round(float(t[1]),4)]+([round(float(c[0]),2),round(float(c[1]),2)] if c is not None else []) for (p,t),c in zip(self.network.arrows,list(getattr(self.network,'arrow_anchors',[]) or [])+[None]*len(self.network.arrows))],

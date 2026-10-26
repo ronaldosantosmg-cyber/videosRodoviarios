@@ -50,7 +50,7 @@ def lane_offsets(typ,lanes,med,width):
 def _runs(mask):
     ch=np.diff(np.r_[0,mask.astype(np.int8),0]);return list(zip(np.flatnonzero(ch==1),np.flatnonzero(ch==-1)))
 
-def build_lanes(route,settings=None):
+def _build_lanes(route,settings=None):
     """Faixas do alinhamento: lista de dicts {points (no sentido de tráfego), dir 'f'|'r', lane k, length}."""
     if isinstance(route,dict):
         from .models import RouteAlignment
@@ -118,7 +118,12 @@ def build_lanes(route,settings=None):
             result.append({'points':P,'dir':d,'lane':k,'length':L,'start_m':float(s[J[0]]),'end_m':float(s[J[-1]]),'lane_width_m':min(widths)})
     return result
 
-def raw_paths(settings):
+def build_lanes(route,settings=None,lane_cache=None):
+    from .models import RouteAlignment
+    route=RouteAlignment.model_validate(route) if isinstance(route,dict) else route
+    return lane_cache.get(route,settings,lambda:_build_lanes(route,settings)) if lane_cache else _build_lanes(route,settings)
+
+def raw_paths(settings,lane_cache=None):
     """Entradas “raw” para a rede de tráfego (TrafficNetwork) a partir dos alinhamentos de rota ativos."""
     out=[]
     for r in getattr(settings,'route_alignments',[]) or []:
@@ -126,7 +131,7 @@ def raw_paths(settings):
         pts=np.array([[p.x,p.y] for p in r.points],dtype=float)
         route_len=float(np.sum(np.linalg.norm(np.diff(pts,axis=0),axis=1))) if len(pts)>1 else 0.0
         if not np.isfinite(route_len) or route_len < float(getattr(settings,'min_route_segment_m',50)):continue
-        for ln in build_lanes(r,settings):
+        for ln in build_lanes(r,settings,lane_cache):
             if ln['length']<float(getattr(settings,'min_route_segment_m',50)):continue
             out.append({'points':ln['points'],'halfwidth':float(r.lane_width_m)/2,'source':f"{r.name} · {'sentido do desenho' if ln['dir']=='f' else 'sentido oposto'} · faixa {ln['lane']+1}",
                         'level':int(r.level),'kind':'main','manual':True,'fixed':True,'nopaint':True,'free':bool(r.outside_pavement),'speed_kmh':r.speed_kmh,
@@ -146,7 +151,7 @@ def preview(settings):
     return out
 
 
-def section_corridors(settings):
+def section_corridors(settings,lane_cache=None):
     """Geometria operacional explicitamente declarada; nunca inclui acostamentos.
 
     Aceita a seção como fonte de pista quando a hachura DXF é incompleta. As
@@ -156,7 +161,7 @@ def section_corridors(settings):
     result=[]
     for route in getattr(settings,'route_alignments',[]):
         if not route.enabled or not route.section_surface or not route.cross_sections:continue
-        for lane in build_lanes(route,settings):
+        for lane in build_lanes(route,settings,lane_cache):
             if lane['length']<settings.min_route_segment_m:continue
             p=lane['points'];a=p[1]-p[0];b=p[-1]-p[-2]
             a/=max(np.linalg.norm(a),1e-9);b/=max(np.linalg.norm(b),1e-9)

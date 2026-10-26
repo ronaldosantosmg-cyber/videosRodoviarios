@@ -4,7 +4,7 @@ import zipfile
 from pathlib import Path
 from test_v142_visual import page
 from test_v1422_layout import seed
-from visual_harness import screenshot,rect
+from visual_harness import screenshot,rect,open_activity
 
 
 def test_all_original_139_tools_are_accessible_from_compact_bar(page):
@@ -15,7 +15,7 @@ def test_all_original_139_tools_are_accessible_from_compact_bar(page):
         expected=set(re.findall(r"\['([a-z_][a-z_0-9]*)','",text))
     actual=set(page.evaluate('TOOLS.filter(Array.isArray).map(t=>t[0])'))
     assert expected<=actual
-    page.get_by_role('menuitem',name='Modelar',exact=True).click()
+    page.get_by_role('menuitem',name='Editar',exact=True).click()
     assert page.locator('.rsCascade').first.get_by_role('menuitem').count()>=6
     screenshot(page,'1423_01_ferramentas_139_restauradas')
 
@@ -27,12 +27,13 @@ def test_zoom_redraw_and_pan_quick_buttons_work(page):
     page.evaluate("canvas.dispatchEvent(new WheelEvent('wheel',{clientX:300,clientY:400,deltaY:100,cancelable:true}))");assert abs(page.evaluate('view.s')-1)<1e-6
     before=page.evaluate('({...view})');page.evaluate("runCommand('REDRAW')");page.wait_for_timeout(150)
     assert page.evaluate('({...view})')==pytest.approx(before,rel=0,abs=1e-9)
-    page.locator('#rsToolPanel0 [data-rs-tool="pan"]').click();assert page.evaluate('tool')=='pan'
+    page.locator('#rsQuickNavigation [data-rs-tool="pan"]').click();assert page.evaluate('tool')=='pan'
     screenshot(page,'1423_02_pan_zoom_redesenhar')
 
 
 def test_modify_menu_keeps_transform_actions(page):
-    names=page.locator('#rsToolPanel0 [data-rs-command]').all_text_contents()
+    open_activity(page,'Editar')
+    names=page.locator('#rsToolPanel1 [data-rs-command]').all_text_contents()
     for label in ['Mover','Girar','Copiar','Escala','Espelhar','Paralela']:assert any(label in n for n in names)
     screenshot(page,'1423_03_modificar')
 
@@ -40,7 +41,7 @@ def test_modify_menu_keeps_transform_actions(page):
 def test_insert_control_vertex_and_undo_without_corrupting_route(page):
     seed(page)
     page.evaluate("M.route_alignments=[{id:'r',name:'Rota',points:[{x:0,y:0},{x:100,y:0}],enabled:true,type:'simples',lanes:1,median_m:0,lane_width_m:3.5,taper_m:40,sections:[],lane_change_sections:[]}];sel={key:'route_alignments',i:0};showProps()")
-    page.locator('#rsToolPanel0 [data-rs-tool="insertcontrol"]').click()
+    open_activity(page,'Editar').locator('[data-rs-tool=insertcontrol]').click()
     page.evaluate('click({x:50,y:0},{})')
     assert page.evaluate('M.route_alignments[0].points.length')==3
     assert page.evaluate('M.route_alignments[0].points[1]')==dict(x=50,y=0)
@@ -49,9 +50,9 @@ def test_insert_control_vertex_and_undo_without_corrupting_route(page):
 
 
 def test_point_and_calibration_actions_are_not_hidden(page):
-    page.locator('#rsToolPanel0 [data-rs-tool="pair"]').click()
+    open_activity(page,'Projeto').locator('[data-rs-tool=pair]').click()
     assert page.evaluate('tool')=='pair'
-    page.locator('#rsToolPanel0 [data-rs-tool="move"]').first.click()
+    open_activity(page,'Editar').locator('[data-rs-tool=move]').first.click()
     assert page.evaluate('tool')=='move'
     assert rect(page,'#rsToolRibbon')['height']<180
     screenshot(page,'1423_05_controle_calibracao')

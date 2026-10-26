@@ -44,6 +44,20 @@ def section_offsets(route,stations,fallback):
         for i in np.flatnonzero((stations>=section.start_m)&(stations<section.end_m+1e-8)):out[i]=dict(offsets)
     return out
 
+def continuity_report(route):
+    """Lacunas declaradas, sem preencher intervalos ou reativar faixas."""
+    if not route.enabled or not route.sections_only:return None
+    p=np.array([[p.x,p.y] for p in route.points],float)
+    length=float(np.linalg.norm(np.diff(p,axis=0),axis=1).sum())
+    gaps=[];cursor=0.
+    for section in sorted(route.cross_sections,key=lambda s:s.start_m):
+        start,end=max(0.,section.start_m),min(length,section.end_m)
+        if start>=length or end<=start:continue
+        if start>cursor+1e-6:gaps.append({'start_m':cursor,'end_m':start})
+        cursor=max(cursor,end)
+    if cursor<length-1e-6:gaps.append({'start_m':cursor,'end_m':length})
+    return {'route_id':route.id,'name':route.name,'length_m':length,'gaps':gaps,'scope':'Intervalos sem seção cadastrada. Não são preenchidos automaticamente.'}
+
 class AlternatingZone(BaseModel):
     model_config=ConfigDict(allow_inf_nan=False)
     id:str=Field(min_length=1,max_length=80)

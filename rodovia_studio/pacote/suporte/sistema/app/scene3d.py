@@ -77,10 +77,10 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
         if len(p)<3 or not np.isfinite(p).all():continue
         geom=shapely.make_valid(Polygon(p,holes=e.get('holes',[])))
         if geom.is_empty:continue
-        key_mesh=e['role']+'|'+str(e.get('layer',''))
+        material='concrete' if e.get('material')=='rigido' or e['role']=='oae' else e.get('asset_material')
+        key_mesh=e['role']+'|'+str(e.get('layer',''))+'|'+str(material)
         labels[key_mesh]={'role':e['role'],'layer':str(e.get('layer','')),'name':str(e.get('layer') or e['role'])}
         from .asset_catalog import CATALOG
-        material='concrete' if e.get('material')=='rigido' or e['role']=='oae' else e.get('asset_material')
         if material in CATALOG:labels[key_mesh].update(asset_material=material,texture_pattern=CATALOG[material]['pattern'],color=settings.role_colors.get(e['role']) or CATALOG[material]['color'])
         for triangle in shapely.constrained_delaunay_triangles(geom).geoms:
             q=np.asarray(triangle.exterior.coords)[:3,:2];total+=3

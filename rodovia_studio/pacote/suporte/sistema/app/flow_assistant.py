@@ -10,6 +10,13 @@ def guidance(status,reasons,*,disabled=False,length=0.,minimum=50.,points=()):
         title='Rota abaixo do limite do projeto'
         add(f'Mantenha esta rota fora da análise e da seleção de eixos enquanto tiver menos de {minimum:g} m.','Nós internos de um eixo longo não são rotas independentes.')
         add('Se for uma ligação necessária, crie ou selecione uma rota contínua válida e confira seu sentido.','Não reduzir o limite global para liberar um fragmento isolado.')
+    elif status=='adjustment':
+        title='Revisar o aviso sem desligar a circulação validada'
+        add('Localize o ponto e confira quais partes ou ligações foram excluídas.','Amarelo permite circulação nas trajetórias aprovadas; não significa que toda a rota esteja contínua.','locate')
+        add('Se precisar conectar os trechos, tente a reconstrução validada; mantenha barreiras e sentidos.','Uma ligação recusada não deve invalidar outro itinerário seguro.')
+        add('Edite manualmente a seção ou os pontos quando a correção segura não for possível.','Não reativar um desligamento manual nem atravessar um obstáculo para remover o aviso.')
+        if 'corpo_fora_da_pista' in reasons:
+            add('Em Camadas, confira pavimento, bordo, canteiro e barreira no ponto excluído.','Preserve os obstáculos reais e as trajetórias já aprovadas.','layers')
     elif 'corpo_fora_da_pista' in reasons:
         title='Conferir a pista no ponto do bloqueio'
         add('Localize o ponto indicado e confira onde cabem a frente, a traseira e as laterais do veículo.','O eixo pode parecer correto e o corpo ultrapassar a área disponível.','locate')

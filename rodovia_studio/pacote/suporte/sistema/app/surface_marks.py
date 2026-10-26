@@ -55,9 +55,12 @@ def items(settings,entities,warnings):
     if not areas and not shoulders:return entities
     surf=[e for e in entities if e['closed'] and e['role'] in SURF_ROLES and len(e['points'])>=3]
     paved=unary_union([g for g in (_entity_poly(e) for e in surf) if g is not None]) if surf else None
+    protected_holes=unary_union([Polygon(h) for e in surf for h in e.get('holes',[]) if len(h)>=3])
+    if paved is not None:protected_holes=protected_holes.difference(paved)
     marks=[]  # (role, polígonos, nome, id)
     for a in areas:
         g=Polygon([_xy(p) for p in a.points]).buffer(0)
+        if a.source=='picked' and not protected_holes.is_empty:g=g.difference(protected_holes)
         if g.is_empty or g.area<.5:warnings.append(f'Área “{a.name}”: contorno inválido ou pequeno demais.');continue
         marks.append((a.kind,_polys(g),a.name,a.id or a.name,getattr(a,'material','auto'),tex_of(a)))
     for m in shoulders:
@@ -85,6 +88,7 @@ def items(settings,entities,warnings):
             q=p.difference(later) if later is not None else p
             for x in _polys(q):
                 ent={'layer':f'{LABEL[role].upper()} · {name}','role':role,'closed':True,'points':np.asarray(x.exterior.coords),'holes':[np.asarray(h.coords) for h in x.interiors],'mark':mid,'material':mat if mat!='auto' else default_material(settings,role)}
+                if mat=='auto':ent['material_source']='project_default'
                 if mid in codes:ent['tex_code']=codes[mid];ent['tex_base']=3 if ent['material']=='rigido' else {'pavement':1,'existing_pavement':2,'shoulder':4}[role];ent['tex_p']=tex
                 out.append(ent)
         u=unary_union(ps) if ps else None

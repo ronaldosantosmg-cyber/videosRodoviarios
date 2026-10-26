@@ -23,10 +23,12 @@ def test_seed_empty_or_nonfinite_cannot_be_saved(page):
     assert 'Semente' in result
 
 
-def test_interval_direction_requests_recalculation_instead_of_only_drawing_arrow(page):
+def test_interval_direction_marks_update_pending_without_automatic_job(page):
     seed(page)
     page.evaluate("()=>{pid='direction';window._startOriginal=start;window._starts=[];start=async(kind,payload,options)=>{window._starts.push({kind,automatic:options?.automatic});return {state:'done'}};checkpoint();M.direction_marks=[{id:'interval',start:{x:100,y:0},end:{x:200,y:0}}];changed()}")
-    page.wait_for_function("window._starts.some(s=>s.kind==='analyze'&&s.automatic)",timeout=5000)
+    page.wait_for_timeout(1500)
+    assert page.evaluate('window._starts')==[]
+    assert 'pendente' in page.locator('#rsUpdateState').inner_text().lower()
     page.evaluate('()=>{start=window._startOriginal}')
 
 

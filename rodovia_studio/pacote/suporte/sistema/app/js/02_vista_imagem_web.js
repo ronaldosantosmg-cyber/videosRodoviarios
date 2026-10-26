@@ -67,14 +67,17 @@ function buildSignage(){if(!vecPaths||!geo)return;delete vecPaths.signage;delete
  const pw=new Path2D(),py=new Path2D();for(const [yl,rings] of editor.paint||[]){const P=yl?py:pw;for(const r of rings){r.forEach((q,i)=>{const [x,y]=worldToImg({x:q[0],y:q[1]});i?P.lineTo(x,y):P.moveTo(x,y)});P.closePath()}}
  vecPaths.signage={path:w.signage,yellow:w.signage_y,paint:pw,paintY:py,n:n+(editor.paint||[]).length,color:'#f4f2e2'};vecPaths.arrows={path:ar,n:(editor.arrows||[]).length,color:'#ffffff'};
  for(const k of ['signage','arrows','flows'])if(vecOn[k]===undefined)vecOn[k]=true}
-function tileKey(z,x,y){return webKey()+':'+z+'/'+x+'/'+y}
+function tileKey(z,x,y){return (webSrc()==='esri'?'public':pid)+'|'+webKey()+':'+z+'/'+x+'/'+y}
 // 1.19: fonte web do projeto (Esri atual, Wayback por data, XYZ ou WMS).
 const webSrc=()=>cfg?.web_imagery?.source||'esri';
 const webKey=()=>{const w=cfg?.web_imagery||{};return w.source&&w.source!=='esri'?[w.source,w.wayback_release||'',w.url||'',w.wms_layers||'',w.wms_version||'',w.wms_format||''].join('|'):'esri'};
 const tileMaxZ=()=>webSrc()==='esri'?TILE_MAX_Z:Math.min(22,cfg.web_imagery.max_zoom||19);
 let tileDrawPending=false;function tileRedraw(){if(tileDrawPending)return;tileDrawPending=true;requestAnimationFrame(()=>{tileDrawPending=false;draw()})}
 function getTile(z,x,y){const k=tileKey(z,x,y);let t=tiles.get(k);if(t&&t.fail&&performance.now()-t.failAt>30000){tiles.delete(k);t=null}if(t){t.used=performance.now();return t}
- t={img:new Image(),ok:false,fail:false,used:performance.now()};t.img.decoding='async';t.img.onload=()=>{t.ok=true;tileState.ok++;tileRedraw()};t.img.onerror=()=>{if(!t.direct&&directTiles!==false){t.direct=true;t.img.src=ESRI_DIRECT(z,y,x);return}t.fail=true;t.failAt=performance.now();tileState.fail++;tileRedraw()};t.img.onload=()=>{t.ok=true;tileState.ok++;if(t.direct){tileState.direct=(tileState.direct||0)+1}tileRedraw()};t.img.src=webSrc()==='esri'?`/tiles/esri/${z}/${y}/${x}`:`/api/projects/${pid}/web_tiles/${z}/${y}/${x}?k=${encodeURIComponent(webKey())}`;if(webSrc()!=='esri')t.direct=true;tiles.set(k,t);
+ t={img:new Image(),ok:false,fail:false,used:performance.now()};t.img.decoding='async';const current=()=>tileKey(z,x,y)===k;
+ t.img.onload=()=>{t.ok=true;if(current()){tileState.ok++;if(t.direct)tileState.direct=(tileState.direct||0)+1;tileRedraw()}};
+ t.img.onerror=()=>{if(!current()){t.fail=true;t.failAt=performance.now();return}if(!t.direct&&directTiles!==false){t.direct=true;t.img.src=ESRI_DIRECT(z,y,x);return}t.fail=true;t.failAt=performance.now();tileState.fail++;tileRedraw()};
+ t.img.src=webSrc()==='esri'?`/tiles/esri/${z}/${y}/${x}`:`/api/projects/${pid}/web_tiles/${z}/${y}/${x}?k=${encodeURIComponent(webKey())}`;if(webSrc()!=='esri')t.direct=true;tiles.set(k,t);
  if(tiles.size>700){const old=[...tiles.entries()].sort((a,b)=>a[1].used-b[1].used).slice(0,200);for(const [kk] of old)tiles.delete(kk)}return t}
 /* 1.17: imagem local em ladrilhos Web Mercator (servidor local), por cima da Esri, até o zoom da resolução dela. */
 const localTiles=new Map();
@@ -107,7 +110,9 @@ function drawTiles(){const z=tileZoom(),n=2**z,size=2*MERC/n;
  ctx.save();ctx.setTransform(view.s,0,0,view.s,view.ox,view.oy);ctx.globalAlpha=tileAlpha;ctx.imageSmoothingEnabled=true;const px=size/geo.R0,pad=.6/view.s;
  for(let ty=ty0;ty<=ty1;ty++)for(let tx=tx0;tx<=tx1;tx++){const ix=(-MERC+tx*size-geo.m0x)/geo.R0,iy=(geo.m0y-(MERC-ty*size))/geo.R0;const t=getTile(z,tx,ty);
   if(t.ok){ctx.drawImage(t.img,ix,iy,px+pad,px+pad);continue}
-  for(let k=1;k<=6&&z-k>=0;k++){const p=peekTile(z-k,tx>>k,ty>>k);if(!p)continue;const sub=256/2**k,sx=(tx-((tx>>k)<<k))*sub,sy=(ty-((ty>>k)<<k))*sub;ctx.drawImage(p.img,sx,sy,sub,sub,ix,iy,px+pad,px+pad);break}}
+  let retained=false;for(let k=1;k<=6&&z-k>=0;k++){const p=peekTile(z-k,tx>>k,ty>>k);if(!p)continue;const sub=p.img.width/2**k,sx=(tx-((tx>>k)<<k))*sub,sy=(ty-((ty>>k)<<k))*sub;ctx.drawImage(p.img,sx,sy,sub,sub,ix,iy,px+pad,px+pad);retained=true;break}
+  if(!retained)for(let cy=0;cy<2;cy++)for(let cx=0;cx<2;cx++){const child=peekTile(z+1,tx*2+cx,ty*2+cy);if(child)ctx.drawImage(child.img,ix+cx*px/2,iy+cy*px/2,px/2+pad,px/2+pad)}
+ }
  ctx.restore()}
 function drawVectors(){if(!vecPaths)return;ctx.save();ctx.setTransform(view.s,0,0,view.s,view.ox,view.oy);ctx.lineJoin='round';ctx.lineCap='round';ctx.globalAlpha=vecAlpha;const k=1/view.s;
  for(const role of [...Object.keys(VSTYLE)]){const v=vecPaths[role];if(!v||vecOn[role]===false)continue;const st=VSTYLE[role];

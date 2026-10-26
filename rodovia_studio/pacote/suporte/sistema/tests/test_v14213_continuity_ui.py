@@ -3,7 +3,7 @@ from test_v142_visual import page
 from test_v1422_layout import seed
 from test_v14213_continuity import network,AXIS
 from app.flow_diagnostics import flow_diagnostics
-from visual_harness import screenshot
+from visual_harness import screenshot,open_activity
 
 
 def present(page,n):
@@ -18,7 +18,7 @@ def present(page,n):
       M.pavement_areas=[{id:'p',name:'Pista',kind:'pista_nova',points:[{x:-10,y:-15},{x:610,y:-15},{x:610,y:15},{x:-10,y:15}]}];
       fitView();RodoviaFlowStudy.stale=false;draw();
     }''',segments)
-    page.locator('#rsToolPanel0 [data-rs-command=EDITARFLUXOS]').click()
+    open_activity(page,'Tráfego').locator('[data-rs-command=EDITARFLUXOS]').click()
     return segments
 
 

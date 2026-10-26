@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.21",
-  "description": "1.42.21: cinco abas, progresso único, atualização explícita, fila sem duplicação e cache de geometria/camadas."
+  "version": "1.42.22",
+  "description": "1.42.22: diagnóstico de circulação parcial, lacunas de seções, cache por eixo, central simplificada e materiais/imagens consistentes."
 }

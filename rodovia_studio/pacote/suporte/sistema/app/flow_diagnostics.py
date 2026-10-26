@@ -24,20 +24,22 @@ def flow_diagnostics(network):
         length=sum(math.hypot(float(b[0])-float(a[0]),float(b[1])-float(a[1])) for a,b in zip(points,points[1:])) if finite else 0
         edges=by_base.get(raw['base'],[])
         active=[i for i,e in edges if not e.get('disabled') and i not in short]
+        circulating=[i for i in active if i in used]
         effective_length=network.origin_info.get(raw.get('origin_id'),(length,False))[0] if raw.get('native_axis') else length
         if not finite or length<=0:status,message='problem','Geometria inválida ou de comprimento nulo.'
         elif raw.get('disabled'):status,message='problem','Fluxo desativado; veículos não circulam neste trecho.'
         elif effective_length<minimum:status,message='adjustment',f'Fluxo abaixo de {minimum:g} m; circulação desligada pelo limite do projeto.'
-        elif any(i in getattr(network,'rejected_edge_ids',set()) for i,_ in edges):status,message='problem','Trajetória recusada pela análise de frente/traseira, esterçamento ou continuidade.'
+        elif any(i in getattr(network,'rejected_edge_ids',set()) for i,_ in edges):
+            status,message=('adjustment','Há circulação validada, mas parte das ligações foi recusada; localize e revise os trechos excluídos.') if circulating else ('problem','Trajetória recusada pela análise de frente/traseira, esterçamento ou continuidade.')
         elif not active:status,message='problem','Sem faixa habilitada para circulação.'
-        elif not any(i in used for i in active):status,message='adjustment','Trecho sem itinerário utilizável; revise as ligações e o sentido.'
+        elif not any(i in used for i in active):status,message='problem','Trecho sem itinerário utilizável; revise as ligações, o nível e o sentido.'
         elif any(e.get('disabled') or e.get('crossing_blocked') for _,e in edges):status,message='adjustment','Parte das faixas está bloqueada; revise as restrições.'
         else:status,message='ok','Fluxo presente nos itinerários calculados.'
         edge_ids={i for i,_ in edges};critical=[]
         for item in getattr(network,'rejected_paths',[]):
             audit=item['audit'];point=audit.get('critical_center_xy') or audit.get('front_xy')
             if point and edge_ids.intersection(item['edges']):critical.append({'point':point,'reasons':audit.get('reasons',[])})
-        if status!='ok' and finite and not raw.get('disabled') and effective_length>=minimum:
+        if status!='ok' and not circulating and finite and not raw.get('disabled') and effective_length>=minimum:
             from .vehicle_motion import analyze_motion
             if 'diagnostic_audit' not in raw:raw['diagnostic_audit']=analyze_motion(points,allowed=getattr(network,'allowed',None))
             audit=raw['diagnostic_audit']
@@ -84,5 +86,6 @@ def flow_diagnostics(network):
         from .flow_assistant import guidance
         assistant=guidance(status,reasons,disabled=bool(raw.get('disabled')),length=effective_length,minimum=minimum,points=critical)
         out.append({'technical_status':status,'technical_message':message,'technical_assistant':assistant,
+                    'technical_circulation':{'enabled':bool(circulating),'used_edges':len(circulating),'active_edges':len(active),'blocked_edges':sum(bool(e.get('disabled')) for _,e in edges)},
                     'technical_lateral_fits':raw.get('lateral_fits',[]),'technical_automatic':automatic,'technical_manual':manual,'technical_recovery':recovery_info,'technical_points':critical[:20],'technical_reasons':reasons})
     return out

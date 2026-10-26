@@ -80,3 +80,12 @@ def screenshot(page, name: str):
     p=Path(out);p.mkdir(parents=True,exist_ok=True)
     target=p/f'{name}.png';page.screenshot(path=str(target),full_page=False)
     return target
+
+
+def open_activity(page,name):
+    """Acessa ferramentas avançadas na organização atual, pelos controles visíveis."""
+    page.get_by_role('tab',name=name,exact=True).click()
+    panel=page.locator('#rsToolRibbon [role=tabpanel]:visible')
+    for summary in panel.locator(':scope > details.rsAdvancedTools > summary').all():
+        if summary.locator('..').get_attribute('open') is None:summary.click()
+    return panel

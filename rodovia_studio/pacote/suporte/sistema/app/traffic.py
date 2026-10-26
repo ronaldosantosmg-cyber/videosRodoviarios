@@ -128,7 +128,7 @@ def steady_path(P,allowed,sigma_m=3.,step=STEP):
     return p,d
 
 class TrafficNetwork:
-    def __init__(self,roads,obstacles,axes,axis,ds,settings,bridges=(),oae_dirs=(),edge_lines=(),dxf_signage=(),dxf_signs=()):
+    def __init__(self,roads,obstacles,axes,axis,ds,settings,bridges=(),oae_dirs=(),edge_lines=(),dxf_signage=(),dxf_signs=(),directory=None):
         # 1.20: trajetórias suavizadas e sentido pelo eixo ('anterior' reproduz a 1.19).
         self.smooth_paths=getattr(settings,'vehicle_paths','smooth')=='smooth';self.axis_dir=getattr(settings,'direction_reference','axis')=='axis'
         self.oae_dirs=list(oae_dirs);self.dxf_edges=[np.asarray(p,float) for p in edge_lines];self.s=settings;self.axis=axis;self.ds=ds;self.bridges=unary_union(bridges).buffer(1) if bridges else Polygon()
@@ -137,7 +137,9 @@ class TrafficNetwork:
         self.min_route=float(getattr(settings,'min_route_segment_m',50) or 0);self.auto_pruned=[];self.pruned_contacts=collections.defaultdict(list);self.original_terminals={}
         self.raw_info=[];self.rejected_paths=[];self.rejected_connectors=collections.Counter();self.rejected_edge_ids=set();self.rejected_nodes=set()
         from .routes import section_corridors
-        roads=list(roads)+section_corridors(settings)
+        from .route_lane_cache import RouteLaneCache
+        self.route_lane_cache=RouteLaneCache(directory)
+        roads=list(roads)+section_corridors(settings,self.route_lane_cache)
         self.allowed=unary_union(roads).difference(unary_union(obstacles).buffer(.15)).buffer(-.12) if roads else Polygon()
         self.paved=self.allowed  # superfície para as linhas de bordo (sem as exclusões de limpeza)
         if settings.exclusions:self.allowed=self.allowed.difference(unary_union([Polygon([(p.x,p.y) for p in a]) for a in settings.exclusions]))
@@ -175,7 +177,7 @@ class TrafficNetwork:
         # 1.30: faixas dos alinhamentos de rota (pista simples, dupla por sentido ou sentido único).
         if getattr(settings,'route_alignments',None):
             from .routes import raw_paths
-            raw.extend(raw_paths(settings))
+            raw.extend(raw_paths(settings,self.route_lane_cache))
         for i,r in enumerate(raw):
             r.setdefault('origin',i)
             coordinates=np.round(r.get('identity_points',r['points']),3).astype('<f8');geometry_key=min(coordinates.tobytes(),coordinates[::-1].tobytes())
@@ -247,7 +249,9 @@ class TrafficNetwork:
             self.warnings.append(f'Nenhuma rota segura permaneceu após excluir trechos menores que {self.min_route:g} m; tráfego não foi habilitado nesses trechos.')
         if self.rejected_connectors:self.warnings.append(f'{sum(self.rejected_connectors.values())} tentativa(s) de ligação recusada(s) por geometria ou sentido incompatível. Consulte o diagnóstico de circulação.')
         self.finalize_signage()
-        self.report={'directed_edges':len(self.edges),'connections':sum(map(len,self.connections.values())),'itineraries':len(self.paths),'coverage':dict(collections.Counter(e['kind'] for e in self.edges)),'used_kinds':dict(collections.Counter(k for p in self.paths for k in p['kinds'])),'warnings':self.warnings,'signage':getattr(self,'report_signage',{}),'automatic_segments_pruned':len(self.auto_pruned),'minimum_flow_length_m':self.min_route,'short_segments_ignored':len(self.short_ignored),'explicit_flow_cuts':getattr(self,'cut_report',[]),'recovered_principal_paths':getattr(self,'recovered_paths',0),'motion_rejected_paths':len(self.rejected_paths),'motion_rejected_connections':dict(self.rejected_connectors),'motion_scope':'Geometria e restrições disponíveis no projeto; sem certificação CONTRAN.'}
+        from .road_sections import continuity_report
+        sections=[r for route in settings.route_alignments if (r:=continuity_report(route)) is not None]
+        self.report={'section_continuity':sections,'route_lane_cache':self.route_lane_cache.report(),'directed_edges':len(self.edges),'connections':sum(map(len,self.connections.values())),'itineraries':len(self.paths),'coverage':dict(collections.Counter(e['kind'] for e in self.edges)),'used_kinds':dict(collections.Counter(k for p in self.paths for k in p['kinds'])),'warnings':self.warnings,'signage':getattr(self,'report_signage',{}),'automatic_segments_pruned':len(self.auto_pruned),'minimum_flow_length_m':self.min_route,'short_segments_ignored':len(self.short_ignored),'explicit_flow_cuts':getattr(self,'cut_report',[]),'recovered_principal_paths':getattr(self,'recovered_paths',0),'motion_rejected_paths':len(self.rejected_paths),'motion_rejected_connections':dict(self.rejected_connectors),'motion_scope':'Geometria e restrições disponíveis no projeto; sem certificação CONTRAN.'}
         self.report['native_axes']=self.native_axis_report
         self.report['source_policy']='somente_eixos_designados_ou_selecao_explicita'
         self.report['direction_intervals']=self.direction_report

@@ -201,16 +201,16 @@ def snap_points(directory,x0,y0,x1,y1,limit=8000):
 
 # ---------------- 1.26: linhas exatas do DXF para selecionar o alinhamento ----------------
 def write_lines(directory,items):
-    xy=[];off=[0];lay=[];names={};closed=[];roles=[];curves=[]
+    xy=[];off=[0];lay=[];names={};closed=[];roles=[];curves=[];holes=[]
     for e in items:
         if e.get('frozen') or e.get('role') in ('sign_v',):continue
         r=np.asarray(e['points'],float)
         if len(r)<2:continue
         xy.append(r);off.append(off[-1]+len(r));lay.append(names.setdefault(str(e.get('layer','')),len(names)));closed.append(bool(e.get('closed')));roles.append(str(e.get('role','')))
-        curves.append(json.dumps(e.get('cad_curve'),allow_nan=False))
+        curves.append(json.dumps(e.get('cad_curve'),allow_nan=False));holes.append(json.dumps([np.asarray(h,float).tolist() for h in e.get('holes',[])],allow_nan=False))
     f=Path(directory)/'linhas.npz';tmp=Path(directory)/'linhas_tmp.npz'
     np.savez_compressed(tmp,xy=np.concatenate(xy) if xy else np.zeros((0,2)),off=np.asarray(off,np.int64),lay=np.asarray(lay,np.int32),
-                        closed=np.asarray(closed,bool),names=np.asarray(list(names) or [''],dtype=str),roles=np.asarray(roles or [''],dtype=str),curves=np.asarray(curves,dtype=str));tmp.replace(f)
+                        closed=np.asarray(closed,bool),names=np.asarray(list(names) or [''],dtype=str),roles=np.asarray(roles or [''],dtype=str),curves=np.asarray(curves,dtype=str),holes=np.asarray(holes,dtype=str));tmp.replace(f)
 
 _lines_cache={}
 def _lines(directory):
@@ -222,6 +222,7 @@ def _lines(directory):
         lines=[xy[off[i]:off[i+1]] for i in range(len(off)-1)]
         box=np.array([[l[:,0].min(),l[:,1].min(),l[:,0].max(),l[:,1].max()] for l in lines]) if lines else np.zeros((0,4))
         d={'lines':lines,'box':box,'lay':z['lay'],'closed':z['closed'],'names':[str(v) for v in z['names']],'roles':[str(v) for v in z['roles']] if 'roles' in z.files else ['']*len(lines)}
+        d['holes']=[json.loads(str(v)) for v in z['holes']] if 'holes' in z.files else [[] for _ in lines]
         _lines_cache.clear();_lines_cache[key]=d
         d['curves']=[json.loads(str(c)) for c in z['curves']] if 'curves' in z.files else [None]*len(lines)
         from .cad_curves import bounds
@@ -285,7 +286,7 @@ def pick_area(directory,x,y):
     for i in cand:
         L=d['lines'][i]
         if len(L)<3:continue
-        try:g=Polygon(L)
+        try:g=Polygon(L,holes=d['holes'][i])
         except Exception:continue
         if not g.is_valid:g=g.buffer(0)
         if g.is_empty or not contains_xy(g,x,y):continue
@@ -294,4 +295,4 @@ def pick_area(directory,x,y):
     if best is None:return None
     a,i=best;L=d['lines'][i];P=L[:-1] if len(L)>3 and np.hypot(*(L[0]-L[-1]))<1e-6 else L
     if len(P)>5000:P=np.asarray(Polygon(P).simplify(.02).exterior.coords)[:-1]
-    return {'points':np.round(P,4).tolist(),'layer':d['names'][int(d['lay'][i])],'role':d['roles'][i] if i<len(d['roles']) else '','area_m2':round(a,2),'perimeter_m':round(float(np.hypot(*np.diff(np.vstack([P,P[:1]]),axis=0).T).sum()),2)}
+    return {'has_holes':bool(d['holes'][i]),'points':np.round(P,4).tolist(),'layer':d['names'][int(d['lay'][i])],'role':d['roles'][i] if i<len(d['roles']) else '','area_m2':round(a,2),'perimeter_m':round(float(np.hypot(*np.diff(np.vstack([P,P[:1]]),axis=0).T).sum()),2)}
