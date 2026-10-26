@@ -32,10 +32,20 @@ jobs:
           python -m pip check
       - name: Testes de execucao e protecao no Windows
         run: |
+          $ErrorActionPreference = 'Continue'
+          $PSNativeCommandUseErrorActionPreference = $false
           python -m pytest tests/test_v14225_execution.py tests/test_v14225_protection.py tests/test_v14225_install.py -q --junitxml="$env:RUNNER_TEMP/windows-testes.xml"
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if ($LASTEXITCODE -ne 0) {
+            [xml]$report = Get-Content "$env:RUNNER_TEMP/windows-testes.xml"
+            foreach ($case in $report.SelectNodes('//testcase[failure or error]')) {
+              $detail = ($case.InnerText -replace "`r",'' -replace "`n",'%0A')
+              Write-Host "::error title=$($case.name)::$detail"
+            }
+            exit 1
+          }
           python -m compileall -q app preparar.py atualizador.py
       - name: Compilar iniciador de fonte para inspecao
+        if: always()
         shell: pwsh
         run: |
           $csc = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'

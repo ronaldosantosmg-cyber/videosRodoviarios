@@ -32,7 +32,7 @@ def test_preparation_creates_normal_venv_and_requires_hashed_wheels(tmp_path,mon
  assert all('powershell.exe' not in str(c) for c in calls)
  assert any('--require-hashes' in c and str(tmp_path/'pip-bootstrap.lock') in c for c in calls)
  assert (tmp_path/'runtime/dependencias.ok').is_file()
- assert all(c[0].endswith('Scripts/python.exe' if os.name=='nt' else 'bin/python') for c in calls)
+ assert all(Path(c[0]).as_posix().endswith('Scripts/python.exe' if os.name=='nt' else 'bin/python') for c in calls)
 
 
 def test_matching_stamp_skips_installation_and_preserves_data(tmp_path,monkeypatch):
