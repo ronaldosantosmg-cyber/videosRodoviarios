@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.25",
-  "description": "1.42.25: preparação auditável, proteção/recuperação, execução assistida pelo motor e modo CAD compacto."
+  "version": "1.42.26",
+  "description": "1.42.26: estrutura de interface responsiva, contrato de integração com motor preservado e inicialização explícita."
 }

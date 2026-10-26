@@ -17,10 +17,21 @@ router=APIRouter()
 def index():
     # 1.40.5: módulos JS separados. Um erro de sintaxe/execução em um módulo não impede o navegador
     # de tentar carregar os módulos seguintes; /app.js permanece por compatibilidade e diagnóstico.
-    html=(BASE/'app/index.html').read_text(encoding='utf-8')
+    try:
+        html=(BASE/'app/index.html').read_text(encoding='utf-8')
+    except (OSError,UnicodeError):
+        raise HTTPException(503,'Interface ausente ou inacessível. Preserve os projetos e solicite à TI a verificação da instalação e da quarentena do antivírus.') from None
+    if html.count('<!-- RODOVIA_INTERFACE_MODULES -->')!=1:
+        raise HTTPException(503,'Interface incompatível ou incompleta. Verifique a revisão instalada antes de abrir o editor.')
     tags=''.join(f'<script src="/js/{f.name}"></script>' for f in sorted((BASE/'app/js').glob('[0-9][0-9]_*.js')))
     sprite=(BASE/'app/icons/infrarail-sprite.svg').read_text(encoding='utf-8')
-    return html.replace('<script src="/app.js"></script>',sprite+tags)
+    return html.replace('<!-- RODOVIA_INTERFACE_MODULES -->',sprite+tags)
+
+@router.get('/interface/{name}',include_in_schema=False)
+def interface_asset(name:str):
+    assets={'tema.js':'application/javascript','estrutura.css':'text/css'}
+    if name not in assets:raise HTTPException(404,'Recurso de interface não encontrado.')
+    return FileResponse(BASE/'app/interface'/name,media_type=assets[name],headers={'Cache-Control':'no-store'})
 
 @router.get('/js/{name}',include_in_schema=False)
 def js_module(name:str):

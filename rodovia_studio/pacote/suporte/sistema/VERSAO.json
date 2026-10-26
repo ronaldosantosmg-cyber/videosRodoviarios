@@ -1,5 +1,5 @@
 {
-  "version": "1.42.25",
+  "version": "1.42.26",
   "schema_version": 33,
   "reference_video_sha256": "1d8cc8267015132a80ec4363bb1e5a66f39361d2a7e897ba509c7974f97e488b",
   "reference_note": "O vídeo TH57 aprovado foi substituído pela ficha técnica assets/th57/referencia_ficha.json (dados do arquivo e métricas de imagem para comparação). SHA-256 histórico mantido.",
@@ -64,7 +64,8 @@
     "1.42.22": "Diagnóstico de circulação parcial e lacunas de seções, derivação por eixo em cache com revalidação da rede, central de correção simplificada, materiais contextuais e separação no 3D.",
     "1.42.23": "Modo automático/manual nas confirmações; abertura, salvar projeto, salvar como, prévia e vídeo com atualização completa; saídas atuais do editor e preservação da câmera 3D.",
     "1.42.24": "Assistente de regras locais: diagnóstico, exportação/importação revisável, texturas/eixos e perfis com proteção contra alterações obsoletas.",
-    "1.42.25": "Preparação auditável, proteção de dados, execução assistida revisável e modo CAD compacto."
+    "1.42.25": "Preparação auditável, proteção de dados, execução assistida revisável e modo CAD compacto.",
+    "1.42.26": "Página estruturada com inicialização externa, acessibilidade, formulários preservados e diagnóstico de instalação incompleta."
   },
   "automated_tests_passed": 306,
   "test_environment": "Linux, Python 3.13; shapely 2.1.2/GEOS 3.13.1 e pyproj 3.7.2/PROJ 9.6.2 compilados no ambiente (as versões fixadas para Windows são shapely 2.2.0 e pyproj 3.8.0); interface verificada em Chromium (Playwright)",

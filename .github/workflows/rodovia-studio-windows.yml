@@ -76,7 +76,8 @@ jobs:
             & $mp.FullName -Scan -ScanType 3 -File "$env:RUNNER_TEMP/RodoviaStudio-auditoria.exe" -DisableRemediation 2>&1 | Tee-Object "$env:RUNNER_TEMP/defender-iniciador.log"
             if ($LASTEXITCODE -ne 0) { throw 'Verificacao do iniciador nao aprovada; consultar log' }
           }
-          $zip = '../../../../atualizacoes/RodoviaStudio_1_42_25_atualizacao.zip'
+          $version = (Get-Content '../../manifest.json' | ConvertFrom-Json).version.Replace('.','_')
+          $zip = '../../../../atualizacoes/RodoviaStudio_' + $version + '_atualizacao.zip'
           if (Test-Path $zip) {
             & $mp.FullName -Scan -ScanType 3 -File (Resolve-Path $zip) -DisableRemediation 2>&1 | Tee-Object "$env:RUNNER_TEMP/defender-zip.log"
             if ($LASTEXITCODE -ne 0) { throw 'Verificacao do ZIP nao aprovada; consultar log' }

@@ -1,0 +1,35 @@
+/* Estrutura da interface. Cálculos, geometria e caches pertencem ao motor existente. */
+.rsInterface26 { --rs-focus: #1878d1; }
+.rsInterface26 *, .rsInterface26 *::before, .rsInterface26 *::after { box-sizing: border-box; }
+.rsSkipLink { position: fixed; left: 12px; top: -80px; z-index: 20000; padding: 10px 16px; border-radius: 6px; background: var(--panel); color: var(--text); }
+.rsSkipLink:focus { top: 8px; }
+.rsInterface26 button:focus-visible, .rsInterface26 summary:focus-visible,
+.rsInterface26 input:focus-visible, .rsInterface26 select:focus-visible,
+.rsInterface26 textarea:focus-visible { outline: 2px solid var(--rs-focus); outline-offset: 2px; }
+.rsInterface26 main:focus { outline: none; }
+.rsInterface26 main > div, .rsInterface26 .editorMain, .rsInterface26 .editorBody { min-width: 0; }
+.rsInterface26 #rsToolRibbon { border-radius: 0; border-inline: 0; }
+.rsInterface26 #rsToolTabs { scrollbar-width: thin; }
+.rsInterface26 #rsToolRibbon .rsToolPanel { padding-block: 3px; }
+.rsInterface26 #rsToolRibbon button { min-height: 30px; }
+.rsInterface26 .rsPrimaryAction { border-radius: 6px; }
+.rsInterface26 dialog { padding: 20px; max-width: calc(100vw - 24px); max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px); overflow: auto; overscroll-behavior: contain; }
+.rsInterface26 dialog > h2:first-child, .rsInterface26 dialog > h3:first-child { margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.rsInterface26 dialog .grid { min-width: 0; }
+.rsInterface26 dialog label { min-width: 0; overflow-wrap: anywhere; }
+.rsInterface26 dialog input:not([type=checkbox]):not([type=radio]), .rsInterface26 dialog select, .rsInterface26 dialog textarea { max-width: 100%; min-width: 0; }
+.rsInterface26 dialog::backdrop { background: rgb(7 17 26 / 65%); }
+.rsInterface26 .canvasWrap { isolation: isolate; border: 1px solid var(--border); }
+.rsInterface26 #canvas { display: block; touch-action: none; }
+.rsInterface26 #rsInterfaceNotice { margin: 0; padding: 5px 10px; font-size: 12px; background: var(--panel); color: var(--text); border-bottom: 1px solid var(--border); }
+.rsInterface26 #rsInterfaceNotice[hidden] { display: none; }
+@media (max-width: 760px) {
+  .rsInterface26 dialog { width: calc(100vw - 24px); padding: 14px; }
+  .rsInterface26 dialog .grid { grid-template-columns: minmax(0, 1fr); }
+  .rsInterface26 #rsToolTabs { flex-wrap: nowrap; overflow-x: auto; }
+  .rsInterface26 #rsToolTabs > button { flex-shrink: 0; }
+  .rsInterface26 #rsQuickNavigation { flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rsInterface26 *, .rsInterface26 *::before, .rsInterface26 *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

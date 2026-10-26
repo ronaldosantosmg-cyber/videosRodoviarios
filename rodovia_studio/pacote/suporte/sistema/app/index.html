@@ -1,97 +1,636 @@
-<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rodovia Studio</title><link rel="icon" href="/favicon.ico">
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="application-name" content="Rodovia Studio">
+<title>Rodovia Studio — Projeto, tráfego e vídeo</title>
+<link rel="icon" href="/favicon.ico">
 <link rel="stylesheet" href="/estilo.css">
-<script>try{var t=localStorage.getItem('rodovia_tema')||'sistema';if(t==='sistema')t=matchMedia('(prefers-color-scheme: dark)').matches?'escuro':'claro';document.documentElement.dataset.tema=t}catch(e){document.documentElement.dataset.tema='escuro'}</script><div id="menuBar" class="menuBar" role="menubar"></div><div id="menuDrop" class="menuDrop" hidden role="menu"></div>
-<header><div class="brand"><img src="/marca/icone.png" alt="" class="appicon"><div><h1>Rodovia Studio</h1><div class="muted">DXF + KMZ → apresentação rodoviária em vídeo</div></div><div class="dev"><span>Desenvolvido por</span><img src="/marca/georas.png" alt="GeoRas Consultoria"></div></div><div class="row"><span id="winLabel" class="badge winLabel"></span><button id="twoWindows" class="onlyUnica" title="Abre a visualização e os resultados em outra janela (ex.: outro monitor)">🗗 Duas janelas</button><button id="oneWindow" class="notUnica">▣ Janela única</button><label style="margin:0" title="Usa toda a largura da tela, com divisor arrastável entre o painel e o editor"><input id="layoutWide" type="checkbox" checked> Tela ampla</label><label style="margin:0" title="Reduz espaçamentos e letras para caber mais na tela"><input id="layoutCompact" type="checkbox"> Compacto</label><button id="helpBtn" class="primary">❔ Como usar</button><label style="margin:0"><input id="helpToggle" type="checkbox" checked> Dicas nos campos</label><span class="badge" id="health">Verificando ambiente…</span></div></header>
-<main><div>
-<section><h2>1. Projeto e arquivos</h2><label>Projetos salvos<select id="projects"><option value="">Selecione…</option></select></label><div class="row"><button id="new">Novo projeto</button></div><div id="dropZone" class="dropZone" tabindex="0"><b>Arquivos do projeto</b><span class="muted">Arraste o DXF e o KMZ/KML para cá, ou escolha abaixo (pode escolher os dois juntos ou um de cada vez — cada um é enviado na hora).</span>
+<link rel="stylesheet" href="/interface/estrutura.css">
+<script src="/interface/tema.js"></script>
+</head>
+<body class="rsInterface26" data-interface="26">
+<a class="rsSkipLink" href="#projectWorkspace">Ir para a área de projeto</a><div id="menuBar" class="menuBar" role="menubar" aria-label="Menus do aplicativo"></div>
+<div id="menuDrop" class="menuDrop" hidden role="menu"></div>
+<header data-region="identificacao"><div class="brand">
+<img src="/marca/icone.png" alt="" class="appicon"><div>
+<h1>Rodovia Studio</h1>
+<div class="muted">Projeto técnico · Tráfego · Cena · Vídeo</div>
+</div>
+<div class="dev">
+<span>Fabricante: Ronaldo Santos</span><img src="/marca/georas.png" alt="GeoRas Consultoria">
+</div>
+</div>
+<div class="row">
+<span id="winLabel" class="badge winLabel"></span><button id="twoWindows" class="onlyUnica" title="Abre a visualização e os resultados em outra janela (ex.: outro monitor)">🗗 Duas janelas</button><button id="oneWindow" class="notUnica">▣ Janela única</button><label style="margin:0" title="Usa toda a largura da tela, com divisor arrastável entre o painel e o editor"><input id="layoutWide" type="checkbox" checked> Tela ampla</label><label style="margin:0" title="Reduz espaçamentos e letras para caber mais na tela"><input id="layoutCompact" type="checkbox"> Compacto</label><button id="helpBtn" class="primary">❔ Como usar</button><label style="margin:0"><input id="helpToggle" type="checkbox" checked> Dicas nos campos</label><span class="badge" id="health">Verificando ambiente…</span>
+</div></header>
+<main id="projectWorkspace" tabindex="-1" aria-label="Área de projeto e visualização"><div data-region="formularios">
+<section><h2>1. Projeto e arquivos</h2>
+<label>Projetos salvos<select id="projects"><option value="">Selecione…</option></select></label><div class="row"><button id="new">Novo projeto</button></div>
+<div id="dropZone" class="dropZone" tabindex="0">
+<b>Arquivos do projeto</b><span class="muted">Arraste o DXF e o KMZ/KML para cá, ou escolha abaixo (pode escolher os dois juntos ou um de cada vez — cada um é enviado na hora).</span>
 <label>Arquivos DXF, KMZ ou KML<input id="files" type="file" accept=".dxf,.kmz,.kml" multiple></label>
-<table class="fileTable"><tr data-fk="dxf"><td>DXF/DWG</td><td class="fn">—</td><td><button type="button" data-fpick="dxf" class="mini" title="DXF ou DWG (o DWG é convertido em DXF pelo ODA File Converter)">Escolher DXF/DWG…</button> <button type="button" data-fdel="dxf" class="mini danger" hidden>Retirar</button></td></tr>
-<tr data-fk="kmz"><td>KMZ/KML</td><td class="fn">—</td><td><button type="button" data-fpick="kmz" class="mini">Escolher KMZ/KML…</button> <button type="button" data-fdel="kmz" class="mini danger" hidden>Retirar</button></td></tr></table>
-<input id="fileDxf" type="file" accept=".dxf,.dwg" hidden><input id="fileKmz" type="file" accept=".kmz,.kml" hidden></div><button id="upload">Enviar arquivos</button><p class="muted" id="fileState">Crie ou abra um projeto.</p><button id="analyze" class="primary">Analisar arquivos</button><div class="row projActions"><button id="saveProject" type="button" class="primary" title="Ctrl+S">Salvar projeto</button><button id="saveAsProject" type="button">Salvar como…</button><button id="resetWork" type="button" title="Remove as marcações de trabalho e mantém as características do segmento">Limpar trabalho…</button><button id="resetUndo" type="button" title="Restaura a configuração anterior à última limpeza">Desfazer limpeza</button><button id="trashProject" type="button" class="danger" title="Exclui o projeto da lista (a pasta vai para projetos\_lixeira e pode ser recuperada)">Excluir projeto</button></div></section>
-<section><h2>2. Configuração</h2><label>Nome do trecho<input id="name" value="Novo trecho"></label><div class="grid"><label>Origem<input id="origin" value="Origem"></label><label>Destino<input id="destination" value="Destino"></label><label>Km inicial<input id="km_start_m" value="0+000"></label><label>Km final<input id="km_end_m" value="1+000"></label><label>Extensão de referência (km)<input id="reference_length_m" value="1,000"></label><label>Ano da obra<input id="work_year" value="A informar"></label></div><label>Sistema de coordenadas do DXF<input id="crs" value="EPSG:31983"></label><div class="grid"><label>Fator da unidade → metros<input id="units_to_m" type="number" value="1" step="any"></label><label>Imagem aérea<select id="imagery"><option value="esri">Esri online</option><option value="cache">Imagem guardada no pacote (trecho de exemplo)</option><option value="neutral">Fundo neutro (sem satélite)</option><option value="local">Imagem local georreferenciada</option></select></label></div><details id="webBox"><summary>Fonte da imagem web (Esri atual, Esri Wayback por data, outro serviço)</summary><p class="muted">Onde a Esri atual estiver antiga ou distorcida, escolha outra data da <b>Esri Wayback</b> (arquivo histórico da própria Esri, georreferenciado) ou um serviço <b>XYZ/WMS</b> autorizado (ex.: ortofoto do estado/município). Vale para o editor, o mosaico do vídeo e a aproximação. A imagem local, quando enviada, continua por cima.</p>
-<div class="grid"><label>Fonte<select id="webSource"><option value="esri">Esri World Imagery (atual)</option><option value="wayback">Esri Wayback (escolher data)</option><option value="xyz">Serviço XYZ (ladrilhos)</option><option value="wms">Serviço WMS</option></select></label><label id="wbBox">Data da Wayback<select id="wbRelease"><option value="">— carregar lista —</option></select></label></div>
-<div id="webCustom"><label>Endereço do serviço<input id="webUrl" placeholder="https://servidor/{z}/{x}/{y}.jpg ou https://servidor/wms?"></label><div class="grid"><label>Camadas (WMS)<input id="webLayers" placeholder="ex.: ortofoto_2023"></label><label>Zoom máximo<input id="webMaxZoom" type="number" min="10" max="23" value="19"></label></div><label>Atribuição / crédito<input id="webAttr" placeholder="Fonte e ano da imagem"></label><p class="muted">Use apenas serviços que você tem direito de usar; respeite a licença e o crédito da fonte.</p></div>
-<div class="row"><button id="wbLoad" type="button">Carregar datas da Wayback</button><button id="webApply" type="button" class="primary">Aplicar fonte</button></div><p id="webInfo" class="muted"></p>
-<div id="qmsBox" class="qmsBox" data-enter="qmsBuscar"><h4>Catálogo QuickMapServices (NextGIS)</h4><p class="muted">Procura, entre os serviços públicos de imagem catalogados no QuickMapServices, os que <b>cobrem o seu trecho</b>. Clique <b>Testar</b> para baixar uma amostra no centro do trecho e medir a <b>nitidez</b> (detalhe na escala de ~0,3 m/pixel) e as falhas. Escolha a melhor e clique <b>Usar</b>: ela passa a valer no editor, no mosaico e na aproximação do vídeo, com o crédito da fonte.</p>
-<div class="grid"><label>Buscar<input id="qmsQ" placeholder="ex.: ortofoto, satellite, Minas Gerais"></label><label>Tipo<select id="qmsTipo"><option value="todos">TMS/XYZ e WMS</option><option value="tms">Só TMS/XYZ</option><option value="wms">Só WMS</option></select></label></div>
-<div class="row"><label><input id="qmsCobre" type="checkbox" checked> Só os que cobrem o trecho</label><label><input id="qmsWorks" type="checkbox" checked> Só os que estão funcionando</label><label><input id="qmsImg" type="checkbox" checked> Só imagens aéreas/satélite</label></div>
-<div class="row"><button id="qmsBuscar" type="button" class="primary">Buscar</button><button id="qmsTestTop" type="button">Testar os 8 primeiros e ordenar pela nitidez</button><button id="qmsMore" type="button" hidden>Mais resultados</button></div>
-<p id="qmsInfo" class="muted"></p><div id="qmsList" class="qmsList"></div></div></details><label><input id="reverse_axis" type="checkbox"> Inverter início e fim do eixo</label><label><input id="coordinates_confirmed" type="checkbox"> Conferi CRS, unidades e alinhamento na prévia</label><details id="hatchBox"><summary>Hachuras do DXF (leitura automática)</summary><p class="muted">Cada grupo é uma <b>assinatura</b>: camada + padrão da hachura + cor. O programa sugere o tipo (pista nova, existente, acostamento, canteiro, corte, aterro, água, OAE) e o material pelo nome da camada e do padrão (ex.: AR-CONC = concreto). Escolha outro tipo, “Ignorar” ou deixe “pela camada”. Depois clique “Analisar arquivos”.</p><label><input id="hatch_auto" type="checkbox"> Aplicar as sugestões automaticamente às hachuras de camadas sem tipo</label><div id="hatchList" class="muted">Analise os arquivos para listar as hachuras.</div></details><details><summary>Camadas e sentidos de circulação</summary><p class="muted">Cada camada do DXF recebe um tipo — nada é fixo no programa. Use um <b>perfil de camadas</b> (regras por nome, reutilizáveis em outros projetos), confira a lista e clique <b>Ver</b> para destacar a camada no editor.</p><div class="row profileRow"><select id="layerProfile" style="flex:1"></select><button id="profileApply">Aplicar perfil</button><button id="profileSave">Salvar como perfil</button><button id="profileEdit">Editar regras</button><button id="profileDelete">Excluir</button></div><div class="scroll"><table><thead><tr><th>Camada</th><th>Tipo</th><th></th></tr></thead><tbody id="layers"></tbody></table></div><label>Camada única (tudo na layer 0)<select id="layer_split"><option value="auto">Separar automaticamente por cor e tipo de entidade</option><option value="all">Separar todas as camadas por cor e tipo</option><option value="off">Não separar (nomes de camada como no DXF)</option></select></label><details><summary>Cores por tipo</summary><div id="roleColors" class="roleColors"></div></details><label><input id="auto_earthworks" type="checkbox"> Hachuras “HATCH_MATERIAL” sem tipo viram talude (corte/aterro pela proximidade)</label><div class="scroll"><table><thead><tr><th>Eixo / extensão</th><th>Fluxo</th></tr></thead><tbody id="routes"></tbody></table></div></details><button id="save">Salvar configuração</button><div class="row" style="margin-top:12px"><button id="import">Importar configuração</button><a id="configDownload" class="link" hidden>Baixar configuração</a></div><input id="importFile" type="file" accept=".json" hidden></section>
+<table class="fileTable">
+<tr data-fk="dxf">
+<td>DXF/DWG</td>
+<td class="fn">—</td>
+<td>
+<button type="button" data-fpick="dxf" class="mini" title="DXF ou DWG (o DWG é convertido em DXF pelo ODA File Converter)">Escolher DXF/DWG…</button> <button type="button" data-fdel="dxf" class="mini danger" hidden>Retirar</button>
+</td>
+</tr>
+<tr data-fk="kmz">
+<td>KMZ/KML</td>
+<td class="fn">—</td>
+<td>
+<button type="button" data-fpick="kmz" class="mini">Escolher KMZ/KML…</button> <button type="button" data-fdel="kmz" class="mini danger" hidden>Retirar</button>
+</td>
+</tr>
+</table>
+<input id="fileDxf" type="file" accept=".dxf,.dwg" hidden><input id="fileKmz" type="file" accept=".kmz,.kml" hidden>
+</div>
+<button id="upload">Enviar arquivos</button><p class="muted" id="fileState">Crie ou abra um projeto.</p>
+<button id="analyze" class="primary">Analisar arquivos</button><div class="row projActions">
+<button id="saveProject" type="button" class="primary" title="Ctrl+S">Salvar projeto</button><button id="saveAsProject" type="button">Salvar como…</button><button id="resetWork" type="button" title="Remove as marcações de trabalho e mantém as características do segmento">Limpar trabalho…</button><button id="resetUndo" type="button" title="Restaura a configuração anterior à última limpeza">Desfazer limpeza</button><button id="trashProject" type="button" class="danger" title="Exclui o projeto da lista (a pasta vai para projetos\_lixeira e pode ser recuperada)">Excluir projeto</button>
+</div></section>
+<section><h2>2. Configuração</h2>
+<label>Nome do trecho<input id="name" value="Novo trecho"></label><div class="grid">
+<label>Origem<input id="origin" value="Origem"></label><label>Destino<input id="destination" value="Destino"></label><label>Km inicial<input id="km_start_m" value="0+000"></label><label>Km final<input id="km_end_m" value="1+000"></label><label>Extensão de referência (km)<input id="reference_length_m" value="1,000"></label><label>Ano da obra<input id="work_year" value="A informar"></label>
+</div>
+<label>Sistema de coordenadas do DXF<input id="crs" value="EPSG:31983"></label><div class="grid">
+<label>Fator da unidade → metros<input id="units_to_m" type="number" value="1" step="any"></label><label>Imagem aérea<select id="imagery"><option value="esri">Esri online</option>
+<option value="cache">Imagem guardada no pacote (trecho de exemplo)</option>
+<option value="neutral">Fundo neutro (sem satélite)</option>
+<option value="local">Imagem local georreferenciada</option></select></label>
+</div>
+<details id="webBox"><summary>Fonte da imagem web (Esri atual, Esri Wayback por data, outro serviço)</summary><p class="muted">Onde a Esri atual estiver antiga ou distorcida, escolha outra data da <b>Esri Wayback</b> (arquivo histórico da própria Esri, georreferenciado) ou um serviço <b>XYZ/WMS</b> autorizado (ex.: ortofoto do estado/município). Vale para o editor, o mosaico do vídeo e a aproximação. A imagem local, quando enviada, continua por cima.</p>
+<div class="grid">
+<label>Fonte<select id="webSource"><option value="esri">Esri World Imagery (atual)</option>
+<option value="wayback">Esri Wayback (escolher data)</option>
+<option value="xyz">Serviço XYZ (ladrilhos)</option>
+<option value="wms">Serviço WMS</option></select></label><label id="wbBox">Data da Wayback<select id="wbRelease"><option value="">— carregar lista —</option></select></label>
+</div>
+<div id="webCustom">
+<label>Endereço do serviço<input id="webUrl" placeholder="https://servidor/{z}/{x}/{y}.jpg ou https://servidor/wms?"></label><div class="grid">
+<label>Camadas (WMS)<input id="webLayers" placeholder="ex.: ortofoto_2023"></label><label>Zoom máximo<input id="webMaxZoom" type="number" min="10" max="23" value="19"></label>
+</div>
+<label>Atribuição / crédito<input id="webAttr" placeholder="Fonte e ano da imagem"></label><p class="muted">Use apenas serviços que você tem direito de usar; respeite a licença e o crédito da fonte.</p>
+</div>
+<div class="row">
+<button id="wbLoad" type="button">Carregar datas da Wayback</button><button id="webApply" type="button" class="primary">Aplicar fonte</button>
+</div>
+<p id="webInfo" class="muted"></p>
+<div id="qmsBox" class="qmsBox" data-enter="qmsBuscar">
+<h4>Catálogo QuickMapServices (NextGIS)</h4>
+<p class="muted">Procura, entre os serviços públicos de imagem catalogados no QuickMapServices, os que <b>cobrem o seu trecho</b>. Clique <b>Testar</b> para baixar uma amostra no centro do trecho e medir a <b>nitidez</b> (detalhe na escala de ~0,3 m/pixel) e as falhas. Escolha a melhor e clique <b>Usar</b>: ela passa a valer no editor, no mosaico e na aproximação do vídeo, com o crédito da fonte.</p>
+<div class="grid">
+<label>Buscar<input id="qmsQ" placeholder="ex.: ortofoto, satellite, Minas Gerais"></label><label>Tipo<select id="qmsTipo"><option value="todos">TMS/XYZ e WMS</option>
+<option value="tms">Só TMS/XYZ</option>
+<option value="wms">Só WMS</option></select></label>
+</div>
+<div class="row">
+<label><input id="qmsCobre" type="checkbox" checked> Só os que cobrem o trecho</label><label><input id="qmsWorks" type="checkbox" checked> Só os que estão funcionando</label><label><input id="qmsImg" type="checkbox" checked> Só imagens aéreas/satélite</label>
+</div>
+<div class="row">
+<button id="qmsBuscar" type="button" class="primary">Buscar</button><button id="qmsTestTop" type="button">Testar os 8 primeiros e ordenar pela nitidez</button><button id="qmsMore" type="button" hidden>Mais resultados</button>
+</div>
+<p id="qmsInfo" class="muted"></p>
+<div id="qmsList" class="qmsList"></div>
+</div></details><label><input id="reverse_axis" type="checkbox"> Inverter início e fim do eixo</label><label><input id="coordinates_confirmed" type="checkbox"> Conferi CRS, unidades e alinhamento na prévia</label><details id="hatchBox"><summary>Hachuras do DXF (leitura automática)</summary><p class="muted">Cada grupo é uma <b>assinatura</b>: camada + padrão da hachura + cor. O programa sugere o tipo (pista nova, existente, acostamento, canteiro, corte, aterro, água, OAE) e o material pelo nome da camada e do padrão (ex.: AR-CONC = concreto). Escolha outro tipo, “Ignorar” ou deixe “pela camada”. Depois clique “Analisar arquivos”.</p>
+<label><input id="hatch_auto" type="checkbox"> Aplicar as sugestões automaticamente às hachuras de camadas sem tipo</label><div id="hatchList" class="muted">Analise os arquivos para listar as hachuras.</div></details><details><summary>Camadas e sentidos de circulação</summary><p class="muted">Cada camada do DXF recebe um tipo — nada é fixo no programa. Use um <b>perfil de camadas</b> (regras por nome, reutilizáveis em outros projetos), confira a lista e clique <b>Ver</b> para destacar a camada no editor.</p>
+<div class="row profileRow">
+<select id="layerProfile" style="flex:1"></select><button id="profileApply">Aplicar perfil</button><button id="profileSave">Salvar como perfil</button><button id="profileEdit">Editar regras</button><button id="profileDelete">Excluir</button>
+</div>
+<div class="scroll"><table>
+<thead><tr>
+<th>Camada</th>
+<th>Tipo</th>
+<th></th>
+</tr></thead>
+<tbody id="layers"></tbody>
+</table></div>
+<label>Camada única (tudo na layer 0)<select id="layer_split"><option value="auto">Separar automaticamente por cor e tipo de entidade</option>
+<option value="all">Separar todas as camadas por cor e tipo</option>
+<option value="off">Não separar (nomes de camada como no DXF)</option></select></label><details><summary>Cores por tipo</summary><div id="roleColors" class="roleColors"></div></details><label><input id="auto_earthworks" type="checkbox"> Hachuras “HATCH_MATERIAL” sem tipo viram talude (corte/aterro pela proximidade)</label><div class="scroll"><table>
+<thead><tr>
+<th>Eixo / extensão</th>
+<th>Fluxo</th>
+</tr></thead>
+<tbody id="routes"></tbody>
+</table></div></details><button id="save">Salvar configuração</button><div class="row" style="margin-top:12px">
+<button id="import">Importar configuração</button><a id="configDownload" class="link" hidden>Baixar configuração</a>
+</div>
+<input id="importFile" type="file" accept=".json" hidden></section>
 <section><h2>Camadas, imagem local e intercâmbio</h2>
-<details><summary>Camadas DXF adicionais</summary><p class="muted">DXF sobrepostos ao projeto (mesmo CRS ou CRS próprio, com offset próprio). Associe layers às classes existentes ou mantenha “desenho” para mostrar só o traço com o estilo da camada. O DXF principal não é alterado.</p><label>Arquivo DXF<input id="overlayFile" type="file" accept=".dxf"></label><button id="overlayUpload">Adicionar camada</button><div id="overlayList"></div></details>
-<details><summary>Imagem georreferenciada local (ortofoto, drone, ECW)</summary><p class="muted">GeoTIFF/COG, JPEG2000 (.jp2), ou JPG/PNG/TIF com arquivo de mundo (.tfw/.jgw/.j2w/.wld) e .prj. Sem .prj, informe o CRS. Várias imagens formam um mosaico (a primeira tem prioridade). A imagem local entra no fundo do vídeo, na aproximação (detalhe) e no editor; onde ela não cobre, vale a imagem Esri. <b>ECW/MrSID</b>: o arquivo é convertido uma vez para GeoTIFF em blocos com o GDAL do QGIS instalado no computador.</p><label>Arquivos (selecione juntos a imagem, o arquivo de mundo e o .prj)<input id="imgFiles" type="file" multiple accept=".tif,.tiff,.jpg,.jpeg,.png,.jp2,.j2k,.jpx,.ecw,.sid,.img,.tfw,.jgw,.pgw,.wld,.j2w,.jpw,.prj,.tifw,.jpgw,.pngw"></label><div class="grid"><label>CRS da imagem (opcional se houver .prj/GeoTIFF)<input id="imgCrs" placeholder="EPSG:31983"></label><label>Ao enviar<select id="imgMode"><option value="replace">Substituir a imagem principal</option><option value="add">Acrescentar ao mosaico</option></select></label></div><button id="imgUpload">Enviar imagem local</button> <button id="imgConvert" hidden>Converter ECW/MrSID para GeoTIFF</button><div class="row ecwRow"><span id="ecwInfo" class="muted">Leitor ECW: verificando…</span><button id="ecwInstall" type="button" hidden>Instalar leitor ECW interno (uma vez)</button></div><p id="imgInfo" class="muted"></p><div id="imgList"></div><div class="grid"><label><input type="checkbox" id="liDetail"> Usar na aproximação do vídeo (detalhe)</label><label><input type="checkbox" id="liEditor"> Mostrar no editor</label><label>Brilho<input id="liBright" type="range" min="-0.5" max="0.5" step="0.02"></label><label>Contraste<input id="liContrast" type="range" min="-0.5" max="0.5" step="0.02"></label><label>Saturação<input id="liSat" type="range" min="-0.5" max="0.5" step="0.02"></label><label title="A borda transparente vai só até o último pixel branco puro (255) ou preto puro (0) ligado à beira da imagem; a partir do primeiro pixel abaixo de 255 é imagem. Branco puro no meio da imagem (telhado, pintura) continua visível.">Bordas pretas/brancas<select id="liNodata"><option value="borda">Transparentes só no branco 255 / preto 0 da beira</option><option value="auto">Anterior (quase branco ≥253 e quase preto ≤3, em toda a imagem)</option><option value="none">Manter</option></select></label></div></details>
+<details><summary>Camadas DXF adicionais</summary><p class="muted">DXF sobrepostos ao projeto (mesmo CRS ou CRS próprio, com offset próprio). Associe layers às classes existentes ou mantenha “desenho” para mostrar só o traço com o estilo da camada. O DXF principal não é alterado.</p>
+<label>Arquivo DXF<input id="overlayFile" type="file" accept=".dxf"></label><button id="overlayUpload">Adicionar camada</button><div id="overlayList"></div></details>
+<details><summary>Imagem georreferenciada local (ortofoto, drone, ECW)</summary><p class="muted">GeoTIFF/COG, JPEG2000 (.jp2), ou JPG/PNG/TIF com arquivo de mundo (.tfw/.jgw/.j2w/.wld) e .prj. Sem .prj, informe o CRS. Várias imagens formam um mosaico (a primeira tem prioridade). A imagem local entra no fundo do vídeo, na aproximação (detalhe) e no editor; onde ela não cobre, vale a imagem Esri. <b>ECW/MrSID</b>: o arquivo é convertido uma vez para GeoTIFF em blocos com o GDAL do QGIS instalado no computador.</p>
+<label>Arquivos (selecione juntos a imagem, o arquivo de mundo e o .prj)<input id="imgFiles" type="file" multiple accept=".tif,.tiff,.jpg,.jpeg,.png,.jp2,.j2k,.jpx,.ecw,.sid,.img,.tfw,.jgw,.pgw,.wld,.j2w,.jpw,.prj,.tifw,.jpgw,.pngw"></label><div class="grid">
+<label>CRS da imagem (opcional se houver .prj/GeoTIFF)<input id="imgCrs" placeholder="EPSG:31983"></label><label>Ao enviar<select id="imgMode"><option value="replace">Substituir a imagem principal</option>
+<option value="add">Acrescentar ao mosaico</option></select></label>
+</div>
+<button id="imgUpload">Enviar imagem local</button> <button id="imgConvert" hidden>Converter ECW/MrSID para GeoTIFF</button><div class="row ecwRow">
+<span id="ecwInfo" class="muted">Leitor ECW: verificando…</span><button id="ecwInstall" type="button" hidden>Instalar leitor ECW interno (uma vez)</button>
+</div>
+<p id="imgInfo" class="muted"></p>
+<div id="imgList"></div>
+<div class="grid">
+<label><input type="checkbox" id="liDetail"> Usar na aproximação do vídeo (detalhe)</label><label><input type="checkbox" id="liEditor"> Mostrar no editor</label><label>Brilho<input id="liBright" type="range" min="-0.5" max="0.5" step="0.02"></label><label>Contraste<input id="liContrast" type="range" min="-0.5" max="0.5" step="0.02"></label><label>Saturação<input id="liSat" type="range" min="-0.5" max="0.5" step="0.02"></label><label title="A borda transparente vai só até o último pixel branco puro (255) ou preto puro (0) ligado à beira da imagem; a partir do primeiro pixel abaixo de 255 é imagem. Branco puro no meio da imagem (telhado, pintura) continua visível.">Bordas pretas/brancas<select id="liNodata"><option value="borda">Transparentes só no branco 255 / preto 0 da beira</option>
+<option value="auto">Anterior (quase branco ≥253 e quase preto ≤3, em toda a imagem)</option>
+<option value="none">Manter</option></select></label>
+</div></details>
 <details><summary>Elevação do terreno (MDT)</summary><p class="muted">A imagem aérea não é deformada: em planta, o relevo aparece como sombreamento e curvas de nível sobre a imagem; na vista da cabine, a imagem é aplicada sobre a superfície 3D pelas próprias coordenadas. Fontes: MDT local (GeoTIFF ou arquivo de mundo) ou web (AWS Terrain Tiles, ~30 m, consulta online com cache).</p>
-<div class="grid"><label>Fonte<select id="elSource"><option value="none">Sem elevação</option><option value="local">MDT local</option><option value="web">Web (AWS Terrain Tiles)</option></select></label><label>Exagero vertical<input id="elExag" type="number" min="0.5" max="3" step="0.1" value="1"></label><label><input id="elHill" type="checkbox"> Relevo sombreado em planta</label><label>Opacidade do sombreado<input id="elHillOp" type="number" min="0" max="1" step="0.05" value="0.35"></label><label><input id="elCont" type="checkbox"> Curvas de nível</label><label>Intervalo das curvas (m)<input id="elInt" type="number" min="0.5" max="100" step="0.5" value="5"></label><label><input id="elLevel" type="checkbox" checked> Nivelar a pista pelo perfil do eixo</label></div>
+<div class="grid">
+<label>Fonte<select id="elSource"><option value="none">Sem elevação</option>
+<option value="local">MDT local</option>
+<option value="web">Web (AWS Terrain Tiles)</option></select></label><label>Exagero vertical<input id="elExag" type="number" min="0.5" max="3" step="0.1" value="1"></label><label><input id="elHill" type="checkbox"> Relevo sombreado em planta</label><label>Opacidade do sombreado<input id="elHillOp" type="number" min="0" max="1" step="0.05" value="0.35"></label><label><input id="elCont" type="checkbox"> Curvas de nível</label><label>Intervalo das curvas (m)<input id="elInt" type="number" min="0.5" max="100" step="0.5" value="5"></label><label><input id="elLevel" type="checkbox" checked> Nivelar a pista pelo perfil do eixo</label>
+</div>
 <label>Arquivos do MDT local (GeoTIFF; ou TIF/PNG + arquivo de mundo + .prj)<input id="elFiles" type="file" multiple accept=".tif,.tiff,.png,.tfw,.pgw,.wld,.prj"></label><label>CRS do MDT (se não houver .prj/GeoTIFF)<input id="elCrs" placeholder="EPSG:31983"></label><button id="elUpload">Enviar MDT local</button><p id="elInfo" class="muted"></p></details>
-<details><summary>Exportar e importar</summary><p class="muted">GeoJSON (CRS do projeto e WGS84), KML/KMZ para Google Earth, DXF com uma layer por tipo de marcação e CSV de obras com km e coordenadas.</p><div class="row"><button id="exportRun" class="primary">Gerar exportação</button><a id="packageLink" class="link" hidden>Baixar pacote do projeto (.zip)</a></div><div id="exportList" class="muted"></div>
+<details><summary>Exportar e importar</summary><p class="muted">GeoJSON (CRS do projeto e WGS84), KML/KMZ para Google Earth, DXF com uma layer por tipo de marcação e CSV de obras com km e coordenadas.</p>
+<div class="row">
+<button id="exportRun" class="primary">Gerar exportação</button><a id="packageLink" class="link" hidden>Baixar pacote do projeto (.zip)</a>
+</div>
+<div id="exportList" class="muted"></div>
 <label>Importar marcações (GeoJSON, KML, KMZ ou CSV de obras)<input id="markFile" type="file" accept=".geojson,.json,.kml,.kmz,.csv"></label><button id="markImport">Importar marcações</button>
 <label>Abrir pacote de projeto (.zip) — cria um projeto novo<input id="pkgFile" type="file" accept=".zip"></label><button id="pkgImport">Abrir pacote</button>
-<h3 style="font-size:15px">Sequência PNG do vídeo</h3><div class="grid"><label>Início (s)<input id="pngStart" type="number" min="0" step="0.1" value="0"></label><label>Fim (s)<input id="pngEnd" type="number" min="0" step="0.1" value="5"></label><label>Salvar 1 a cada N quadros<input id="pngEvery" type="number" min="1" value="1"></label><label><input id="pngRgba" type="checkbox"> Também camadas RGBA (fundo transparente)</label></div><button id="pngRun">Gerar sequência PNG</button><p class="muted">Os quadros ficam na pasta do projeto (quadros_png). Cada quadro 1440p ocupa alguns MB: escolha um trecho. As camadas RGBA não têm imagem aérea nem textura da água.</p></details></section>
-<section id="secObras"><h2><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M5 20V9l7-5 7 5v11M9 20v-6h6v6"/></svg></span>Obras do PER e cronograma</h2>
+<h3 style="font-size:15px">Sequência PNG do vídeo</h3>
+<div class="grid">
+<label>Início (s)<input id="pngStart" type="number" min="0" step="0.1" value="0"></label><label>Fim (s)<input id="pngEnd" type="number" min="0" step="0.1" value="5"></label><label>Salvar 1 a cada N quadros<input id="pngEvery" type="number" min="1" value="1"></label><label><input id="pngRgba" type="checkbox"> Também camadas RGBA (fundo transparente)</label>
+</div>
+<button id="pngRun">Gerar sequência PNG</button><p class="muted">Os quadros ficam na pasta do projeto (quadros_png). Cada quadro 1440p ocupa alguns MB: escolha um trecho. As camadas RGBA não têm imagem aérea nem textura da água.</p></details></section>
+<section id="secObras"><h2>
+<span class="ico"><svg viewbox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M5 20V9l7-5 7 5v11M9 20v-6h6v6"></path></svg></span>Obras do PER e cronograma</h2>
 <p class="muted">Cada obra vai do km inicial ao final (duplicação, via marginal, iluminação, passarela…). Entre pela planilha Excel, pelo cronograma do MS Project (XML) ou marcando o início e o fim no desenho.</p>
-<div class="dlgTools obTools"><button type="button" id="obTela" class="primary" title="Clique o início e o fim da obra no desenho">＋ Marcar no desenho</button><button type="button" id="obImportar" title="Excel (.xlsx), CSV ou cronograma do MS Project (.xml)">Importar Excel / cronograma…</button><span class="grow"></span><a class="link" id="obModelo" href="/api/obras/modelo.xlsx" data-titulo="Baixando o modelo de planilha">Modelo Excel</a><button type="button" id="obExportar">Exportar Excel</button></div>
+<div class="dlgTools obTools">
+<button type="button" id="obTela" class="primary" title="Clique o início e o fim da obra no desenho">＋ Marcar no desenho</button><button type="button" id="obImportar" title="Excel (.xlsx), CSV ou cronograma do MS Project (.xml)">Importar Excel / cronograma…</button><span class="grow"></span><a class="link" id="obModelo" href="/api/obras/modelo.xlsx" data-titulo="Baixando o modelo de planilha">Modelo Excel</a><button type="button" id="obExportar">Exportar Excel</button>
+</div>
 <div id="obResumo" class="muted"></div>
-<div class="tblWrap obWrap"><table class="tbl obTbl"><thead><tr><th>Obra</th><th>Km</th><th>Datas</th><th></th></tr></thead><tbody id="obRows"></tbody></table></div>
-<div class="grid"><label>No vídeo<select id="per_display"><option value="trecho">Trecho colorido do km inicial ao final + caixa</option><option value="chamada">Só a caixa de chamada</option></select></label>
-<label>Linha do tempo pelo cronograma<select id="schedule_mode"><option value="off">Desligada (todas as obras como projeto)</option><option value="linha_do_tempo">Ligada: o vídeo percorre as datas</option></select></label>
-<label>Data inicial do vídeo<input id="schedule_start" type="date"></label><label>Data final do vídeo<input id="schedule_end" type="date"></label></div>
+<div class="tblWrap obWrap"><table class="tbl obTbl">
+<thead><tr>
+<th>Obra</th>
+<th>Km</th>
+<th>Datas</th>
+<th></th>
+</tr></thead>
+<tbody id="obRows"></tbody>
+</table></div>
+<div class="grid">
+<label>No vídeo<select id="per_display"><option value="trecho">Trecho colorido do km inicial ao final + caixa</option>
+<option value="chamada">Só a caixa de chamada</option></select></label>
+<label>Linha do tempo pelo cronograma<select id="schedule_mode"><option value="off">Desligada (todas as obras como projeto)</option>
+<option value="linha_do_tempo">Ligada: o vídeo percorre as datas</option></select></label>
+<label>Data inicial do vídeo<input id="schedule_start" type="date"></label><label>Data final do vídeo<input id="schedule_end" type="date"></label>
+</div>
 <label><input id="schedule_show_planned" type="checkbox" checked> Mostrar as obras previstas (ainda não iniciadas) em tracejado</label>
 <p class="muted">Datas em branco = da primeira data de início à última de término do cronograma. Em execução, a obra cresce do km inicial ao final conforme o prazo decorrido.</p></section>
-<section><h2>5. Exportar vídeo</h2><details open id="ambienteBox"><summary>Câmera, clima, sol, vida e antes/depois</summary>
+<section><h2>5. Exportar vídeo</h2>
+<details open id="ambienteBox"><summary>Câmera, clima, sol, vida e antes/depois</summary>
 <p class="muted"><b>Pontos-chave da câmera</b>: enquadre o desenho como quer ver no vídeo e clique “Adicionar a vista atual”. Repita para as próximas vistas; o vídeo voa de uma para outra (escolha “Pontos-chave marcados” em Voo da câmera).</p>
-<div class="dlgTools"><button type="button" id="ckAdd" class="primary">＋ Adicionar a vista atual</button><span class="grow"></span><span id="ckInfo" class="muted"></span></div>
-<div class="tblWrap ckWrap"><table class="tbl ckTbl"><thead><tr><th>#</th><th>Título no vídeo</th><th>Parada (s)</th><th>Largura</th><th></th></tr></thead><tbody id="ckRows"></tbody></table></div>
-<div class="grid"><label>Clima<select id="weather"><option value="limpo">Céu limpo (como antes)</option><option value="nublado">Nublado</option><option value="chuva">Chuva (pista molhada)</option><option value="neblina">Neblina</option></select></label>
+<div class="dlgTools">
+<button type="button" id="ckAdd" class="primary">＋ Adicionar a vista atual</button><span class="grow"></span><span id="ckInfo" class="muted"></span>
+</div>
+<div class="tblWrap ckWrap"><table class="tbl ckTbl">
+<thead><tr>
+<th>#</th>
+<th>Título no vídeo</th>
+<th>Parada (s)</th>
+<th>Largura</th>
+<th></th>
+</tr></thead>
+<tbody id="ckRows"></tbody>
+</table></div>
+<div class="grid">
+<label>Clima<select id="weather"><option value="limpo">Céu limpo (como antes)</option>
+<option value="nublado">Nublado</option>
+<option value="chuva">Chuva (pista molhada)</option>
+<option value="neblina">Neblina</option></select></label>
 <label>Intensidade do clima <span id="wiVal"></span><input id="weather_intensity" type="range" min="0.1" max="1" step="0.05" value="0.6"></label>
 <label><input id="sun_shadows" type="checkbox"> Sombras pela hora do sol</label><label>Hora do sol <b id="shVal"></b><input id="sun_hour" type="range" min="6" max="18" step="0.5" value="15"></label>
-<label><input id="pedestrians" type="checkbox"> Pedestres (faixas de pedestre, passarelas e caminhos marcados)</label><label>Veículos<select id="vehicle_mix"><option value="variado">Frota variada (carros, picapes, vans, motos, caminhões, carretas, ônibus)</option><option value="classico">Clássica (carros, caminhões e ônibus)</option></select></label><label><input id="before_after" type="checkbox"> Comparação antes/depois no final do vídeo</label><label>Duração da comparação (s)<input id="before_after_s" type="number" min="3" max="30" step="1" value="8"></label></div>
+<label><input id="pedestrians" type="checkbox"> Pedestres (faixas de pedestre, passarelas e caminhos marcados)</label><label>Veículos<select id="vehicle_mix"><option value="variado">Frota variada (carros, picapes, vans, motos, caminhões, carretas, ônibus)</option>
+<option value="classico">Clássica (carros, caminhões e ônibus)</option></select></label><label><input id="before_after" type="checkbox"> Comparação antes/depois no final do vídeo</label><label>Duração da comparação (s)<input id="before_after_s" type="number" min="3" max="30" step="1" value="8"></label>
+</div>
 <p class="muted">Antes/depois: nos últimos segundos, uma divisória atravessa a tela — à esquerda o projeto (DEPOIS), à direita só a imagem aérea (ANTES). Sombras: de manhã e à tarde ficam longas; ao meio-dia, curtas e para o sul.</p></details>
-<details open id="profileBox"><summary>Perfil de apresentação, veículos e sentido</summary><div class="grid"><label>Montagem do vídeo<select id="style_profile"><option value="padrao">Artístico (realista: texturas de asfalto e concreto)</option><option value="tecnico">Técnico (hachuras de desenho: asfalto, concreto com juntas)</option></select></label><label>Pista nova<select id="pavement_material"><option value="flexivel">Pavimento flexível (asfalto)</option><option value="rigido">Pavimento rígido (concreto, placas com juntas)</option></select></label><label>Pista existente<select id="existing_material"><option value="flexivel">Pavimento flexível (asfalto)</option><option value="rigido">Pavimento rígido (concreto)</option></select></label><label>Acostamento<select id="shoulder_material"><option value="flexivel">Flexível (asfalto)</option><option value="rigido">Rígido (concreto)</option></select></label><label>Juntas transversais do concreto a cada (m)<input id="joint_spacing_m" type="number" min="2" max="10" step="0.5" value="5"></label><label>Contraste projeto × imagem <span id="pcVal"></span><input id="project_contrast" type="range" min="0" max="1" step="0.05" value="0"></label><label>Voo da câmera<select id="camera_mode"><option value="obras">Percurso + paradas nas intervenções</option><option value="continuo">Contínuo até o fim do segmento (sem paradas)</option><option value="pontos">Pontos-chave marcados (voo entre as vistas escolhidas)</option></select></label><label>Trajetória dos veículos<select id="vehicle_paths"><option value="smooth">Em linha reta (suavizada, sem recuos nas emendas)</option><option value="anterior">Clássico</option></select></label><label>Sentido sem seta marcada<select id="direction_reference"><option value="axis">Pelo eixo do projeto (direita do eixo = km crescente)</option><option value="anterior">Clássico</option></select></label></div><label><input id="progress_indicator" type="checkbox"> Indicador de progresso da revelação (%) no rodapé</label><label><input id="technical_textures" type="checkbox"> No vídeo técnico, aplicar também as texturas realistas sobre as hachuras</label><p class="muted">Camadas com RIGIDO, CONCRETO, CCP ou PCC no nome são lidas como concreto; FLEXIVEL, ASFALTO, CBUQ, CAUQ ou TSD, como asfalto. As áreas de pista do editor podem ter material próprio.</p><h3 style="font-size:14px;margin:10px 0 4px">Texturas (editáveis)</h3><p class="muted">Ajuste o grão, a variação de tom, os remendos, as fissuras e o brilho de cada superfície. A amostra mostra o resultado na hora; o vídeo usa os mesmos valores (1 = padrão).</p><div id="texEditor"></div><label>Motor de montagem<select id="render_engine"><option value="otimizado">Otimizado (1.24, mais rápido)</option><option value="anterior">Clássico (quadros idênticos aos anteriores)</option></select></label><label>Caixas de chamada<select id="callout_layout"><option value="auto">Automáticas sem sobreposição</option><option value="anterior">Clássico</option></select></label><label>Avanço da câmera sobre a imagem<select id="advance_mode"><option value="duracao">Pela duração digitada do vídeo</option><option value="velocidade">Pela velocidade de avanço (duração calculada)</option></select></label><label>Velocidade de avanço (km/h sobre a imagem)<input id="advance_speed_kmh" type="number" min="5" max="5000" step="5" value="150"></label><p id="advInfo" class="muted"></p><label><input id="curve_speed" type="checkbox"> Veículos reduzem nas curvas e ligações</label><h3 style="font-size:14px;margin:10px 0 4px">Representação do pavimento</h3><p class="muted">“Automática” segue o material e a montagem (técnica ou artística). Escolha outro padrão para desenhar o tipo do seu jeito; as cores vazias usam as do padrão. A amostra mostra o resultado.</p><div id="pavStyles"></div><div class="row"><button id="presetTech" type="button" title="2560×1440, 24 q/s, ~96 s, hachuras técnicas, voo contínuo, sem setas de fluxo e sem veículos, com indicador de progresso">Aplicar perfil “Apresentação técnica”</button></div><p class="muted" id="presetInfo"></p></details><label>Aceleração<select id="encoder"><option value="auto">Automática: testar NVIDIA e usar CPU se necessário</option><option value="nvenc">Priorizar NVIDIA NVENC (com retorno à CPU)</option><option value="cpu">Somente CPU</option></select></label><label>Perfil da CPU<select id="cpu_preset"><option value="veryfast">Rápido — veryfast</option><option value="fast">Original — fast</option></select></label><div class="grid"><label>Resolução<select id="width"><option value="3840">3840 × 2160 (4K)</option><option value="2560">2560 × 1440</option><option value="1920">1920 × 1080</option><option value="1280">1280 × 720</option></select></label><label>Qualidade do vídeo<select id="video_quality"><option value="padrao">Padrão (como antes)</option><option value="alta">Alta — fundo mais nítido, menos compressão</option><option value="maxima">Máxima — superamostragem e detalhe 0,1 m (mais lenta)</option></select></label><label>Quadros/segundo<select id="fps"><option>30</option><option>24</option></select></label><label>Duração (segundos)<input id="duration_s" type="number" value="202" min="3" max="1800"></label><label>Largura da vista (metros)<input id="view_width_m" type="number" value="750" min="80"></label><label>Resolução do mosaico<select id="imagery_pixels"><option>4096</option><option>8192</option><option>2048</option></select></label></div><label>Qualidade visual<select id="visual_quality"><option value="enhanced">Aprimorada (asfalto em metros, concreto, veículos por tipo)</option><option value="classic">Anterior</option></select></label>
+<details open id="profileBox"><summary>Perfil de apresentação, veículos e sentido</summary><div class="grid">
+<label>Montagem do vídeo<select id="style_profile"><option value="padrao">Artístico (realista: texturas de asfalto e concreto)</option>
+<option value="tecnico">Técnico (hachuras de desenho: asfalto, concreto com juntas)</option></select></label><label>Pista nova<select id="pavement_material"><option value="flexivel">Pavimento flexível (asfalto)</option>
+<option value="rigido">Pavimento rígido (concreto, placas com juntas)</option></select></label><label>Pista existente<select id="existing_material"><option value="flexivel">Pavimento flexível (asfalto)</option>
+<option value="rigido">Pavimento rígido (concreto)</option></select></label><label>Acostamento<select id="shoulder_material"><option value="flexivel">Flexível (asfalto)</option>
+<option value="rigido">Rígido (concreto)</option></select></label><label>Juntas transversais do concreto a cada (m)<input id="joint_spacing_m" type="number" min="2" max="10" step="0.5" value="5"></label><label>Contraste projeto × imagem <span id="pcVal"></span><input id="project_contrast" type="range" min="0" max="1" step="0.05" value="0"></label><label>Voo da câmera<select id="camera_mode"><option value="obras">Percurso + paradas nas intervenções</option>
+<option value="continuo">Contínuo até o fim do segmento (sem paradas)</option>
+<option value="pontos">Pontos-chave marcados (voo entre as vistas escolhidas)</option></select></label><label>Trajetória dos veículos<select id="vehicle_paths"><option value="smooth">Em linha reta (suavizada, sem recuos nas emendas)</option>
+<option value="anterior">Clássico</option></select></label><label>Sentido sem seta marcada<select id="direction_reference"><option value="axis">Pelo eixo do projeto (direita do eixo = km crescente)</option>
+<option value="anterior">Clássico</option></select></label>
+</div>
+<label><input id="progress_indicator" type="checkbox"> Indicador de progresso da revelação (%) no rodapé</label><label><input id="technical_textures" type="checkbox"> No vídeo técnico, aplicar também as texturas realistas sobre as hachuras</label><p class="muted">Camadas com RIGIDO, CONCRETO, CCP ou PCC no nome são lidas como concreto; FLEXIVEL, ASFALTO, CBUQ, CAUQ ou TSD, como asfalto. As áreas de pista do editor podem ter material próprio.</p>
+<h3 style="font-size:14px;margin:10px 0 4px">Texturas (editáveis)</h3>
+<p class="muted">Ajuste o grão, a variação de tom, os remendos, as fissuras e o brilho de cada superfície. A amostra mostra o resultado na hora; o vídeo usa os mesmos valores (1 = padrão).</p>
+<div id="texEditor"></div>
+<label>Motor de montagem<select id="render_engine"><option value="otimizado">Otimizado (1.24, mais rápido)</option>
+<option value="anterior">Clássico (quadros idênticos aos anteriores)</option></select></label><label>Caixas de chamada<select id="callout_layout"><option value="auto">Automáticas sem sobreposição</option>
+<option value="anterior">Clássico</option></select></label><label>Avanço da câmera sobre a imagem<select id="advance_mode"><option value="duracao">Pela duração digitada do vídeo</option>
+<option value="velocidade">Pela velocidade de avanço (duração calculada)</option></select></label><label>Velocidade de avanço (km/h sobre a imagem)<input id="advance_speed_kmh" type="number" min="5" max="5000" step="5" value="150"></label><p id="advInfo" class="muted"></p>
+<label><input id="curve_speed" type="checkbox"> Veículos reduzem nas curvas e ligações</label><h3 style="font-size:14px;margin:10px 0 4px">Representação do pavimento</h3>
+<p class="muted">“Automática” segue o material e a montagem (técnica ou artística). Escolha outro padrão para desenhar o tipo do seu jeito; as cores vazias usam as do padrão. A amostra mostra o resultado.</p>
+<div id="pavStyles"></div>
+<div class="row"><button id="presetTech" type="button" title="2560×1440, 24 q/s, ~96 s, hachuras técnicas, voo contínuo, sem setas de fluxo e sem veículos, com indicador de progresso">Aplicar perfil “Apresentação técnica”</button></div>
+<p class="muted" id="presetInfo"></p></details><label>Aceleração<select id="encoder"><option value="auto">Automática: testar NVIDIA e usar CPU se necessário</option>
+<option value="nvenc">Priorizar NVIDIA NVENC (com retorno à CPU)</option>
+<option value="cpu">Somente CPU</option></select></label><label>Perfil da CPU<select id="cpu_preset"><option value="veryfast">Rápido — veryfast</option>
+<option value="fast">Original — fast</option></select></label><div class="grid">
+<label>Resolução<select id="width"><option value="3840">3840 × 2160 (4K)</option>
+<option value="2560">2560 × 1440</option>
+<option value="1920">1920 × 1080</option>
+<option value="1280">1280 × 720</option></select></label><label>Qualidade do vídeo<select id="video_quality"><option value="padrao">Padrão (como antes)</option>
+<option value="alta">Alta — fundo mais nítido, menos compressão</option>
+<option value="maxima">Máxima — superamostragem e detalhe 0,1 m (mais lenta)</option></select></label><label>Quadros/segundo<select id="fps"><option>30</option>
+<option>24</option></select></label><label>Duração (segundos)<input id="duration_s" type="number" value="202" min="3" max="1800"></label><label>Largura da vista (metros)<input id="view_width_m" type="number" value="750" min="80"></label><label>Resolução do mosaico<select id="imagery_pixels"><option>4096</option>
+<option>8192</option>
+<option>2048</option></select></label>
+</div>
+<label>Qualidade visual<select id="visual_quality"><option value="enhanced">Aprimorada (asfalto em metros, concreto, veículos por tipo)</option>
+<option value="classic">Anterior</option></select></label>
 <label><input id="hydrography" type="checkbox" checked> Hidrografia IBGE/OSM</label>
-<div class="grid"><label><input id="water_texture" type="checkbox" checked> Textura da água</label><label>Opacidade da textura<input id="water_texture_opacity" type="number" min="0" max="1" step="0.05" value="0.65"></label><label><input id="water_names" type="checkbox" checked> Nomes dos rios</label><label>Opacidade dos nomes<input id="water_names_opacity" type="number" min="0" max="1" step="0.05" value="1"></label><label><input id="water_animated" type="checkbox"> Ondulação animada sutil</label><label><input id="headlights" type="checkbox"> Faróis acesos</label><details><summary>Dia e noite</summary><div class="grid"><label>Iluminação<select id="day_night"><option value="off">Dia (como antes)</option><option value="transition">Transição dia → noite</option><option value="night">Noite</option></select></label><label>Início do anoitecer (s)<input id="night_start_s" type="number" min="0" max="1800" value="40"></label><label>Duração da transição (s)<input id="night_transition_s" type="number" min="0.5" max="120" step="0.5" value="8"></label><label>Escuridão<input id="night_darkness" type="number" min="0.3" max="0.95" step="0.05" value="0.78"></label></div><label><input id="night_signage_glow" type="checkbox"> Sinalização refletiva em destaque à noite</label><p class="muted">À noite os faróis e as lanternas acendem sozinhos.</p></details><details><summary>Tráfego: simulação, engarrafamento e canteiro</summary><div class="grid"><label>Movimento dos veículos<select id="traffic_model"><option value="simulado">Simulado sem colisão (fila, interdições, desvios)</option><option value="anterior">Anterior</option></select></label><label>Densidade do tráfego<input id="traffic_density" type="number" min="0.2" max="8" step="0.2" value="1"></label><label>Capacidade nominal por faixa (ucp/h)<input id="traffic_capacity_vphpl" type="number" min="0.1" max="20000" step="any" value="1900"></label><label>Demanda por faixa (veíc/h, vazio = automática)<input id="traffic_demand_vphpl" type="number" min="0.1" max="20000" step="any" placeholder="Automática pela densidade"></label><p id="rsTrafficStudy" class="muted"></p><label><input id="queue_capacity_model" type="checkbox" checked> Formar/dissipar filas pela capacidade da faixa</label><label><input id="heavy_vehicle_reaction" type="checkbox" checked> Reação específica a caminhões, ônibus e carretas</label><label title="Ramos curtos nos encontros (menores que isto) não entram nas rotas: o veículo segue direto por uma curva suave, sem ziguezague. A geometria original é preservada.">Desligar fluxos abaixo de<select id="min_route_segment_m"><option value="50" selected>50 m (padrão)</option><option value="20">20 m</option><option value="40">40 m</option><option value="60">60 m</option><option value="80">80 m</option><option value="100">100 m</option><option value="120">120 m</option><option value="140">140 m</option><option value="160">160 m</option><option value="180">180 m</option><option value="200">200 m</option></select></label><label>Travessia do canteiro<select id="median_crossing"><option value="returns">Só em retornos (desnível, rotatória, em nível) e locais permitidos</option><option value="marked">Só desnível/rotatória e locais permitidos</option><option value="free">Livre (anterior)</option></select></label></div><p class="muted">Densidade 1 = movimento normal; 3 a 6 = engarrafamento. Interdições e travessias são marcadas no editor (🚧, ↶, ⛔).</p></details><details><summary>Sinalização, setas e anotações do vídeo</summary><div class="grid"><label>Pintura de faixas<select id="signage_style"><option value="clean">Limpa (sem sobras nas junções)</option><option value="previous">Anterior</option></select></label><label>Setas de fluxo<select id="flow_arrows"><option value="km_conflicts">A cada km e nos pontos de conflito</option><option value="dense">Frequentes (anterior)</option><option value="off">Sem setas</option></select></label><label>Espaçamento das setas (m)<input id="flow_arrow_spacing_m" type="number" min="100" max="5000" step="100" value="1000"></label><label>Sinalização horizontal e vertical<select id="signage_detail"><option value="full">Completa (faixas, zebrados, PARE, placas)</option><option value="basic">Básica</option></select></label><label>Faixas por sentido na pista principal<select id="lanes_per_direction"><option value="2">2 (o restante é acostamento)</option><option value="1">1</option><option value="3">3</option><option value="4">4</option><option value="0">Pela largura da pista</option></select></label><label>Largura da faixa (m)<input id="lane_width_m" type="number" min="2.5" max="5" step="0.1" value="3.5"></label><label>Setas repetidas em cada faixa<select id="lane_arrow_repeat"><option value="conflicts">Só antes de saídas e acessos</option><option value="all">Em todas as setas</option><option value="off">Nunca (uma seta por pista)</option></select></label><label>Distância mínima entre setas (m)<input id="arrow_min_gap_m" type="number" min="0" max="500" value="25" title="0 = sem afastamento mínimo"></label><label>Sinalização do DXF<select id="dxf_signage"><option value="replace">Substitui a gerada</option><option value="add">Soma à gerada</option></select></label></div><div class="grid"><label><input type="checkbox" id="lane_arrows" checked> Setas por faixa (reta/direita/esquerda pelo itinerário)</label><label><input type="checkbox" id="gore_hatch" checked> Zebrados automáticos nos gores</label><label><input type="checkbox" id="stop_lines" checked> Retenção/PARE e dê a preferência</label><label><input type="checkbox" id="auto_signs" checked> Placas automáticas (PARE, dê a preferência)</label><label>Raio para cidades (km)<input id="cities_radius_km" type="number" min="1" max="150" value="25"></label></div><label>Imagem detalhada (aproximação)<select id="imagery_detail"><option value="auto">Automática: Esri ~0,3 m quando a câmera se aproxima</option><option value="off">Desligada (só o mosaico)</option></select></label><label><input id="detail_textures" type="checkbox"> Texturas do projeto em alta resolução (0,2 m)</label><label>Texturas<select id="texture_style"><option value="artistico">Artístico realista (bordas, cor do asfalto, pedriscos, grama em manchas)</option><option value="realistic">Realistas (agregado, remendos, fissuras, trilhas de roda)</option><option value="anterior">Anteriores</option></select></label><label>Aparência dos taludes<select id="earthwork_look"><option value="hatch">Hachura de projeto (corte vermelho, aterro verde)</option><option value="natural">Terreno (solo no corte, grama no aterro)</option></select></label><label>Resolução do detalhe<select id="detail_resolution_m"><option value="0.2">0,2 m por pixel</option><option value="0.1">0,1 m por pixel (vídeo 4K/imagem local; mais lento)</option></select></label><label><input id="km_markers" type="checkbox"> Marcos do km inicial e final no mapa</label><label><input id="direction_badge" type="checkbox"> Seta no topo com o sentido do estaqueamento</label><label><input id="median_grass" type="checkbox"> Grama nos canteiros</label><label><input id="cities_show" type="checkbox"> Nomes das cidades próximas</label></details></div><p class="muted">Base cartográfica 1:250.000; largura gráfica ilustrativa. Consulta online com cache local.</p><label><input id="traffic" type="checkbox" checked> Incluir veículos em trajetórias conectadas</label><div class="grid"><label>Processos de montagem<select id="render_workers"><option value="0">Automático (núcleos e memória do PC)</option><option value="1">1 (sem paralelismo)</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="6">6</option><option value="8">8</option><option value="12">12</option></select></label><label>Perfil de geração<select id="render_profile"><option value="final">Final (superamostragem da imagem)</option><option value="rapido">Rápido (rascunho, sem superamostragem)</option></select></label></div>
-<label>Vídeos com menos de 45 segundos<select id="short_video_mode"><option value="auto">Vista geral estável e aparecimento suave</option><option value="tour">Manter sobrevoo completo (mais rápido)</option></select></label><label>Velocidade ilustrativa (km/h)<input id="traffic_speed_kmh" type="number" value="70"></label><details><summary>Vista da cabine (primeira pessoa)</summary><p class="muted">Use a ferramenta “🚗 Cabine” no editor e clique sobre uma trajetória: o veículo, o sentido e o início do trecho são definidos por esse ponto. Sem modelo de elevação, o terreno é plano; OAE marcadas com nível elevam a câmera.</p><label><input id="cabinEnabled" type="checkbox"> Gerar o vídeo pela vista da cabine</label><div class="grid"><label>Duração do trecho (s)<input id="cabinDuration" type="number" min="3" max="600" value="20"></label><label>Altura do olho (m)<input id="cabinHeight" type="number" min="0.8" max="4" step="0.05" value="1.25"></label><label>Campo de visão (°)<input id="cabinFov" type="number" min="40" max="110" value="72"></label><label>Inclinação para baixo (°)<input id="cabinPitch" type="number" min="0" max="25" step="0.5" value="4"></label><label>Suavização (s)<input id="cabinSmooth" type="number" min="0" max="5" step="0.1" value="1.2"></label><label>Velocidade (km/h, vazio = tráfego)<input id="cabinSpeed" type="number" min="5" max="110"></label><label><input id="cabinHood" type="checkbox" checked> Capô e painel</label></div><p id="cabinState" class="muted"></p><img id="cabinPreview" alt="Prévia da cabine" style="width:100%;border-radius:8px" hidden></details>
-<button id="render" class="primary">Gerar novo vídeo</button><details class="retirada"><summary>Ficha técnica de referência e comparação e comparação</summary><p class="muted">O vídeo de referência não é mais carregado: fica só a ficha técnica (resolução, taxa, duração, codec, taxa de bits e métricas de nitidez, contraste, cor, sinalização e pavimento) para comparar com os vídeos gerados. As métricas são relativas — mesmo método nos dois vídeos.</p><div id="refInfo" class="muted"></div><div class="row"><button id="compareRun">Comparar vídeo gerado com a referência</button><button id="refProfile" hidden>Medir referência e remover o vídeo (libera 456 MB)</button></div><div id="compareTable" class="scroll"></div></details><p class="muted">MP4 · H.264 High · CPU CRF 16 / NVIDIA CQ 19 · yuv420p. O encoder efetivamente usado aparece no progresso. A geração continua com o navegador fechado enquanto esta aplicação estiver aberta.</p></section>
-<section><h2>Manutenção</h2><p class="muted">Remove caches regeneráveis e arquivos temporários. Preserva projetos, CAD/KMZ, configurações e vídeos. A primeira prévia após a limpeza pode demorar mais.</p><div class="row"><button id="cacheSize">Ver espaço recuperável</button><button id="cacheClean">Limpar caches e temporários</button></div><p id="cacheInfo" class="muted"></p></section>
-</div><div>
+<div class="grid">
+<label><input id="water_texture" type="checkbox" checked> Textura da água</label><label>Opacidade da textura<input id="water_texture_opacity" type="number" min="0" max="1" step="0.05" value="0.65"></label><label><input id="water_names" type="checkbox" checked> Nomes dos rios</label><label>Opacidade dos nomes<input id="water_names_opacity" type="number" min="0" max="1" step="0.05" value="1"></label><label><input id="water_animated" type="checkbox"> Ondulação animada sutil</label><label><input id="headlights" type="checkbox"> Faróis acesos</label><details><summary>Dia e noite</summary><div class="grid">
+<label>Iluminação<select id="day_night"><option value="off">Dia (como antes)</option>
+<option value="transition">Transição dia → noite</option>
+<option value="night">Noite</option></select></label><label>Início do anoitecer (s)<input id="night_start_s" type="number" min="0" max="1800" value="40"></label><label>Duração da transição (s)<input id="night_transition_s" type="number" min="0.5" max="120" step="0.5" value="8"></label><label>Escuridão<input id="night_darkness" type="number" min="0.3" max="0.95" step="0.05" value="0.78"></label>
+</div>
+<label><input id="night_signage_glow" type="checkbox"> Sinalização refletiva em destaque à noite</label><p class="muted">À noite os faróis e as lanternas acendem sozinhos.</p></details><details><summary>Tráfego: simulação, engarrafamento e canteiro</summary><div class="grid">
+<label>Movimento dos veículos<select id="traffic_model"><option value="simulado">Simulado sem colisão (fila, interdições, desvios)</option>
+<option value="anterior">Anterior</option></select></label><label>Densidade do tráfego<input id="traffic_density" type="number" min="0.2" max="8" step="0.2" value="1"></label><label>Capacidade nominal por faixa (ucp/h)<input id="traffic_capacity_vphpl" type="number" min="0.1" max="20000" step="any" value="1900"></label><label>Demanda por faixa (veíc/h, vazio = automática)<input id="traffic_demand_vphpl" type="number" min="0.1" max="20000" step="any" placeholder="Automática pela densidade"></label><p id="rsTrafficStudy" class="muted"></p>
+<label><input id="queue_capacity_model" type="checkbox" checked> Formar/dissipar filas pela capacidade da faixa</label><label><input id="heavy_vehicle_reaction" type="checkbox" checked> Reação específica a caminhões, ônibus e carretas</label><label title="Ramos curtos nos encontros (menores que isto) não entram nas rotas: o veículo segue direto por uma curva suave, sem ziguezague. A geometria original é preservada.">Desligar fluxos abaixo de<select id="min_route_segment_m"><option value="50" selected>50 m (padrão)</option>
+<option value="20">20 m</option>
+<option value="40">40 m</option>
+<option value="60">60 m</option>
+<option value="80">80 m</option>
+<option value="100">100 m</option>
+<option value="120">120 m</option>
+<option value="140">140 m</option>
+<option value="160">160 m</option>
+<option value="180">180 m</option>
+<option value="200">200 m</option></select></label><label>Travessia do canteiro<select id="median_crossing"><option value="returns">Só em retornos (desnível, rotatória, em nível) e locais permitidos</option>
+<option value="marked">Só desnível/rotatória e locais permitidos</option>
+<option value="free">Livre (anterior)</option></select></label>
+</div>
+<p class="muted">Densidade 1 = movimento normal; 3 a 6 = engarrafamento. Interdições e travessias são marcadas no editor (🚧, ↶, ⛔).</p></details><details><summary>Sinalização, setas e anotações do vídeo</summary><div class="grid">
+<label>Pintura de faixas<select id="signage_style"><option value="clean">Limpa (sem sobras nas junções)</option>
+<option value="previous">Anterior</option></select></label><label>Setas de fluxo<select id="flow_arrows"><option value="km_conflicts">A cada km e nos pontos de conflito</option>
+<option value="dense">Frequentes (anterior)</option>
+<option value="off">Sem setas</option></select></label><label>Espaçamento das setas (m)<input id="flow_arrow_spacing_m" type="number" min="100" max="5000" step="100" value="1000"></label><label>Sinalização horizontal e vertical<select id="signage_detail"><option value="full">Completa (faixas, zebrados, PARE, placas)</option>
+<option value="basic">Básica</option></select></label><label>Faixas por sentido na pista principal<select id="lanes_per_direction"><option value="2">2 (o restante é acostamento)</option>
+<option value="1">1</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="0">Pela largura da pista</option></select></label><label>Largura da faixa (m)<input id="lane_width_m" type="number" min="2.5" max="5" step="0.1" value="3.5"></label><label>Setas repetidas em cada faixa<select id="lane_arrow_repeat"><option value="conflicts">Só antes de saídas e acessos</option>
+<option value="all">Em todas as setas</option>
+<option value="off">Nunca (uma seta por pista)</option></select></label><label>Distância mínima entre setas (m)<input id="arrow_min_gap_m" type="number" min="0" max="500" value="25" title="0 = sem afastamento mínimo"></label><label>Sinalização do DXF<select id="dxf_signage"><option value="replace">Substitui a gerada</option>
+<option value="add">Soma à gerada</option></select></label>
+</div>
+<div class="grid">
+<label><input type="checkbox" id="lane_arrows" checked> Setas por faixa (reta/direita/esquerda pelo itinerário)</label><label><input type="checkbox" id="gore_hatch" checked> Zebrados automáticos nos gores</label><label><input type="checkbox" id="stop_lines" checked> Retenção/PARE e dê a preferência</label><label><input type="checkbox" id="auto_signs" checked> Placas automáticas (PARE, dê a preferência)</label><label>Raio para cidades (km)<input id="cities_radius_km" type="number" min="1" max="150" value="25"></label>
+</div>
+<label>Imagem detalhada (aproximação)<select id="imagery_detail"><option value="auto">Automática: Esri ~0,3 m quando a câmera se aproxima</option>
+<option value="off">Desligada (só o mosaico)</option></select></label><label><input id="detail_textures" type="checkbox"> Texturas do projeto em alta resolução (0,2 m)</label><label>Texturas<select id="texture_style"><option value="artistico">Artístico realista (bordas, cor do asfalto, pedriscos, grama em manchas)</option>
+<option value="realistic">Realistas (agregado, remendos, fissuras, trilhas de roda)</option>
+<option value="anterior">Anteriores</option></select></label><label>Aparência dos taludes<select id="earthwork_look"><option value="hatch">Hachura de projeto (corte vermelho, aterro verde)</option>
+<option value="natural">Terreno (solo no corte, grama no aterro)</option></select></label><label>Resolução do detalhe<select id="detail_resolution_m"><option value="0.2">0,2 m por pixel</option>
+<option value="0.1">0,1 m por pixel (vídeo 4K/imagem local; mais lento)</option></select></label><label><input id="km_markers" type="checkbox"> Marcos do km inicial e final no mapa</label><label><input id="direction_badge" type="checkbox"> Seta no topo com o sentido do estaqueamento</label><label><input id="median_grass" type="checkbox"> Grama nos canteiros</label><label><input id="cities_show" type="checkbox"> Nomes das cidades próximas</label></details>
+</div>
+<p class="muted">Base cartográfica 1:250.000; largura gráfica ilustrativa. Consulta online com cache local.</p>
+<label><input id="traffic" type="checkbox" checked> Incluir veículos em trajetórias conectadas</label><div class="grid">
+<label>Processos de montagem<select id="render_workers"><option value="0">Automático (núcleos e memória do PC)</option>
+<option value="1">1 (sem paralelismo)</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="6">6</option>
+<option value="8">8</option>
+<option value="12">12</option></select></label><label>Perfil de geração<select id="render_profile"><option value="final">Final (superamostragem da imagem)</option>
+<option value="rapido">Rápido (rascunho, sem superamostragem)</option></select></label>
+</div>
+<label>Vídeos com menos de 45 segundos<select id="short_video_mode"><option value="auto">Vista geral estável e aparecimento suave</option>
+<option value="tour">Manter sobrevoo completo (mais rápido)</option></select></label><label>Velocidade ilustrativa (km/h)<input id="traffic_speed_kmh" type="number" value="70"></label><details><summary>Vista da cabine (primeira pessoa)</summary><p class="muted">Use a ferramenta “🚗 Cabine” no editor e clique sobre uma trajetória: o veículo, o sentido e o início do trecho são definidos por esse ponto. Sem modelo de elevação, o terreno é plano; OAE marcadas com nível elevam a câmera.</p>
+<label><input id="cabinEnabled" type="checkbox"> Gerar o vídeo pela vista da cabine</label><div class="grid">
+<label>Duração do trecho (s)<input id="cabinDuration" type="number" min="3" max="600" value="20"></label><label>Altura do olho (m)<input id="cabinHeight" type="number" min="0.8" max="4" step="0.05" value="1.25"></label><label>Campo de visão (°)<input id="cabinFov" type="number" min="40" max="110" value="72"></label><label>Inclinação para baixo (°)<input id="cabinPitch" type="number" min="0" max="25" step="0.5" value="4"></label><label>Suavização (s)<input id="cabinSmooth" type="number" min="0" max="5" step="0.1" value="1.2"></label><label>Velocidade (km/h, vazio = tráfego)<input id="cabinSpeed" type="number" min="5" max="110"></label><label><input id="cabinHood" type="checkbox" checked> Capô e painel</label>
+</div>
+<p id="cabinState" class="muted"></p>
+<img id="cabinPreview" alt="Prévia da cabine" style="width:100%;border-radius:8px" hidden></details>
+<button id="render" class="primary">Gerar novo vídeo</button><details class="retirada"><summary>Ficha técnica de referência e comparação e comparação</summary><p class="muted">O vídeo de referência não é mais carregado: fica só a ficha técnica (resolução, taxa, duração, codec, taxa de bits e métricas de nitidez, contraste, cor, sinalização e pavimento) para comparar com os vídeos gerados. As métricas são relativas — mesmo método nos dois vídeos.</p>
+<div id="refInfo" class="muted"></div>
+<div class="row">
+<button id="compareRun">Comparar vídeo gerado com a referência</button><button id="refProfile" hidden>Medir referência e remover o vídeo (libera 456 MB)</button>
+</div>
+<div id="compareTable" class="scroll"></div></details><p class="muted">MP4 · H.264 High · CPU CRF 16 / NVIDIA CQ 19 · yuv420p. O encoder efetivamente usado aparece no progresso. A geração continua com o navegador fechado enquanto esta aplicação estiver aberta.</p></section>
+<section><h2>Manutenção</h2>
+<p class="muted">Remove caches regeneráveis e arquivos temporários. Preserva projetos, CAD/KMZ, configurações e vídeos. A primeira prévia após a limpeza pode demorar mais.</p>
+<div class="row">
+<button id="cacheSize">Ver espaço recuperável</button><button id="cacheClean">Limpar caches e temporários</button>
+</div>
+<p id="cacheInfo" class="muted"></p></section>
+</div>
+<div data-region="visualizacao">
 <section id="editorSection"><h2>3. Editor (imagem web ou prévia)</h2>
-<div class="row"><button id="preview" class="primary">Gerar / atualizar prévia</button><select id="preview_mode" style="width:auto"><option value="overview">Vista geral</option><option value="video">Câmera do vídeo</option><option value="custom">Vista do editor (detalhe)</option></select><button id="renderView" title="Renderiza em alta resolução o enquadramento atual do editor">Detalhar vista atual</button><button id="fitView" title="Ajustar à tela">Ajustar</button><button id="updFlows" title="Recalcula fluxos, sentidos e sinalização sem gerar a prévia">⟳ Atualizar fluxos</button><button id="regenPreview" title="Gera de novo a prévia no modo escolhido (comando RP)">⟳ Regenerar prévia</button><button id="fullscreen" title="Tecla F">⛶ Tela cheia</button><button id="toggleSide" class="fsOnly" title="Recolher / expandir a barra lateral (Ctrl+Shift+L)">◨ Barra lateral</button><button id="areaMaxBtn" type="button" data-area="max" title="Área máxima para o desenho (F10)">⛶ Área máxima</button></div>
-<div class="row timeline"><label style="flex:1">Instante da câmera do vídeo: <b id="timeLabel">30 s</b><input id="preview_time_s" type="range" min="0" max="202" step="0.5" value="30"></label><button id="openAtTime">Abrir neste instante</button></div>
-<div class="row baseRow"><label>Fundo de edição<select id="baseMode"><option value="map">Imagem web (Esri) + vetores do DXF/KMZ</option><option value="preview">Prévia renderizada</option><option value="none">Só vetores (sem imagem)</option></select></label><label>Imagem<input id="tileAlpha" type="range" min="0.2" max="1" step="0.05"></label><label>Vetores<input id="vecAlpha" type="range" min="0" max="1" step="0.05"></label><details class="vlist"><summary>Camadas</summary><div id="vecLayers"></div></details><span id="baseInfo" class="muted"></span></div>
+<div class="row">
+<button id="preview" class="primary">Gerar / atualizar prévia</button><select id="preview_mode" style="width:auto"><option value="overview">Vista geral</option>
+<option value="video">Câmera do vídeo</option>
+<option value="custom">Vista do editor (detalhe)</option></select><button id="renderView" title="Renderiza em alta resolução o enquadramento atual do editor">Detalhar vista atual</button><button id="fitView" title="Ajustar à tela">Ajustar</button><button id="updFlows" title="Recalcula fluxos, sentidos e sinalização sem gerar a prévia">⟳ Atualizar fluxos</button><button id="regenPreview" title="Gera de novo a prévia no modo escolhido (comando RP)">⟳ Regenerar prévia</button><button id="fullscreen" title="Tecla F">⛶ Tela cheia</button><button id="toggleSide" class="fsOnly" title="Recolher / expandir a barra lateral (Ctrl+Shift+L)">◨ Barra lateral</button><button id="areaMaxBtn" type="button" data-area="max" title="Área máxima para o desenho (F10)">⛶ Área máxima</button>
+</div>
+<div class="row timeline">
+<label style="flex:1">Instante da câmera do vídeo: <b id="timeLabel">30 s</b><input id="preview_time_s" type="range" min="0" max="202" step="0.5" value="30"></label><button id="openAtTime">Abrir neste instante</button>
+</div>
+<div class="row baseRow">
+<label>Fundo de edição<select id="baseMode"><option value="map">Imagem web (Esri) + vetores do DXF/KMZ</option>
+<option value="preview">Prévia renderizada</option>
+<option value="none">Só vetores (sem imagem)</option></select></label><label>Imagem<input id="tileAlpha" type="range" min="0.2" max="1" step="0.05"></label><label>Vetores<input id="vecAlpha" type="range" min="0" max="1" step="0.05"></label><details class="vlist"><summary>Camadas</summary><div id="vecLayers"></div></details><span id="baseInfo" class="muted"></span>
+</div>
 <div class="toolbar" id="toolbar"></div>
 <div class="toolhint" id="toolHint"></div>
-<div class="editorBody"><div class="editorMain"><div class="canvasWrap"><canvas id="canvas" width="1280" height="720" tabindex="0"></canvas><div id="selBar" class="selBar" hidden><button type="button" data-sb="move" title="Mover (ou arraste o objeto)">✥</button><button type="button" data-sb="rot" title="Girar (ou arraste a alça redonda)">⟳</button><button type="button" data-sb="copy" title="Copiar">⧉</button><button type="button" data-sb="tex" title="Trocar textura…">▦</button><button type="button" data-sb="name" title="Trocar nome…">✎</button><button type="button" data-sb="edit" title="Tornar editável (grips)">⬚</button><button type="button" data-sb="props" title="Propriedades">☰</button><button type="button" data-sb="del" title="Apagar (Delete)" class="danger">🗑</button></div></div>
-<div class="row sessRow"><label class="inl">Sessão<select id="sessList"><option value="">— sessões salvas —</option></select></label><button id="sessSave" type="button" title="Guarda a vista, a ferramenta, as camadas visíveis e os painéis abertos (comando SESSAO)">💾 Salvar sessão</button><button id="sessLoad" type="button" title="Volta à sessão escolhida">↺ Restaurar</button><button id="sessDel" type="button" class="danger" title="Apaga a sessão escolhida">Apagar</button><label class="inl" title="Ao abrir o projeto, volta para onde você parou (vista e ferramenta)"><input id="sessAuto" type="checkbox"> Retomar ao abrir</label></div>
-<div class="row cursorRow"><span id="cursor" class="muted">Analise os arquivos para editar sobre a imagem web.</span><span class="grow"></span><button id="undo" title="Ctrl+Z">↶ Desfazer</button><button id="redo" title="Ctrl+Y">↷ Refazer</button><span id="saveState" class="muted"></span></div>
-<div class="cmdRow"><span id="cmdPrompt" class="cmdPrompt">Comando:</span><input id="cmdLine" list="cmdList" autocomplete="off" spellcheck="false" placeholder="MOVER, APAGAR, PR, AL, DIST, ID… ou coordenadas X,Y / @dx,dy — Enter conclui"><label title="F3"><input id="snapOn" type="checkbox"> Snap</label><label title="Informações junto ao cursor"><input id="hudOn" type="checkbox" checked> Info</label><label title="F8"><input id="orthoOn" type="checkbox"> Orto</label></div><div id="toolOptions" class="toolOptions"></div></div><div class="editorSide"><div id="propPanel" class="propPanel" hidden></div>
-<details open><summary>Marcações do projeto</summary><p class="muted">Tudo fica salvo na configuração em coordenadas do CRS. Nada altera o DXF original.</p><div id="markList"></div></details>
-<details><summary>Ajuste DXF × imagem</summary><p class="muted">Ferramenta “Par de controle”: clique um ponto no desenho (DXF) e depois o mesmo ponto na imagem aérea. Translação precisa de 1 par; similaridade (translação + rotação + escala) de 2 ou mais.</p><div class="grid"><label>Modelo<select id="alignMode"><option value="translation">Translação</option><option value="similarity">Similaridade (rotação + escala)</option></select></label><label>Estado<input id="alignState" readonly></label></div><div class="row"><button id="alignFit">Calcular resíduos</button><button id="alignApply" class="primary">Aplicar ao DXF</button><button id="alignRevert">Reverter</button></div><div id="alignResult" class="muted"></div><div id="pairList"></div></details>
-<details><summary>Conexões de tráfego (fluxos desenhados)</summary><div class="grid"><label>Nome do fluxo<input id="pathName" value="Fluxo"></label><label>Tipo<select id="pathKind"><option value="return">Retorno</option><option value="device">Dispositivo</option><option value="marginal">Marginal</option><option value="main">Principal</option></select></label><label>Direção<select id="pathDirection"><option value="auto">Automática</option><option value="growing">Crescente</option><option value="decreasing">Decrescente</option><option value="both">Dois sentidos</option></select></label><label>Nível da via<input id="pathLevel" type="number" min="-5" max="5" value="0"></label></div><label><input id="traffic_network_preview" type="checkbox"> Mostrar trajetórias validadas na imagem da prévia</label><div id="pathList"></div></details>
-<div id="warnings"></div><p class="muted" id="geom"></p></div></div></section>
-<section><h2>4. Intervenções e identificações</h2><p class="muted">Use a ferramenta “Intervenção” no editor para preencher X/Y. As informações aparecem em posição fixa no cabeçalho do vídeo. A ferramenta “Linha de chamada” define o ponto de ancoragem de cada caixa; sem ponto, o comportamento é o automático.</p><div class="grid"><label>Nome<input id="poiTitle" placeholder="Passarela 1"></label><label>Categoria<select id="poiKind"><option value="passarela">Passarela</option><option value="oae">OAE</option><option value="intersecao">Interseção</option><option value="via_marginal">Via marginal</option><option value="correcao">Correção de traçado</option><option value="fauna">Passagem de fauna</option><option value="onibus">Baia de ônibus (esquemática)</option><option value="outro">Outro</option></select></label><label>Subtítulo<input id="poiSubtitle" placeholder="Ano 4 do PER"></label><label>Km<select id="poiKmMode"><option value="auto">Calculado pelo estaqueamento</option><option value="manual">Manual (referência oficial)</option></select></label><label>Km manual<input id="poiKm" placeholder="328+500"></label><label>X — coordenada do projeto<input id="poiX" type="number" step="any"></label><label>Y — coordenada do projeto<input id="poiY" type="number" step="any"></label></div><details><summary>Passarelas e baias — dimensões esquemáticas em metros</summary><p>Sem detalhamento nativo, a representação é ilustrativa. Cadastre cada baia no local correto; X/Y corresponde à borda junto à pista. Não substitui projeto de acessibilidade.</p><div class="grid"><label>Vão da passarela<input id="bridgeSpan" type="number" min="10" max="160" placeholder="38"></label><label>Largura do tabuleiro<input id="bridgeWidth" type="number" min="1.5" max="8" step=".1" value="3"></label><label>Acesso<select id="bridgeAccess"><option value="ramps">Rampas dos dois lados</option><option value="stairs">Escadas</option><option value="none">Sem acesso representado</option></select></label><label>Comprimento de cada lance de rampa<input id="rampFlight" type="number" min="10" max="80" value="24"></label><label>Comprimento da parada de ônibus<input id="busLength" type="number" min="12" max="80" value="30"></label><label>Profundidade da baia<input id="busDepth" type="number" min="2.5" max="5" step=".1" value="3"></label><label>Sentido da baia<select id="busSide"><option value="right">Crescente — lado direito do eixo</option><option value="left">Decrescente — lado esquerdo do eixo</option></select></label></div></details><button id="addPoi">Adicionar intervenção</button><div class="scroll"><table><tbody id="poiList"></tbody></table></div></section>
-<section><h2>Progresso e resultado</h2><div id="message" class="status">Pronto para começar.</div><progress id="progress" value="0" max="1"></progress><div class="row"><button id="cancel" disabled>Cancelar tarefa</button><button id="logs">Ver detalhes de erro</button><a id="download" class="link" hidden>Baixar MP4</a></div><video id="video" controls hidden preload="none"></video></section>
-<section id="logSection"><h2>Registros e suporte</h2><p class="muted">Tudo o que o programa executa (análise, prévia, vídeo) fica registrado com o tempo de cada etapa, e os erros com o detalhe técnico. Para pedir ajuda a uma IA (ou ao suporte), exporte o <b>prompt</b>: ele traz a versão, o ambiente, os arquivos (com SHA-256), a configuração completa, as etapas e os erros, e explica como reproduzir o vídeo.</p><div class="row"><button type="button" id="logOpen" class="primary">Ver registros</button><a class="link" id="logPrompt2" href="#">Exportar prompt para IA</a><a class="link" id="logZip2" href="#">Baixar registros (.zip)</a></div><p id="logInfo" class="muted"></p></section>
-</div></main><div id="bottomBar" class="statusBar"><div id="statusBar" class="sbInfo"></div><div id="taskArea" class="taskArea"></div></div><datalist id="cmdList"></datalist><div id="ctxMenu" class="ctxMenu" hidden role="menu"></div><dialog id="logDlg" class="logDlg winDlg bigDlg"><h3 id="logTitle">Registros</h3><div class="dlgTools"><span class="btnGroup tabs"><button type="button" data-lg="execucao" class="primary">Execução</button><button type="button" data-lg="erros">Erros</button></span><span class="grow"></span><a class="link" id="logZip" href="#">Baixar registros (.zip)</a><a class="link" id="logPrompt" href="#">Prompt para IA (.md)</a><button type="button" id="logCopy">Copiar prompt</button><button type="button" id="logClear" class="danger">Limpar registros</button></div><pre id="logView" class="logView"></pre><div class="row"><span class="grow"></span><button type="button" id="logClose" class="primary">Fechar</button></div></dialog><dialog id="cmdHelpDlg" class="winDlg bigDlg"><h3>Comandos da linha de comando</h3><div id="cmdHelpBody"></div><div class="row"><span class="grow"></span><button type="button" class="primary" onclick="this.closest('dialog').close()">Fechar</button></div></dialog><dialog id="inputDlg" class="confirmDlg winDlg"><h3 id="inputTitle"></h3><label id="inputLabel"></label><input id="inputValue" maxlength="80"><p id="inputErr" class="inputErr"></p><div class="row"><span class="grow"></span><button type="button" id="inputOk" class="primary">OK</button><button type="button" id="inputCancel">Cancelar</button></div></dialog>
-<dialog id="texDlg" class="texDlg winDlg"><h3 id="td_title">Trocar textura</h3><div class="texDlgBody"><div><div class="grid"><label>Tipo da superfície<select id="td_kind"><option value="pavement">Pista nova</option><option value="existing_pavement">Pista existente</option><option value="shoulder">Acostamento</option></select></label><label>Material<select id="td_mat"><option value="auto">Padrão do projeto</option><option value="flexivel">Flexível (asfalto)</option><option value="rigido">Rígido (concreto)</option></select></label></div>
+<div class="editorBody">
+<div class="editorMain">
+<div class="canvasWrap">
+<canvas id="canvas" width="1280" height="720" tabindex="0"></canvas><div id="selBar" class="selBar" hidden>
+<button type="button" data-sb="move" title="Mover (ou arraste o objeto)">✥</button><button type="button" data-sb="rot" title="Girar (ou arraste a alça redonda)">⟳</button><button type="button" data-sb="copy" title="Copiar">⧉</button><button type="button" data-sb="tex" title="Trocar textura…">▦</button><button type="button" data-sb="name" title="Trocar nome…">✎</button><button type="button" data-sb="edit" title="Tornar editável (grips)">⬚</button><button type="button" data-sb="props" title="Propriedades">☰</button><button type="button" data-sb="del" title="Apagar (Delete)" class="danger">🗑</button>
+</div>
+</div>
+<div class="row sessRow">
+<label class="inl">Sessão<select id="sessList"><option value="">— sessões salvas —</option></select></label><button id="sessSave" type="button" title="Guarda a vista, a ferramenta, as camadas visíveis e os painéis abertos (comando SESSAO)">💾 Salvar sessão</button><button id="sessLoad" type="button" title="Volta à sessão escolhida">↺ Restaurar</button><button id="sessDel" type="button" class="danger" title="Apaga a sessão escolhida">Apagar</button><label class="inl" title="Ao abrir o projeto, volta para onde você parou (vista e ferramenta)"><input id="sessAuto" type="checkbox"> Retomar ao abrir</label>
+</div>
+<div class="row cursorRow">
+<span id="cursor" class="muted">Analise os arquivos para editar sobre a imagem web.</span><span class="grow"></span><button id="undo" title="Ctrl+Z">↶ Desfazer</button><button id="redo" title="Ctrl+Y">↷ Refazer</button><span id="saveState" class="muted"></span>
+</div>
+<div class="cmdRow">
+<span id="cmdPrompt" class="cmdPrompt">Comando:</span><input id="cmdLine" list="cmdList" autocomplete="off" spellcheck="false" placeholder="MOVER, APAGAR, PR, AL, DIST, ID… ou coordenadas X,Y / @dx,dy — Enter conclui"><label title="F3"><input id="snapOn" type="checkbox"> Snap</label><label title="Informações junto ao cursor"><input id="hudOn" type="checkbox" checked> Info</label><label title="F8"><input id="orthoOn" type="checkbox"> Orto</label>
+</div>
+<div id="toolOptions" class="toolOptions"></div>
+</div>
+<div class="editorSide">
+<div id="propPanel" class="propPanel" hidden></div>
+<details open><summary>Marcações do projeto</summary><p class="muted">Tudo fica salvo na configuração em coordenadas do CRS. Nada altera o DXF original.</p>
+<div id="markList"></div></details>
+<details><summary>Ajuste DXF × imagem</summary><p class="muted">Ferramenta “Par de controle”: clique um ponto no desenho (DXF) e depois o mesmo ponto na imagem aérea. Translação precisa de 1 par; similaridade (translação + rotação + escala) de 2 ou mais.</p>
+<div class="grid">
+<label>Modelo<select id="alignMode"><option value="translation">Translação</option>
+<option value="similarity">Similaridade (rotação + escala)</option></select></label><label>Estado<input id="alignState" readonly></label>
+</div>
+<div class="row">
+<button id="alignFit">Calcular resíduos</button><button id="alignApply" class="primary">Aplicar ao DXF</button><button id="alignRevert">Reverter</button>
+</div>
+<div id="alignResult" class="muted"></div>
+<div id="pairList"></div></details>
+<details><summary>Conexões de tráfego (fluxos desenhados)</summary><div class="grid">
+<label>Nome do fluxo<input id="pathName" value="Fluxo"></label><label>Tipo<select id="pathKind"><option value="return">Retorno</option>
+<option value="device">Dispositivo</option>
+<option value="marginal">Marginal</option>
+<option value="main">Principal</option></select></label><label>Direção<select id="pathDirection"><option value="auto">Automática</option>
+<option value="growing">Crescente</option>
+<option value="decreasing">Decrescente</option>
+<option value="both">Dois sentidos</option></select></label><label>Nível da via<input id="pathLevel" type="number" min="-5" max="5" value="0"></label>
+</div>
+<label><input id="traffic_network_preview" type="checkbox"> Mostrar trajetórias validadas na imagem da prévia</label><div id="pathList"></div></details>
+<div id="warnings"></div>
+<p class="muted" id="geom"></p>
+</div>
+</div></section>
+<section><h2>4. Intervenções e identificações</h2>
+<p class="muted">Use a ferramenta “Intervenção” no editor para preencher X/Y. As informações aparecem em posição fixa no cabeçalho do vídeo. A ferramenta “Linha de chamada” define o ponto de ancoragem de cada caixa; sem ponto, o comportamento é o automático.</p>
+<div class="grid">
+<label>Nome<input id="poiTitle" placeholder="Passarela 1"></label><label>Categoria<select id="poiKind"><option value="passarela">Passarela</option>
+<option value="oae">OAE</option>
+<option value="intersecao">Interseção</option>
+<option value="via_marginal">Via marginal</option>
+<option value="correcao">Correção de traçado</option>
+<option value="fauna">Passagem de fauna</option>
+<option value="onibus">Baia de ônibus (esquemática)</option>
+<option value="outro">Outro</option></select></label><label>Subtítulo<input id="poiSubtitle" placeholder="Ano 4 do PER"></label><label>Km<select id="poiKmMode"><option value="auto">Calculado pelo estaqueamento</option>
+<option value="manual">Manual (referência oficial)</option></select></label><label>Km manual<input id="poiKm" placeholder="328+500"></label><label>X — coordenada do projeto<input id="poiX" type="number" step="any"></label><label>Y — coordenada do projeto<input id="poiY" type="number" step="any"></label>
+</div>
+<details><summary>Passarelas e baias — dimensões esquemáticas em metros</summary><p>Sem detalhamento nativo, a representação é ilustrativa. Cadastre cada baia no local correto; X/Y corresponde à borda junto à pista. Não substitui projeto de acessibilidade.</p>
+<div class="grid">
+<label>Vão da passarela<input id="bridgeSpan" type="number" min="10" max="160" placeholder="38"></label><label>Largura do tabuleiro<input id="bridgeWidth" type="number" min="1.5" max="8" step=".1" value="3"></label><label>Acesso<select id="bridgeAccess"><option value="ramps">Rampas dos dois lados</option>
+<option value="stairs">Escadas</option>
+<option value="none">Sem acesso representado</option></select></label><label>Comprimento de cada lance de rampa<input id="rampFlight" type="number" min="10" max="80" value="24"></label><label>Comprimento da parada de ônibus<input id="busLength" type="number" min="12" max="80" value="30"></label><label>Profundidade da baia<input id="busDepth" type="number" min="2.5" max="5" step=".1" value="3"></label><label>Sentido da baia<select id="busSide"><option value="right">Crescente — lado direito do eixo</option>
+<option value="left">Decrescente — lado esquerdo do eixo</option></select></label>
+</div></details><button id="addPoi">Adicionar intervenção</button><div class="scroll"><table><tbody id="poiList"></tbody></table></div></section>
+<section><h2>Progresso e resultado</h2>
+<div id="message" class="status">Pronto para começar.</div>
+<progress id="progress" value="0" max="1"></progress><div class="row">
+<button id="cancel" disabled>Cancelar tarefa</button><button id="logs">Ver detalhes de erro</button><a id="download" class="link" hidden>Baixar MP4</a>
+</div>
+<video id="video" controls hidden preload="none"></video></section>
+<section id="logSection"><h2>Registros e suporte</h2>
+<p class="muted">Tudo o que o programa executa (análise, prévia, vídeo) fica registrado com o tempo de cada etapa, e os erros com o detalhe técnico. Para pedir ajuda a uma IA (ou ao suporte), exporte o <b>prompt</b>: ele traz a versão, o ambiente, os arquivos (com SHA-256), a configuração completa, as etapas e os erros, e explica como reproduzir o vídeo.</p>
+<div class="row">
+<button type="button" id="logOpen" class="primary">Ver registros</button><a class="link" id="logPrompt2" href="#">Exportar prompt para IA</a><a class="link" id="logZip2" href="#">Baixar registros (.zip)</a>
+</div>
+<p id="logInfo" class="muted"></p></section>
+</div></main><div id="bottomBar" class="statusBar">
+<div id="statusBar" class="sbInfo"></div>
+<div id="taskArea" class="taskArea"></div>
+</div>
+<datalist id="cmdList"></datalist><div id="ctxMenu" class="ctxMenu" hidden role="menu"></div>
+<dialog id="logDlg" class="logDlg winDlg bigDlg" aria-labelledby="logTitle"><h3 id="logTitle">Registros</h3>
+<div class="dlgTools">
+<span class="btnGroup tabs"><button type="button" data-lg="execucao" class="primary">Execução</button><button type="button" data-lg="erros">Erros</button></span><span class="grow"></span><a class="link" id="logZip" href="#">Baixar registros (.zip)</a><a class="link" id="logPrompt" href="#">Prompt para IA (.md)</a><button type="button" id="logCopy">Copiar prompt</button><button type="button" id="logClear" class="danger">Limpar registros</button>
+</div>
+<pre id="logView" class="logView"></pre>
+<div class="row">
+<span class="grow"></span><button type="button" id="logClose" class="primary">Fechar</button>
+</div></dialog><dialog id="cmdHelpDlg" class="winDlg bigDlg" aria-labelledby="cmdHelpDlgTitle"><h3 id="cmdHelpDlgTitle">Comandos da linha de comando</h3>
+<div id="cmdHelpBody"></div>
+<div class="row">
+<span class="grow"></span><button type="button" class="primary" data-dialog-close>Fechar</button>
+</div></dialog><dialog id="inputDlg" class="confirmDlg winDlg" aria-labelledby="inputTitle"><h3 id="inputTitle"></h3>
+<label id="inputLabel"></label><input id="inputValue" maxlength="80"><p id="inputErr" class="inputErr"></p>
+<div class="row">
+<span class="grow"></span><button type="button" id="inputOk" class="primary">OK</button><button type="button" id="inputCancel">Cancelar</button>
+</div></dialog>
+<dialog id="texDlg" class="texDlg winDlg" aria-labelledby="td_title"><h3 id="td_title">Trocar textura</h3>
+<div class="texDlgBody">
+<div>
+<div class="grid">
+<label>Tipo da superfície<select id="td_kind"><option value="pavement">Pista nova</option>
+<option value="existing_pavement">Pista existente</option>
+<option value="shoulder">Acostamento</option></select></label><label>Material<select id="td_mat"><option value="auto">Padrão do projeto</option>
+<option value="flexivel">Flexível (asfalto)</option>
+<option value="rigido">Rígido (concreto)</option></select></label>
+</div>
 <label>Grão <span id="tdv_grao"></span><input id="td_grao" type="range" min="0" max="3" step="0.05"></label><label>Variação de tom <span id="tdv_tom"></span><input id="td_tom" type="range" min="0" max="3" step="0.05"></label><label>Remendos <span id="tdv_remendos"></span><input id="td_remendos" type="range" min="0" max="3" step="0.05"></label><label>Fissuras <span id="tdv_fissuras"></span><input id="td_fissuras" type="range" min="0" max="3" step="0.05"></label><label>Brilho <span id="tdv_brilho"></span><input id="td_brilho" type="range" min="-0.3" max="0.3" step="0.01"></label>
-<label>Aplicar a<select id="td_scope"><option value="area">Só a área selecionada (textura própria)</option><option value="tipo">Todas as áreas deste tipo (textura do tipo)</option></select></label></div><div><img id="td_img" alt="amostra da textura"><p class="muted">Amostra: <span id="td_surf"></span>, 0,02 m/pixel.</p></div></div>
-<div class="row"><button type="button" id="td_reset" title="Volta os controles aos valores padrão">Restaurar padrão</button><span class="grow"></span><button type="button" id="td_ok" class="primary">Aplicar</button><button type="button" id="td_cancel">Cancelar</button></div></dialog>
-<dialog id="surfDlg" class="texDlg winDlg"><h3 id="sd_title">Aparência</h3>
-<div data-sm="tex" class="texDlgBody"><div><label>Superfície<select id="sd_surf"><option value="talude_corte">Talude de corte</option><option value="talude_aterro">Talude de aterro</option><option value="canteiro">Canteiro (grama)</option><option value="pista_nova">Pista nova</option><option value="pista_existente">Pista existente</option><option value="acostamento">Acostamento</option><option value="concreto">Concreto</option></select></label>
+<label>Aplicar a<select id="td_scope"><option value="area">Só a área selecionada (textura própria)</option>
+<option value="tipo">Todas as áreas deste tipo (textura do tipo)</option></select></label>
+</div>
+<div>
+<img id="td_img" alt="amostra da textura"><p class="muted">Amostra: <span id="td_surf"></span>, 0,02 m/pixel.</p>
+</div>
+</div>
+<div class="row">
+<button type="button" id="td_reset" title="Volta os controles aos valores padrão">Restaurar padrão</button><span class="grow"></span><button type="button" id="td_ok" class="primary">Aplicar</button><button type="button" id="td_cancel">Cancelar</button>
+</div></dialog>
+<dialog id="surfDlg" class="texDlg winDlg" aria-labelledby="sd_title"><h3 id="sd_title">Aparência</h3>
+<div data-sm="tex" class="texDlgBody">
+<div>
+<label>Superfície<select id="sd_surf"><option value="talude_corte">Talude de corte</option>
+<option value="talude_aterro">Talude de aterro</option>
+<option value="canteiro">Canteiro (grama)</option>
+<option value="pista_nova">Pista nova</option>
+<option value="pista_existente">Pista existente</option>
+<option value="acostamento">Acostamento</option>
+<option value="concreto">Concreto</option></select></label>
 <label>Grão <span id="sdv_grao"></span><input id="sd_grao" type="range" min="0" max="3" step="0.05"></label><label>Variação de tom <span id="sdv_tom"></span><input id="sd_tom" type="range" min="0" max="3" step="0.05"></label><label>Manchas <span id="sdv_remendos"></span><input id="sd_remendos" type="range" min="0" max="3" step="0.05"></label><label>Fissuras / sulcos <span id="sdv_fissuras"></span><input id="sd_fissuras" type="range" min="0" max="3" step="0.05"></label><label>Brilho <span id="sdv_brilho"></span><input id="sd_brilho" type="range" min="-0.3" max="0.3" step="0.01"></label>
-<label id="sd_colorrow">Cor<input id="sd_color" type="color"></label><label id="sd_lookrow">Aparência dos taludes<select id="sd_look"><option value="hatch">Hachura (técnica)</option><option value="natural">Natural (terreno, com textura)</option></select></label>
-<label>Aplicar a<select id="sd_scope"><option value="area">Só a área selecionada (região com textura própria)</option><option value="tipo">Todo o projeto (textura do tipo)</option></select></label><p id="sd_note" class="muted"></p></div><div><img id="sd_img" alt="amostra"></div></div>
-<div data-sm="agua"><div class="texDlgBody"><div><label>Cor da água<input id="sd_wcolor" type="color"></label><label><input id="sd_wtex" type="checkbox"> Textura (ondulação)</label><label>Opacidade da textura <span id="sdv_wop"></span><input id="sd_wop" type="range" min="0" max="1" step="0.05"></label><label><input id="sd_wanim" type="checkbox"> Água animada no vídeo</label><label><input id="sd_wnames" type="checkbox"> Nomes dos rios</label></div><div><canvas id="sd_wprev" width="300" height="120"></canvas></div></div></div>
-<div data-sm="sin"><div class="texDlgBody"><div><label>Cor da tinta branca<input id="sd_white" type="color"></label><label>Cor da tinta amarela<input id="sd_yellow" type="color"></label><label>Desgaste <span id="sdv_wear"></span><input id="sd_wear" type="range" min="0" max="1" step="0.05"></label><label>Opacidade <span id="sdv_sop"></span><input id="sd_sop" type="range" min="0.2" max="1" step="0.05"></label></div><div><canvas id="sd_sprev" width="300" height="120"></canvas><p class="muted">Amostra: bordo branco, eixo amarelo duplo e linha tracejada.</p></div></div></div>
-<div class="row"><button type="button" id="sd_reset" title="Volta os controles aos valores padrão">Restaurar padrão</button><span class="grow"></span><button type="button" id="sd_ok" class="primary">Aplicar</button><button type="button" id="sd_cancel">Cancelar</button></div></dialog>
-<dialog id="aboutDlg" class="winDlg"><h3>Sobre o Rodovia Studio</h3><div id="aboutBody"></div><div class="row"><span class="grow"></span><button type="button" class="primary" onclick="this.closest('dialog').close()">Fechar</button></div></dialog>
-<dialog id="confirmDlg" class="confirmDlg winDlg"><h3>Rodovia Studio</h3><div class="dlgMsg"><span class="dlgIcon" aria-hidden="true">?</span><p id="confirmText"></p></div><div class="row"><span class="grow"></span><button id="confirmYes" type="button" class="primary">Sim</button><button id="confirmNo" type="button">Não</button></div></dialog><dialog id="resetDialog" class="winDlg"><h3>Limpar trabalho do projeto</h3><p class="muted">Ficam sempre: DXF/KMZ, CRS, km inicial e final, estaqueamento, camadas, alinhamento, imagens local e web, elevação e parâmetros do vídeo. Antes de limpar é salva uma cópia da configuração (botão “Desfazer limpeza”).</p><div id="resetGroups"></div><label><input type="checkbox" id="resetOutputs"> Apagar também o vídeo, a prévia e o cache de aproximação (são gerados de novo)</label><div class="row"><span class="grow"></span><button id="resetGo" class="primary" type="button">Limpar</button><button id="resetCancel" type="button">Cancelar</button></div></dialog><dialog id="ruleDialog" class="winDlg"><h3>Regras do perfil de camadas</h3><p class="muted">Uma regra por linha: <code>PADRÃO =&gt; tipo</code>. Use * para qualquer sequência e ? para um caractere; maiúsculas e acentos não importam; vale a primeira regra que casar. Ex.: <code>*EIXO* =&gt; axis</code>, <code>FD_* =&gt; domain</code>.</p><label>Nome do perfil<input id="ruleName"></label><textarea id="ruleText" rows="14" style="font-family:monospace"></textarea><p class="muted" id="ruleRoles"></p><div class="row"><span class="grow"></span><button id="ruleSave" class="primary">Salvar perfil</button><button id="ruleCancel">Cancelar</button></div></dialog><dialog id="helpDialog" style="max-width:920px"><div id="helpBody" style="max-height:72vh;overflow:auto"></div><button onclick="this.closest('dialog').close()">Fechar</button></dialog><div id="tip" role="tooltip" hidden></div><dialog id="logDialog" class="winDlg bigDlg"><h3>Detalhes da execução</h3><pre id="logText" class="logView"></pre><div class="row"><span class="grow"></span><button class="primary" onclick="this.closest('dialog').close()">Fechar</button></div></dialog>
-<dialog id="openDlg" class="winDlg bigDlg"><h3>Abrir projeto</h3><div class="dlgBar"><input id="opSearch" type="search" placeholder="Procurar por nome, origem, destino ou arquivo…"><label class="inl">Ordenar<select id="opSort"><option value="modified">Mais recentes (gravação)</option><option value="created">Mais recentes (criação)</option><option value="name">Nome (A–Z)</option></select></label></div><div id="opGrid" class="prjGrid"></div><p id="opInfo" class="muted"></p><div class="dlgTools"><button type="button" id="opRename" disabled>Renomear…</button><button type="button" id="opDup" disabled>Duplicar…</button><button type="button" id="opTpl" disabled>Salvar como modelo…</button><button type="button" id="opDel" class="danger" disabled>Excluir…</button></div><div class="row"><button type="button" id="opNew">Novo projeto…</button><span class="grow"></span><button type="button" id="opOpen" class="primary" disabled>Abrir</button><button type="button" id="opClose">Fechar</button></div></dialog>
-<dialog id="tplDlg" class="winDlg bigDlg"><h3 id="tplTitle">Modelos de projeto</h3><p class="muted">Um modelo guarda as configurações (aparência, vídeo, sinalização, texturas, camadas por função) e, se você quiser, também as marcações. Não guarda DXF/KMZ nem imagens.</p><div class="tblWrap"><table class="tbl"><thead><tr><th>Nome</th><th>Descrição</th><th>Conteúdo</th><th>Criado</th><th>Origem</th></tr></thead><tbody id="tplRows"></tbody></table></div><div class="dlgTools"><span class="grow"></span><button type="button" id="tplRename" disabled>Renomear…</button><button type="button" id="tplDel" class="danger" disabled>Excluir</button></div><div class="row"><button type="button" id="tplSave">Salvar projeto aberto como modelo…</button><span class="grow"></span><button type="button" id="tplApply" disabled>Aplicar ao projeto aberto…</button><button type="button" id="tplNewPrj" class="primary" disabled>Novo projeto a partir do modelo…</button><button type="button" id="tplClose">Fechar</button></div></dialog>
-<dialog id="tplSaveDlg" class="winDlg"><h3>Salvar como modelo</h3><label>Nome do modelo<input id="tsName" maxlength="80"></label><p id="tsErr" class="err"></p><label>Descrição (opcional)<input id="tsDesc" maxlength="200" placeholder="Ex.: padrão corporativo — vídeo 1920, sinalização limpa"></label><label class="inl"><input type="checkbox" id="tsMarks"> Incluir as marcações do projeto (áreas, placas, fluxos, rotas, destaques…)</label><p class="muted">Sem marcações, o modelo serve para qualquer trecho. Com marcações, as coordenadas só fazem sentido no mesmo trecho.</p><div class="row"><span class="grow"></span><button type="button" id="tsOk" class="primary">Salvar modelo</button><button type="button" id="tsCancel">Cancelar</button></div></dialog>
-<dialog id="layerDlg" class="winDlg bigDlg"><h3>Gerenciador de camadas</h3><div class="dlgBar"><input id="lmSearch" type="search" placeholder="Filtrar camadas (ex.: TALUDE, SIN*)"><label class="inl">Mostrar<select id="lmShow"><option value="all">Todas</option><option value="vis">Só visíveis</option><option value="hid">Só ocultas</option><option value="frz">Só congeladas</option><option value="role">Com função definida</option></select></label><label class="inl"><input type="checkbox" id="lmAll"> Marcar todas</label></div>
-<div class="tblWrap lyBig"><table class="tbl"><thead><tr><th style="width:28px"></th><th>Camada</th><th>Função</th><th>Entidades</th><th title="Visível no editor e no vídeo">Visível</th><th title="Travada no editor (sem snap/seleção); no vídeo aparece pronta desde o início">Congelada</th><th></th></tr></thead><tbody id="lmRows"></tbody></table></div>
-<div class="dlgTools"><span class="lbl">Camadas marcadas:</span><span class="btnGroup"><button type="button" data-lm="show" title="Visíveis no editor e no vídeo">Mostrar</button><button type="button" data-lm="hide" title="Somem do editor e do vídeo">Ocultar</button></span><span class="btnGroup"><button type="button" data-lm="freeze" title="Travadas no editor; prontas desde o início no vídeo">Congelar</button><button type="button" data-lm="thaw">Descongelar</button></span><span class="btnGroup"><button type="button" data-lm="isolate" title="Oculta todas as outras (menos o eixo)">Isolar</button><button type="button" data-lm="final" title="Edição final: congela todas as camadas, exceto as marcadas">Congelar as demais</button></span></div><p id="lmInfo" class="muted"></p><div class="row"><button type="button" data-lm="reset">Mostrar e descongelar tudo</button><span class="grow"></span><button type="button" id="lmUndo" disabled>Desfazer</button><button type="button" id="lmClose" class="primary">Fechar</button></div></dialog>
-<dialog id="videosDlg" class="winDlg bigDlg"><h3>Vídeos gerados</h3><p class="muted" id="vdPasta"></p><div class="tblWrap"><table class="tbl"><thead><tr><th>Arquivo</th><th>Gerado em</th><th>Resolução</th><th>Qualidade</th><th>Duração</th><th>Tamanho</th><th></th></tr></thead><tbody id="vdRows"></tbody></table></div><video id="vdPlayer" controls hidden style="width:100%;max-height:46vh;margin-top:8px;background:#000"></video><div class="row"><button type="button" id="vdFolder">Abrir pasta de vídeos</button><span class="grow"></span><button type="button" id="vdClose" class="primary">Fechar</button></div></dialog>
-<dialog id="cleanDlg" class="winDlg bigDlg"><h3>Limpar memória (resíduos)</h3><p class="muted">Apaga só o que o programa gera e consegue refazer. Projetos, arquivos DXF/KMZ, imagens enviadas, marcações e os vídeos da pasta “videos” não são tocados.</p><div class="tblWrap"><table class="tbl"><thead><tr><th style="width:28px"></th><th>O que</th><th>Itens</th><th>Tamanho</th></tr></thead><tbody id="clRows"></tbody></table></div><p id="clInfo" class="muted"></p><div class="row"><span class="grow"></span><button type="button" id="clGo" class="primary">Limpar selecionados</button><button type="button" id="clClose">Fechar</button></div></dialog>
-<dialog id="updDlg" class="winDlg"><h3>Atualizar o Rodovia Studio</h3><div id="updBody"></div><div class="row"><button type="button" id="updFolder">Abrir pasta “atualizacoes”</button><button type="button" id="updRestore" hidden title="Restaura o programa anterior sem alterar projetos e vídeos">Restabelecer versão anterior</button><span class="grow"></span><button type="button" id="updGo" class="primary" hidden>Atualizar agora</button><button type="button" id="updClose">Fechar</button></div></dialog>
-<script src="/app.js"></script></html>
+<label id="sd_colorrow">Cor<input id="sd_color" type="color"></label><label id="sd_lookrow">Aparência dos taludes<select id="sd_look"><option value="hatch">Hachura (técnica)</option>
+<option value="natural">Natural (terreno, com textura)</option></select></label>
+<label>Aplicar a<select id="sd_scope"><option value="area">Só a área selecionada (região com textura própria)</option>
+<option value="tipo">Todo o projeto (textura do tipo)</option></select></label><p id="sd_note" class="muted"></p>
+</div>
+<div><img id="sd_img" alt="amostra"></div>
+</div>
+<div data-sm="agua"><div class="texDlgBody">
+<div>
+<label>Cor da água<input id="sd_wcolor" type="color"></label><label><input id="sd_wtex" type="checkbox"> Textura (ondulação)</label><label>Opacidade da textura <span id="sdv_wop"></span><input id="sd_wop" type="range" min="0" max="1" step="0.05"></label><label><input id="sd_wanim" type="checkbox"> Água animada no vídeo</label><label><input id="sd_wnames" type="checkbox"> Nomes dos rios</label>
+</div>
+<div><canvas id="sd_wprev" width="300" height="120"></canvas></div>
+</div></div>
+<div data-sm="sin"><div class="texDlgBody">
+<div>
+<label>Cor da tinta branca<input id="sd_white" type="color"></label><label>Cor da tinta amarela<input id="sd_yellow" type="color"></label><label>Desgaste <span id="sdv_wear"></span><input id="sd_wear" type="range" min="0" max="1" step="0.05"></label><label>Opacidade <span id="sdv_sop"></span><input id="sd_sop" type="range" min="0.2" max="1" step="0.05"></label>
+</div>
+<div>
+<canvas id="sd_sprev" width="300" height="120"></canvas><p class="muted">Amostra: bordo branco, eixo amarelo duplo e linha tracejada.</p>
+</div>
+</div></div>
+<div class="row">
+<button type="button" id="sd_reset" title="Volta os controles aos valores padrão">Restaurar padrão</button><span class="grow"></span><button type="button" id="sd_ok" class="primary">Aplicar</button><button type="button" id="sd_cancel">Cancelar</button>
+</div></dialog>
+<dialog id="aboutDlg" class="winDlg" aria-labelledby="aboutDlgTitle"><h3 id="aboutDlgTitle">Sobre o Rodovia Studio</h3>
+<div id="aboutBody"></div>
+<div class="row">
+<span class="grow"></span><button type="button" class="primary" data-dialog-close>Fechar</button>
+</div></dialog>
+<dialog id="confirmDlg" class="confirmDlg winDlg" aria-labelledby="confirmDlgTitle"><h3 id="confirmDlgTitle">Rodovia Studio</h3>
+<div class="dlgMsg">
+<span class="dlgIcon" aria-hidden="true">?</span><p id="confirmText"></p>
+</div>
+<div class="row">
+<span class="grow"></span><button id="confirmYes" type="button" class="primary">Sim</button><button id="confirmNo" type="button">Não</button>
+</div></dialog><dialog id="resetDialog" class="winDlg" aria-labelledby="resetDialogTitle"><h3 id="resetDialogTitle">Limpar trabalho do projeto</h3>
+<p class="muted">Ficam sempre: DXF/KMZ, CRS, km inicial e final, estaqueamento, camadas, alinhamento, imagens local e web, elevação e parâmetros do vídeo. Antes de limpar é salva uma cópia da configuração (botão “Desfazer limpeza”).</p>
+<div id="resetGroups"></div>
+<label><input type="checkbox" id="resetOutputs"> Apagar também o vídeo, a prévia e o cache de aproximação (são gerados de novo)</label><div class="row">
+<span class="grow"></span><button id="resetGo" class="primary" type="button">Limpar</button><button id="resetCancel" type="button">Cancelar</button>
+</div></dialog><dialog id="ruleDialog" class="winDlg" aria-labelledby="ruleDialogTitle"><h3 id="ruleDialogTitle">Regras do perfil de camadas</h3>
+<p class="muted">Uma regra por linha: <code>PADRÃO =&gt; tipo</code>. Use * para qualquer sequência e ? para um caractere; maiúsculas e acentos não importam; vale a primeira regra que casar. Ex.: <code>*EIXO* =&gt; axis</code>, <code>FD_* =&gt; domain</code>.</p>
+<label>Nome do perfil<input id="ruleName"></label><textarea id="ruleText" rows="14" style="font-family:monospace"></textarea><p class="muted" id="ruleRoles"></p>
+<div class="row">
+<span class="grow"></span><button id="ruleSave" class="primary">Salvar perfil</button><button id="ruleCancel">Cancelar</button>
+</div></dialog><dialog id="helpDialog" style="max-width:920px"><div id="helpBody" style="max-height:72vh;overflow:auto"></div>
+<button data-dialog-close>Fechar</button></dialog><div id="tip" role="tooltip" hidden></div>
+<dialog id="logDialog" class="winDlg bigDlg" aria-labelledby="logDialogTitle"><h3 id="logDialogTitle">Detalhes da execução</h3>
+<pre id="logText" class="logView"></pre>
+<div class="row">
+<span class="grow"></span><button class="primary" data-dialog-close>Fechar</button>
+</div></dialog>
+<dialog id="openDlg" class="winDlg bigDlg" aria-labelledby="openDlgTitle"><h3 id="openDlgTitle">Abrir projeto</h3>
+<div class="dlgBar">
+<input id="opSearch" type="search" placeholder="Procurar por nome, origem, destino ou arquivo…"><label class="inl">Ordenar<select id="opSort"><option value="modified">Mais recentes (gravação)</option>
+<option value="created">Mais recentes (criação)</option>
+<option value="name">Nome (A–Z)</option></select></label>
+</div>
+<div id="opGrid" class="prjGrid"></div>
+<p id="opInfo" class="muted"></p>
+<div class="dlgTools">
+<button type="button" id="opRename" disabled>Renomear…</button><button type="button" id="opDup" disabled>Duplicar…</button><button type="button" id="opTpl" disabled>Salvar como modelo…</button><button type="button" id="opDel" class="danger" disabled>Excluir…</button>
+</div>
+<div class="row">
+<button type="button" id="opNew">Novo projeto…</button><span class="grow"></span><button type="button" id="opOpen" class="primary" disabled>Abrir</button><button type="button" id="opClose">Fechar</button>
+</div></dialog>
+<dialog id="tplDlg" class="winDlg bigDlg" aria-labelledby="tplTitle"><h3 id="tplTitle">Modelos de projeto</h3>
+<p class="muted">Um modelo guarda as configurações (aparência, vídeo, sinalização, texturas, camadas por função) e, se você quiser, também as marcações. Não guarda DXF/KMZ nem imagens.</p>
+<div class="tblWrap"><table class="tbl">
+<thead><tr>
+<th>Nome</th>
+<th>Descrição</th>
+<th>Conteúdo</th>
+<th>Criado</th>
+<th>Origem</th>
+</tr></thead>
+<tbody id="tplRows"></tbody>
+</table></div>
+<div class="dlgTools">
+<span class="grow"></span><button type="button" id="tplRename" disabled>Renomear…</button><button type="button" id="tplDel" class="danger" disabled>Excluir</button>
+</div>
+<div class="row">
+<button type="button" id="tplSave">Salvar projeto aberto como modelo…</button><span class="grow"></span><button type="button" id="tplApply" disabled>Aplicar ao projeto aberto…</button><button type="button" id="tplNewPrj" class="primary" disabled>Novo projeto a partir do modelo…</button><button type="button" id="tplClose">Fechar</button>
+</div></dialog>
+<dialog id="tplSaveDlg" class="winDlg" aria-labelledby="tplSaveDlgTitle"><h3 id="tplSaveDlgTitle">Salvar como modelo</h3>
+<label>Nome do modelo<input id="tsName" maxlength="80"></label><p id="tsErr" class="err"></p>
+<label>Descrição (opcional)<input id="tsDesc" maxlength="200" placeholder="Ex.: padrão corporativo — vídeo 1920, sinalização limpa"></label><label class="inl"><input type="checkbox" id="tsMarks"> Incluir as marcações do projeto (áreas, placas, fluxos, rotas, destaques…)</label><p class="muted">Sem marcações, o modelo serve para qualquer trecho. Com marcações, as coordenadas só fazem sentido no mesmo trecho.</p>
+<div class="row">
+<span class="grow"></span><button type="button" id="tsOk" class="primary">Salvar modelo</button><button type="button" id="tsCancel">Cancelar</button>
+</div></dialog>
+<dialog id="layerDlg" class="winDlg bigDlg" aria-labelledby="layerDlgTitle"><h3 id="layerDlgTitle">Gerenciador de camadas</h3>
+<div class="dlgBar">
+<input id="lmSearch" type="search" placeholder="Filtrar camadas (ex.: TALUDE, SIN*)"><label class="inl">Mostrar<select id="lmShow"><option value="all">Todas</option>
+<option value="vis">Só visíveis</option>
+<option value="hid">Só ocultas</option>
+<option value="frz">Só congeladas</option>
+<option value="role">Com função definida</option></select></label><label class="inl"><input type="checkbox" id="lmAll"> Marcar todas</label>
+</div>
+<div class="tblWrap lyBig"><table class="tbl">
+<thead><tr>
+<th style="width:28px"></th>
+<th>Camada</th>
+<th>Função</th>
+<th>Entidades</th>
+<th title="Visível no editor e no vídeo">Visível</th>
+<th title="Travada no editor (sem snap/seleção); no vídeo aparece pronta desde o início">Congelada</th>
+<th></th>
+</tr></thead>
+<tbody id="lmRows"></tbody>
+</table></div>
+<div class="dlgTools">
+<span class="lbl">Camadas marcadas:</span><span class="btnGroup"><button type="button" data-lm="show" title="Visíveis no editor e no vídeo">Mostrar</button><button type="button" data-lm="hide" title="Somem do editor e do vídeo">Ocultar</button></span><span class="btnGroup"><button type="button" data-lm="freeze" title="Travadas no editor; prontas desde o início no vídeo">Congelar</button><button type="button" data-lm="thaw">Descongelar</button></span><span class="btnGroup"><button type="button" data-lm="isolate" title="Oculta todas as outras (menos o eixo)">Isolar</button><button type="button" data-lm="final" title="Edição final: congela todas as camadas, exceto as marcadas">Congelar as demais</button></span>
+</div>
+<p id="lmInfo" class="muted"></p>
+<div class="row">
+<button type="button" data-lm="reset">Mostrar e descongelar tudo</button><span class="grow"></span><button type="button" id="lmUndo" disabled>Desfazer</button><button type="button" id="lmClose" class="primary">Fechar</button>
+</div></dialog>
+<dialog id="videosDlg" class="winDlg bigDlg" aria-labelledby="videosDlgTitle"><h3 id="videosDlgTitle">Vídeos gerados</h3>
+<p class="muted" id="vdPasta"></p>
+<div class="tblWrap"><table class="tbl">
+<thead><tr>
+<th>Arquivo</th>
+<th>Gerado em</th>
+<th>Resolução</th>
+<th>Qualidade</th>
+<th>Duração</th>
+<th>Tamanho</th>
+<th></th>
+</tr></thead>
+<tbody id="vdRows"></tbody>
+</table></div>
+<video id="vdPlayer" controls hidden style="width:100%;max-height:46vh;margin-top:8px;background:#000"></video><div class="row">
+<button type="button" id="vdFolder">Abrir pasta de vídeos</button><span class="grow"></span><button type="button" id="vdClose" class="primary">Fechar</button>
+</div></dialog>
+<dialog id="cleanDlg" class="winDlg bigDlg" aria-labelledby="cleanDlgTitle"><h3 id="cleanDlgTitle">Limpar memória (resíduos)</h3>
+<p class="muted">Apaga só o que o programa gera e consegue refazer. Projetos, arquivos DXF/KMZ, imagens enviadas, marcações e os vídeos da pasta “videos” não são tocados.</p>
+<div class="tblWrap"><table class="tbl">
+<thead><tr>
+<th style="width:28px"></th>
+<th>O que</th>
+<th>Itens</th>
+<th>Tamanho</th>
+</tr></thead>
+<tbody id="clRows"></tbody>
+</table></div>
+<p id="clInfo" class="muted"></p>
+<div class="row">
+<span class="grow"></span><button type="button" id="clGo" class="primary">Limpar selecionados</button><button type="button" id="clClose">Fechar</button>
+</div></dialog>
+<dialog id="updDlg" class="winDlg" aria-labelledby="updDlgTitle"><h3 id="updDlgTitle">Atualizar o Rodovia Studio</h3>
+<div id="updBody"></div>
+<div class="row">
+<button type="button" id="updFolder">Abrir pasta “atualizacoes”</button><button type="button" id="updRestore" hidden title="Restaura o programa anterior sem alterar projetos e vídeos">Restabelecer versão anterior</button><span class="grow"></span><button type="button" id="updGo" class="primary" hidden>Atualizar agora</button><button type="button" id="updClose">Fechar</button>
+</div></dialog>
+<!-- RODOVIA_INTERFACE_MODULES -->
+</body>
+</html>
