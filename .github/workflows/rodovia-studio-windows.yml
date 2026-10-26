@@ -39,9 +39,12 @@ jobs:
         shell: pwsh
         run: |
           $csc = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
-          & $csc /nologo /target:winexe /r:System.Windows.Forms.dll /r:System.Drawing.dll "/out:$env:RUNNER_TEMP/RodoviaStudio-auditoria.exe" iniciador/RodoviaStudio.cs
-          if ($LASTEXITCODE -ne 0) { throw 'Compilacao falhou' }
+          $PSNativeCommandUseErrorActionPreference = $false
+          $output = & $csc /nologo /target:winexe /r:System.Windows.Forms.dll /r:System.Drawing.dll "/out:$env:RUNNER_TEMP/RodoviaStudio-auditoria.exe" iniciador/RodoviaStudio.cs 2>&1 | Out-String
+          Write-Host $output
+          if ($LASTEXITCODE -ne 0) { throw ("Compilacao falhou: "+$output) }
       - name: Verificar com Microsoft Defender sem alterar protecoes
+        if: always()
         shell: pwsh
         run: |
           $mp = Get-ChildItem "$env:ProgramData/Microsoft/Windows Defender/Platform/*/MpCmdRun.exe" | Sort-Object FullName -Descending | Select-Object -First 1
@@ -51,8 +54,15 @@ jobs:
           Get-MpComputerStatus | Select-Object AMProductVersion, AntivirusSignatureVersion, AntivirusSignatureLastUpdated | ConvertTo-Json | Set-Content "$env:RUNNER_TEMP/defender-versoes.json"
           & $mp.FullName -Scan -ScanType 3 -File (Resolve-Path '../..') -DisableRemediation 2>&1 | Tee-Object "$env:RUNNER_TEMP/defender-pacote.log"
           if ($LASTEXITCODE -ne 0) { throw 'Verificacao do pacote nao aprovada; consultar log' }
-          & $mp.FullName -Scan -ScanType 3 -File "$env:RUNNER_TEMP/RodoviaStudio-auditoria.exe" -DisableRemediation 2>&1 | Tee-Object "$env:RUNNER_TEMP/defender-iniciador.log"
-          if ($LASTEXITCODE -ne 0) { throw 'Verificacao do iniciador nao aprovada; consultar log' }
+          if (Test-Path "$env:RUNNER_TEMP/RodoviaStudio-auditoria.exe") {
+            & $mp.FullName -Scan -ScanType 3 -File "$env:RUNNER_TEMP/RodoviaStudio-auditoria.exe" -DisableRemediation 2>&1 | Tee-Object "$env:RUNNER_TEMP/defender-iniciador.log"
+            if ($LASTEXITCODE -ne 0) { throw 'Verificacao do iniciador nao aprovada; consultar log' }
+          }
+          $zip = '../../../../atualizacoes/RodoviaStudio_1_42_25_atualizacao.zip'
+          if (Test-Path $zip) {
+            & $mp.FullName -Scan -ScanType 3 -File (Resolve-Path $zip) -DisableRemediation 2>&1 | Tee-Object "$env:RUNNER_TEMP/defender-zip.log"
+            if ($LASTEXITCODE -ne 0) { throw 'Verificacao do ZIP nao aprovada; consultar log' }
+          }
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:

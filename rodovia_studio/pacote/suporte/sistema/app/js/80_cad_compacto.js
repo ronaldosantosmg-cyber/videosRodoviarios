@@ -3,7 +3,7 @@
 let mode=false,favorites=[];try{mode=localStorage.getItem('rodovia_cad_mode')==='1';const v=JSON.parse(localStorage.getItem('rodovia_favorites')||'[]');if(Array.isArray(v))favorites=v.filter(x=>typeof x==='string').slice(0,8)}catch{}
 function init(){const nav=$('rsQuickNavigation');if(!nav||$('rsCadMode'))return;const tools=new Map();
  for(const b of document.querySelectorAll('#rsToolRibbon button[data-rs-tool],#rsToolRibbon button[data-rs-command],#rsToolRibbon .rsPrimaryAction')){
-  const label=b.getAttribute('aria-label')||b.title||b.textContent.trim(),key=b.dataset.rsTool?'tool:'+b.dataset.rsTool:b.dataset.rsCommand?'command:'+b.dataset.rsCommand:'action:'+label;
+  const label=b.getAttribute('aria-label')||b.querySelector(':scope>span:not(.rsCadIcon)')?.textContent.trim()||b.textContent.trim()||b.title,key=b.dataset.rsTool?'tool:'+b.dataset.rsTool:b.dataset.rsCommand?'command:'+b.dataset.rsCommand:'action:'+label;
   if(!label||tools.has(key))continue;b.title=b.title||label;b.setAttribute('aria-label',label);
   if(!b.querySelector('svg')&&b.classList.contains('rsPrimaryAction')){b.replaceChildren();const icon=document.createElement('span');icon.innerHTML=toolIcon('inspect');icon.className='rsCadIcon';const text=document.createElement('span');text.textContent=label;b.append(icon,text)}
   tools.set(key,{b,label});

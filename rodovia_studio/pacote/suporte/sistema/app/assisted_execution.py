@@ -82,9 +82,13 @@ def preview(d,request,status=lambda *a:None,cancel=lambda:False):
         valid=all(analyze_motion(path['p'],allowed=scene.network.allowed)['ok'] for path in scene.network.paths)
         after=[{'status':r['technical_status'],'message':r['technical_message'],'circulation':r.get('technical_circulation',{})} for r in selected]
         geometry=[]
-        for raw in scene.network.raw_info:
-            if raw.get('origin_key')==origin:
-                points=raw['points'];geometry.append(points[::max(1,len(points)//500)].tolist())
+        bases={raw['base'] for raw in scene.network.raw_info if raw.get('origin_key')==origin}
+        for path in scene.network.paths:
+            if any(scene.network.edges[i]['base'] in bases for i in path.get('edges',[])):
+                points=path['p'];step=max(1,len(points)//1000);q=points[::step].tolist()
+                if q[-1]!=points[-1].tolist():q.append(points[-1].tolist())
+                geometry.append(q)
+            if len(geometry)>=20:break
     if cancel():raise InterruptedError('Proposta cancelada; projeto preservado.')
     if signature(d)!=initial:raise Conflict('O projeto mudou durante a prévia. Resultado descartado.')
     key=uuid.uuid4().hex
