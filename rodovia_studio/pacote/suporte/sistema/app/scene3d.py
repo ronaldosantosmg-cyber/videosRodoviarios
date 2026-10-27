@@ -109,6 +109,8 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
         diagnostics.append({'id':i,'p':local(raw['points'],.2).ravel().tolist(),'status':diag['technical_status'],'message':diag['technical_message']})
     progress(.55,'Simulando o tráfego validado para a vista 3D')
     duration=min(float(settings.duration_s),PREVIEW_SECONDS)
+    if settings.traffic_classic:
+        from .classic_traffic import ClassicTraffic as TrafficSim
     sim=TrafficSim(scene.network,settings,partial(visual.vehicle_type,mix=settings.vehicle_mix),duration=duration,status=lambda p,m:progress(.55+.25*p,m)) if settings.traffic and scene.network.paths else None
     tracks={};samples=0
     if sim:
@@ -198,7 +200,7 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
     if cancel():raise InterruptedError('Construção 3D cancelada.')
     if sum(len(mesh['positions'])//3 for mesh in context_meshes+meshes)>MAX_VERTICES:raise ValueError('Cena e objetos da imagem excedem o orçamento 3D. Reduza a área.')
     if not settings.traffic_prevent_collisions or not settings.traffic_respect_signals:warnings.append('Ensaio: verificação de colisões ou respeito aos semáforos desativado; não interpretar como circulação validada.')
-    data={'simulation_mode':'protegido' if settings.traffic_prevent_collisions and settings.traffic_respect_signals and not settings.heavy_shoulder_overtake else 'ensaio','format':'rodovia-scene3d-1','revision':key,'origin_crs':origin.tolist(),'crs':settings.crs,'coordinates_confirmed':settings.coordinates_confirmed,'span_m':span,'meshes':context_meshes+meshes,'terrain':terrain,'markings':markings,'diagnostics':diagnostics,'vehicles':list(tracks.values())+list(train_tracks.values()),'pedestrians':list(person_tracks.values()),'pedestrian_report':people.report(),'rail_smoke':settings.rail_smoke,'transport':transport_data,'duration_s':duration,'source_duration_s':settings.duration_s,'simulation_report':sim.report() if sim else None,'warnings':warnings[-25:],'scope':'Visualização de projeto e tráfego. Diagnósticos técnicos não integram a captura de apresentação.'}
+    data={'simulation_mode':'protegido' if not settings.traffic_classic and settings.traffic_prevent_collisions and settings.traffic_respect_signals and not settings.heavy_shoulder_overtake else 'ensaio','format':'rodovia-scene3d-1','revision':key,'origin_crs':origin.tolist(),'crs':settings.crs,'coordinates_confirmed':settings.coordinates_confirmed,'span_m':span,'meshes':context_meshes+meshes,'terrain':terrain,'markings':markings,'diagnostics':diagnostics,'vehicles':list(tracks.values())+list(train_tracks.values()),'pedestrians':list(person_tracks.values()),'pedestrian_report':people.report(),'rail_smoke':settings.rail_smoke,'transport':transport_data,'duration_s':duration,'source_duration_s':settings.duration_s,'simulation_report':sim.report() if sim else None,'warnings':warnings[-25:],'scope':'Visualização de projeto e tráfego. Diagnósticos técnicos não integram a captura de apresentação.'}
     if not np.isfinite(origin).all():raise ValueError('Origem 3D inválida.')
     if key!=revision(d):raise ValueError('O projeto mudou durante o processamento. Reconstrua o 3D.')
     encoded=json.dumps(data,ensure_ascii=False,allow_nan=False,separators=(',',':')).encode()

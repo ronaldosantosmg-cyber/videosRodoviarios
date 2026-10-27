@@ -1,0 +1,10 @@
+{
+  "unique_passed": 73,
+  "sources": [
+    "pytest-nucleo-entrega.xml",
+    "pytest-interface-entrega.xml",
+    "pytest-layout-entrega.xml"
+  ],
+  "layout_repeated_cases_not_added": 2,
+  "initial_failed_runs_retained": true
+}

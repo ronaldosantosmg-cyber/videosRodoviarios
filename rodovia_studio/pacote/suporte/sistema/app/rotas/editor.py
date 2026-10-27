@@ -283,14 +283,14 @@ def source_layers(pid):
     except (OSError,ValueError) as e:raise HTTPException(422,'Não foi possível ler as camadas originais do DXF: '+str(e))
 
 
-def _full_flow_segments(pid):
+def _full_flow_segments(pid,include_paths=False):
     from ..dependencies import revisions
     from ..artifacts import require_current
     d=store.directory(pid);require_current(d,'editor')
     try:data=json.loads((d/'editor/full_flows.json').read_text(encoding='utf-8'))
     except (OSError,ValueError):raise HTTPException(409,'Recalcule os fluxos antes de editar a geometria completa.')
     if data['revision']!=revisions(d)['editor']:raise HTTPException(409,'Os fluxos estão desatualizados. Recalcule antes de editar.')
-    return d,data['segments'],data['revision']
+    return d,data if include_paths else data['segments'],data['revision']
 
 @router.get('/api/projects/{pid}/flow-tools/segment/{index}')
 def full_flow_segment(pid,index:int,revision:str=''):
@@ -335,3 +335,45 @@ def join_flow(pid,body:FlowJoinBody):
         if revisions(d)['editor']!=initial:raise HTTPException(409,'O projeto mudou durante a validação. Selecione novamente os segmentos.')
         return result
     except ValueError as e:raise HTTPException(422,str(e))
+
+class SweptBody(_BM):
+    model_config=ConfigDict(allow_inf_nan=False,extra='forbid')
+    segment:int=Field(ge=0)
+    revision:str=Field(pattern=r'^[a-f0-9]{64}$')
+    vehicle:str=Field(default='car',max_length=20)
+    station_m:float|None=Field(default=None,ge=0,le=100000)
+    span_m:float=Field(default=60,ge=5,le=200)
+    reverse:bool=False
+
+@router.post('/api/projects/{pid}/flow-tools/swept')
+def swept_inspection(pid,body:SweptBody):
+    import shapely
+    from ..swept_inspection import inspect
+    from ..dependencies import revisions
+    d,data,current=_full_flow_segments(pid,include_paths=True);rows=data['segments']
+    if body.revision!=current:raise HTTPException(409,'A geometria mudou. Recalcule e selecione novamente.')
+    if body.segment>=len(rows):raise HTTPException(404,'Segmento não encontrado.')
+    try:allowed=shapely.from_wkb((d/'editor/allowed.wkb').read_bytes())
+    except (OSError,shapely.errors.GEOSException):raise HTTPException(409,'Recalcule os fluxos para recuperar a superfície de inspeção.')
+    points=rows[body.segment]['points']
+    if body.reverse:points=points[::-1]
+    from shapely.geometry import LineString,Point
+    import numpy as np
+    reference=LineString(points);station=reference.length/2 if body.station_m is None else body.station_m
+    if station>reference.length:raise HTTPException(422,'A posição ultrapassa o fim do trecho.')
+    center=reference.interpolate(station);h=np.array(reference.interpolate(min(reference.length,station+1)).coords[0])-np.array(reference.interpolate(max(0,station-1)).coords[0])
+    choices=[]
+    for path in data.get('paths',[]):
+        if rows[body.segment].get('base') not in path['bases']:continue
+        line=LineString(path['points']);s=line.project(center)
+        heading=np.array(line.interpolate(min(line.length,s+1)).coords[0])-np.array(line.interpolate(max(0,s-1)).coords[0])
+        if float(h@heading)<0:continue
+        choices.append((line.distance(center),s,path['points']))
+    actual=bool(choices)
+    if choices:
+        _,station,points=min(choices,key=lambda r:r[0])
+    elif not data.get('inspection_complete',True):raise HTTPException(422,'A rede excede o orçamento da inspeção integral. Selecione um projeto menor para conferir o arrasto sem reduzir precisão.')
+    try:result=inspect(points,allowed,body.vehicle,station,body.span_m)
+    except ValueError as e:raise HTTPException(422,str(e))
+    if revisions(d)['editor']!=current:raise HTTPException(409,'O projeto mudou durante a inspeção. Repita a análise.')
+    return {**result,'revision':current,'segment':body.segment,'using_calculated_trajectory':actual,'geometry_source':'trajetoria_calculada' if actual else 'eixo_sem_itinerario_no_sentido_selecionado'}

@@ -162,10 +162,23 @@ class TrafficSim:
         for lanes in groups.values():
             for lane,i in lanes.items():self.adjacent[i]=[lanes[x] for x in (lane-1,lane+1) if x in lanes]
 
+    def terminal_padding(self,path_i,vehicle):
+        if not self.paths[path_i].get('terminal_inset_applied'):return 0.
+        # O recuo de 5 m é do centro; um corpo longo precisa de espaço adicional.
+        return max(0.,PROFILES.get(vehicle,PROFILES['car'])[0]/2-float(self.s.traffic_entry_inset_m)+.2)
+
     def motion_valid(self,path_i,vehicle):
         key=(path_i,vehicle)
         if key not in self.motion_cache:
-            self.motion_cache[key]=analyze_motion(self.paths[path_i]['p'],vehicle,getattr(self.net,'allowed',None))
+            points=self.paths[path_i]['p'];padding=self.terminal_padding(path_i,vehicle)
+            if padding:
+                from shapely.geometry import LineString
+                from shapely.ops import substring
+                line=LineString(points)
+                if line.length<=2*padding+1:
+                    self.motion_cache[key]={'ok':False,'reasons':['sem_espaco_nos_portais']};return False
+                points=np.asarray(substring(line,padding,line.length-padding).coords)
+            self.motion_cache[key]=analyze_motion(points,vehicle,getattr(self.net,'allowed',None))
             probe=getattr(self,'shoulder_probe',None)
             if probe is not None:
                 fallback=probe.curve_fallback(path_i,vehicle,self.motion_cache[key])
@@ -373,7 +386,7 @@ class TrafficSim:
                     self.motion_blocked+=1;pending[i]-=1;vid+=1;self._entry_choices.pop(self.entry[i],None);continue
                 if getattr(self.s,'traffic_route_only',False) and any(w['p']==j for w in V):continue
                 Lv=_LEN[vt];v0=self.v0*SPEED_FACTOR[vt]*(.92+.16*rng.random())
-                new={'id':vid,'p':j,'s':min(float(getattr(self.s,'traffic_entry_inset_m',5)),max(0.,self.paths[j]['length']-Lv/2-1)), 'v':0.,'L':Lv,'v0':v0,'t':vt,'li':0,'lc':None,'lc_cooldown':-math.inf,'entered_s':t}
+                new={'id':vid,'p':j,'s':self.terminal_padding(j,vt) if self.paths[j].get('terminal_inset_applied') else min(float(getattr(self.s,'traffic_entry_inset_m',5)),max(0.,self.paths[j]['length']-Lv/2-1)), 'v':0.,'L':Lv,'v0':v0,'t':vt,'li':0,'lc':None,'lc_cooldown':-math.inf,'entered_s':t}
                 dyn=TYPE_DYN.get(vt,TYPE_DYN['car'])
                 if not self.polygon_safety.admission(new,V,vehicle_check=getattr(self.s,'traffic_prevent_collisions',True)):continue
                 if not self.transport.admission_allowed(j,t,Lv+2*new['s']) or not self.pedestrians.admission_allowed(j,Lv+2*new['s']):continue
@@ -408,6 +421,8 @@ class TrafficSim:
                     safe=max(0.,gap-self.HARD_GAP)
                     if ds>safe+1e-9:
                         ds=safe;nv=min(nv,ds/DT if DT>0 else 0.);self.safety_interventions+=1
+                if self.paths[v['p']].get('terminal_inset_applied'):
+                    ds=min(ds,max(0.,self.paths[v['p']]['length']-.5-self.terminal_padding(v['p'],v.get('t','car'))-v['s']))
                 planned.append((nv,ds))
             planned=self.polygon_safety.resolve(V,planned,vehicle_check=getattr(self.s,'traffic_prevent_collisions',True))
             alive=[]
@@ -420,7 +435,7 @@ class TrafficSim:
                     self.advance_maneuver(lc,ds,DT)
                     if lc['elapsed']>=lc['duration']:
                         target=lc['to'];v['s']=self.map_s(v['p'],target,v['s']);v['p']=target;v['lc']=None;v['lc_cooldown']=t+self.LC_COOLDOWN
-                if v['s']<self.paths[v['p']]['length']-.5:alive.append(v)
+                if v['s']<self.paths[v['p']]['length']-.5-self.terminal_padding(v['p'],v.get('t','car'))-1e-6:alive.append(v)
                 else:self.exited_by_path[v['p']]+=1
             V=alive
             if getattr(self.s,'traffic_route_only',False):

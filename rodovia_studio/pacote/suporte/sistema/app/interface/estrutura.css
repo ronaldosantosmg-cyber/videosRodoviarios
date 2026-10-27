@@ -97,3 +97,14 @@
 .rsCommitFooter { border-top: 1px solid var(--border); }
 .rsCommitFooter > [data-rs-edit-status] { flex: 1; min-width: 150px; font-size: 12px; }
 .rsTransactionalDialog > .rsCommitBody { flex: 1 1 0px; overflow: auto; min-height: 0; padding: 12px 14px; }
+/* Nós e inspeção: ícones compactos, somente na aba Tráfego. */
+.rsNodeToolbar{display:inline-flex;flex-wrap:wrap;gap:3px;align-items:center;max-width:100%;vertical-align:middle;padding:2px 5px;border-right:1px solid var(--border,#d6dde2)}
+.rsNodeToolbar button{width:30px;height:30px;padding:4px;display:inline-flex;align-items:center;justify-content:center}
+.rsNodeToolbar svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.rsNodeToolbar button[aria-pressed=true]{background:#ffdf91;color:#332400;border-color:#b77d00}
+.rsNodeToolbar{flex:0 0 auto;flex-wrap:nowrap}
+.studio142:not(.rsCadMode) #rsToolRibbon [data-activity="Tráfego"]>.rsPrimaryAction{min-width:max-content!important;max-width:none!important;white-space:nowrap;flex:0 0 auto!important}
+body.rsInterface26 #rsToolRibbon [data-activity="Tráfego"]>.rsPrimaryAction{width:max-content!important;min-width:max-content!important;max-width:none!important;white-space:nowrap!important;flex:0 0 auto!important}
+body.rsInterface26 #rsToolRibbon [data-activity="Tráfego"]>.rsPrimaryAction>svg{width:18px!important;height:18px!important;flex:none}
+body.rsInterface26.rsCadMode #rsToolRibbon [data-activity="Tráfego"]>.rsPrimaryAction{width:32px!important;min-width:32px!important;max-width:32px!important}
+body.rsInterface26.rsCadMode #rsToolRibbon [data-activity="Tráfego"]>.rsPrimaryAction>span{display:none!important}

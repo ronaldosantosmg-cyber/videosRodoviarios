@@ -306,6 +306,8 @@ class ConnectionRule(BaseModel):
     model_config=ConfigDict(allow_inf_nan=False)
     id: str = ''
     name: str = Field(default='Ligação',min_length=1,max_length=80)
+    from_key: str = Field(default='',pattern=r'^([a-f0-9]{64})?$')
+    to_key: str = Field(default='',pattern=r'^([a-f0-9]{64})?$')
     a: Point            # ponto no trecho de chegada (perto do fim)
     b: Point            # ponto no trecho de saída (perto do início)
     action: Literal['deny','force'] = 'deny'
@@ -787,6 +789,7 @@ class Settings(BaseModel):
     imagery_detail: Literal['auto','off'] = 'auto'
     detail_textures: bool = True
     # 1.12: tráfego simulado (sem colisão), densidade, interdições e travessias do canteiro.
+    traffic_classic: bool = False
     traffic_model: Literal['simulado','anterior'] = 'simulado'
     traffic_density: float = Field(default=1.0,ge=.2,le=8)
     # 1.40.5: capacidade e reação a veículos pesados. Mantidos neutros para projetos antigos.

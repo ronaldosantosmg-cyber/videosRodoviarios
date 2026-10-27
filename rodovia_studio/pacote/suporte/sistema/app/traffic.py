@@ -128,8 +128,9 @@ def steady_path(P,allowed,sigma_m=3.,step=STEP):
     return p,d
 
 class TrafficNetwork:
-    def __init__(self,roads,obstacles,axes,axis,ds,settings,bridges=(),oae_dirs=(),edge_lines=(),dxf_signage=(),dxf_signs=(),directory=None,oae_info=None):
+    def __init__(self,roads,obstacles,axes,axis,ds,settings,bridges=(),oae_dirs=(),edge_lines=(),dxf_signage=(),dxf_signs=(),directory=None,oae_info=None,median_obstacles=None):
         # 1.20: trajetórias suavizadas e sentido pelo eixo ('anterior' reproduz a 1.19).
+        self.classic=bool(getattr(settings,'traffic_classic',False));self.medians=unary_union(obstacles if median_obstacles is None else median_obstacles)
         self.smooth_paths=getattr(settings,'vehicle_paths','smooth')=='smooth';self.axis_dir=getattr(settings,'direction_reference','axis')=='axis'
         self.oae_dirs=list(oae_dirs);self.dxf_edges=[np.asarray(p,float) for p in edge_lines];self.s=settings;self.axis=axis;self.ds=ds;self.bridges=unary_union(bridges).buffer(1) if bridges else Polygon()
         self.oae_info=list(oae_info or [])
@@ -148,12 +149,18 @@ class TrafficNetwork:
         self.route_lane_cache=RouteLaneCache(directory)
         roads=list(roads)+section_corridors(settings,self.route_lane_cache)+confirmed_corridors(settings,self.route_lane_cache)
         self.operational_pavement=unary_union(roads) if roads else Polygon()
+        if self.classic:
+            # Corredores finitos vinculados aos eixos; somente canteiros limitam o ensaio.
+            sources=[np.asarray(a['points'],float) for a in axes]+[np.array([[v.x,v.y] for v in r.points]) for r in settings.route_alignments if r.enabled]
+            corridors=[LineString(q).buffer(max(8.,settings.lane_width_m*settings.lanes_per_direction+3)) for q in sources if len(q)>=2 and np.isfinite(q).all()]
+            roads=roads+corridors;obstacles=[self.medians] if not self.medians.is_empty else []
+            self.no_connect=Polygon()
         from .shoulder_probe import envelope
         exclusions=[Polygon([(p.x,p.y) for p in a]) for a in settings.exclusions]
         self.shoulder_envelope=envelope(self.operational_pavement,obstacles,exclusions,self.bridges)
         self.allowed=unary_union(roads).difference(unary_union(obstacles).buffer(.15)).buffer(-.12) if roads else Polygon()
         self.paved=self.allowed  # superfície para as linhas de bordo (sem as exclusões de limpeza)
-        if settings.exclusions:self.allowed=self.allowed.difference(unary_union([Polygon([(p.x,p.y) for p in a]) for a in settings.exclusions]))
+        if settings.exclusions and not self.classic:self.allowed=self.allowed.difference(unary_union([Polygon([(p.x,p.y) for p in a]) for a in settings.exclusions]))
         # 1.15: sinalização completa (faixas pela largura, zebrados, setas de faixa, retenções e placas).
         self.full=getattr(settings,'signage_style','clean')=='clean' and getattr(settings,'signage_detail','full')=='full'
         self.dxf_h=list(dxf_signage);self.dxf_v=list(dxf_signs);self.lane_info={};self.fills=[];self.signs=[];self.arrow_kinds=[];self.arrow_anchors=[]
@@ -255,7 +262,8 @@ class TrafficNetwork:
                 connector=self.connector(a,b)
                 if connector is not None:self.connections[i].append(j);self.connectors[(i,j)]=connector
         self.apply_connection_rules()
-        self.crossing_rules()
+        if not self.classic:self.crossing_rules()
+        else:self.crossings_blocked=0
         self.min_route=float(getattr(settings,'min_route_segment_m',50) or 0)
         nw=len(self.warnings)
         self.make_itineraries(self.min_route)
@@ -297,6 +305,11 @@ class TrafficNetwork:
         idx=self.tree.query(p)[1];t=self.axis_t[idx];return float(np.dot(np.asarray(p)-self.dense[idx],np.array([t[1],-t[0]])))
     def inside(self,q):return contains_xy(self.paved,q[:,0],q[:,1])
     def chain(self,p):return self.stations[self.tree.query(np.asarray(p))[1]]
+    def motion_audit(self,points,vehicle='car',allowed=None):
+        if getattr(self,'classic',False):
+            from .classic_traffic import numerical_audit
+            return numerical_audit(points,allowed)
+        return analyze_motion(points,vehicle,allowed)
     def flow(self,p):
         if self.main:
             i=int(np.argmin([tr.query(p)[0] for tr in self.main_trees]));return self.main_sign[i],float(self.main_trees[i].query(p)[0])
@@ -309,11 +322,19 @@ class TrafficNetwork:
                 for j,other in enumerate(lines):
                     if j==i or raw[i]['level']!=raw[j]['level']:continue
                     # 1.30: a ponta de uma faixa de rota não corta os demais trechos (a pintura deles não muda).
-                    if raw[i].get('fixed') and not raw[j].get('fixed'):continue
+                    # Contatos de ramais tipados também dividem o eixo principal.
                     d=other.distance(point);s=other.project(point)
                     if d<3.5 and 5<s<other.length-5 and (best is None or d<best[0]):best=(d,j,s)
                 if best and not self.no_connect.is_empty and self.no_connect.covers(point):best=None
                 if best:cuts[best[1]].add(best[2])
+        for rule in getattr(self.s,'connection_rules',[]):
+            if not rule.enabled or rule.action=='deny':continue
+            for anchor,key in ((rule.a,rule.from_key),(rule.b,rule.to_key)):
+                point=Point(anchor.x,anchor.y)
+                candidates=[(ln.distance(point),j,ln.project(point)) for j,ln in enumerate(lines) if not key or key in raw[j].get('origin_aliases',[])]
+                if candidates:
+                    distance,j,station=min(candidates)
+                    if distance<=8 and 3<station<lines[j].length-3 and all(abs(station-cut)>30 for cut in cuts[j]):cuts[j].add(station)
         result=[]
         for r,ln,values in zip(raw,lines,cuts):
             values=sorted(values)
@@ -439,7 +460,7 @@ class TrafficNetwork:
         endpt=q[-1] if np.linalg.norm(q[b-1]-q[-1])<10 else q[b-1]
         if recovery:startpt,endpt=segment[0],segment[-1]
         start=self.node(startpt,r['level']);end=self.node(endpt,r['level'])
-        self.edges.append({'p':segment,'t':tt,'d':d,'length':d[-1],'start':start,'end':end,'base':base,'origin':r.get('origin',base),'kind':kind,'source':r['source'],'sign':1 if self.chain(segment[-1:])[0]>=self.chain(segment[:1])[0] else -1,'level':r['level'],'cut_run':r.get('cut_run'),'disabled':disabled,'recovery':recovery,'ring':ring,'both':bool(both),'offset':float(offset),**route_meta,**({'route_fixed':True} if r.get('fixed') else {}),**({'speed':float(spd)/3.6} if spd else {})})
+        self.edges.append({'p':segment,'t':tt,'d':d,'length':d[-1],'start':start,'end':end,'base':base,'origin':r.get('origin',base),'origin_key':r.get('origin_key',''),'origin_aliases':r.get('origin_aliases',[]),'kind':kind,'source':r['source'],'sign':1 if self.chain(segment[-1:])[0]>=self.chain(segment[:1])[0] else -1,'level':r['level'],'cut_run':r.get('cut_run'),'disabled':disabled,'recovery':recovery,'ring':ring,'both':bool(both),'offset':float(offset),**route_meta,**({'route_fixed':True} if r.get('fixed') else {}),**({'speed':float(spd)/3.6} if spd else {})})
         if r.get('native_axis'):
             ends=self.original_terminals.get(r.get('origin'),[])
             self.edges[-1].update(native_start_portal=portals[0] and any(np.linalg.norm(q[0]-p)<.2 for p in ends),
@@ -608,14 +629,16 @@ class TrafficNetwork:
         if not self.no_connect.is_empty and self.no_connect.covers(Point(node)):
             # Dentro do cruzamento sem conexão só existe continuidade da mesma via.
             if a.get('origin')!=b.get('origin') or cos<.9:return None
-        if not self.bridges.is_empty and self.bridges.covers(Point(node)) and cos<.72:return None
+        if not getattr(self,'classic',False) and not self.bridges.is_empty and self.bridges.covers(Point(node)) and cos<.72:return None
         if cos<-.85:
             self.rejected_nodes.update((a['end'],b['start']));return None
         if a.get('route') is not None and a.get('route')==b.get('route') and a.get('route_dir')!=b.get('route_dir'):
             self.rejected_connectors['contramao_rota']+=1;self.rejected_nodes.update((a['end'],b['start']));return None
         pa=a['p'][-1];pb=b['p'][0];gap=np.linalg.norm(pb-pa)
         if gap>(30 if force else 18):return None
-        if 1e-6<=gap<6 and cos<.9:
+        lateral=abs(float(ta[0]*(pb-pa)[1]-ta[1]*(pb-pa)[0]))
+        explicit=force or a.get('route') is not None or b.get('route') is not None
+        if 1e-6<=gap<6 and (cos<.9 or explicit and lateral>.02):
             rounded=self.rounded_contact(a,b)
             if rounded is not None:return rounded
         if gap<1e-6:
@@ -625,7 +648,7 @@ class TrafficNetwork:
         p=(1-u[:,None])**3*pa+3*(1-u[:,None])**2*u[:,None]*c1+3*(1-u[:,None])*u[:,None]**2*c2+u[:,None]**3*pb
         p,_=sample(p,.35)
         if not self.no_connect.is_empty and a.get('origin')!=b.get('origin') and LineString(p).intersects(self.no_connect):return None
-        audit=analyze_motion(np.vstack([a['p'][-min(len(a['p']),20):],p[1:-1],b['p'][:min(len(b['p']),20)]]))
+        audit=self.motion_audit(np.vstack([a['p'][-min(len(a['p']),20):],p[1:-1],b['p'][:min(len(b['p']),20)]]))
         if not audit['ok']:
             self.rejected_connectors.update(audit['reasons']);self.rejected_nodes.update((a['end'],b['start']));return None
         if not valid_centers(self.allowed,p).all():return None
@@ -647,7 +670,7 @@ class TrafficNetwork:
             if not self.no_connect.is_empty and LineString(p).intersects(self.no_connect):continue
             before=np.array(substring(first,max(0,first.length-setback-15),first.length-setback).coords)
             after=np.array(substring(second,setback,min(second.length,setback+15)).coords)
-            if not analyze_motion(np.vstack([before,p[1:-1],after]),allowed=self.allowed)['ok']:continue
+            if not self.motion_audit(np.vstack([before,p[1:-1],after]),allowed=self.allowed)['ok']:continue
             if not valid_centers(self.allowed,p).all():continue
             from .vehicle_safety import body
             if any(not self.allowed.covers(body(c,h,4.6,1.9)) for c,h in zip(p,tangent(p))):continue
@@ -663,7 +686,7 @@ class TrafficNetwork:
             P=e['p'];return float(np.min(np.linalg.norm(P[::2]-q,axis=1))) if len(P) else math.inf
         for r in rules:
             A=np.array([r.a.x,r.a.y]);B=np.array([r.b.x,r.b.y])
-            dA={i:dist(e,A) for i,e in enumerate(self.edges) if not e['disabled']};dB={i:dist(e,B) for i,e in enumerate(self.edges) if not e['disabled']}
+            dA={i:dist(e,A) for i,e in enumerate(self.edges) if not e['disabled'] and (not r.from_key or r.from_key in e.get('origin_aliases',[]))};dB={i:dist(e,B) for i,e in enumerate(self.edges) if not e['disabled'] and (not r.to_key or r.to_key in e.get('origin_aliases',[]))}
             ins=[i for i,d in dA.items() if d<=8];outs=[j for j,d in dB.items() if d<=8]
             best=None
             if r.action=='deny':
@@ -675,6 +698,10 @@ class TrafficNetwork:
                     self.rule_report.append({'rule':r.id or r.name,'action':'deny','applied':True})
                 else:self.rule_report.append({'rule':r.id or r.name,'action':'deny','applied':False});self.warnings.append(f'Regra de ligação “{r.name}”: movimento não encontrado (confira os pontos sobre os dois trechos).')
             else:
+                existing=[(i,j) for i in ins for j in self.connections.get(i,[]) if j in outs]
+                if existing:
+                    i,j=min(existing,key=lambda pair:dA[pair[0]]+dB[pair[1]])
+                    self.rule_report.append({'rule':r.id or r.name,'action':'force','applied':True,'existing':True,'from_edge':i,'to_edge':j,'share_pct':r.share_pct});continue
                 for i in ins:
                     for j in outs:
                         if i==j or self.edges[i]['base']==self.edges[j]['base'] or j in self.connections.get(i,[]) or any(x==i and y==j for x,y,_,_ in self.denied):continue
@@ -862,7 +889,7 @@ class TrafficNetwork:
                     if native and q is not None and LineString(q).hausdorff_distance(LineString(P))>.5:continue
                     if q is not None and len(q)>=10 and valid_centers(self.allowed,q).all():p,d=q,dq;break
             if len(p)<10 or d[-1]<max(1.,min_len) or not valid_centers(self.allowed,p).all():continue
-            audit=analyze_motion(p,allowed=self.allowed)
+            audit=self.motion_audit(p,allowed=self.allowed)
             if not audit['ok']:
                 self.rejected_paths.append({'edges':list(seq),'audit':audit})
                 self.rejected_edge_ids.update(seq);continue
@@ -877,7 +904,10 @@ class TrafficNetwork:
                 rid={e.get('route') for e in route_edges};rdir={e.get('route_dir') for e in route_edges};rlane={e.get('route_lane') for e in route_edges}
                 if len(rid)==len(rdir)==len(rlane)==1:
                     e0=route_edges[0];meta={k:e0.get(k) for k in ('route','route_name','route_dir','route_lane','route_lane_width_m','route_start_m','route_end_m','lane_change','lane_change_sections') if e0.get(k) is not None}
-            self.paths.append({'p':p,'t':tangent(p),'d':d,'length':d[-1],'edges':seq,'kinds':sorted({self.edges[e]['kind'] for e in seq}),'links':links,'link_offsets':link_offsets,**meta});seen.add(key);covered.update(seq)
+            from .flow_terminals import inset_path
+            path=inset_path({'p':p,'t':tangent(p),'d':d,'length':d[-1],'edges':seq,'kinds':sorted({self.edges[e]['kind'] for e in seq}),'links':links,'link_offsets':link_offsets,**meta},self.operational_pavement,float(self.s.traffic_entry_inset_m))
+            if path is None or path['length']<max(1.,min_len):continue
+            self.paths.append(path);seen.add(key);covered.update(seq)
             if len(self.paths)>=256:break
         # Recuperação solicitada: os restos válidos são fluxos separados, nunca atalhos.
         recovered_paths=0
@@ -885,7 +915,7 @@ class TrafficNetwork:
             if i in covered or e.get('disabled') or i in short or not e.get('recovery'):continue
             if len(self.paths)>=256:break
             p=e['p'];d=e['d']
-            if d[-1]<max(1.,min_len) or not analyze_motion(p,allowed=self.allowed)['ok']:continue
+            if d[-1]<max(1.,min_len) or not self.motion_audit(p,allowed=self.allowed)['ok']:continue
             self.paths.append({'p':p,'t':tangent(p),'d':d,'length':d[-1],'edges':[i],'kinds':[e['kind']],'links':[(('e',i),0.,float(d[-1]))],**{k:e[k] for k in ('route','route_name','route_dir','route_lane','route_lane_width_m','lane_change','lane_change_sections') if k in e}})
             covered.add(i);recovered_paths+=1
         self.recovered_paths=sum(any(self.edges[k].get('recovery') for k in row['edges']) for row in self.paths)
@@ -910,7 +940,7 @@ class TrafficNetwork:
         for i,path in enumerate(self.paths):
             L=float(path['length'])
             if not math.isfinite(L) or L<=0:continue
-            if (i,'car') not in self.legacy_motion_cache:self.legacy_motion_cache[(i,'car')]=analyze_motion(path['p'],'car',self.allowed)
+            if (i,'car') not in self.legacy_motion_cache:self.legacy_motion_cache[(i,'car')]=self.motion_audit(path['p'],'car',self.allowed)
             audit=self.legacy_motion_cache[(i,'car')]
             if not audit['ok']:continue
             angle=math.radians(audit['max_steering_deg'] or 0.)
@@ -920,7 +950,7 @@ class TrafficNetwork:
                 phase=t+(k+.3)*period/count+i*2.1;cycle=math.floor(phase/period);local=phase-cycle*period
                 if local>=duration:continue
                 identity=(i,k,cycle);vt=vehicle_type(path['kinds'],identity) if vehicle_type else 'car';key=(i,vt)
-                if key not in self.legacy_motion_cache:self.legacy_motion_cache[key]=analyze_motion(path['p'],vt,self.allowed)
+                if key not in self.legacy_motion_cache:self.legacy_motion_cache[key]=self.motion_audit(path['p'],vt,self.allowed)
                 if not self.legacy_motion_cache[key]['ok']:continue
                 if i not in self.legacy_motion_points:self.legacy_motion_points[i]=prepare_points(path['p'])
                 distance=local*route_speed;j=min(len(path['p'])-1,int(np.searchsorted(path['d'],distance)))

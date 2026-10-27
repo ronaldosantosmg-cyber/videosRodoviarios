@@ -41,7 +41,9 @@ def test_entry_is_inside_by_five_meters_without_disabling_signals_or_collisions(
     s=configuration(traffic_route_only=True,duration_s=3)
     sim=TrafficSim(network(s),s,lambda *a:'car',duration=3)
     assert sim.spawned>0 and sim.report()['entry_inset_m']==5
-    assert all(station>=5 for t in np.arange(0,3,.2) for _,_,station,_,_ in sim.state(float(t)))
+    # As estações são relativas ao itinerário já recuado nas duas pontas.
+    assert all(path['terminal_inset_applied'] for path in sim.paths)
+    assert all(5<=float(p[0])<=595 for t in np.arange(0,3,.2) for p,_,_,_,_ in sim.vehicles_ex(float(t)))
     assert sim.lane_changes==0 and s.traffic_prevent_collisions and s.traffic_respect_signals
 
 

@@ -1,7 +1,7 @@
 """Diagnóstico de circulação para o editor; não modifica rotas nem desenha no vídeo."""
 import math
 
-REASONS={'corpo_fora_da_pista':'corpo do veículo fora do pavimento reconhecido',
+REASONS={'canteiro_ou_limite_do_corredor':'interferência com canteiro ou limite do corredor ilustrativo','corpo_fora_da_pista':'corpo do veículo fora do pavimento reconhecido',
          'esterco_excessivo':'curva incompatível com o esterçamento do veículo',
          'mudanca_brusca':'mudança brusca de direção','auto_intersecao':'traçado cruza a si mesmo',
          'ziguezague':'ziguezague','frente_traseira_degeneradas':'frente/traseira sem direção válida',
@@ -83,6 +83,10 @@ def flow_diagnostics(network):
             manual='Confira a área de pavimento no ponto indicado: corrija a classificação/hachura ou reposicione a faixa dentro da pista. Linhas de bordo não são barreiras; canteiros, obstáculos e cortes continuam bloqueando.'
         elif status=='adjustment' and effective_length>=minimum:
             manual='Confira as pontas, o sentido e a camada Eixo. Para escolha explícita, use Rota de veículos → Selecionar uma linha / Seleção contínua, confirme o sentido e recalcule.'
+        if getattr(network,'classic',False) and circulating:
+            status='adjustment';message='ENSAIO CLÁSSICO: veículos ilustrativos; somente canteiros e integridade numérica conferidos.'
+            automatic='Manter o ensaio explicitamente identificado; não considerar circulação validada.'
+            manual='Desative o modo clássico para validar colisões, semáforos e demais restrições.'
         from .flow_assistant import guidance
         assistant=guidance(status,reasons,disabled=bool(raw.get('disabled')),length=effective_length,minimum=minimum,points=critical)
         out.append({'technical_status':status,'technical_message':message,'technical_assistant':assistant,

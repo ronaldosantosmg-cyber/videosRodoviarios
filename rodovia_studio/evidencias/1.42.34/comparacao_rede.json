@@ -1,0 +1,472 @@
+{
+  "baseline_network_equal_to_14233": true,
+  "before": {
+    "mode": "before",
+    "edges": 35,
+    "connections": 2,
+    "paths": [
+      {
+        "length": 286.29161677060955,
+        "edges": [
+          21
+        ],
+        "sources": [
+          "Eixo DXF · 4"
+        ],
+        "start": [
+          727697.0042376015,
+          7827245.685910317
+        ],
+        "end": [
+          727467.6512580835,
+          7827374.2137844805
+        ]
+      },
+      {
+        "length": 168.82441098274256,
+        "edges": [
+          23
+        ],
+        "sources": [
+          "Eixo DXF · 6"
+        ],
+        "start": [
+          731953.041654394,
+          7829199.232719571
+        ],
+        "end": [
+          731823.4375004634,
+          7829294.790793276
+        ]
+      },
+      {
+        "length": 157.8213031934769,
+        "edges": [
+          24
+        ],
+        "sources": [
+          "Eixo DXF · 7"
+        ],
+        "start": [
+          732364.6474582776,
+          7829297.560908254
+        ],
+        "end": [
+          732231.5650549467,
+          7829221.008735485
+        ]
+      },
+      {
+        "length": 120.86307581228843,
+        "edges": [
+          27
+        ],
+        "sources": [
+          "Eixo DXF · 9"
+        ],
+        "start": [
+          733699.2956768648,
+          7829584.211550174
+        ],
+        "end": [
+          733676.3627608437,
+          7829614.11433956
+        ]
+      },
+      {
+        "length": 233.12298928273236,
+        "edges": [
+          20
+        ],
+        "sources": [
+          "Eixo DXF · 3"
+        ],
+        "start": [
+          731063.7394509932,
+          7829310.133009141
+        ],
+        "end": [
+          730838.8782104328,
+          7829250.020137836
+        ]
+      },
+      {
+        "length": 71.6372853734164,
+        "edges": [
+          34
+        ],
+        "sources": [
+          "Eixo DXF · 11"
+        ],
+        "start": [
+          734156.4464634401,
+          7830014.694457133
+        ],
+        "end": [
+          734114.1896608019,
+          7829956.848039965
+        ]
+      }
+    ],
+    "warnings": [
+      "18 mini-rota(s) automática(s) excluída(s) antes da rede (original; limite 50 m). Crie a ligação manualmente se necessária.",
+      "29 segmentos sem itinerário seguro completo; confira os eixos/conexões na prévia. Esses segmentos não recebem veículos isolados.",
+      "12 tentativa(s) de ligação recusada(s) por geometria ou sentido incompatível. Consulte o diagnóstico de circulação."
+    ],
+    "covered_edges": 6,
+    "uncovered": [
+      {
+        "source": "Eixo DXF · 0",
+        "length": 915.2748263908629
+      },
+      {
+        "source": "Eixo DXF · 0",
+        "length": 47.080670248828696
+      },
+      {
+        "source": "Eixo DXF · 0",
+        "length": 639.8795697879234
+      },
+      {
+        "source": "Eixo DXF · 0",
+        "length": 868.8537151465209
+      },
+      {
+        "source": "Eixo DXF · 0",
+        "length": 5161.503312816173
+      },
+      {
+        "source": "Eixo DXF · 0",
+        "length": 523.2326960786199
+      },
+      {
+        "source": "Eixo DXF · 0",
+        "length": 983.4606360592518
+      },
+      {
+        "source": "Eixo DXF · 0",
+        "length": 582.6365069742268
+      },
+      {
+        "source": "Eixo DXF · 1",
+        "length": 142.21927260141933
+      },
+      {
+        "source": "Eixo DXF · 1",
+        "length": 45.0090097034612
+      },
+      {
+        "source": "Eixo DXF · 1",
+        "length": 1774.282641463625
+      },
+      {
+        "source": "Eixo DXF · 1",
+        "length": 347.4976633204015
+      },
+      {
+        "source": "Eixo DXF · 1",
+        "length": 436.13862281171396
+      },
+      {
+        "source": "Eixo DXF · 1",
+        "length": 327.6591348059366
+      },
+      {
+        "source": "Eixo DXF · 1",
+        "length": 184.00768803381516
+      },
+      {
+        "source": "Eixo DXF · 1",
+        "length": 3011.2855557290304
+      },
+      {
+        "source": "Eixo DXF · 1",
+        "length": 1630.4528180272177
+      },
+      {
+        "source": "Eixo DXF · 1",
+        "length": 838.29335888311
+      },
+      {
+        "source": "Eixo DXF · 2",
+        "length": 85.16834157765463
+      },
+      {
+        "source": "Eixo DXF · 2",
+        "length": 871.7423714115007
+      },
+      {
+        "source": "Eixo DXF · 5",
+        "length": 175.47114656273203
+      },
+      {
+        "source": "Eixo DXF · 8",
+        "length": 9.3147113380249
+      },
+      {
+        "source": "Eixo DXF · 8",
+        "length": 9.633691508196273
+      },
+      {
+        "source": "Eixo DXF · 9",
+        "length": 77.98972529355865
+      },
+      {
+        "source": "Eixo DXF · 9",
+        "length": 23.45691228401572
+      },
+      {
+        "source": "Eixo DXF · 10",
+        "length": 27.247726104566045
+      },
+      {
+        "source": "Eixo DXF · 10",
+        "length": 11.854926633446516
+      },
+      {
+        "source": "Eixo DXF · 10",
+        "length": 10.224782938984646
+      },
+      {
+        "source": "Eixo DXF · 10",
+        "length": 23.781577200346955
+      }
+    ]
+  },
+  "after": {
+    "mode": "after",
+    "edges": 35,
+    "connections": 2,
+    "paths": [
+      {
+        "length": 279.2934230571263,
+        "edges": [
+          21
+        ],
+        "sources": [
+          "Eixo DXF · 4"
+        ],
+        "start": [
+          727695.0730476195,
+          7827245.172799394
+        ],
+        "end": [
+          727471.8139532795,
+          7827371.44395494
+        ]
+      },
+      {
+        "length": 161.83336727043567,
+        "edges": [
+          23
+        ],
+        "sources": [
+          "Eixo DXF · 6"
+        ],
+        "start": [
+          731948.0653877956,
+          7829199.71741898
+        ],
+        "end": [
+          731824.5429603074,
+          7829293.134830872
+        ]
+      },
+      {
+        "length": 150.52360129074498,
+        "edges": [
+          24
+        ],
+        "sources": [
+          "Eixo DXF · 7"
+        ],
+        "start": [
+          732362.9847661115,
+          7829295.975068163
+        ],
+        "end": [
+          732236.469942511,
+          7829221.979259433
+        ]
+      },
+      {
+        "length": 110.86307581204949,
+        "edges": [
+          27
+        ],
+        "sources": [
+          "Eixo DXF · 9"
+        ],
+        "start": [
+          733703.257824752,
+          7829587.261367238
+        ],
+        "end": [
+          733680.502660523,
+          7829616.917292611
+        ]
+      },
+      {
+        "length": 225.7294496940474,
+        "edges": [
+          20
+        ],
+        "sources": [
+          "Eixo DXF · 3"
+        ],
+        "start": [
+          731061.3783429166,
+          7829309.740327838
+        ],
+        "end": [
+          730843.5649111794,
+          7829251.762212116
+        ]
+      },
+      {
+        "length": 61.63728537318196,
+        "edges": [
+          34
+        ],
+        "sources": [
+          "Eixo DXF · 11"
+        ],
+        "start": [
+          734153.4680045753,
+          7830010.678392275
+        ],
+        "end": [
+          734117.1416911412,
+          7829960.883569723
+        ]
+      }
+    ],
+    "warnings": [
+      "18 mini-rota(s) automática(s) excluída(s) antes da rede (original; limite 50 m). Crie a ligação manualmente se necessária.",
+      "29 segmentos sem itinerário seguro completo; confira os eixos/conexões na prévia. Esses segmentos não recebem veículos isolados.",
+      "12 tentativa(s) de ligação recusada(s) por geometria ou sentido incompatível. Consulte o diagnóstico de circulação."
+    ],
+    "covered_edges": 6,
+    "uncovered": [
+      {
+        "source": "Eixo DXF · 0",
+        "length": 915.2748263908629
+      },
+      {
+        "source": "Eixo DXF · 0",
+        "length": 47.080670248828696
+      },
+      {
+        "source": "Eixo DXF · 0",
+        "length": 639.8795697879234
+      },
+      {
+        "source": "Eixo DXF · 0",
+        "length": 868.8537151465209
+      },
+      {
+        "source": "Eixo DXF · 0",
+        "length": 5161.503312816173
+      },
+      {
+        "source": "Eixo DXF · 0",
+        "length": 523.2326960786199
+      },
+      {
+        "source": "Eixo DXF · 0",
+        "length": 983.4606360592518
+      },
+      {
+        "source": "Eixo DXF · 0",
+        "length": 582.6365069742268
+      },
+      {
+        "source": "Eixo DXF · 1",
+        "length": 142.21927260141933
+      },
+      {
+        "source": "Eixo DXF · 1",
+        "length": 45.0090097034612
+      },
+      {
+        "source": "Eixo DXF · 1",
+        "length": 1774.282641463625
+      },
+      {
+        "source": "Eixo DXF · 1",
+        "length": 347.4976633204015
+      },
+      {
+        "source": "Eixo DXF · 1",
+        "length": 436.13862281171396
+      },
+      {
+        "source": "Eixo DXF · 1",
+        "length": 327.6591348059366
+      },
+      {
+        "source": "Eixo DXF · 1",
+        "length": 184.00768803381516
+      },
+      {
+        "source": "Eixo DXF · 1",
+        "length": 3011.2855557290304
+      },
+      {
+        "source": "Eixo DXF · 1",
+        "length": 1630.4528180272177
+      },
+      {
+        "source": "Eixo DXF · 1",
+        "length": 838.29335888311
+      },
+      {
+        "source": "Eixo DXF · 2",
+        "length": 85.16834157765463
+      },
+      {
+        "source": "Eixo DXF · 2",
+        "length": 871.7423714115007
+      },
+      {
+        "source": "Eixo DXF · 5",
+        "length": 175.47114656273203
+      },
+      {
+        "source": "Eixo DXF · 8",
+        "length": 9.3147113380249
+      },
+      {
+        "source": "Eixo DXF · 8",
+        "length": 9.633691508196273
+      },
+      {
+        "source": "Eixo DXF · 9",
+        "length": 77.98972529355865
+      },
+      {
+        "source": "Eixo DXF · 9",
+        "length": 23.45691228401572
+      },
+      {
+        "source": "Eixo DXF · 10",
+        "length": 27.247726104566045
+      },
+      {
+        "source": "Eixo DXF · 10",
+        "length": 11.854926633446516
+      },
+      {
+        "source": "Eixo DXF · 10",
+        "length": 10.224782938984646
+      },
+      {
+        "source": "Eixo DXF · 10",
+        "length": 23.781577200346955
+      }
+    ]
+  },
+  "same_six_source_itineraries": true,
+  "terminal_reduction_only": true,
+  "scope": "Mesmos seis itinerários por fonte do DXF; comprimento reduzido pelo recuo solicitado nas pontas. Não afirma igualdade de demanda, frames ou todos os projetos."
+}

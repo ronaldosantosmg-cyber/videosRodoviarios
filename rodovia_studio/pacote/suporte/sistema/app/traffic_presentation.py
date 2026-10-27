@@ -58,10 +58,10 @@ def preflight(scene):
     try:
         for t in sorted(set([0.,scene.s.duration_s/2,end])):
             scene.reveal_opacity=1.
-            if not scene.s.traffic_route_only and scene.s.duration_s<45 and scene.s.short_video_mode=='auto' and scene.s.camera_mode!='trafego':
+            if not scene.s.traffic_route_only and not scene.s.traffic_classic and scene.s.duration_s<45 and scene.s.short_video_mode=='auto' and scene.s.camera_mode!='trafego':
                 f=float(np.clip(t/max(1,min(8,scene.s.duration_s*.55)),0,1));scene.reveal_opacity=f*f*(3-2*f)
             cam,width,progress,*_=scene.pose(t)
-            if scene.s.traffic_route_only:progress=1.
+            if scene.s.traffic_route_only or scene.s.traffic_classic:progress=1.
             _,row=visible(scene,t,cam,width,progress);samples.append(row)
     finally:scene.reveal_opacity=previous_opacity
     if not scene.network.paths:status,notice='sem_itinerarios','Nenhum itinerário válido; confira eixo, seção e bloqueios reais.'

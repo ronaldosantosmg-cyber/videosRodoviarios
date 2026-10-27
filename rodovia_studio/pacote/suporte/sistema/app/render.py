@@ -415,7 +415,7 @@ class Scene:
             try:
                 deck,line,_,_,_=deck_geometry(item['points']);oae_info.append({'id':item.get('layer','OAE'),'deck':deck,'line':line,'level_m':float(item.get('elevation_m') or 0),'elevation_valid':item.get('elevation_valid',True),'grade_confirmed':False})
             except ValueError:continue
-        self.network=TrafficNetwork(roads,obstacles,self.axes,self.axis,self.ds,self.s,[poly(e) for e in self.items if e['closed'] and e['role']=='oae']+decks,oae_direction_marks(self.oae,self.stationing),[e['points'] for e in self.items if e['role']=='edge_line' and len(e['points'])>=2],[e for e in self.items if e['role']=='sign_h'],[e for e in self.items if e['role']=='sign_v'],directory=self.directory,oae_info=oae_info)
+        self.network=TrafficNetwork(roads,obstacles,self.axes,self.axis,self.ds,self.s,[poly(e) for e in self.items if e['closed'] and e['role']=='oae']+decks,oae_direction_marks(self.oae,self.stationing),[e['points'] for e in self.items if e['role']=='edge_line' and len(e['points'])>=2],[e for e in self.items if e['role']=='sign_h'],[e for e in self.items if e['role']=='sign_v'],directory=self.directory,oae_info=oae_info,median_obstacles=[poly(e) for e in self.items if e['closed'] and e['role']=='median'])
         self.allowed=self.network.allowed
         self.save_editor_geometry(roads,obstacles)
         self.routes=[(e['p'],e['t'],np.ones(len(e['p']),bool),e['length'],i) for i,e in enumerate(self.network.edges)]
@@ -523,9 +523,11 @@ class Scene:
         from .flow_diagnostics import flow_diagnostics
         diagnostics=flow_diagnostics(self.network)
         from . import store
-        full=[{'id':i,'points':np.asarray(r['points'],float).tolist(),'forward':r['forward'],'both':r['both'],'source':r['source'],'origin_id':r.get('origin_id',r['base']),'origin_key':r.get('origin_key',''),'level':r.get('level',0),'disabled':r['disabled']} for i,r in enumerate(self.network.raw_info)]
+        full=[{'id':i,'base':r['base'],'points':np.asarray(r['points'],float).tolist(),'forward':r['forward'],'both':r['both'],'source':r['source'],'origin_id':r.get('origin_id',r['base']),'origin_key':r.get('origin_key',''),'level':r.get('level',0),'disabled':r['disabled']} for i,r in enumerate(self.network.raw_info)]
         from .dependencies import revisions
-        store.write_json(self.directory/'editor/full_flows.json',{'revision':revisions(self.directory,self.s)['editor'],'segments':full})
+        inspection_budget=sum(len(path['p']) for path in self.network.paths)<=1000000
+        inspection=[{'points':path['p'].tolist(),'bases':sorted({self.network.edges[e]['base'] for e in path['edges']})} for path in self.network.paths] if inspection_budget else []
+        store.write_json(self.directory/'editor/full_flows.json',{'revision':revisions(self.directory,self.s)['editor'],'segments':full,'paths':inspection,'inspection_complete':inspection_budget})
         segments=[]
         for i,r in enumerate(self.network.raw_info):
             if r.get('automatic_excluded'):continue
@@ -864,9 +866,11 @@ class Scene:
         """1.12: simulação sem colisões (calculada uma vez); 'anterior' mantém o movimento da 1.11."""
         controls=any(r.enabled for r in getattr(self.s,'railways',[])) or any(s.enabled for s in getattr(self.s,'traffic_signals',[]))
         controls=controls or bool(self.s.pedestrians and (self.s.crosswalks or self.s.pedestrian_paths or any(p.kind=='passarela' for p in self.s.pois)))
-        if not self.s.traffic or (getattr(self.s,'traffic_model','simulado')!='simulado' and not controls):return None
+        if not self.s.traffic or (not self.s.traffic_classic and getattr(self.s,'traffic_model','simulado')!='simulado' and not controls):return None
         if getattr(self,'_sim',None) is None:
             from .simulation import TrafficSim
+            if self.s.traffic_classic:
+                from .classic_traffic import ClassicTraffic as TrafficSim
             mix=getattr(self.s,'vehicle_mix','classico')   # 1.37: frota variada
             import functools
             self._sim=TrafficSim(self.network,self.s,functools.partial(visual.vehicle_type,mix=mix),self.s.duration_s,status)
@@ -994,11 +998,11 @@ class Scene:
         return np.dstack([np.clip(color,0,255),alpha*255]).round().astype(np.uint8)
     def frame(self,t,overview=False,view=None):
         self.reveal_opacity=1.
-        if self.s.duration_s<45 and self.s.short_video_mode=='auto' and self.s.camera_mode!='trafego' and not self.s.traffic_route_only and not overview and view is None:
+        if self.s.duration_s<45 and self.s.short_video_mode=='auto' and self.s.camera_mode!='trafego' and not self.s.traffic_route_only and not self.s.traffic_classic and not overview and view is None:
             f=float(np.clip(t/max(1,min(8,self.s.duration_s*.55)),0,1));self.reveal_opacity=f*f*(3-2*f)
         self._t=t;self._night=visual.night_factor(self.s,t);self._night_items=[]
         cam,width,progress,poi,scene=self.pose(t)
-        if self.s.traffic_route_only:progress=1.;self.reveal_opacity=1.
+        if self.s.traffic_route_only or self.s.traffic_classic:progress=1.;self.reveal_opacity=1.
         if overview:cam=self.center;width=self.overview;progress=1;poi=None;scene='preview'
         if view is not None:cam=np.asarray(view[0],float);width=float(view[1]);progress=1;poi=None;scene='preview'
         key=scene if scene.startswith('detalhe') and getattr(self,'_matte',None) is None else None
@@ -1154,9 +1158,9 @@ class Scene:
             if 0<x<self.W and header<y<self.H-footer:
                 pts=np.array([[x0,header],[x0,header+int(18*sc)],[x,y]],np.int32)
                 cv2.polylines(im,[pts],False,(10,28,43),max(2,round(5*sc)),cv2.LINE_AA);cv2.polylines(im,[pts],False,(134,220,233),max(1,round(2*sc)),cv2.LINE_AA)
-        if self.s.heavy_shoulder_overtake or not self.s.traffic_prevent_collisions or not self.s.traffic_respect_signals:
+        if self.s.traffic_classic or self.s.heavy_shoulder_overtake or not self.s.traffic_prevent_collisions or not self.s.traffic_respect_signals:
             cv2.rectangle(im,(0,self.H-30),(self.W,self.H),(110,35,20),-1)
-            cv2.putText(im,'ENSAIO: ultrapassagem pelo acostamento ou controles desativados',(12,self.H-9),cv2.FONT_HERSHEY_SIMPLEX,.5,(255,255,255),1,cv2.LINE_AA)
+            cv2.putText(im,'ENSAIO CLASSICO: somente canteiros' if self.s.traffic_classic else 'ENSAIO: ultrapassagem pelo acostamento ou controles desativados',(12,self.H-9),cv2.FONT_HERSHEY_SIMPLEX,.5,(255,255,255),1,cv2.LINE_AA)
         self.report['traffic_visibility']=self._vehicle_visibility
         return im,{'traffic_visibility':self._vehicle_visibility,'camera':cam.tolist(),'width_m':width,'screen_width':self.W,'screen_height':self.H,'right':self.right.tolist(),'up':self.up.tolist()}
 
