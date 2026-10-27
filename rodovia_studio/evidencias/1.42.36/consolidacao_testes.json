@@ -1,0 +1,13 @@
+{
+  "unique_passed": 136,
+  "inputs": [
+    "pytest-ui-regressoes.xml",
+    "pytest-interface-entrega.xml",
+    "pytest-interface-definitiva.xml",
+    "pytest-nucleo-entrega.xml",
+    "pytest-interface-esquema-final.xml"
+  ],
+  "full_historical_suite_executed": false,
+  "deduplication": "classname + name; rodada posterior substitui o mesmo caso. UI final e núcleo final após último ajuste de segurança, demais regressões sem mudança no caminho testado.",
+  "intermediate_failures": "Amostras novas com tipos Python incorretos e testes antigos com índices posicionais foram atualizados. Nenhuma falha obrigatória da seleção final ficou aberta."
+}

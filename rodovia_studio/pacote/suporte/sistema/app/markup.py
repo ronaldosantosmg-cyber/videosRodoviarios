@@ -91,6 +91,8 @@ def oae_direction_marks(items,stationing):
     """Sentido escolhido na OAE: [(tabuleiro, sinal no encadeamento do eixo)]. Crescente = sentido do km."""
     out=[]
     for o in items:
+        from .oae_traffic import valid_grade
+        if not valid_grade({**o,'grade_confirmed':o.get('grade_confirmed',True)}):continue
         d=o.get('direction','both')
         if d=='both':continue
         out.append((o['deck'],stationing.direction*(1 if d=='growing' else -1)))

@@ -132,7 +132,7 @@ class TrafficNetwork:
         # 1.20: trajetórias suavizadas e sentido pelo eixo ('anterior' reproduz a 1.19).
         self.classic=bool(getattr(settings,'traffic_classic',False));self.medians=unary_union(obstacles if median_obstacles is None else median_obstacles)
         self.smooth_paths=getattr(settings,'vehicle_paths','smooth')=='smooth';self.axis_dir=getattr(settings,'direction_reference','axis')=='axis'
-        self.oae_dirs=list(oae_dirs);self.dxf_edges=[np.asarray(p,float) for p in edge_lines];self.s=settings;self.axis=axis;self.ds=ds;self.bridges=unary_union(bridges).buffer(1) if bridges else Polygon()
+        self.oae_dirs=list(oae_dirs);self.dxf_edges=[np.asarray(p,float) for p in edge_lines];self.s=settings;self.axis=axis;self.ds=ds;self.bridges=Polygon()  # Contorno isolado, sem cota confirmada, não é impedimento.
         self.oae_info=list(oae_info or [])
         self.oae_report=[];oae_warnings=[]
         if oae_info is not None:
@@ -189,6 +189,7 @@ class TrafficNetwork:
         native,self.native_axis_report=native_paths(axes,settings,self.allowed)
         if not native and not any(p.enabled for p in settings.traffic_paths) and not any(r.enabled for r in settings.route_alignments):self.warnings.append('Nenhum eixo autorizado para tráfego: cadastre a camada como Eixo ou selecione uma linha como rota com sentido explícito. Sugestão pelo nome não autoriza circulação. O pavimento sozinho não cria fluxos.')
         self.source_registration={'policy':'explicit_axis_required','native_authorized':len(native),'ignored_unregistered':self.native_axis_report['ignored_sources'],'manual_axes':sum(p.enabled for p in settings.traffic_paths),'registered_alignments':sum(r.enabled for r in settings.route_alignments)}
+        if self.native_axis_report.get('pending_directions'):self.warnings.append('Sentidos antigos vinculados a índices precisam de conferência em Sentidos e nós. Fontes não conferidas permanecem sem circulação; nenhuma decisão foi transferida para outro eixo.')
         raw=native
         for r in settings.traffic_paths:
             if not getattr(r,'enabled',True):continue
@@ -202,6 +203,8 @@ class TrafficNetwork:
             coordinates=np.round(r.get('identity_points',r['points']),3).astype('<f8');geometry_key=min(coordinates.tobytes(),coordinates[::-1].tobytes())
             r['origin_key']=hashlib.sha256((str(r.get('source_id') or r.get('route') or r.get('native_id') or r.get('source',''))+'|'+str(r.get('level',0))).encode()+geometry_key).hexdigest()
             r['origin_aliases']=[r['origin_key']]
+            if r.get('native_axis'):
+                r['origin_aliases'].append(hashlib.sha256((str(r['native_id'])+'|'+str(r.get('level',0))).encode()+geometry_key).hexdigest())
             for old in r.get('legacy_identity_points',[]):
                 q=np.round(old,3).astype('<f8');key=min(q.tobytes(),q[::-1].tobytes())
                 r['origin_aliases'].append(hashlib.sha256((str(r.get('route') or r.get('source',''))+'|'+str(r.get('level',0))).encode()+key).hexdigest())
@@ -394,7 +397,8 @@ class TrafficNetwork:
             if 'native_direction' in r:d=r['native_direction']
             else:
                 k=min(range(len(axes)),key=lambda j:LineString(axes[j]['points']).distance(Point(p[len(p)//2])))
-                d=self.s.route_directions.get(str(k),'auto')
+                from .native_axes import axis_fingerprint
+                a=axes[k];d=self.s.route_directions.get('axis:'+axis_fingerprint(a['points'],a.get('layer',''),a.get('level',0)),'auto')
             if d=='off':return
             if d=='forward':forward=delta>=0;both=False
             elif d=='reverse':forward=delta<=0;both=False
@@ -403,6 +407,7 @@ class TrafficNetwork:
         if user.get('arrow') is not None:forward=user['arrow'];both=False
         # Sentido definido na OAE (1.11): vale para os trechos que passam pelo tabuleiro.
         for deck,sgn in self.oae_dirs:
+            if r.get('native_direction') in ('forward','reverse') or r.get('direction') in ('growing','decreasing') or user.get('arrow') is not None:continue
             inside=np.flatnonzero(contains_xy(deck,p[:,0],p[:,1]))
             if len(inside)<10:continue
             delta=self.chain(p[inside[-1:]])[0]-self.chain(p[inside[:1]])[0]

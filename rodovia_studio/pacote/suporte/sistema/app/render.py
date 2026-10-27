@@ -875,6 +875,8 @@ class Scene:
             import functools
             self._sim=TrafficSim(self.network,self.s,functools.partial(visual.vehicle_type,mix=mix),self.s.duration_s,status)
             self.report['traffic_simulation']=self._sim.report()
+            from .fleet_compatibility import compatibility
+            self.report['fleet_compatibility']=compatibility(self._sim,self.network,self.s,complete=False)
         return self._sim
     def traffic_iter(self,t):
         sim=self.traffic()

@@ -26,9 +26,9 @@ def classify(items,axes):
                 v=b-a;length=float(np.linalg.norm(v))
                 if length<1e-6 or not deck.intersects(LineString([a,b])):continue
                 alignment=abs(float((v/length)@u));longitudinal|=alignment>.85;transverse|=alignment<.4
-        if transverse and abs(z)<.1:warnings.append('OAE transversal com Z=0: não foi criada uma barreira nem presumido desnível. Informe a cota da estrutura antes de representar uma passagem em níveis diferentes.')
+        zero_reference=valid and abs(z)<.1
         if abs(z)>=.1 and not item.get('grade_confirmed'):warnings.append('OAE com cota CAD não nula: confirme o desnível relativo no cadastro da OAE. Uma cota absoluta isolada não libera travessia ferroviária.')
-        rows.append({'id':item.get('id','OAE'),'z_m':z if valid else None,'longitudinal':longitudinal,'transverse':transverse,'grade_separation_known':valid_grade(item)})
+        rows.append({'id':item.get('id','OAE'),'z_m':z if valid else None,'longitudinal':longitudinal,'transverse':transverse,'grade_separation_known':valid_grade(item),'zero_reference':zero_reference,'traffic_effect':'Contorno OAE com Z=0: referência sem impedimento ou alteração de sentido.' if zero_reference else 'Desnível relativo confirmado.' if valid_grade(item) else 'Sem desnível relativo confirmado.'})
     return rows,warnings
 
 

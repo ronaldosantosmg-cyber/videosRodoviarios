@@ -41,6 +41,9 @@ def run(jid):
             request=json.loads((folder(d)/'pedido.json').read_text())
             plan=preview(d,request,status,cancel);store.write_json(folder(d)/'ultima.json',{'id':plan['id']})
             end_message='Proposta pronta; revise e confirme antes de aplicar'
+        elif j['kind']=='traffic_check':
+            from .traffic_check import run as check_traffic
+            check_traffic(d,s,status,cancel);end_message='Conferência de circulação pronta'
         elif j['kind']=='image_context':
             from .image_context import run as image_run
             request=json.loads((d/'contexto_imagem/pedido.json').read_text(encoding='utf-8'))

@@ -1,0 +1,15 @@
+{
+  "axis_order": {
+    "enabled_mean_y_before": 20.0,
+    "enabled_mean_y_after": 0.0
+  },
+  "memory_under_budget": {
+    "available_mib": 256,
+    "workers_returned": 1
+  },
+  "source_validation": {
+    "invalid_dxf_contents": "Arquivo que nao e DXF",
+    "integrity_state": "integro",
+    "scope": "Validação da configuração, hashes das cópias e presença das fontes; integridade geométrica e mídia exigem leitura pelo motor."
+  }
+}

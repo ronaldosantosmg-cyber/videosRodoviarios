@@ -64,7 +64,7 @@ def test_oae_zero_or_longitudinal_does_not_invent_an_obstacle_or_elevation():
     deck=box(90,-20,110,20);line=np.array([[100.,-20.],[100.,20.]])
     info=[dict(id='OAE',deck=deck,line=line,level_m=0)]
     report,warnings=classify(info,[dict(points=np.array([[0.,0.],[200.,0.]]))])
-    assert warnings and report[0]['transverse'] and not report[0]['grade_separation_known']
+    assert not warnings and report[0]['transverse'] and report[0]['zero_reference'] and not report[0]['grade_separation_known']
     assert not grade_separated(info,Point(100,0),np.array([1.,0.]),np.array([0.,1.]))
     info[0]['level_m']=720
     assert not grade_separated(info,Point(100,0),np.array([1.,0.]),np.array([0.,1.]))
@@ -113,7 +113,7 @@ def test_actual_y_junction_has_derived_itineraries_and_continuity_with_distribut
     a=np.array([[0.,0.],[300.,0.]]);b=np.array([[150.,0.],[230.,80.]])
     roads=[LineString(a).buffer(8),LineString(b).buffer(8),Point(150,0).buffer(18)]
     axes=[dict(points=a,layer='EIXO PRINCIPAL',role='axis'),dict(points=b,layer='EIXO RAMAL',role='axis')]
-    s=Settings(hydrography=False,signage_detail='basic',duration_s=3,traffic_speed_kmh=35,min_route_segment_m=50,route_directions={'0':'forward','1':'forward'})
+    s=Settings(hydrography=False,signage_detail='basic',duration_s=3,traffic_speed_kmh=35,min_route_segment_m=50,route_directions={'axis:'+__import__('app.native_axes',fromlist=['axis_fingerprint']).axis_fingerprint(a,'EIXO PRINCIPAL'):'forward','axis:'+__import__('app.native_axes',fromlist=['axis_fingerprint']).axis_fingerprint(b,'EIXO RAMAL'):'forward'})
     net=TrafficNetwork(roads,[],axes,a,np.array([0.,300.]),s)
     assert len(net.paths)>=2 and any(len({net.edges[k]['origin'] for k in p['edges']})>1 for p in net.paths)
     weights,groups=movement_weights(net);assert groups

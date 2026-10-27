@@ -14,7 +14,7 @@ v12 (1.13): transição dia/noite com faróis e sinalização em destaque.
 v13 (1.14): mapeamento de camadas sem regras fixas (pista existente explícita), novos tipos (bordo, hidrografia, talude), cores por tipo.
 Os campos novos têm valores padrão; a migração só converte o que muda de significado.
 """
-SCHEMA_VERSION=30
+SCHEMA_VERSION=31
 _MOJIBAKE=('Ã','â€','Â')
 
 def repair_text(value):

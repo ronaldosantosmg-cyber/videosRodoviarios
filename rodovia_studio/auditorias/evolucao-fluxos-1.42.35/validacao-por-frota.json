@@ -1,0 +1,14 @@
+{
+  "scenario": "Curva sintética R=15 m, faixa central explicitamente cadastrada, corredor de 7,2 m; não é o projeto do usuário",
+  "itineraries": 1,
+  "diagnostic": [
+    "ok"
+  ],
+  "per_vehicle": [
+    {
+      "path": 0,
+      "car6": true,
+      "long30": false
+    }
+  ]
+}

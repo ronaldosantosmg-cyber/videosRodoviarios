@@ -87,9 +87,18 @@ def flow_diagnostics(network):
             status='adjustment';message='ENSAIO CLÁSSICO: veículos ilustrativos; somente canteiros e integridade numérica conferidos.'
             automatic='Manter o ensaio explicitamente identificado; não considerar circulação validada.'
             manual='Desative o modo clássico para validar colisões, semáforos e demais restrições.'
+        fleet=getattr(network,'fleet_compatibility',{})
+        path_rows=[r for r in fleet.get('paths',[]) if raw['base'] in r['bases']]
+        details=[v for row in path_rows for v in row['vehicles'] if v.get('checked',True)]
+        if circulating and details:
+            compatible=sorted({v['type'] for v in details if v['ok']});blocked=sorted({v['type'] for v in details if not v['ok']})
+            if blocked:
+                status='adjustment' if compatible else 'problem';message=('Circulação disponível para: '+', '.join(compatible)+'. ' if compatible else 'Nenhuma classe da frota aprovada neste itinerário. ')+'Classes recusadas: '+', '.join(blocked)+'. Abra Testar circulação para localizar a causa por veículo.'
+        else:compatible=[];blocked=[]
         from .flow_assistant import guidance
         assistant=guidance(status,reasons,disabled=bool(raw.get('disabled')),length=effective_length,minimum=minimum,points=critical)
         out.append({'technical_status':status,'technical_message':message,'technical_assistant':assistant,
+                    'technical_fleet':{'checked':bool(path_rows),'compatible':compatible,'blocked':blocked},
                     'technical_context':{'source':raw.get('source'),'route_id':raw.get('route'),'origin_key':raw.get('origin_key'),'direction':'crescente' if raw.get('forward') else 'decrescente','level':raw.get('level',0),'base_registered':bool(raw.get('native_axis') or raw.get('route') or raw.get('manual'))},
                     'technical_exclusion':('manual' if raw.get('disabled') else 'length_limit' if finite and length>0 and effective_length<minimum else None),
                     'technical_circulation':{'enabled':bool(circulating),'used_edges':len(circulating),'active_edges':len(active),'blocked_edges':sum(bool(e.get('disabled')) for _,e in edges)},

@@ -1,0 +1,12 @@
+[
+  {
+    "probe": "network_failure_while_polling",
+    "task_remains": "tarefa-a",
+    "cancel_disabled": false
+  },
+  {
+    "probe": "late_alignment_response_after_context_change",
+    "context": 2,
+    "stale_result_applied": true
+  }
+]

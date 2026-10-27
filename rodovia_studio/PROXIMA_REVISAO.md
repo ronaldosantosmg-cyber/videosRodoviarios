@@ -1,9 +1,11 @@
-# Continuidade após a revisão 1.42.35
+# Continuidade após a revisão 1.42.36
 
-Atendido nesta revisão: cadastro explícito de fonte de tráfego nativa (papel Eixo ou seleção com sentido), preservando alinhamentos e trajetórias manuais do cadastro existente; bloqueio também no clássico; sugestões de nome não selecionam Eixo automaticamente. Limpeza dos destaques e estado gráfico ao trocar projetos, rejeição de respostas atrasadas de faixas/camadas/hachuras e catálogo CAD atual como fonte dos nomes. Camadas CAD declaradas vazias continuam preservadas e identificadas.
+Fluxos: preservar os nós, as seções, os sentidos por fonte estável e a reversão explícita. Não voltar a usar a posição de um eixo na lista como identidade. Cadastros antigos/alterados ambíguos exigem conferência; desligamentos não são reativados automaticamente.
 
-Causas de resíduo comprovadas no código: layerShow/layerPrev não isolados na troca e prévias de faixas sem guarda de contexto. Testes sintéticos cobrem ambos os caminhos. A ocorrência específica no projeto salvo do usuário ainda não foi reproduzida; não declarar que todo desenho residual possível foi eliminado.
+OAE Z=0: contornos não são impedimento nem fonte de inversão de sentido. Preservar o diagnóstico informativo, os níveis relativos confirmados e os demais bloqueios físicos/dinâmicos. Não desativar barreiras reais só por terem OAE no nome.
 
-Pendências de homologação: uso prolongado Windows/WebView2 e 8 GB, projeto salvo real do usuário, modelo/runtime 3B e API real. Limite de processos é estimativa, não quota global de memória. Migrar outras extensões de desenho para o registro comum apenas com regressões próprias; não reescrever a interface.
+Próximos ensaios: projeto salvo atual do usuário, sessões prolongadas Windows/WebView2/8 GB, carga de grande número de fontes e orçamento agregado CPU/GPU/IA. Reverter vias de dois sentidos exige escolha de faixa/seção; não confundir com inverter o estaqueamento ou programar reversão por horário, não implementada nesta revisão.
 
-Manter branch de desenvolvimento, main protegida, fontes e dados persistentes preservados, testes atuais antes de qualquer pacote e ZIPs históricos intactos em atualizacoes/.
+Consolidar futuramente cadastros/ações ainda duplicados e ampliar correções tipadas, sem outro motor nem código arbitrário de IA. Não prometer reconstrução universal de qualquer ligação ou conformidade normativa. Pesos/runtime 3B real e API real permanecem sem homologação.
+
+Somente branch de desenvolvimento, main protegida, fontes e dados persistentes preservados, testes atuais antes de pacote e ZIPs históricos intactos em atualizacoes/.

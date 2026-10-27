@@ -32,7 +32,7 @@ function collect(){let s={...cfg};for(const k of fields){const el=$(k);if(el)s[k
  s.km_start_m=parseKm($('km_start_m').value);s.km_end_m=parseKm($('km_end_m').value);s.reference_length_m=Number($('reference_length_m').value.replace(',','.'))*1000;
  for(const k of MARK_KEYS)s[k]=JSON.parse(JSON.stringify(M[k]));M.dxf_alignment.mode=$('alignMode').value;s.dxf_alignment.mode=M.dxf_alignment.mode;
  s.layers={};document.querySelectorAll('#layers select').forEach(el=>{if(el.value)(s.layers[el.value]??=[]).push(el.dataset.layer)});if(!analysis&&!sourceLayerCatalog?.layers?.length)s.layers=cfg.layers||{};
- s.route_directions={...(cfg.route_directions||{})};document.querySelectorAll('#routes select').forEach(el=>s.route_directions[el.dataset.route]=el.value);return s}
+ s.route_directions={...(cfg.route_directions||{})};document.querySelectorAll('#routes select').forEach(el=>{if(el.value!=='pending')s.route_directions[el.dataset.route]=el.value});return s}
 async function save(){
  requireProject();const id=pid,context=projectSession.context;clearTimeout(saveTimer);
  const pending=projectSession.queue.catch(()=>{}).then(async()=>{
@@ -71,10 +71,10 @@ async function list(){const rows=await api('/api/projects');$('projects').innerH
 let sourceLayerCatalog=null;
 function showRouteChoices(preserve=false){
  if(!analysis){$('routes').innerHTML='';return}
- if(preserve){cfg.route_directions={...(cfg.route_directions||{})};document.querySelectorAll('#routes select[data-route]').forEach(e=>cfg.route_directions[e.dataset.route]=e.value)}
+ if(preserve){cfg.route_directions={...(cfg.route_directions||{})};document.querySelectorAll('#routes select[data-route]').forEach(e=>{if(e.value!=='pending')cfg.route_directions[e.dataset.route]=e.value})}
  const requested=Number($('min_route_segment_m')?.value??cfg.min_route_segment_m),minimum=Number.isFinite(requested)&&requested>0?requested:50;
  const rows=(analysis.routes||[]).filter(r=>Number.isFinite(Number(r.length_exact_m??r.length_m))&&Number(r.length_exact_m??r.length_m)>=minimum);
- $('routes').innerHTML=rows.map(r=>`<tr><td>Eixo ${esc(r.id)} · ${Number(r.length_m).toFixed(1)} m<br>${esc(r.layer)}</td><td><select data-route="${esc(r.id)}">${[['auto','Automático'],['forward','Crescente (km)'],['reverse','Decrescente (km)'],['off','Sem veículos']].map(([k,v])=>`<option value="${k}" ${(cfg.route_directions||{})[r.id]===k?'selected':''}>${v}</option>`).join('')}</select></td></tr>`).join('');
+ $('routes').innerHTML=rows.map(r=>`<tr><td>Eixo ${esc(r.id)} · ${Number(r.length_m).toFixed(1)} m<br>${esc(r.layer)}</td><td><select data-route="${esc(r.direction_key||('axis-pending:'+r.id))}">${(Object.entries(cfg.route_directions||{}).some(([k,v])=>/^\d+$/.test(k)&&v!=='auto')&&!(r.direction_key in (cfg.route_directions||{}))?'<option value="pending" selected>Conferir sentido antigo…</option>':'')}${[['auto','Automático'],['forward','Crescente (km)'],['reverse','Decrescente (km)'],['off','Sem veículos']].map(([k,v])=>`<option value="${k}" ${(cfg.route_directions||{})[r.direction_key||('axis-pending:'+r.id)]===k?'selected':''}>${v}</option>`).join('')}</select></td></tr>`).join('');
 }
 for(const event of ['input','change'])$('min_route_segment_m')?.addEventListener(event,()=>showRouteChoices(true));
 function showLayers(){const rows=sourceLayerCatalog?.source==='input.dxf'?sourceLayerCatalog.layers:[...(analysis?.layers||[])];if(!rows)return;$('layers').innerHTML=rows.map(l=>{let current=Object.entries(cfg.layers||{}).find(([k,v])=>v.includes(l.name))?.[0]||(!Object.keys(cfg.layers||{}).length&&l.suggested_role!=='axis'?l.suggested_role:'');return `<tr><td>${esc(l.name)}<br><small>${l.count} entidades · ${l.declared?Number(l.count)===0?'CAD: camada declarada vazia':'Fonte CAD':'Análise do projeto'}</small></td><td><select data-layer="${esc(l.name)}"><option value="">Ignorar</option>${Object.entries(roles).map(([k,v])=>`<option value="${k}" ${k===current?'selected':''}>${v}</option>`).join('')}</select></td><td><button class="mini" data-showlayer="${esc(l.name)}" title="Destacar esta camada no editor">Ver</button></td></tr>`}).join('');showRoleColors();

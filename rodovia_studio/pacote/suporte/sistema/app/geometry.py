@@ -366,7 +366,8 @@ def analyze(directory,settings,preview=None,hatch_preview=None):
         kmz_status['message']='KMZ/KML lido e preservado como referência; não foi necessário nos cálculos principais desta análise.'
     # remove duplicatas mantendo ordem
     kmz_status['uses']=list(dict.fromkeys(kmz_status['uses']))
-    report={'hatches':hatches[:300],'layers':[{'name':l,'count':n,'suggested_role':guess(l)} for l,n in sorted(counts.items())], 'suggested_mapping':inferred,'geometric_length_m':float(ds[-1]),'bounds':[lo.tolist(),hi.tolist()],'warnings':list(dict.fromkeys(warnings))[:100],'kmz_pois':kml_pois,'kmz_status':kmz_status,'alignment':alignment,'overlays':[{'id':o.id,'entities':sum(1 for e in entities if e.get('overlay')==o.id)} for o in settings.overlays],'georef_check':georef,'routes':[{'id':str(i),'layer':a['layer'],'length_m':round(LineString(a['points']).length,2),'length_exact_m':float(LineString(a['points']).length),'closed':a['closed']} for i,a in enumerate(axes)],'crs':settings.crs}
+    from .native_axes import axis_fingerprint
+    report={'hatches':hatches[:300],'layers':[{'name':l,'count':n,'suggested_role':guess(l)} for l,n in sorted(counts.items())], 'suggested_mapping':inferred,'geometric_length_m':float(ds[-1]),'bounds':[lo.tolist(),hi.tolist()],'warnings':list(dict.fromkeys(warnings))[:100],'kmz_pois':kml_pois,'kmz_status':kmz_status,'alignment':alignment,'overlays':[{'id':o.id,'entities':sum(1 for e in entities if e.get('overlay')==o.id)} for o in settings.overlays],'georef_check':georef,'routes':[{'id':str(i),'direction_key':'axis:'+axis_fingerprint(a['points'],a.get('layer',''),a.get('level',0)),'layer':a['layer'],'length_m':round(LineString(a['points']).length,2),'length_exact_m':float(LineString(a['points']).length),'closed':a['closed']} for i,a in enumerate(axes)],'crs':settings.crs}
     return entities,axis,ds,axes,report
 
 

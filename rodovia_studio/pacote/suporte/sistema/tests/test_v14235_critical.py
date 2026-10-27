@@ -25,8 +25,8 @@ def test_axis_name_does_not_authorize_traffic_and_explicit_layer_does(classic):
     assert not disabled.paths
 
 
-def test_explicit_direction_registers_selected_axis():
-    assert net(Settings(route_directions={'0':'forward'},signage_detail='basic')).paths
+def test_legacy_direction_requires_review_instead_of_retargeting_axis():
+    result=net(Settings(route_directions={'0':'forward'},signage_detail='basic'));assert not result.paths and result.native_axis_report['pending_directions']>0
 
 
 def pool_process(code,timeout=.2):

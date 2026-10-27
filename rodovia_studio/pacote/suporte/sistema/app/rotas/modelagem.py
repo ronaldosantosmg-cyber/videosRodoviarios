@@ -8,21 +8,24 @@ from ..models import RouteAlignment
 router=APIRouter()
 
 @router.get('/api/projects/{pid}/traffic-axes')
-def traffic_axes(pid):
+def traffic_axes(pid,include_short:bool=False):
     from ..geometry import analyze
     from ..dependencies import revisions
     from shapely.geometry import LineString
-    from ..native_axes import axis_fingerprint
+    from ..native_axes import axis_fingerprint,needs_direction_review
     d,s=_config(pid);before=revisions(d)['geometry']
-    _,_,_,axes,_=analyze(d,s)
+    try:_,_,_,axes,_=analyze(d,s)
+    except ValueError as error:
+        if 'Nenhum eixo encontrado' not in str(error):raise
+        _,_,_,axes,_=analyze(d,s.model_copy(update={'layers':{}}))
     if revisions(d)['geometry']!=before:raise HTTPException(409,'O desenho mudou durante a leitura. Abra novamente a seleção de eixo.')
     result=[]
     for index,axis in enumerate(axes):
         if axis.get('reference_only'):continue
         points=axis['points'];length=float(LineString(points).length)
-        if length<s.min_route_segment_m or len(points)>20000:continue
-        result.append(dict(index=index,fingerprint=axis_fingerprint(points,axis.get('layer',''),axis.get('level',0)),level=axis.get('level',0),name=axis.get('layer') or f'Eixo {index+1}',length_m=length,points=points.tolist()))
-    return dict(axes=result,revision=before,minimum_m=s.min_route_segment_m)
+        if (length<s.min_route_segment_m and not include_short) or len(points)>20000:continue
+        result.append(dict(index=index,fingerprint=axis_fingerprint(points,axis.get('layer',''),axis.get('level',0)),level=axis.get('level',0),name=axis.get('layer') or f'Eixo {index+1}',direction_key='axis:'+axis_fingerprint(points,axis.get('layer',''),axis.get('level',0)),length_m=length,points=points.tolist()))
+    return dict(axes=result,revision=before,minimum_m=s.min_route_segment_m,direction_review_required=needs_direction_review(axes,s))
 
 @router.post('/api/projects/{pid}/image_context',status_code=202)
 def analyze_image(pid,body:ImageRequest):
@@ -86,3 +89,23 @@ def image_capture(pid):
     if not file.is_file() or file.is_symlink() or not file.resolve().is_relative_to(base):raise HTTPException(404,'Captura ausente. Repita a análise da imagem.')
     if result.get('capture_sha256') and hashlib.sha256(file.read_bytes()).hexdigest()!=result['capture_sha256']:raise HTTPException(409,'Captura alterada. Repita a análise.')
     return FileResponse(file,media_type='image/png',headers={'Cache-Control':'no-store'})
+
+@router.post('/api/projects/{pid}/traffic-check',status_code=202)
+def check_traffic_job(pid):return enqueue(pid,'traffic_check')
+
+def current_traffic_check(pid):
+    from ..project_state import revision
+    from ..dependencies import digest,revisions
+    d,s=_config(pid);path=d/'traffic_check.json'
+    if not path.is_file():raise HTTPException(404,'Execute Testar circulação primeiro.')
+    result=json.loads(path.read_text())
+    if result.get('config_revision')!=digest([revision(s.model_dump()),revisions(d,s)]):raise HTTPException(409,'A configuração mudou. Refaça Testar circulação.')
+    return d,result
+
+@router.get('/api/projects/{pid}/traffic-check')
+def check_traffic_report(pid):return current_traffic_check(pid)[1]
+
+@router.get('/api/projects/{pid}/traffic-check.png')
+def check_traffic_image(pid):
+    from fastapi.responses import FileResponse
+    d,_=current_traffic_check(pid);return FileResponse(d/'traffic_check.png',media_type='image/png',headers={'Cache-Control':'no-store'})
