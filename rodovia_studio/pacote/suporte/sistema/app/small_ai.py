@@ -2,7 +2,7 @@
 import hashlib,json,os,secrets,socket,subprocess,threading,time,urllib.request,urllib.error
 from pathlib import Path
 from typing import Literal,Annotated
-from pydantic import Field
+from pydantic import Field,SecretStr,field_validator
 from . import assistance as A,store
 from .project_state import read_config,revision,Conflict
 
@@ -22,14 +22,61 @@ class Run(A.Strict):
     provider:Literal['local','online']='local'
     consent_online:bool=False
 
-_lock=threading.Lock();_state={'active':False,'project':None,'cancelled':False,'process':None}
+ONLINE_PROVIDERS={
+ 'openai':{'name':'OpenAI','url':'https://api.openai.com/v1/chat/completions','keys_url':'https://platform.openai.com/api-keys','models_url':'https://platform.openai.com/docs/models'},
+ 'groq':{'name':'Groq','url':'https://api.groq.com/openai/v1/chat/completions','keys_url':'https://console.groq.com/keys','models_url':'https://console.groq.com/docs/models'},
+ 'openrouter':{'name':'OpenRouter','url':'https://openrouter.ai/api/v1/chat/completions','keys_url':'https://openrouter.ai/settings/keys','models_url':'https://openrouter.ai/models'}
+}
+class OnlineConfig(A.Strict):
+    provider:Literal['openai','groq','openrouter']
+    model:str=Field(min_length=1,max_length=160,pattern=r'^[A-Za-z0-9][A-Za-z0-9._:/@-]*$')
+    key:SecretStr
+    @field_validator('key')
+    @classmethod
+    def checked_key(cls,value):
+        key=value.get_secret_value().strip()
+        if len(key)<8 or len(key)>4096 or any(c.isspace() or ord(c)<32 or ord(c)>126 for c in key):raise ValueError('Chave inválida.')
+        return SecretStr(key)
+_remote=None
+_remote_lock=threading.RLock()
+
+def online_settings():
+    with _remote_lock:
+        if _remote is not None:return dict(_remote)
+    return {'provider':'environment','url':os.environ.get('RODOVIA_IA_ONLINE_URL',''),'model':os.environ.get('RODOVIA_IA_ONLINE_MODEL',''),'key':os.environ.get('RODOVIA_IA_ONLINE_KEY')}
+
+def configure_online(value):
+    global _remote
+    value=OnlineConfig.model_validate(value)
+    from .rotas.comum import dispatch_lock
+    with dispatch_lock,_remote_lock:
+        if active():raise ValueError('Aguarde ou cancele a consulta antes de trocar a conexão.')
+        _remote={'provider':value.provider,'url':ONLINE_PROVIDERS[value.provider]['url'],'model':value.model,'key':value.key.get_secret_value()}
+    return {'configured':True,'provider':value.provider,'model':value.model,'notice':'Conexão configurada nesta sessão. A chave não foi gravada; a consulta exige sua confirmação.'}
+
+def disconnect_online():
+    global _remote
+    from .rotas.comum import dispatch_lock
+    with dispatch_lock,_remote_lock:
+        if active():raise ValueError('Aguarde ou cancele a consulta antes de desconectar.')
+        _remote={}
+    return {'configured':False,'notice':'Conexão online desativada nesta sessão.'}
+
+_lock=threading.Lock();_state={'active':False,'project':None,'cancelled':False,'process':None,'connection':None}
 _verified={}
 
 def assets():return (store.INSTALL/'modelos_ia') if store.INSTALL else store.ROOT/'_modelos_ia'
 def active():return _state['active']
 def cancel(project=None):
     if project is not None and _state['project']!=project:return False
+    if _state['cancelled']:return True
     _state['cancelled']=True
+    connection=_state.get('connection')
+    if connection is not None:
+        def close_connection():
+            try:connection.close()
+            except (OSError,ValueError):pass
+        threading.Thread(target=close_connection,daemon=True).start()
     p=_state.get('process')
     if p is not None and p.poll() is None:p.terminate()
     return True
@@ -59,13 +106,13 @@ def _files():
 def status():
     from urllib.parse import urlsplit
     try:
-        remote=urlsplit(os.environ.get('RODOVIA_IA_ONLINE_URL',''))
+        settings=online_settings();remote=urlsplit(settings.get('url',''))
         host=remote.hostname if remote.scheme=='https' and not remote.username and not remote.password and not remote.query and not remote.fragment else None
     except ValueError:host=None
     try:
         checked,exe,data=_files();installed=True;message='Arquivos presentes. Integridade será conferida antes de iniciar; inferência depende de validação do pacote.'
     except (ValueError,OSError,json.JSONDecodeError):installed=False;message='Modelo 3B não instalado ou pacote incompleto.'
-    return {'installed':installed,'active':active(),'message':message,'folder':str(assets()),'online_configured':bool(host and os.environ.get('RODOVIA_IA_ONLINE_MODEL')),'online_host':host,'candidate':'SmolLM3-3B Q4_K_M, ainda sem inferência homologada','memory_profile':{'context':2048,'parallel':1,'gpu_layers':0,'max_output_tokens':512,'unload':'após cada consulta'},'limits':'Presença de arquivos não comprova qualidade do modelo, origem ou adequação a 8 GB. O manifesto detecta alterações, não autentica o publicador.'}
+    return {'installed':installed,'active':active(),'message':message,'folder':str(assets()),'online_configured':bool(host and settings.get('model')),'online_host':host,'online_model':settings.get('model') if host else None,'online_provider':settings.get('provider') if host else None,'providers':[{k:v for k,v in values.items() if k!='url'}|{'id':key} for key,values in ONLINE_PROVIDERS.items()],'candidate':'SmolLM3-3B Q4_K_M, ainda sem inferência homologada','memory_profile':{'context':2048,'parallel':1,'gpu_layers':0,'max_output_tokens':512,'unload':'após cada consulta'},'limits':'Presença de arquivos não comprova qualidade do modelo, origem ou adequação a 8 GB. O manifesto detecta alterações, não autentica o publicador.'}
 
 def _verify():
     checked,exe,data=_files()
@@ -151,7 +198,10 @@ def _http(url,body=None,token=None,local=False,timeout=15):
     if token:headers['Authorization']='Bearer '+token
     data=json.dumps(body,allow_nan=False).encode() if body is not None else None
     with opener.open(urllib.request.Request(url,data=data,headers=headers),timeout=timeout) as r:
-        raw=r.read(256*1024+1)
+        if not local:_state['connection']=r
+        try:raw=r.read(256*1024+1)
+        finally:
+            if not local:_state['connection']=None
         if len(raw)>256*1024:raise ValueError('Resposta da IA excedeu 256 KiB.')
         return json.loads(raw,parse_constant=lambda _:(_ for _ in ()).throw(ValueError('Resposta não finita.')))
 
@@ -184,12 +234,18 @@ def _local(messages):
 
 def _online(messages,consent):
     from urllib.parse import urlsplit
-    url=os.environ.get('RODOVIA_IA_ONLINE_URL','');parsed=urlsplit(url)
+    settings=online_settings();url=settings.get('url','');parsed=urlsplit(url)
     if not consent:raise ValueError('Envio online exige confirmação explícita após revisar o mini prompt.')
     if parsed.scheme!='https' or not parsed.hostname or parsed.username or parsed.password or parsed.query or parsed.fragment:raise ValueError('API online não configurada com HTTPS válido.')
-    model=os.environ.get('RODOVIA_IA_ONLINE_MODEL')
+    model=settings.get('model')
     if not model:raise ValueError('Modelo online não configurado.')
-    return _http(url,{'model':model,'messages':messages,'max_tokens':512,'temperature':0,'stream':False,'tools':[],'tool_choice':'none','response_format':{'type':'json_object'}},os.environ.get('RODOVIA_IA_ONLINE_KEY'),timeout=120)
+    key=settings.get('key')
+    if key is not None and (len(key)>4096 or any(c.isspace() or ord(c)<32 or ord(c)>126 for c in key)):raise ValueError('Formato da chave da API inválido. Confira a configuração da conexão.')
+    response_format={'type':'json_schema','json_schema':{'name':'rodovia_resposta','strict':False,'schema':Reply.model_json_schema()}} if settings.get('provider')=='openai' else {'type':'json_object'}
+    try:return _http(url,{'model':model,'messages':messages,'max_tokens':512,'temperature':0,'stream':False,'tools':[],'tool_choice':'none','response_format':response_format},key,timeout=120)
+    except urllib.error.HTTPError as error:
+        messages={401:'Chave recusada pelo provedor. Confira a chave da API.',403:'A conta ou a rede não tem acesso a este serviço.',404:'Modelo ou serviço não encontrado. Confira o identificador do modelo.',429:'Limite ou saldo da API atingido. Confira a conta no provedor.',400:'O provedor recusou o pedido. Confira se o modelo aceita chat e resposta JSON.'}
+        raise ValueError(messages.get(error.code,'A API retornou erro HTTP '+str(error.code)+'. Nenhuma alteração aplicada.')) from None
 
 def run(d,request):
     request=Run.model_validate(request);d=Path(d)
@@ -221,8 +277,12 @@ def run(d,request):
     except Exception as error:
         if logged:
             from .execlog import write
-            write(d,'erros','ia_consulta_recusada',tipo='ia3b',erro=type(error).__name__,mensagem='Consulta IA interrompida ou resposta recusada. Nenhuma alteração aplicada.')
-            write(d,'execucao','falha',tipo='ia3b',duracao_s=round(time.monotonic()-started,2))
+            if _state['cancelled'] or isinstance(error,InterruptedError):
+                write(d,'execucao','cancelado',tipo='ia3b',duracao_s=round(time.monotonic()-started,2))
+            else:
+                write(d,'erros','ia_consulta_recusada',tipo='ia3b',erro=type(error).__name__,mensagem='Consulta IA interrompida ou resposta recusada. Nenhuma alteração aplicada.')
+                write(d,'execucao','falha',tipo='ia3b',duracao_s=round(time.monotonic()-started,2))
+        if _state['cancelled']:raise InterruptedError('Consulta cancelada; nenhuma alteração aplicada.') from None
         raise
     finally:
-        _state.update(active=False,project=None,process=None);_lock.release()
+        _state.update(active=False,project=None,process=None,connection=None);_lock.release()

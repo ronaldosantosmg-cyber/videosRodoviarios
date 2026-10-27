@@ -32,7 +32,7 @@ O sentido crescente do estaqueamento é a referência de esquerda/direita. A men
 - Início de cálculo/alteração de arquivos recusado durante consulta; IA recusada durante cálculo/vídeo pendente ou ativo. Pan/zoom continua no navegador.
 - 120 s de prazo para inicialização e 180 s para resposta local. Descarregamento e timeout devem ser medidos com o modelo selecionado e o PC final.
 
-Estimativa de disco adicional: aproximadamente 2–3 GB para pesos/modelo e dependências do provedor, ainda não medida. Os ZIPs históricos de atualização não contêm pesos. Não existe novo pacote final aprovado desta integração enquanto faltar validação com o modelo real.
+Estimativa de disco adicional: aproximadamente 2–3 GB para pesos/modelo e dependências do provedor, ainda não medida. Os ZIPs históricos de atualização não contêm pesos. A atualização 1.42.28 inclui o adaptador e a conexão online sem pesos. Isso não é uma entrega de IA 3B local homologada.
 
 ## Pacote local a homologar
 
@@ -48,7 +48,9 @@ Todos os arquivos necessários precisam constar no manifesto; links e caminhos e
 
 ## API online opcional
 
-Compatibilidade prevista com chat completions JSON. Desativada enquanto não configurada pelo responsável pelo ambiente. Configuração em variáveis do processo, fora dos projetos e logs:
+A partir da 1.42.28, Ajuda → IA de apoio → Conectar API online permite escolher OpenAI, Groq ou OpenRouter, abrir o link oficial de chaves/modelos e informar a chave no próprio aplicativo. A chave fica somente na memória da sessão; não é gravada, exportada ou mostrada no status. A conexão só é autenticada na primeira consulta autorizada. Ao reiniciar, configure novamente. Desconectar desativa a conexão nesta sessão, inclusive a configuração de ambiente.
+
+Também é possível configurar um endpoint compatível em variáveis do processo, fora dos projetos e logs:
 
 - RODOVIA_IA_ONLINE_URL: URL HTTPS completa do endpoint de chat completions.
 - RODOVIA_IA_ONLINE_MODEL: identificador do modelo.

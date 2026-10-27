@@ -55,7 +55,7 @@ async function commitClose(){
  if(pane.project!==pid){msg('O projeto mudou. Feche e reabra esta janela.',true);return false}
  if(!pid){msg('Crie ou abra um projeto antes de salvar.',true);return false}
  committing=true;
- try{flushPropertyInputs(pane.node);dialog().querySelectorAll('button,input,select,textarea').forEach(e=>{e.dataset.rsWasDisabled=String(e.disabled);e.disabled=true});if(['name','origin','destination'].some(key=>!String($(key)?.value||'').trim()))throw Error('Informe nome, origem e destino antes de salvar.');await originalSave();if(savePending)throw Error('Há novas alterações pendentes. Revise e salve novamente.');finish(false);window.dispatchEvent(new CustomEvent('rodovia:form-committed',{detail:{project:pane.project,context:projectSession.context}}));return true}
+ try{flushPropertyInputs(pane.node);dialog().querySelectorAll('button,input,select,textarea').forEach(e=>{e.dataset.rsWasDisabled=String(e.disabled);e.disabled=true});if(!String($('name')?.value||'').trim())throw Error('Informe o nome do projeto antes de salvar.');await originalSave();if(savePending)throw Error('Há novas alterações pendentes. Revise e salve novamente.');finish(false);window.dispatchEvent(new CustomEvent('rodovia:form-committed',{detail:{project:pane.project,context:projectSession.context}}));return true}
  catch(e){$('rsPanelStatus').textContent='Não foi salvo: '+e.message;msg(e.message,true);return false}
  finally{document.querySelectorAll('[data-rs-was-disabled]').forEach(e=>{e.disabled=e.dataset.rsWasDisabled==='true';delete e.dataset.rsWasDisabled});committing=false}
 }

@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.27",
-  "description": "1.42.27: diagnóstico amarelo clicável dos fluxos, correção do modo Projeto, configuração de vídeo por abas e assistência local ampliada."
+  "version": "1.42.28",
+  "description": "1.42.28: fechamento de hachuras em projetos legados, conexão online configurável e propostas de IA validadas pelo contrato do motor."
 }

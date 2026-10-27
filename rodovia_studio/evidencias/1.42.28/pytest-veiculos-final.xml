@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="7" time="63.176" timestamp="2026-10-27T00:35:32.194432+00:00" hostname="23b78f9c05ea"><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1404_traffic_sim" name="test_safe_overtake_starts_only_to_adjacent_lane_when_window_is_allowed" time="0.012" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14220_sections_materials" name="test_density_box_remains_editable_and_typing_activates_density" time="45.837"><failure message="playwright._impl._errors.TimeoutError: Locator.fill: Timeout 30000ms exceeded.&#10;Call log:&#10;  - waiting for locator(&quot;#traffic_density&quot;)&#10;    - locator resolved to &lt;input max=&quot;8&quot; min=&quot;0.2&quot; value=&quot;1&quot; step=&quot;0.2&quot; type=&quot;number&quot; id=&quot;traffic_density&quot;/&gt;&#10;    - fill(&quot;5&quot;)&#10;  - attempting fill action&#10;    2 × waiting for element to be visible, enabled and editable&#10;      - element is not visible&#10;    - retrying fill action&#10;    - waiting 20ms&#10;    2 × waiting for element to be visible, enabled and editable&#10;      - element is not visible&#10;    - retrying fill action&#10;      - waiting 100ms&#10;    59 × waiting for element to be visible, enabled and editable&#10;       - element is not visible&#10;     - retrying fill action&#10;       - waiting 500ms">gl_page = &lt;Page url='http://127.0.0.1:60295/'&gt;
+live = ('http://127.0.0.1:60295', 'ffffffffffffffffffffffffffffffff', PosixPath('/tmp/pytest-of-agent/pytest-278/webgl_real0'))
+
+    def test_density_box_remains_editable_and_typing_activates_density(gl_page,live):
+        p=gl_page;p.evaluate("()=&gt;{fill({...collect(),traffic_demand_vphpl:3500});psOpenHub('video')}")
+        p.get_by_role('tab',name='Veículos e fluxo',exact=True).click()
+        p.get_by_text('Tráfego: simulação, engarrafamento e canteiro',exact=True).click()
+        assert p.locator('#traffic_density').is_enabled()
+&gt;       p.locator('#traffic_density').fill('5')
+
+tests/test_v14220_sections_materials.py:90: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:15989: in fill
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:215: in fill
+    return await self._frame.fill(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:607: in fill
+    await self._fill(**locals_to_params(locals()))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:619: in _fill
+    await self._channel.send("fill", self._timeout, locals_to_params(locals()))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;playwright._impl._connection.Connection object at 0x7f6ca4f70d70&gt;
+cb = &lt;function Channel.send.&lt;locals&gt;.&lt;lambda&gt; at 0x7f6ca529bb00&gt;
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -&gt; Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+&gt;           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.fill: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for locator("#traffic_density")
+E               - locator resolved to &lt;input max="8" min="0.2" value="1" step="0.2" type="number" id="traffic_density"/&gt;
+E               - fill("5")
+E             - attempting fill action
+E               2 × waiting for element to be visible, enabled and editable
+E                 - element is not visible
+E               - retrying fill action
+E               - waiting 20ms
+E               2 × waiting for element to be visible, enabled and editable
+E                 - element is not visible
+E               - retrying fill action
+E                 - waiting 100ms
+E               59 × waiting for element to be visible, enabled and editable
+E                  - element is not visible
+E                - retrying fill action
+E                  - waiting 500ms
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError</failure></testcase><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14228_vehicle_presentation" name="test_wide_view_no_longer_hides_simulated_vehicles_and_focus_makes_them_readable" time="2.119"><failure message="ValueError: O modo Tráfego exige Incluir veículos ativado.">tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-278/test_wide_view_no_longer_hides0')
+
+    def test_wide_view_no_longer_hides_simulated_vehicles_and_focus_makes_them_readable(tmp_path):
+        d,s=project(tmp_path);s.camera_mode='trafego';s.view_width_m=350
+        scene=Scene(d,s);before=s.model_dump();image,meta=scene.frame(1)
+        stats=meta['traffic_visibility'];assert stats['active']&gt;0 and stats['drawn']&gt;0 and stats['subpixel']==0
+        assert stats['width_m']==350 and not stats['reveal_pending']
+        assert preflight(scene)['status']=='visivel'
+&gt;       scene.s.traffic=False;without,_=scene.frame(1);scene.s.traffic=True
+                                        ^^^^^^^^^^^^^^
+
+tests/test_v14228_vehicle_presentation.py:20: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+app/render.py:990: in frame
+    cam,width,progress,poi,scene=self.pose(t)
+                                 ^^^^^^^^^^^^
+app/render.py:566: in pose
+    return focus_pose(self,t)
+           ^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+scene = &lt;app.render.Scene object at 0x7f6c9c473050&gt;, t = 1
+
+    def focus_pose(scene,t):
+        """Segue um veículo real persistente; caso contrário, enquadra uma via válida."""
+&gt;       if not scene.s.traffic:raise ValueError('O modo Tráfego exige Incluir veículos ativado.')
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: O modo Tráfego exige Incluir veículos ativado.
+
+app/traffic_presentation.py:27: ValueError</failure></testcase><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14228_vehicle_presentation" name="test_fit_cache_varies_with_position_and_keeps_actual_body_inside_pavement" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14228_vehicle_presentation" name="test_focus_rejects_missing_itinerary_without_mutating_restrictions" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14228_vehicle_presentation" name="test_diagnostic_does_not_invent_simulation_and_ignores_stale_results" time="0.037" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14228_vehicle_presentation" name="test_real_browser_vehicle_diagnostic_can_generate_focused_preview" time="13.544"><failure message="assert 750.0 == 350">gl_page = &lt;Page url='http://127.0.0.1:47475/'&gt;
+live = ('http://127.0.0.1:47475', 'ffffffffffffffffffffffffffffffff', PosixPath('/tmp/pytest-of-agent/pytest-278/webgl_real1'))
+
+    def test_real_browser_vehicle_diagnostic_can_generate_focused_preview(gl_page,live):
+        p=gl_page;p.evaluate('RodoviaTrafficHelp.open()')
+        d=p.get_by_role('dialog',name='Diagnosticar veículos',exact=True)
+        d.get_by_text('Somente resultados atuais;',exact=False).wait_for()
+        # Análise atual antes de habilitar o enquadramento; não pressupor que abrir recalcula.
+        if d.get_by_role('button',name='Ativar veículos e gerar prévia de tráfego',exact=True).is_disabled():
+            d.get_by_role('button',name='Atualizar diagnóstico das rotas',exact=True).click()
+            p.wait_for_function('!task &amp;&amp; !taskRequestPending',timeout=90000)
+        d.get_by_role('button',name='Ativar veículos e gerar prévia de tráfego',exact=True).click()
+        p.wait_for_function('!task &amp;&amp; !taskRequestPending',timeout=90000)
+        d.wait_for(state='visible')
+        assert p.locator('#camera_mode').input_value()=='trafego'
+        result=p.request.get(live[0]+'/api/projects/'+live[1]+'/traffic_status').json()
+        assert result['preview_active']&gt;0 and result['preview_drawn']&gt;0
+&gt;       assert result['preview_width_m']==350
+E       assert 750.0 == 350
+
+tests/test_v14228_vehicle_presentation.py:77: AssertionError</failure></testcase></testsuite></testsuites>

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="59" time="165.388" timestamp="2026-10-27T00:32:07.432627+00:00" hostname="23b78f9c05ea"><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_invalid_motion_is_rejected[None]" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_invalid_motion_is_rejected[bad1]" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_invalid_motion_is_rejected[bad2]" time="0.000" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_invalid_motion_is_rejected[bad3]" time="0.006" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_invalid_motion_is_rejected[bad4]" time="0.000" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_invalid_motion_is_rejected[bad5]" time="0.000" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_front_and_rear_coordinates_and_unit_heading" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_sharp_turn_reversal_and_crossing_are_rejected[points0]" time="0.003" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_sharp_turn_reversal_and_crossing_are_rejected[points1]" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_sharp_turn_reversal_and_crossing_are_rejected[points2]" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_close_zigzag_is_rejected_but_long_smooth_lane_change_allowed" time="0.003" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_real_vehicle_dimensions_change_steering_feasibility" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_front_rear_body_must_stay_on_pavement" time="0.002" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_legitimate_smooth_return_and_roundabout_are_not_blanket_removed" time="0.002" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_forced_connector_cannot_reverse_explicit_route_direction" time="0.002" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_forced_connector_cannot_bypass_no_connection_zone" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_zero_gap_collinear_connector_does_not_generate_loop" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_vehicle_pose_is_continuous_between_samples_and_reports_front_rear" time="0.574" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_unsafe_class_is_not_spawned_on_tight_curve" time="0.011" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_explicit_crossing_prohibition_beats_forced_or_free_mode" time="0.003" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_long_lane_change_is_valid_but_short_sharp_shift_is_refused" time="0.008" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_curve_speed_envelope_respects_lateral_acceleration" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_stopped_vehicle_does_not_slide_sideways_to_finish_lane_change" time="0.000" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_front_rear_profiles_match_rendered_vehicle_dimensions" time="0.000" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_organic_heading_and_forward_motion_on_continuous_curve" time="1.141" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1423_motion" name="test_legacy_animation_has_same_class_audit_and_no_zero_division" time="0.010" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1404_traffic_sim" name="test_route_lane_change_defaults_are_conservative" time="0.004" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1404_traffic_sim" name="test_lane_change_entire_manoeuvre_must_fit_allowed_window" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1404_traffic_sim" name="test_deny_zone_blocks_even_safe_mode" time="0.000" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1404_traffic_sim" name="test_hard_separation_repairs_overlap_before_frame_is_recorded" time="0.000" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1404_traffic_sim" name="test_route_lane_change_section_orders_values" time="0.003" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1404_traffic_sim" name="test_safe_overtake_starts_only_to_adjacent_lane_when_window_is_allowed" time="0.002"><failure message="AttributeError: 'TrafficSim' object has no attribute 'pedestrians'">def test_safe_overtake_starts_only_to_adjacent_lane_when_window_is_allowed():
+        sim=TrafficSim.__new__(TrafficSim)
+        base={'length':1000.0,'route':'r1','route_dir':'f','route_start_m':0.0,'route_end_m':1000.0,
+              'lane_change':'marked','lane_change_sections':[{'start_m':0,'end_m':1000,'mode':'allow'}]}
+        sim.paths=[dict(base,route_lane=0),dict(base,route_lane=1)]
+        from shapely.geometry import box
+        from types import SimpleNamespace
+        for k,path in enumerate(sim.paths):
+            path['p']=np.c_[np.linspace(0,1000,1001),np.full(1001,k*3.5)]
+            path['d']=np.linspace(0,1000,1001);path['t']=np.tile([1.,0.],(1001,1))
+        sim.net=SimpleNamespace(allowed=box(-20,-10,1020,15));sim.motion_cache={};sim.lc_blocked_geometry=0
+    
+        from app.vehicle_motion import prepare_points
+        from app.vehicle_safety import PolygonSafety
+        sim.motion_points=[prepare_points(p['p']) for p in sim.paths]
+        sim.polygon_safety=PolygonSafety(sim);sim.lane_events=[]
+        sim.link_of=[[(('e',0),0.0,1000.0)],[(('e',1),0.0,1000.0)]]
+        sim.starts=[[0.0],[0.0]];sim.adjacent={0:[1],1:[0]}
+        sim.lane_changes=sim.lc_blocked_rules=sim.lc_blocked_safety=0
+        rear={'id':1,'p':0,'s':100.0,'v':10.0,'L':4.6,'v0':20.0,'li':0,'lc':None,'lc_cooldown':-1}
+        lead={'id':2,'p':0,'s':120.0,'v':8.0,'L':4.6,'v0':20.0,'li':0,'lc':None,'lc_cooldown':-1}
+        V=[rear,lead];occ=sim.occupancy(V)
+&gt;       sim.consider_lane_changes(V,10.0,occ)
+
+tests/test_v1404_traffic_sim.py:76: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;app.simulation.TrafficSim object at 0x7f13a2934620&gt;
+V = [{'id': 1, 'p': 0, 's': 100.0, 'v': 10.0, ...}, {'id': 2, 'p': 0, 's': 120.0, 'v': 8.0, ...}]
+t = 10.0
+occ = defaultdict(&lt;class 'list'&gt;, {('e', 0): [(100.0, {'id': 1, 'p': 0, 's': 100.0, 'v': 10.0, 'L': 4.6, 'v0': 20.0, 'li': 0....0, {'id': 2, 'p': 0, 's': 120.0, 'v': 8.0, 'L': 4.6, 'v0': 20.0, 'li': 0, 'lc': None, 'lc_cooldown': -1}, 0, 120.0)]})
+
+    def consider_lane_changes(self,V,t,occ):
+        for v in sorted(V,key=lambda x:x['id']):
+            if v.get('lc') is not None or t&lt;v.get('lc_cooldown',-math.inf):continue
+            cand=self.adjacent.get(v['p'],())
+            if not cand:continue
+            gap,_,lead=self.leader_state(v,occ,look=120.)
+            if gap&gt;55 or v['v']&gt;.92*v['v0']:continue
+            travel=max(18.,6*PROFILES.get(v.get('t','car'),PROFILES['car'])[2],v['v']*self.LC_DURATION+8.)
+            if not self.lane_change_window_allowed(v['p'],v['s'],travel):
+                self.lc_blocked_rules+=1;continue
+            best=None
+            for target in cand:
+&gt;               if not self.pedestrians.lane_change_allowed(v,target,travel):continue
+                       ^^^^^^^^^^^^^^^^
+E               AttributeError: 'TrafficSim' object has no attribute 'pedestrians'
+
+app/simulation.py:275: AttributeError</failure></testcase><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14212_traffic_safety" name="test_explicit_opposite_lane_endpoints_are_portals_without_a_uturn" time="7.656" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14212_traffic_safety" name="test_wide_trucks_observe_half_meter_free_distance_and_use_both_directions[3.3]" time="2.087" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14212_traffic_safety" name="test_wide_trucks_observe_half_meter_free_distance_and_use_both_directions[3.5]" time="8.412" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14212_traffic_safety" name="test_pare_siga_never_reverses_while_tail_is_in_shared_corridor" time="16.274" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14212_traffic_safety" name="test_actual_overtakes_have_indicators_and_keep_lateral_reservations" time="12.102" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14212_traffic_safety" name="test_vehicle_wider_than_selected_driving_band_cannot_enter" time="0.045" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14220_sections_materials" name="test_existing_is_condition_not_surface_type[ACOSTAMENTO_EXISTENTE-shoulder]" time="0.055" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14220_sections_materials" name="test_existing_is_condition_not_surface_type[ACOSTAMENTO_PROJETADO-shoulder]" time="0.004" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14220_sections_materials" name="test_existing_is_condition_not_surface_type[OAE_EXISTENTE-oae]" time="0.003" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14220_sections_materials" name="test_existing_is_condition_not_surface_type[CORTE_EXISTENTE-cut]" time="0.006" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14220_sections_materials" name="test_existing_is_condition_not_surface_type[CANTEIRO_EXISTENTE-median]" time="0.002" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14220_sections_materials" name="test_existing_is_condition_not_surface_type[PAVIMENTO_EXISTENTE-existing_pavement]" time="0.003" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14220_sections_materials" name="test_existing_is_condition_not_surface_type[PAVIMENTO_PROJETADO-pavement]" time="0.003" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14220_sections_materials" name="test_explicit_typical_section_generates_continuous_lanes_without_dxf_pavement_hatch[False-False-2]" time="0.040" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14220_sections_materials" name="test_explicit_typical_section_generates_continuous_lanes_without_dxf_pavement_hatch[False-True-3]" time="0.059" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14220_sections_materials" name="test_explicit_typical_section_generates_continuous_lanes_without_dxf_pavement_hatch[True-False-4]" time="0.069" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14220_sections_materials" name="test_explicit_typical_section_generates_continuous_lanes_without_dxf_pavement_hatch[True-True-5]" time="0.097" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14220_sections_materials" name="test_lane_selection_preserves_other_lane_positions_and_never_enables_shoulder" time="0.003" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14220_sections_materials" name="test_short_intervals_are_absent_from_motor_and_technical_preview" time="0.008" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14220_sections_materials" name="test_section_surface_keeps_real_barriers_and_manual_disable" time="0.040" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14220_sections_materials" name="test_source_binding_can_be_undone_and_does_not_suppress_another_level" time="0.070" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14220_sections_materials" name="test_density_box_remains_editable_and_typing_activates_density" time="46.325"><failure message="playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.&#10;Call log:&#10;  - waiting for get_by_text(&quot;Tráfego: simulação, engarrafamento e canteiro&quot;, exact=True)&#10;    - locator resolved to &lt;summary&gt;Tráfego: simulação, engarrafamento e canteiro&lt;/summary&gt;&#10;  - attempting click action&#10;    2 × waiting for element to be visible, enabled and stable&#10;      - element is not visible&#10;    - retrying click action&#10;    - waiting 20ms&#10;    2 × waiting for element to be visible, enabled and stable&#10;      - element is not visible&#10;    - retrying click action&#10;      - waiting 100ms&#10;    51 × waiting for element to be visible, enabled and stable&#10;       - element is not visible&#10;     - retrying click action&#10;       - waiting 500ms">gl_page = &lt;Page url='http://127.0.0.1:45341/'&gt;
+live = ('http://127.0.0.1:45341', 'ffffffffffffffffffffffffffffffff', PosixPath('/tmp/pytest-of-agent/pytest-276/webgl_real0'))
+
+    def test_density_box_remains_editable_and_typing_activates_density(gl_page,live):
+        p=gl_page;p.evaluate("()=&gt;{fill({...collect(),traffic_demand_vphpl:3500});psOpenHub('video')}")
+&gt;       p.get_by_text('Tráfego: simulação, engarrafamento e canteiro',exact=True).click()
+
+tests/test_v14220_sections_materials.py:87: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:15637: in click
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:162: in click
+    return await self._frame._click(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:566: in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;playwright._impl._connection.Connection object at 0x7f139f5c3920&gt;
+cb = &lt;function Channel.send.&lt;locals&gt;.&lt;lambda&gt; at 0x7f139e239080&gt;
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -&gt; Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+&gt;           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for get_by_text("Tráfego: simulação, engarrafamento e canteiro", exact=True)
+E               - locator resolved to &lt;summary&gt;Tráfego: simulação, engarrafamento e canteiro&lt;/summary&gt;
+E             - attempting click action
+E               2 × waiting for element to be visible, enabled and stable
+E                 - element is not visible
+E               - retrying click action
+E               - waiting 20ms
+E               2 × waiting for element to be visible, enabled and stable
+E                 - element is not visible
+E               - retrying click action
+E                 - waiting 100ms
+E               51 × waiting for element to be visible, enabled and stable
+E                  - element is not visible
+E                - retrying click action
+E                  - waiting 500ms
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError</failure></testcase><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14220_sections_materials" name="test_axis_chooser_builds_section_from_real_dxf_and_shows_lane_controls" time="14.848" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14220_sections_materials" name="test_artistic_preset_preserves_geometries_and_sets_natural_materials" time="27.111" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14220_sections_materials" name="test_all_engineering_materials_render_to_real_mp4_and_3d" time="25.324" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14220_sections_materials" name="test_technical_hatch_is_preserved_but_not_overlaid_on_natural_maquette" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14220_sections_materials" name="test_natural_presentation_invalidates_surface_cache_without_removing_saved_hatch" time="1.366" /></testsuite></testsuites>

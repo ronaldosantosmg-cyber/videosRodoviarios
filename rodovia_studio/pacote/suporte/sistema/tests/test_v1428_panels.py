@@ -41,6 +41,8 @@ def test_popup_save_reaches_the_real_api_and_restores_enabled_controls(gl_page,l
 
 def test_presentation_selector_restores_map_local_and_combination(gl_page,live):
     p=gl_page
+    # Desde 1.42.24, os campos ficam na expansão de apresentação da aba Projeto.
+    p.locator('.rsPresentationExpansion > summary').click()
     assert p.locator('#rsPresentationBase').is_visible() and p.locator('#rsPresentationImages').is_visible()
     # Um mosaico já validado pode ser selecionado sem trocar sua identidade ou apagar fontes.
     p.evaluate("cfg.local_imagery={...cfg.local_imagery,image:'ortofoto.tif',name:'Ortofoto'}")
@@ -93,7 +95,7 @@ def test_local_selection_generates_a_real_preview_and_preserves_the_geotiff(gl_p
     raw=source.read_bytes();url=live[0]+'/api/projects/'+live[1]
     response=p.request.post(url+'/imagery',multipart={'files':{'name':source.name,'mimeType':'image/tiff','buffer':raw},'mode':'replace'})
     assert response.ok,response.text()
-    p.evaluate('(id)=>load(id)',live[1]);p.locator('#rsPresentationBase').select_option('local')
+    p.evaluate('(id)=>load(id)',live[1]);p.locator('.rsPresentationExpansion > summary').click();p.locator('#rsPresentationBase').select_option('local')
     p.evaluate("async()=>{$('imagery_pixels').value='2048';$('imagery_detail').value='off';$('traffic').checked=false;await start('preview')}")
     job=p.request.get(live[0]+'/api/jobs/'+p.evaluate('lastPolled')).json();assert job['state']=='done',job
     response=p.request.get(url+'/preview.png');assert response.ok,response.text()

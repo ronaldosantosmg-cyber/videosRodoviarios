@@ -1,0 +1,18 @@
+{
+  "tests": 203,
+  "method": "Último ensaio iniciado por caso, conforme timestamp da suíte. Retentativas não contam como novos casos. Relatórios brutos preservados, inclusive falhas corrigidas.",
+  "sources_in_order": [
+    "pytest-interface.xml",
+    "pytest-video.xml",
+    "pytest-cancelamento.xml",
+    "pytest-apresentacao.xml",
+    "pytest-seguranca-veiculos.xml",
+    "pytest-apresentacao-veiculos.xml",
+    "pytest-video-final.xml",
+    "pytest-veiculos-final.xml",
+    "pytest-densidade-final.xml",
+    "pytest-veiculos-completo.xml",
+    "pytest-veiculos-entrega.xml"
+  ],
+  "failures_latest": 0
+}

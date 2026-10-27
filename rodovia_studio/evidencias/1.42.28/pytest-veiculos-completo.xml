@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="6" time="37.119" timestamp="2026-10-27T00:37:47.374285+00:00" hostname="23b78f9c05ea"><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14220_sections_materials" name="test_density_box_remains_editable_and_typing_activates_density" time="14.349" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14228_vehicle_presentation" name="test_wide_view_no_longer_hides_simulated_vehicles_and_focus_makes_them_readable" time="2.210" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14228_vehicle_presentation" name="test_fit_cache_varies_with_position_and_keeps_actual_body_inside_pavement" time="0.007" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14228_vehicle_presentation" name="test_focus_rejects_missing_itinerary_without_mutating_restrictions" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14228_vehicle_presentation" name="test_diagnostic_does_not_invent_simulation_and_ignores_stale_results" time="0.036" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14228_vehicle_presentation" name="test_real_browser_vehicle_diagnostic_can_generate_focused_preview" time="19.240"><failure message="TypeError: '&gt;' not supported between instances of 'NoneType' and 'int'">gl_page = &lt;Page url='http://127.0.0.1:50173/'&gt;
+live = ('http://127.0.0.1:50173', 'ffffffffffffffffffffffffffffffff', PosixPath('/tmp/pytest-of-agent/pytest-280/webgl_real1'))
+
+    def test_real_browser_vehicle_diagnostic_can_generate_focused_preview(gl_page,live):
+        p=gl_page;p.evaluate('RodoviaTrafficHelp.open()')
+        d=p.get_by_role('dialog',name='Diagnosticar veículos',exact=True)
+        d.get_by_text('Somente resultados atuais;',exact=False).wait_for()
+        # Análise atual antes de habilitar o enquadramento; não pressupor que abrir recalcula.
+        if d.get_by_role('button',name='Ativar veículos e gerar prévia de tráfego',exact=True).is_disabled():
+            d.get_by_role('button',name='Atualizar diagnóstico das rotas',exact=True).click()
+            d.wait_for(state='hidden');d.wait_for(state='visible',timeout=90000)
+        d.get_by_role('button',name='Ativar veículos e gerar prévia de tráfego',exact=True).click()
+        d.wait_for(state='hidden');d.wait_for(state='visible',timeout=90000)
+        p.wait_for_function("document.querySelector('.rsTrafficHelp')?.getAttribute('aria-busy')==='false'",timeout=90000)
+        assert p.locator('#camera_mode').input_value()=='trafego'
+        result=p.request.get(live[0]+'/api/projects/'+live[1]+'/traffic_status').json()
+&gt;       assert result['preview_active']&gt;0 and result['preview_drawn']&gt;0
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: '&gt;' not supported between instances of 'NoneType' and 'int'
+
+tests/test_v14228_vehicle_presentation.py:77: TypeError</failure></testcase></testsuite></testsuites>

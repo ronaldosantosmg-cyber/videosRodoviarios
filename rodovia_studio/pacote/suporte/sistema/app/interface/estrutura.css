@@ -64,3 +64,10 @@
 .rsSmallAI > select, .rsSmallAI > textarea { width: 100%; margin: 8px 0; }
 
 .rsSmallAI p { overflow-wrap: anywhere; }
+.rsInterface26 dialog.rsOnlineConnection { width: min(620px,calc(100vw - 24px)); }
+.rsOnlineConnection label { display: block; margin: 10px 0; }
+.rsOnlineConnection label input, .rsOnlineConnection label select { display: block; width: 100%; margin-top: 5px; }
+.rsOnlineConnection a { display: block; padding: 5px 0; color: var(--rs-focus); }
+.rsOnlineConnection p { overflow-wrap: anywhere; }
+.rsInterface26 dialog.rsTrafficHelp { width: min(900px,calc(100vw - 24px)); }
+.rsTrafficHelp p { overflow-wrap: anywhere; }

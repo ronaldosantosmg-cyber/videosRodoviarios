@@ -84,7 +84,7 @@ def test_source_binding_can_be_undone_and_does_not_suppress_another_level():
 
 def test_density_box_remains_editable_and_typing_activates_density(gl_page,live):
     p=gl_page;p.evaluate("()=>{fill({...collect(),traffic_demand_vphpl:3500});psOpenHub('video')}")
-    p.get_by_text('Tráfego: simulação, engarrafamento e canteiro',exact=True).click()
+    p.get_by_role('tab',name='Veículos e fluxo',exact=True).click()
     assert p.locator('#traffic_density').is_enabled()
     p.locator('#traffic_density').fill('5')
     assert p.locator('#traffic_demand_vphpl').input_value()==''

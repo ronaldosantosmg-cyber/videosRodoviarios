@@ -117,3 +117,8 @@ def preview_cabin(pid):
     f=store.directory(pid)/'preview_cabin.png'
     if not f.is_file():raise HTTPException(404,'Gere a prévia com a vista da cabine ativa e “Câmera do vídeo”.')
     return FileResponse(f,media_type='image/png',headers={'Cache-Control':'no-store'})
+
+@router.get('/api/projects/{pid}/traffic_status')
+def traffic_status(pid):
+    from ..traffic_presentation import project_status
+    return project_status(store.directory(pid))

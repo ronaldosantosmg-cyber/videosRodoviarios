@@ -96,7 +96,7 @@ def test_concurrent_work_and_cancel_do_not_apply(sample,monkeypatch):
     assert errors and isinstance(errors[0],InterruptedError) and not S.active()
 
 def test_small_model_ui_previews_without_loading_missing_weights(gl_page,live):
-    p=gl_page;p.evaluate('RodoviaSmallAI.open()');d=p.get_by_role('dialog',name='IA local 3B e mini prompts')
+    p=gl_page;p.evaluate('RodoviaSmallAI.open()');d=p.get_by_role('dialog',name='IA de apoio e mini prompts')
     d.get_by_role('button',name='Preparar mini prompt').click()
     p.wait_for_function("document.querySelector('.rsMiniPrompt').textContent.includes('system')")
     d.get_by_role('button',name='Consultar IA',exact=True).click()

@@ -561,6 +561,9 @@ class Scene:
         """1.27: duração do percurso para a velocidade de avanço escolhida (o restante do vídeo continua igual)."""
         v=float(getattr(self.s,'advance_speed_kmh',150))/3.6;return self.length/max(v,.1)
     def pose(self,t):
+        if self.s.camera_mode=='trafego':
+            from .traffic_presentation import focus_pose
+            return focus_pose(self,t)
         kp=ambiente.pose_pontos(self,t)   # 1.36: câmera por pontos-chave
         if kp is not None:self._key_title=kp[2];return kp[0],kp[1],1,None,'chave'
         if self.s.duration_s<45 and self.s.short_video_mode=='auto':
@@ -868,20 +871,18 @@ class Scene:
             return self.network.vehicles_ex(t,self.s.traffic_speed_kmh/3.6,functools.partial(visual.vehicle_type,mix=getattr(self.s,'vehicle_mix','classico')))
         return sim.vehicles_ex(t)
     def fits(self,i,j,pt,tan,vtype):
-        key=(i,j,vtype)
+        # O desenho usa o corpo real validado, sem margem gráfica adicional que ocultava veículos.
+        # Cache por posição/rumo exatos: um ponto da mesma aresta pode ter outro afastamento.
+        if not np.isfinite(np.r_[pt,tan]).all():return False
+        key=(vtype,*map(float,pt),*map(float,tan))
         if key not in self._fit:
-            T=visual.TYPES[vtype];self._fit[key]=self.allowed.covers(Polygon(visual.body(pt,tan,T['L']+.1,T['B']+.05)))
+            if len(self._fit)>=4096:self._fit.clear()
+            T=visual.TYPES[vtype];self._fit[key]=self.allowed.covers(Polygon(visual.body(pt,tan,T['L'],T['B'])))
         return self._fit[key]
     def draw_vehicles(self,im,t,cam,width,progress):
-        m=width/self.W;scr=lambda p:self.screen(p,cam,width);items=[]
-        for pt,tan,k,identity,j in self.traffic_iter(t):
-            ch=self.ch[self.tree.query(pt)[1]]
-            if ch>progress*self.length:continue
-            q=scr(pt[None])[0]
-            if not(5<q[0]<self.W-5 and self.H*.12<q[1]<self.H*.88):continue
-            i=identity[0];vt=visual.vehicle_type(self.network.paths[i]['kinds'],identity,getattr(self.s,'vehicle_mix','classico'))
-            if not self.fits(i,j,pt,tan,vt):continue
-            items.append((pt,tan,vt,visual.vehicle_color(identity,vt)))
+        from .traffic_presentation import visible
+        m=width/self.W;scr=lambda p:self.screen(p,cam,width)
+        items,self._vehicle_visibility=visible(self,t,cam,width,progress)
         if not items:return
         shadow=np.zeros(im.shape[:2],np.uint8)
         for pt,tan,vt,c in items:
@@ -983,7 +984,7 @@ class Scene:
         return np.dstack([np.clip(color,0,255),alpha*255]).round().astype(np.uint8)
     def frame(self,t,overview=False,view=None):
         self.reveal_opacity=1.
-        if self.s.duration_s<45 and self.s.short_video_mode=='auto' and not overview and view is None:
+        if self.s.duration_s<45 and self.s.short_video_mode=='auto' and self.s.camera_mode!='trafego' and not overview and view is None:
             f=float(np.clip(t/max(1,min(8,self.s.duration_s*.55)),0,1));self.reveal_opacity=f*f*(3-2*f)
         self._t=t;self._night=visual.night_factor(self.s,t);self._night_items=[]
         cam,width,progress,poi,scene=self.pose(t)
@@ -1003,8 +1004,9 @@ class Scene:
         from .engineering_assets import draw_map as draw_engineering_assets
         draw_engineering_assets(self,im,cam,width)
         transport_render.draw_static(self,im,cam,width)
-        if self.s.traffic and width<3000 and self.reveal_opacity>.9 and self.enhanced:self.draw_vehicles(im,t,cam,width,progress)
-        elif self.s.traffic and width<3000 and self.reveal_opacity>.9:
+        self._vehicle_visibility={'enabled':bool(self.s.traffic),'reveal_pending':self.reveal_opacity<=.9,'width_m':float(width)}
+        if self.s.traffic and self.reveal_opacity>.9 and self.enhanced:self.draw_vehicles(im,t,cam,width,progress)
+        elif self.s.traffic and self.reveal_opacity>.9:
             for pt,tan,k,identity in ((a,b,c,d) for a,b,c,d,_ in self.traffic_iter(t)):
                 ch=self.ch[self.tree.query(pt)[1]]
                 if ch>progress*self.length:continue
@@ -1141,7 +1143,8 @@ class Scene:
             if 0<x<self.W and header<y<self.H-footer:
                 pts=np.array([[x0,header],[x0,header+int(18*sc)],[x,y]],np.int32)
                 cv2.polylines(im,[pts],False,(10,28,43),max(2,round(5*sc)),cv2.LINE_AA);cv2.polylines(im,[pts],False,(134,220,233),max(1,round(2*sc)),cv2.LINE_AA)
-        return im,{'camera':cam.tolist(),'width_m':width,'screen_width':self.W,'screen_height':self.H,'right':self.right.tolist(),'up':self.up.tolist()}
+        self.report['traffic_visibility']=self._vehicle_visibility
+        return im,{'traffic_visibility':self._vehicle_visibility,'camera':cam.tolist(),'width_m':width,'screen_width':self.W,'screen_height':self.H,'right':self.right.tolist(),'up':self.up.tolist()}
 
 def render(directory,s,status=lambda *a:None,cancel=lambda:False):
     directory=Path(directory)
@@ -1164,6 +1167,9 @@ def render(directory,s,status=lambda *a:None,cancel=lambda:False):
             if scene.detail.offline:scene.report['warnings'].append('Imagem detalhada indisponível (sem internet e sem cache): o vídeo usa o mosaico base; texturas do projeto seguem em alta resolução.')
         except Exception as e:scene.report['warnings'].append('Imagem detalhada não pré-carregada: '+str(e)[:120])
     if s.traffic:scene.traffic(status)
+    from .traffic_presentation import preflight as traffic_preflight
+    scene.report['traffic_presentation']=traffic_preflight(scene)
+    if scene.report['traffic_presentation']['status'] not in ('visivel','desativado'):scene.report['warnings'].append(scene.report['traffic_presentation']['notice'])
     status(.25,'Testando aceleração NVIDIA / NVENC')
     encoding=select_encoder(ff,OW,OH,s.fps,s.encoder,s.cpu_preset,quality=getattr(s,'video_quality','padrao'))
     (directory/'encoder.json').write_text(json.dumps({k:v for k,v in encoding.items() if k!='args'},ensure_ascii=False,indent=2),encoding='utf-8')
@@ -1247,6 +1253,7 @@ def render(directory,s,status=lambda *a:None,cancel=lambda:False):
     final=directory/'video.mp4';replace(out,final)
     meta={'frames':frames,'fps':s.fps,'duration_s':frames/s.fps,'width':OW,'height':OH,'video_quality':getattr(s,'video_quality','padrao'),'superamostragem':1.5 if ssaa else 1,'codec':'H.264 High','encoder':encoding['encoder'],'encoder_reason':encoding['reason'],'quality':encoding['quality'],'pix_fmt':'yuv420p','geometric_length_m':scene.length,'reference_length_m':s.reference_length_m,'geometry_cache_hit':scene.geometry_cache_hit,'visual_quality':s.visual_quality,'render_profile':s.render_profile,'workers':workers,'workers_reason':why,'camera':'cabin' if cabin else 'aerial','cabin_reaches_path_end':bool(cabin.reaches_end) if cabin else None,'preparation_seconds':round(prepared,3),'total_seconds':round(time.monotonic()-start,3),'validation':check,'motion_audit':scene.report.get('traffic_simulation'),'network_safety':{'rejected_paths':len(getattr(scene.network,'rejected_paths',[])),'rejected_connections':dict(getattr(scene.network,'rejected_connectors',{}))}}
     ped_control=scene._sim.pedestrians if getattr(scene,'_sim',None) is not None else getattr(scene,'_ped_control',None)
+    meta['traffic_presentation']=scene.report.get('traffic_presentation')
     meta['pedestrian_audit']=ped_control.report() if ped_control else None
     meta['rail_smoke']=bool(s.rail_smoke)
     if getattr(scene,'_sim',None) is not None:meta['motion_audit']['body_samples']=scene._sim.vehicle_body_state(min(s.duration_s/2,1.5))[:10]

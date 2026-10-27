@@ -67,6 +67,8 @@ def test_safe_overtake_starts_only_to_adjacent_lane_when_window_is_allowed():
     from app.vehicle_safety import PolygonSafety
     sim.motion_points=[prepare_points(p['p']) for p in sim.paths]
     sim.polygon_safety=PolygonSafety(sim);sim.lane_events=[]
+    from app.pedestrian_traffic import PedestrianTraffic
+    sim.pedestrians=PedestrianTraffic(SimpleNamespace(pedestrians=False),sim.net,SimpleNamespace(signals=[]),sim)
     sim.link_of=[[(('e',0),0.0,1000.0)],[(('e',1),0.0,1000.0)]]
     sim.starts=[[0.0],[0.0]];sim.adjacent={0:[1],1:[0]}
     sim.lane_changes=sim.lc_blocked_rules=sim.lc_blocked_safety=0

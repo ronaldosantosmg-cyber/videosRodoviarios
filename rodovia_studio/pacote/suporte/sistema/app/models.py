@@ -816,7 +816,7 @@ class Settings(BaseModel):
     # Perfil "Apresentação técnica": hachuras de pista nova/existente/acostamento, indicador de progresso e voo contínuo.
     style_profile: Literal['padrao','tecnico'] = 'padrao'
     progress_indicator: bool = False
-    camera_mode: Literal['obras','continuo','pontos'] = 'obras'
+    camera_mode: Literal['obras','continuo','pontos','trafego'] = 'obras'
     # 1.36: câmera por pontos-chave (voo suave entre enquadramentos marcados no editor; usada com camera_mode='pontos').
     camera_keys: list[CameraKey] = Field(default_factory=list,max_length=60)
     # 1.36: clima, sombras pelo sol e comparação antes/depois (desligados = vídeo como antes).

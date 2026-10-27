@@ -132,6 +132,7 @@ def mini_prompt(pid,body:S.Query):
 @router.post('/api/projects/{pid}/assistencia/modelo')
 def model_run(pid,body:S.Run):
     try:return S.run(store.directory(pid),body)
+    except ValidationError:raise HTTPException(422,'A resposta da IA não atende ao contrato do aplicativo. Nada foi aplicado; tente um pedido menor ou outro modelo.') from None
     except (ValueError,TimeoutError,OSError,InterruptedError,KeyError,IndexError,TypeError) as error:
         if isinstance(error,(KeyError,IndexError,TypeError)):raise HTTPException(422,'Resposta da IA incompatível; nada foi aplicado.') from None
         if isinstance(error,OSError):raise HTTPException(503,'Provedor IA indisponível ou consulta interrompida; nada foi aplicado.') from None
@@ -141,3 +142,19 @@ def model_run(pid,body:S.Run):
 def model_cancel(pid):
     store.directory(pid)
     return {'requested':S.cancel(pid),'notice':'Cancelamento solicitado. Aguarde o encerramento; nada será aplicado.'}
+
+
+@router.post('/api/assistencia/conexao')
+async def configure_connection(request:Request):
+    data=validate(S.OnlineConfig,await payload(request))
+    try:return S.configure_online(data)
+    except ValueError:raise HTTPException(409,'Não foi possível alterar a conexão durante a consulta.') from None
+
+@router.delete('/api/assistencia/conexao')
+def disconnect_connection():
+    try:return S.disconnect_online()
+    except ValueError:raise HTTPException(409,'Aguarde o encerramento da consulta antes de desconectar.') from None
+
+@router.get('/api/assistencia/contrato')
+def online_response_contract():
+    return {'schema':S.Reply.model_json_schema(),'notice':'Contrato de resposta, não treinamento de pesos. Propostas passam pela validação e revisão do motor.'}
