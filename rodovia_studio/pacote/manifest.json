@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.31",
-  "description": "1.42.31: eixos por função, nós orientadores, giro de rotatória, categorias 5/20 e balanço de fluxos no motor existente."
+  "version": "1.42.32",
+  "description": "1.42.32: confirmação consistente de edições, rodapés acessíveis e camadas com salvar/descartar/cancelar; estado auditado do modo IA."
 }

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="10" time="209.211" timestamp="2026-10-27T13:33:20.600980+00:00" hostname="23b78f9c05ea"><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14232_confirmation" name="test_video_smoke_and_density_have_visible_commit_and_direct_discard[size0]" time="23.571" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14232_confirmation" name="test_video_smoke_and_density_have_visible_commit_and_direct_discard[size1]" time="18.813" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14232_confirmation" name="test_layer_changes_are_draft_then_saved_or_discarded_without_losing_previous_data" time="19.533" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14232_confirmation" name="test_layer_filters_do_not_create_pending_edits_and_escape_confirms_real_edits" time="23.544" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14232_confirmation" name="test_layer_failed_save_keeps_draft_buttons_and_server_configuration" time="17.545" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14232_confirmation" name="test_confirmation_footer_is_available_in_project_materials_and_configuration" time="16.823" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14214_panels_ui" name="test_discard_closes_even_if_property_refresh_fails" time="15.617" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14214_panels_ui" name="test_save_modified_text_without_enter_reaches_engine_and_closes" time="34.012" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14214_panels_ui" name="test_expert_guide_teaches_surface_fix_and_can_locate_the_point" time="4.050" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14214_panels_ui" name="test_limit_uses_exact_length_and_preserves_hidden_direction_choices" time="33.761"><failure message="playwright._impl._errors.TimeoutError: Locator.select_option: Timeout 30000ms exceeded.&#10;Call log:&#10;  - waiting for locator(&quot;#min_route_segment_m&quot;)&#10;    - locator resolved to &lt;select id=&quot;min_route_segment_m&quot;&gt;…&lt;/select&gt;&#10;  - attempting select option action&#10;    2 × waiting for element to be visible and enabled&#10;      - element is not visible&#10;    - retrying select option action&#10;    - waiting 20ms&#10;    2 × waiting for element to be visible and enabled&#10;      - element is not visible&#10;    - retrying select option action&#10;      - waiting 100ms&#10;    59 × waiting for element to be visible and enabled&#10;       - element is not visible&#10;     - retrying select option action&#10;       - waiting 500ms">page = &lt;Page url='about:blank'&gt;
+
+    def test_limit_uses_exact_length_and_preserves_hidden_direction_choices(page):
+        page.evaluate("()=&gt;{analysis={routes:[{id:'a',length_m:50,length_exact_m:49.999,layer:'EIXO'},{id:'b',length_m:120,length_exact_m:120,layer:'EIXO'}],layers:[],warnings:[],geometric_length_m:600};cfg.min_route_segment_m=50;showLayers()}")
+        assert page.locator('#routes [data-route=a]').count()==0
+        page.evaluate("document.querySelector('#routes [data-route=b]').value='off'")
+&gt;       page.locator('#min_route_segment_m').select_option('200')
+
+tests/test_v14214_panels_ui.py:83: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:17636: in select_option
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:597: in select_option
+    return await self._frame.select_option(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:781: in select_option
+    return await self._channel.send("selectOption", self._timeout, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;playwright._impl._connection.Connection object at 0x7f454655a0c0&gt;
+cb = &lt;function Channel.send.&lt;locals&gt;.&lt;lambda&gt; at 0x7f4546097240&gt;
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -&gt; Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+&gt;           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.select_option: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for locator("#min_route_segment_m")
+E               - locator resolved to &lt;select id="min_route_segment_m"&gt;…&lt;/select&gt;
+E             - attempting select option action
+E               2 × waiting for element to be visible and enabled
+E                 - element is not visible
+E               - retrying select option action
+E               - waiting 20ms
+E               2 × waiting for element to be visible and enabled
+E                 - element is not visible
+E               - retrying select option action
+E                 - waiting 100ms
+E               59 × waiting for element to be visible and enabled
+E                  - element is not visible
+E                - retrying select option action
+E                  - waiting 500ms
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError</failure></testcase></testsuite></testsuites>

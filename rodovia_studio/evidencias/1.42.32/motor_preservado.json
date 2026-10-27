@@ -1,0 +1,416 @@
+{
+  "reference_commit": "b94fc6529ac1e7f578be901e306bdaf800193286",
+  "python_engine_files": 102,
+  "unchanged": true,
+  "files": [
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/__init__.py",
+      "sha256": "6785ad18c7a1e44da20e19c7947880d30bc2d7baa7a26b971751536ec443604b"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/access.py",
+      "sha256": "ab737e8994e4ced5076a1e37bb5e0c4e4a35102e054a8a7569b99d104744be9d"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/alignment.py",
+      "sha256": "2867e5b90a66d4ff7df6501addcb9ae775b4b90ec29ae16a9ced57606026365b"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/alternating_traffic.py",
+      "sha256": "b8db2eea33b521d12f251a55117a72867f3ee18929ef0faa4936382abc6cdc30"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/ambiente.py",
+      "sha256": "9c8a26827d186d72ce73ae449d9874d0284fb5634aa6304cc963ec816e46a074"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/annotations.py",
+      "sha256": "bb4115702530c53a5425d28caf3b8815d5a948c14667b6d9eb2ed886fb356470"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/artifacts.py",
+      "sha256": "3bea723332326759d216af46fdbe50ea60a7a12e91c17cc8919728c30e3baa4f"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/asset_catalog.py",
+      "sha256": "606163ec01755ef2b0ad412ac4367d105c6558a1f71531553376bfb6fd6eb731"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/assistance.py",
+      "sha256": "60cdc5e2b0726868def82b512f28f4b8d800eca4c91d1bd3d2db799a64f81caf"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/assisted_execution.py",
+      "sha256": "4b1d0d715abec50f83fa7f175806b1f48f02a892fb65155c1ee4b6c6c661a215"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/cabin.py",
+      "sha256": "45d4d1d9fb4bcfca5f18dc647dfd871e36c03ffe7cbc009feab548641ac7f731"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/cad_curves.py",
+      "sha256": "da706a4536bf479286097b0abecd728faa9f06a0ee5ef601f6996ee973b527c4"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/calculation_guidance.py",
+      "sha256": "65f4f51d9d7bd65e8400b6652c0ac502847c9d4001b07dc1a02f13475330e652"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/capabilities.py",
+      "sha256": "38e5adba6ad0b500ab975b1b430fbc61a3b2dc9bfc3d94477d12b43e8c6fa8af"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/capture3d.py",
+      "sha256": "64952ef4e95602ee0b486e73929b4618f6b71ab5ec8479841a418442b875fbf9"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/chainage.py",
+      "sha256": "3744ddc899a772b32c84e41ff311b961ecdc85c3587f7f0ec8dedf8140e699df"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/cities.py",
+      "sha256": "515db2191c8d84cace24ea1b1c552799f645101b2d8a57399b46e6ed09af8753"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/dependencies.py",
+      "sha256": "e8b494e8d0eaac5f0eca85adbdf95b9f3aec51192d7e928fbdee532b5e23f0da"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/detail.py",
+      "sha256": "73bd6aaab1484a8865c2c96188cb90ae735d4d763831f5dfd68478d01aec26e3"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/direction_intervals.py",
+      "sha256": "d43d116a2f943bbffbdb9b58fe888620928ff725cb053dea3a29f22bec095f13"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/dwg.py",
+      "sha256": "9bc81f5a80f53d58886c11cfa4a3cda3cd02d3e2119bf61a6b087da87ff8cecd"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/earthworks.py",
+      "sha256": "cd1e43ec687662e3cb27f726418dd5ae60ed7412814fa20b38b7e540cd18e7c8"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/ecw_engine.py",
+      "sha256": "d9742d7e13b850f23030fe62cb9c2ebf47da527ff44f384dcf706361df0f07ec"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/elevation.py",
+      "sha256": "67e4a460c812134233590118edb725025153ba53678894d642a59ff5fc502baf"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/encoding.py",
+      "sha256": "0855817dd695ddaecd48144bc275c1a4ba65e566120635f50cd3c2fdfb2deccf"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/engineering_assets.py",
+      "sha256": "1181ed5d4716f79ccfb52720457229fe068175ddcd436e5d95f2ae565379d07a"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/execlog.py",
+      "sha256": "f501daa0981fee19a5c8f6cde3ddaf74da0297054bccd293948b7300f6b0fdfe"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/exporters.py",
+      "sha256": "59b4678d4ac72d61360a5ae3f2a25456ccfb47c7e6df670c18b15661c1726345"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/exports_job.py",
+      "sha256": "0e03310dec26f710fe2069db81070a257bca3d98ba6643d570d951606785b09f"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/flow_assistant.py",
+      "sha256": "9a2be3d4a95cd7e2512fb22067fbf4727f78a9b8208eca0cd5cd7bda2ac6ff7a"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/flow_diagnostics.py",
+      "sha256": "f3be823223dc5dcfe9040c0ae6110e6078f71effae5e256a92a6bd9d9b1d9a85"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/flow_fit.py",
+      "sha256": "4803c249650a0ce3e9981a7d9fa1dbdabd1d485cbdaa8d4df4fb8149ce2cab4c"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/flow_nodes.py",
+      "sha256": "c5d1c79923d4ff6f999ac8642e638c609b850bd8b74b4965fc2875a26b199285"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/flow_reconstruction.py",
+      "sha256": "904071cd80f7818b35a5d82ce623280e2c6e10e12cd21c1cdb64e33269ded024"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/flow_recovery.py",
+      "sha256": "d8db235ba12091ae60f98e63ced8cd06dce081de853768bdc1c0245e573c37c3"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/flow_tools.py",
+      "sha256": "4893e101cfad1a589c4fee6c5d10171fa32cb94c6090915cef4832ac152c53f6"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/full_update.py",
+      "sha256": "68ff25c68dea4c9fabb24d2113af2c7b79202f2fe6c883f9a1a44c718fac4534"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/geometry.py",
+      "sha256": "610171e7a610112fafed7026f61c50ef21d37d7dd2eee3d990ee4be145256411"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/geometry_cache.py",
+      "sha256": "c4252c9a0557f0152b1b2bc983df8757c0018cc76ec6a41e3fedff80d17f8514"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/hydrography.py",
+      "sha256": "06a3ac498ddb1bb7150df63cc032e80edf3be0f745bda70b8915050eb17e45d2"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/image_context.py",
+      "sha256": "e462d71f377331c88f4fd76a2c44c184656e6df277fec1925b27cd264ae8afb1"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/image_context_models.py",
+      "sha256": "809ebd1e5788b8e877c503b415503d6b394ecf8024f867fd2b357a997fa39f70"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/image_semantic.py",
+      "sha256": "eba7b5e1bcd19879330462f044c0c4730ba4b3d297a52aab9083d8d67d0a42de"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/imagery.py",
+      "sha256": "fbc6cfe251e500cf3128943c8c2d56b193e3eb3821a61238b1371cde8d581889"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/imagery_cache.py",
+      "sha256": "712ae9735bd915c9648dd43fafe605477d21b69ddfe9f2d8275cac5e91564555"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/kmz_validation.py",
+      "sha256": "b4e338f2f8e935c0973e4bc9e08f10de17337d049a36ba7702f2ea35be5568ea"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/layer_catalog.py",
+      "sha256": "bb0e566ec86191737ac90676c155fd3d03beea1d01fbae051f0a8652fda71028"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/layer_profiles.py",
+      "sha256": "dd037ccc7baa9bebb70b1adfd584212bb3393ffd14f4b3d575bb03b9881483e1"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/local_imagery.py",
+      "sha256": "eb46e69eb6a9a0a28d01c3d0ae4f4952f20c3595e9b2e55dd8e8002279dba610"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/local_tiles.py",
+      "sha256": "9e4f4f555aff1f2bd9a445e462e1e302f36a74c301fb7d2c39d605f686f1d3ef"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/maintenance.py",
+      "sha256": "904773b9c933c37dd4b2054384e153abbf2a10e2c4b9de6321a51abab8f1bba0"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/markup.py",
+      "sha256": "c27dca4e88481a0a23e4af80f3a61bfede81e79df24a8af81bc370092e2a7929"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/migration.py",
+      "sha256": "bbb97928d1c8db22b54c3c85b442ca1c4cf770209b43e2cc2dadb8158407813a"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/modelos.py",
+      "sha256": "eded53c990046d0e1bcd5939643566b9a65ea67eb7a31cc4734772c7f9309044"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/models.py",
+      "sha256": "0dec52033d8c33d70e55f0244f28c73b1f3ef5586972194de18da847e724769b"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/native_axes.py",
+      "sha256": "6a40c24cc79cd2cdee4f4e29a47ec946869cbc155cb6d92a6178bc8a05f6371c"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/oae_traffic.py",
+      "sha256": "6ebf1b46a678c8ee439ab5e936c8689c8f505826fb923110285180480f664911"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/obras.py",
+      "sha256": "743fd041796d31202c64d228507840ea1c864f361356319d9b2a67e9004b2ba5"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/obras_video.py",
+      "sha256": "88ef60db75f3478f2364c0d46a4d1905f74348453d1a3b3d8e772870f5582dc2"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/orthomosaic.py",
+      "sha256": "e7b11fa82d205872d5799a7ecfee509a3f6e5a4e2ee19b4579c3140f3ca7901f"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/parallel.py",
+      "sha256": "cbe57649cec56bf36022bc4dd0e58ceb592fd0ab5460891556f7dcf9c1c77fbb"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/pavement.py",
+      "sha256": "0bcaea689b4674dbaff6ab8477f1461b5fe39a510fe01ee5b4df602e3b5ea5ae"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/pedestrian_traffic.py",
+      "sha256": "c61b3fc4e930d4658dba82c0406c881c79ae9be3749d2ceaed5f0eb943d78c96"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/per.py",
+      "sha256": "cb7a6b62304e8aa3a80051864b40cc139848c2f7c87f03e7727f821e6d0c1c6e"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/planilha.py",
+      "sha256": "9a35059e2f06489a3ee60ceee0774f6e054038f6abbb9151f4d1816a07d27b1f"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/project_integrity.py",
+      "sha256": "5a16c0a7bac17ed61fdcf6cb3b98f8394d6528f6660b66e1ef549743d1f8ce16"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/project_state.py",
+      "sha256": "3b2973151ffa3f8c34120462faa1a56561b951b81f6096d9680fcedea6c7e392"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/qms.py",
+      "sha256": "4dfaa38694da93c9bfc862afc3b77c1e5e70c65ee37a5f2ea5e44a42507ebb46"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/rail_smoke.py",
+      "sha256": "b1266eba1a4349ff1959264dd5ccbd657daf04fc7ad9b49d282dcf60a55b9e6a"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/render.py",
+      "sha256": "444683d6c6b6df8881d2583f0cd88a6a742f17f6e352dbeafe3cc34f053a0f90"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/road_sections.py",
+      "sha256": "f2b4006f9d7077fdd9b72e1ba8d2ecdc90baedc6eacc9104f1ba66a02e3d688c"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/route_lane_cache.py",
+      "sha256": "75a3b4e08ce671e5828b4ec9f8244a389db242eed1ceedcf39398fc88d0f96f4"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/routes.py",
+      "sha256": "8edad286b0f4486b097b60e8555c9a8c6e96139707bc8a05a34e223d3fcc7506"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/scene3d.py",
+      "sha256": "d579080c97862320f32d62d84bcb0979987af037193d861290cd1702be743a35"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/server.py",
+      "sha256": "9d1014f358bd0ff3b48b7e4f40d11bcb8901e305292d47ee5c74614fdebb4aef"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/shoulder_probe.py",
+      "sha256": "29946ed5e24cdb4cf79c316e2790a3203660b5fd49e6e8dd6c39d1e4f28f22a2"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/signage.py",
+      "sha256": "7816a530807ccc2e707b3c54764d926d1d178d4a94e12c6c9730fadf11bb3e86"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/simulation.py",
+      "sha256": "31a8f68c67f32ba7a2e4e3101b1d5fa09b4b45b1dd4ed9773586cfc0b1bacaeb"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/small_ai.py",
+      "sha256": "62c824f074c36cdde5bb23eb4223ab05e136b5b91677d4469d64567e040b5a85"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/snapshot_auth.py",
+      "sha256": "cfdb5dca87bfd901719f11680861f377602151479b4e719ed3fc3b25777f5c81"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/store.py",
+      "sha256": "ba31cb9ce6a9a68fca09e56036108cf30f13c6a9ecd62383992a65c4caf9be51"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/structures.py",
+      "sha256": "a3a0933fced3fe8dcf8c83994cf1da55eca817f1fba32db97143fc8065435c4e"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/surface_marks.py",
+      "sha256": "6e370627777241000964f1c56f16e13acf1b19f358a8e3774c87646680ec7c9b"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/tempo.py",
+      "sha256": "163023b38b21f92058c9e273df6f17460121c26e5f01ab58fe59bb62beb6e65e"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/traffic.py",
+      "sha256": "c3e1c3f867abad5050b9de4664741457c72b09885322f8cdf27c38285bf71489"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/traffic_distribution.py",
+      "sha256": "cb4be50e76383f9d78ea1c592b7fc4875a83123edacf5822a40e6ded552c2074"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/traffic_indicators.py",
+      "sha256": "da7e062d90df9bac39b7a0714b72d3b9c65f781922d9f5db8f735c8423f31c56"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/traffic_presentation.py",
+      "sha256": "e68e4e6f12714b721f19e3b8573fdf99ffaaefa78910b001643b67dad2ef59df"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/transport.py",
+      "sha256": "6e9e5c33b3e6457810b831ffb61c7d564c701697d9e2764421522426cc30c4cd"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/transport_cabin.py",
+      "sha256": "a680a777b4f44cb172c621cb1113a8a4bdd4515302a8d24f7c96b2d989376750"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/transport_models.py",
+      "sha256": "1475111adbdd49ecb18de4b9f31dda744644bef122898cd6ad8a26a7252f58d8"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/transport_render.py",
+      "sha256": "f51c411677624a69777b94fb5985afaa1fbf35f5aa1fbf25c203397ea8294f6b"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/usage_catalog.py",
+      "sha256": "6e9a528ce7358ccc2f00af37823eb826c0a16fd61ad563ececc31fc118ca42c0"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/vehicle_motion.py",
+      "sha256": "5afb0ad943db21d4bf7937c378b856b5d86892188d2e6d519119f0f0706455c1"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/vehicle_safety.py",
+      "sha256": "b5760d2fc0b7baeb6939359202801150eb8f5730b4d0815dc9cccdd08eb73e7c"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/vida.py",
+      "sha256": "8d39f71f96b02e5d2697694d90285f6a42ff731ded9ddc7e508d964f1616ae74"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/video_profile.py",
+      "sha256": "f89867ea0055e64d8d38d5b7382e0195808e2796d00cd2702b855ab40503ba0d"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/videos.py",
+      "sha256": "1b249c8b3496d76f80f0522214cbbb1ebc3c2658db37331e2d33386219a07969"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/visual.py",
+      "sha256": "9efbe0ef6ff757cd028b94ac6f29f957d8fe89ff1ddb8835b775b0c3f55dd6d2"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/webmap.py",
+      "sha256": "5baf77b9f2ac3052878d5e8c9fd57c171ec1b7f540af39f98217d547cef08671"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/worker.py",
+      "sha256": "d7accc13805125bab31cf6380f04c5f3dd13403ae1d02d74d1723a3c8dbb3776"
+    },
+    {
+      "file": "rodovia_studio/pacote/suporte/sistema/app/workreset.py",
+      "sha256": "eebae564f0bcc7e770287beb94f481f5b3e2d7c8721a35d8d75509f1c54aa90d"
+    }
+  ],
+  "scope": "Comparação dos módulos Python de app/ com a revisão publicada 1.42.31. Esta revisão altera interface e confirmação; não é prova universal de ausência de regressão."
+}

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="4" time="100.414" timestamp="2026-10-27T13:15:11.549954+00:00" hostname="23b78f9c05ea"><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14232_confirmation" name="test_video_smoke_and_density_have_visible_commit_and_direct_discard[size0]" time="25.175" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14232_confirmation" name="test_video_smoke_and_density_have_visible_commit_and_direct_discard[size1]" time="32.830" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14232_confirmation" name="test_layer_changes_are_draft_then_saved_or_discarded_without_losing_previous_data" time="21.282" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14232_confirmation" name="test_layer_filters_do_not_create_pending_edits_and_escape_confirms_real_edits" time="19.904"><error message="failed on setup with &quot;playwright._impl._errors.Error: Page.evaluate: Error: Nenhum eixo encontrado. Associe uma camada ao papel eixo ou envie KMZ com linha.&#10;    at start (http://127.0.0.1:58519/js/07_tarefas_intervencoes.js:19:924)&#10;    at async http://127.0.0.1:58519/js/27_comandos_limpos.js:26:65&#10;    at async start (http://127.0.0.1:58519/js/71_orientacao_calculos.js:9:73)&#10;    at async drain (http://127.0.0.1:58519/js/75_operacao_consolidada.js:11:47)&quot;">live = ('http://127.0.0.1:58519', 'ffffffffffffffffffffffffffffffff', PosixPath('/tmp/pytest-of-agent/pytest-307/webgl_real0'))
+
+    @pytest.fixture
+    def gl_page(live):
+        with sync_playwright() as p:
+            b=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-dev-shm-usage'])
+            page=b.new_page(viewport={'width':1440,'height':900},accept_downloads=True);errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
+            page.route('**/*',lambda route:route.continue_() if route.request.url.startswith(live[0]+'/') else route.abort())
+            # Prontidão pelos módulos reais, sem depender de silêncio das consultas de estado.
+            page.goto(live[0],wait_until='domcontentloaded',timeout=60000);page.wait_for_function('!!window.Rodovia3D &amp;&amp; !!window.RodoviaNewProject',timeout=60000)
+&gt;           page.evaluate('(pid)=&gt;load(pid)',live[1]);page.wait_for_timeout(300);page.wait_for_function('!task',timeout=60000)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_v1425_live_3d.py:35: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:8562: in evaluate
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_page.py:464: in evaluate
+    return await self._main_frame.evaluate(expression, arg)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:320: in evaluate
+    await self._channel.send(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;playwright._impl._connection.Connection object at 0x7fe46e9f3a10&gt;
+cb = &lt;function Channel.send.&lt;locals&gt;.&lt;lambda&gt; at 0x7fe44f195260&gt;
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -&gt; Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+&gt;           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.Error: Page.evaluate: Error: Nenhum eixo encontrado. Associe uma camada ao papel eixo ou envie KMZ com linha.
+E               at start (http://127.0.0.1:58519/js/07_tarefas_intervencoes.js:19:924)
+E               at async http://127.0.0.1:58519/js/27_comandos_limpos.js:26:65
+E               at async start (http://127.0.0.1:58519/js/71_orientacao_calculos.js:9:73)
+E               at async drain (http://127.0.0.1:58519/js/75_operacao_consolidada.js:11:47)
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: Error</error></testcase></testsuite></testsuites>

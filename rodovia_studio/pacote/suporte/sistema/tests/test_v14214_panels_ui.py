@@ -23,6 +23,8 @@ def test_axis_selection_hides_short_routes_and_refreshes_when_limit_changes(page
     page.evaluate("()=>{analysis={routes:[{id:'0',length_m:19,layer:'MINI'},{id:'1',length_m:50,layer:'EIXO'},{id:'2',length_m:120,layer:'EIXO'}],layers:[],warnings:[],geometric_length_m:600};cfg.min_route_segment_m=50;showLayers()}")
     assert page.locator('#routes [data-route="0"]').count()==0
     assert page.locator('#routes [data-route="1"]').count()==1
+    page.get_by_role('tab',name='Projeto',exact=True).click()
+    page.locator('details.rsAdvancedTools > summary').filter(has_text='Parâmetros de apresentação').click()
     page.locator('#min_route_segment_m').select_option('120')
     assert page.locator('#routes [data-route="1"]').count()==0
     assert page.locator('#routes [data-route="2"]').count()==1
@@ -78,6 +80,8 @@ def test_limit_uses_exact_length_and_preserves_hidden_direction_choices(page):
     page.evaluate("()=>{analysis={routes:[{id:'a',length_m:50,length_exact_m:49.999,layer:'EIXO'},{id:'b',length_m:120,length_exact_m:120,layer:'EIXO'}],layers:[],warnings:[],geometric_length_m:600};cfg.min_route_segment_m=50;showLayers()}")
     assert page.locator('#routes [data-route=a]').count()==0
     page.evaluate("document.querySelector('#routes [data-route=b]').value='off'")
+    page.get_by_role('tab',name='Projeto',exact=True).click()
+    page.locator('details.rsAdvancedTools > summary').filter(has_text='Parâmetros de apresentação').click()
     page.locator('#min_route_segment_m').select_option('200')
     assert page.locator('#routes select').count()==0
     page.locator('#min_route_segment_m').select_option('50')

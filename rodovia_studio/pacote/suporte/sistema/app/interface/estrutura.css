@@ -71,3 +71,29 @@
 .rsOnlineConnection p { overflow-wrap: anywhere; }
 .rsInterface26 dialog.rsTrafficHelp { width: min(900px,calc(100vw - 24px)); }
 .rsTrafficHelp p { overflow-wrap: anywhere; }
+/* Rodapés de confirmação sempre acessíveis; somente o conteúdo da edição rola. */
+.rsInterface26 #rsPanelPopup,
+.rsInterface26 #rsPanelPopup:has(.rsVideoSettings) {
+  height: min(780px, calc(100dvh - 24px));
+  min-height: min(240px, calc(100dvh - 24px));
+  max-height: calc(100dvh - 24px);
+  padding: 0;
+  overflow: hidden;
+}
+.rsInterface26 #rsPanelBody { flex: 1 1 0px; overflow: auto; min-height: 0; }
+.rsInterface26 #rsPanelPopup > header,
+.rsInterface26 #rsPanelPopup > footer { flex: 0 0 auto; }
+.rsInterface26 dialog.rsTransactionalDialog {
+  width: min(1080px, calc(100vw - 24px));
+  height: min(780px, calc(100dvh - 24px));
+  padding: 0;
+  overflow: hidden;
+}
+.rsInterface26 dialog.rsTransactionalDialog[open] { display: flex; flex-direction: column; }
+.rsTransactionalDialog > .rsCommitHeader,
+.rsTransactionalDialog > .rsCommitFooter { display: flex; align-items: center; gap: 8px; padding: 10px 14px; flex: 0 0 auto; flex-wrap: wrap; }
+.rsCommitHeader { border-bottom: 1px solid var(--border); }
+.rsCommitHeader > h3 { flex: 1; margin: 0; }
+.rsCommitFooter { border-top: 1px solid var(--border); }
+.rsCommitFooter > [data-rs-edit-status] { flex: 1; min-width: 150px; font-size: 12px; }
+.rsTransactionalDialog > .rsCommitBody { flex: 1 1 0px; overflow: auto; min-height: 0; padding: 12px 14px; }

@@ -1,0 +1,42 @@
+{
+  "status": {
+    "installed": false,
+    "active": false,
+    "message": "Modelo 3B não instalado ou pacote incompleto.",
+    "folder": "/workspace/onboarding/14232-data/_modelos_ia",
+    "online_configured": false,
+    "online_host": null,
+    "online_model": null,
+    "online_provider": null,
+    "providers": [
+      {
+        "name": "OpenAI",
+        "keys_url": "https://platform.openai.com/api-keys",
+        "models_url": "https://platform.openai.com/docs/models",
+        "id": "openai"
+      },
+      {
+        "name": "Groq",
+        "keys_url": "https://console.groq.com/keys",
+        "models_url": "https://console.groq.com/docs/models",
+        "id": "groq"
+      },
+      {
+        "name": "OpenRouter",
+        "keys_url": "https://openrouter.ai/settings/keys",
+        "models_url": "https://openrouter.ai/models",
+        "id": "openrouter"
+      }
+    ],
+    "candidate": "SmolLM3-3B Q4_K_M, ainda sem inferência homologada",
+    "memory_profile": {
+      "context": 2048,
+      "parallel": 1,
+      "gpu_layers": 0,
+      "max_output_tokens": 512,
+      "unload": "após cada consulta"
+    },
+    "limits": "Presença de arquivos não comprova qualidade do modelo, origem ou adequação a 8 GB. O manifesto detecta alterações, não autentica o publicador."
+  },
+  "scope": "Estado neste ambiente de validação; não é inspeção do PC do usuário nem teste de inferência. Não foram instalados pesos ou runtime 3B."
+}

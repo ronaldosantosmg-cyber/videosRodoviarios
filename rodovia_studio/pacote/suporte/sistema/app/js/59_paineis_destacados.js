@@ -3,8 +3,10 @@
 let active=null,committing=false,closing=false,decision=null,closePending=null;
 const clone=x=>JSON.parse(JSON.stringify(x));
 const originalSave=save,originalSchedule=scheduleSave,originalStart=start,originalLoad=load;
-function controls(root=document){return [...root.querySelectorAll('input,select,textarea')].filter(e=>e.type!=='file').map(e=>({el:e,value:e.value,checked:e.checked}))}
-function fingerprint(root=active?.node||document){let data;try{data=collect()}catch{data=null}const values=controls(root).map(c=>JSON.stringify([c.el.id||c.el.name||JSON.stringify(c.el.dataset),c.el.type,c.value,c.checked])).sort();return JSON.stringify([data,values])}
+function surface(){return active?.surface||dialog()}
+function panelStatus(text){const el=surface().querySelector('[data-rs-edit-status]')||$('rsPanelStatus');if(el)el.textContent=text}
+function controls(root=document){return [...root.querySelectorAll('input,select,textarea')].filter(e=>e.type!=='file'&&!e.matches('[data-rs-transient]')).map(e=>({el:e,value:e.value,checked:e.checked}))}
+function fingerprint(root=active?.node||document){let data;try{data=collect()}catch{data=null}const values=(root?.dataset?.rsConfigOnly==='true'?[]:controls(root)).map(c=>JSON.stringify([c.el.id||c.el.name||JSON.stringify(c.el.dataset),c.el.type,c.value,c.checked])).sort();return JSON.stringify([data,values])}
 function differs(){return !!active&&(fingerprint()!==active.fingerprint||projectSession.epoch!==active.epoch)}
 function state(node){const signature=fingerprint(node);return {cfg:clone(cfg),marks:clone(M),undo:undoStack.slice(),redo:redoStack.slice(),controls:controls(node),pending:savePending,studyStale:!!window.RodoviaFlowStudy?.stale,previewStale:typeof previewStale==='undefined'?false:previewStale,epoch:projectSession.epoch,fingerprint:signature}}
 function pauseTimers(){clearTimeout(saveTimer);if(typeof prevTimer!=='undefined')clearTimeout(prevTimer);if(typeof flowTimer!=='undefined')clearTimeout(flowTimer)}
@@ -18,10 +20,10 @@ function restore(base){
 function dialog(){
  let d=$('rsPanelPopup');if(d)return d;
  d=document.createElement('dialog');d.id='rsPanelPopup';d.setAttribute('aria-labelledby','rsPanelTitle');
- d.innerHTML='<header><h2 id="rsPanelTitle"></h2><button type="button" id="rsPanelClose" aria-label="Fechar janela">×</button></header><div id="rsPanelBody"></div><footer><span id="rsPanelStatus">Alterações de configuração serão confirmadas ao salvar.</span><button type="button" id="rsPanelCancel">Fechar</button><button type="button" id="rsPanelSave" class="primary">Salvar e fechar</button></footer>';
- document.body.appendChild(d);$('rsPanelClose').onclick=()=>void requestClose();$('rsPanelCancel').onclick=()=>void requestClose();$('rsPanelSave').onclick=()=>void commitClose();
+ d.innerHTML='<header><h2 id="rsPanelTitle"></h2><button type="button" id="rsPanelClose" aria-label="Fechar janela">×</button></header><div id="rsPanelBody"></div><footer><span id="rsPanelStatus" data-rs-edit-status role="status">Alterações de configuração serão confirmadas ao salvar.</span><button type="button" id="rsPanelCancel">Cancelar</button><button type="button" id="rsPanelDiscard">Descartar alterações</button><button type="button" id="rsPanelSave" class="primary">Salvar e fechar</button></footer>';
+ document.body.appendChild(d);$('rsPanelClose').onclick=()=>void requestClose();$('rsPanelCancel').onclick=()=>void requestClose();$('rsPanelSave').onclick=()=>void commitClose();$('rsPanelDiscard').onclick=discardClose;
  d.addEventListener('cancel',e=>{e.preventDefault();void requestClose()});
- d.addEventListener('input',()=>{scheduleSave();$('rsPanelStatus').textContent='Alterações pendentes — salve ou descarte antes de fechar.'});return d;
+ d.addEventListener('input',()=>{scheduleSave();panelStatus('Alterações pendentes — salve ou descarte antes de fechar.')});return d;
 }
 function open(node,title,key){
  if(!node||closing)return;
@@ -29,7 +31,7 @@ function open(node,title,key){
  pauseTimers();const base=state(node),placeholder=document.createComment('painel destacado');node.before(placeholder);
  active={...base,node,parent:placeholder.parentNode,placeholder,key,title,classes:node.className,hidden:node.hidden,project:pid};
  node.classList.remove('pnOculta','vazia');node.hidden=false;$('rsPanelBody')||dialog();$('rsPanelBody').appendChild(node);$('rsPanelTitle').textContent=title;
- $('rsPanelStatus').textContent='Alterações de configuração serão confirmadas ao salvar.';
+ panelStatus('Alterações de configuração serão confirmadas ao salvar.');
  dialog().show();document.body.classList.add('rsPanelOpen');
 }
 function finish(discard){
@@ -37,10 +39,10 @@ function finish(discard){
  let refreshError=null;
  try{if(discard)restore(base)}catch(e){refreshError=e}
  finally{
-  try{base.node.className=base.classes;base.node.hidden=base.hidden;if(base.placeholder.isConnected)base.placeholder.replaceWith(base.node);else if(base.parent?.isConnected)base.parent.appendChild(base.node)}catch(e){refreshError??=e}
+  try{base.node.className=base.classes;base.node.hidden=base.hidden;if(!base.standalone){if(base.placeholder.isConnected)base.placeholder.replaceWith(base.node);else if(base.parent?.isConnected)base.parent.appendChild(base.node)}if(discard)base.onRestore?.()}catch(e){refreshError??=e}
   // O fechamento não pode depender de uma atualização de lista/propriedades.
-  dialog().close();document.body.classList.remove('rsPanelOpen');
-  try{if(base.key.startsWith('dock:'))recolherDock(true);else pnAbrir(null)}catch(e){refreshError??=e}
+  (base.surface||dialog()).close();document.body.classList.remove('rsPanelOpen');
+  try{if(!base.standalone){if(base.key.startsWith('dock:'))recolherDock(true);else pnAbrir(null)}}catch(e){refreshError??=e}
   finally{closing=false}
  }
  try{syncImagery()}catch(e){refreshError??=e}
@@ -55,9 +57,23 @@ async function commitClose(){
  if(pane.project!==pid){msg('O projeto mudou. Feche e reabra esta janela.',true);return false}
  if(!pid){msg('Crie ou abra um projeto antes de salvar.',true);return false}
  committing=true;
- try{flushPropertyInputs(pane.node);dialog().querySelectorAll('button,input,select,textarea').forEach(e=>{e.dataset.rsWasDisabled=String(e.disabled);e.disabled=true});if(!String($('name')?.value||'').trim())throw Error('Informe o nome do projeto antes de salvar.');await originalSave();if(savePending)throw Error('Há novas alterações pendentes. Revise e salve novamente.');finish(false);window.dispatchEvent(new CustomEvent('rodovia:form-committed',{detail:{project:pane.project,context:projectSession.context}}));return true}
- catch(e){$('rsPanelStatus').textContent='Não foi salvo: '+e.message;msg(e.message,true);return false}
+ try{flushPropertyInputs(pane.node);surface().querySelectorAll('button,input,select,textarea').forEach(e=>{e.dataset.rsWasDisabled=String(e.disabled);e.disabled=true});if(!String($('name')?.value||'').trim())throw Error('Informe o nome do projeto antes de salvar.');await originalSave();if(savePending)throw Error('Há novas alterações pendentes. Revise e salve novamente.');finish(false);window.dispatchEvent(new CustomEvent('rodovia:form-committed',{detail:{project:pane.project,context:projectSession.context}}));return true}
+ catch(e){panelStatus('Não foi salvo: '+e.message);msg(e.message,true);return false}
  finally{document.querySelectorAll('[data-rs-was-disabled]').forEach(e=>{e.disabled=e.dataset.rsWasDisabled==='true';delete e.dataset.rsWasDisabled});committing=false}
+}
+function discardClose(){
+ if(!active||committing)return false;
+ if(active.project!==pid){msg('O projeto mudou. Feche e reabra esta janela.',true);return false}
+ finish(differs());return true;
+}
+async function openDialog(node,title,key,{onRestore}={}){
+ if(!node||closing)return false;
+ if(active){if(active.surface===node){node.focus();return true}if(!await requestClose())return false}
+ pauseTimers();const base=state(node);
+ active={...base,node,key,title,classes:node.className,hidden:node.hidden,project:pid,surface:node,standalone:true,onRestore};
+ node.classList.add('rsTransactionalDialog');node.hidden=false;
+ panelStatus('Alterações de configuração serão confirmadas ao salvar.');
+ if(!node.open)node.showModal();document.body.classList.add('rsPanelOpen');return true;
 }
 function choose(){
  if(decision)return decision.promise;
@@ -77,7 +93,7 @@ function requestClose(){
   if(answer==='discard'){finish(true);return true}return commitClose();
  })().finally(()=>{closePending=null});return closePending;
 }
-scheduleSave=function(...args){if(!active||committing)return originalSchedule(...args);projectSession.epoch++;savePending=true;pauseTimers();$('saveState').textContent='alterações pendentes na janela';if($('rsPanelStatus'))$('rsPanelStatus').textContent='Alterações pendentes — salve ou descarte antes de fechar.'};
+scheduleSave=function(...args){if(!active||committing)return originalSchedule(...args);projectSession.epoch++;savePending=true;pauseTimers();$('saveState').textContent='alterações pendentes na janela';panelStatus('Alterações pendentes — salve ou descarte antes de fechar.')};
 save=async function(...args){if(active&&!committing){pauseTimers();if(!await requestClose())throw Error('Gravação cancelada; a janela continua em edição.')}return originalSave(...args)};
 const oldSchedulePreview=scheduleViewPreview,oldViewPreview=runViewPreview;
 scheduleViewPreview=function(...args){if(active){previewStale=true;pauseTimers();return}return oldSchedulePreview(...args)};
@@ -97,7 +113,7 @@ const oldHub=psOpenHub;psOpenHub=function(id){
  const item=pnItens.find(i=>i.id===pnEstado.aberto);if(item)open(item.el,item.t,'hub:'+id);return result;
 };
 destacar=function(id){const item=document.querySelector(`.dockItem[data-dock="${id}"]`);open(item,DOCK_ITENS.find(i=>i.id===id)?.t||'Propriedades','dock:'+id)};
-const oldSection=openSection;openSection=function(title){if(active){void requestClose().then(ok=>{if(ok)openSection(title)});return}const result=oldSection(title);const item=pnItens.find(i=>i.id===pnEstado.aberto);if(item&&item.el.getBoundingClientRect().width<650)open(item.el,item.t,'section:'+item.id);return result};
+const oldSection=openSection;openSection=function(title){if(active){void requestClose().then(ok=>{if(ok)openSection(title)});return}const result=oldSection(title);const item=pnItens.find(i=>i.id===pnEstado.aberto);if(item)open(item.el,item.t,'section:'+item.id);return result};
 // Uma operação que grava arquivos fecha primeiro a edição pendente; os originais não fazem parte de Descartar.
 const oldApi=api;api=async function(url,options={}){
  const mutating=options.method&&!['GET','HEAD'].includes(options.method.toUpperCase());
@@ -116,7 +132,7 @@ document.addEventListener('click',e=>{
  e.preventDefault();e.stopImmediatePropagation();const project=pid;
  void requestClose().then(ok=>{if(ok&&pid===project&&button.isConnected&&!button.disabled)button.click()}).catch(err=>msg(err.message,true));
 },true);
-document.addEventListener('keydown',e=>{if(active&&!decision&&e.key==='Tab'){const items=[...dialog().querySelectorAll('button,input,select,textarea,a[href]')].filter(el=>!el.disabled&&el.getClientRects().length);if(items.length){const first=items[0],last=items[items.length-1];if(e.shiftKey&&(e.target===first||!dialog().contains(e.target))){e.preventDefault();last.focus()}else if(!e.shiftKey&&(e.target===last||!dialog().contains(e.target))){e.preventDefault();first.focus()}}}if(active&&(e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();e.stopImmediatePropagation();void (async()=>{if(await commitClose()&&window.RodoviaUpdatePolicy)await RodoviaUpdatePolicy.saveProject()})().catch(e=>msg(e.message,true));return}if(active&&e.key==='Escape'&&!decision){e.preventDefault();e.stopImmediatePropagation();void requestClose()}},true);
+document.addEventListener('keydown',e=>{if(active&&!decision&&e.key==='Tab'){const items=[...surface().querySelectorAll('button,input,select,textarea,a[href]')].filter(el=>!el.disabled&&el.getClientRects().length);if(items.length){const first=items[0],last=items[items.length-1];if(e.shiftKey&&(e.target===first||!surface().contains(e.target))){e.preventDefault();last.focus()}else if(!e.shiftKey&&(e.target===last||!surface().contains(e.target))){e.preventDefault();first.focus()}}}if(active&&(e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();e.stopImmediatePropagation();void (async()=>{if(await commitClose()&&window.RodoviaUpdatePolicy)await RodoviaUpdatePolicy.saveProject()})().catch(e=>msg(e.message,true));return}if(active&&e.key==='Escape'&&!decision){e.preventDefault();e.stopImmediatePropagation();void requestClose()}},true);
 window.addEventListener('beforeunload',e=>{if(active&&differs()){e.preventDefault();e.returnValue=''}});
 function currentImagery(){const image=$('imagery')?.value||cfg.imagery;if(image==='esri')return cfg.local_imagery?.image&&cfg.local_imagery.detail!==false&&($('imagery_detail')?.value||cfg.imagery_detail)!=='off'?'mixed':'map';return image||'map'}
 function syncImagery(){const select=$('rsPresentationBase');if(select){const mode=currentImagery();select.value=mode;const legacy=select.querySelector('option[value=cache]');if(legacy){legacy.hidden=mode!=='cache';legacy.disabled=mode!=='cache'}}}
@@ -136,5 +152,5 @@ function installImagery(){
  });syncImagery();
 }
 window.addEventListener('rodovia:project-state',syncImagery);queueMicrotask(()=>{for(const w of document.querySelectorAll('.floatWin[data-dock]'))encaixar(w.dataset.dock);installImagery()});
-window.RodoviaPanels=Object.freeze({openDock:id=>abrirAba(id,false),close:requestClose,get pending(){return differs()},get opened(){return active?.key||null}});
+window.RodoviaPanels=Object.freeze({openDock:id=>abrirAba(id,false),openDialog,saveAndClose:commitClose,discard:discardClose,close:requestClose,get pending(){return differs()},get opened(){return active?.key||null}});
 })();
