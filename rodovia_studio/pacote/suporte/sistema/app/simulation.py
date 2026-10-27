@@ -88,7 +88,7 @@ class TrafficSim:
         self.blocks=[Block(b) for b in getattr(s,'lane_blocks',[]) if len(b.points)>=3]
         self.prepare();
         from .transport import Transport
-        self.transport=Transport(settings,network);self.control_stops=0
+        self.transport=Transport(settings,network);self.control_stops=0;self.node_routing=any(e.get('flow_role','automatico')!='automatico' for e in network.edges);self.dynamic_reroutes=0
         from .alternating_traffic import AlternatingTraffic
         from .vehicle_safety import PolygonSafety
         self.alternating=AlternatingTraffic(settings,network);self.polygon_safety=PolygonSafety(self)
@@ -216,6 +216,26 @@ class TrafficSim:
         alt=[j for j in self.siblings[self.entry[i]] if j!=i and self.rate[j]>0 and not self.blocked_total(j,t)]
         return int(alt[rng.integers(len(alt))]) if alt else i
 
+    def reroute_at_shared_approach(self,vehicles,t):
+        """Troca somente o futuro do itinerário; nunca transporta o veículo ao nó."""
+        if not getattr(self,'node_routing',False) or getattr(self.s,'traffic_route_only',False):return
+        for v in vehicles:
+            if v.get('lc') or self.shoulder_probe.event(v) or not self.blocked_total(v['p'],t):continue
+            current=v['p'];j,lid,a,b,offset=self.locate(current,v['s'])
+            if lid[0]!='e':continue
+            prefix=[x[0] for x in self.link_of[current][:j+1]]
+            for target in self.siblings[self.entry[current]]:
+                if target==current or self.blocked_total(target,t):continue
+                links=self.link_of[target]
+                if len(links)<=j or [x[0] for x in links[:j+1]]!=prefix:continue
+                start_offset=self.link_offsets[target][j]
+                station=links[j][1]+offset-start_offset
+                if station<links[j][1] or station>links[j][2] or not self.motion_valid(target,v['t']):continue
+                candidate={**v,'p':target,'s':station,'li':j}
+                c,h=self.polygon_safety.pose(v);q,k=self.polygon_safety.pose(candidate)
+                if np.linalg.norm(c-q)>.10 or float(h@k)<.999:continue
+                v.update(p=target,s=station,li=j);self.dynamic_reroutes+=1;break
+
     # ---------- geometria/ocupação ----------
     def locate(self,path_i,s):
         st=self.starts[path_i];j=max(0,min(len(st)-1,bisect.bisect_right(st,s)-1));lid,a,b=self.link_of[path_i][j]
@@ -334,7 +354,7 @@ class TrafficSim:
         rng=np.random.default_rng(1729);n=len(self.paths);t0=0. if getattr(self.s,'traffic_route_only',False) else -WARMUP;steps=int(math.ceil((self.duration-t0)/DT))+2
         nextspawn=[t0 if r>0 and getattr(self.s,'traffic_route_only',False) else t0+rng.exponential(1/max(r,1e-6)) if r>0 else math.inf for r in self.rate];pending=[0]*n;V=[]
         last_admit=collections.defaultdict(lambda:-math.inf);queue_area=[0.0]*n;max_queue_lane=[0]*n;queue_discharged=[0]*n
-        self.info={};self.spawned_by_path=[0]*n;frames=[];self.warning_frames=[];vid=0;first=int(round(-t0/DT))
+        self.info={};self.exited_by_path=[0]*n;self.node_transfers=collections.Counter();self.spawned_by_path=[0]*n;frames=[];self.warning_frames=[];vid=0;first=int(round(-t0/DT))
         self.collisions=0;self.side_collisions=0;self.min_gap=math.inf;self.max_queue=0;self.rerouted=0;self.spawned=0
         self.safety_interventions=0;self.lane_changes=0;self.lc_blocked_rules=0;self.lc_blocked_safety=0
         for k in range(steps):
@@ -342,6 +362,7 @@ class TrafficSim:
             for i in range(n):
                 while nextspawn[i]<=t:
                     pending[i]+=1;nextspawn[i]=math.inf if getattr(self.s,'traffic_route_only',False) else nextspawn[i]+rng.exponential(1/self.rate[i])
+            self.reroute_at_shared_approach(V,t)
             occ=self.occupancy(V)
             for i in self.admission_order(pending,rng):
                 if not pending[i]:continue
@@ -392,12 +413,15 @@ class TrafficSim:
             alive=[]
             for v,(nv,ds) in zip(V,planned):
                 v['_previous_s']=v['s'];v['v']=nv;v['s']+=ds
+                for link,a,b in self.link_of[v['p']]:
+                    if link[0]=='c' and v['_previous_s']<b<=v['s']:self.node_transfers[(link[1],link[2])]+=1
                 lc=v.get('lc')
                 if lc is not None:
                     self.advance_maneuver(lc,ds,DT)
                     if lc['elapsed']>=lc['duration']:
                         target=lc['to'];v['s']=self.map_s(v['p'],target,v['s']);v['p']=target;v['lc']=None;v['lc_cooldown']=t+self.LC_COOLDOWN
                 if v['s']<self.paths[v['p']]['length']-.5:alive.append(v)
+                else:self.exited_by_path[v['p']]+=1
             V=alive
             if getattr(self.s,'traffic_route_only',False):
                 occupied_paths={v['p'] for v in V}
@@ -412,7 +436,7 @@ class TrafficSim:
                 al=np.array([min(1.,v['lc']['elapsed']/v['lc']['duration']) if v.get('lc') is not None else 0. for v in V],np.float64)
                 frames.append((ids,ss,ps,to,al));self.warning_frames.append({v['id'] for v in V if v['v']<.3 and (v.get('_risk_stop') or math.isfinite(self.alternating.stop_gap(v)) or any(self.blocks[bi].active(t) and a-120<v['s']<b for bi,a,b in self.zones[v['p']]))});self.check(V)
             if k%(25 if self.shoulder_probe.enabled else 250)==0:status(.22+.03*k/steps,f'Simulando tráfego: {tempo(max(0.,t))} de {tempo(self.duration)}')
-        self.frames=frames;self.t_first=t0+first*DT
+        self.active_end=len(V);self.frames=frames;self.t_first=t0+first*DT
         self.queue_area_vehicle_s=queue_area;self.max_queue_lane=max_queue_lane;self.queue_discharged=queue_discharged;self.current_queue=list(pending)
 
     def enforce_hard_separation(self,V):
@@ -573,9 +597,9 @@ class TrafficSim:
     def report(self):
         ratio=max([row['ratio'] for row in self.entry_demand_study],default=None)
         from .vehicle_safety import LATERAL_CLEARANCE,LATERAL_BUFFER
-        return {'model':'microssimulacao','distribution':{**self.distribution_report,'actual_spawned_by_path':self.spawned_by_path,'count_scope':'Contagem inclui o aquecimento quando ativo.'},'entry_inset_m':getattr(self.s,'traffic_entry_inset_m',5),'route_only':getattr(self.s,'traffic_route_only',False),'collision_prevention':getattr(self.s,'traffic_prevent_collisions',True),'signals_respected':getattr(self.s,'traffic_respect_signals',True),'shoulder_probe':self.shoulder_probe.report(),'lateral_clearance_m':LATERAL_CLEARANCE,'lateral_buffer_per_vehicle_m':LATERAL_BUFFER,'narrow_corridor_admission_holds':self.polygon_safety.narrow_holds,'minimum_following_gap_m':self.HARD_GAP,'polygon_safety_interventions':self.polygon_safety.interventions,'alternating_traffic':self.alternating.report(),'pedestrians':self.pedestrians.report(),'vehicles':self.spawned,'rear_collisions':self.collisions,'side_collisions':self.side_collisions,
+        return {'model':'microssimulacao','flow_balance':{'entered':self.spawned,'exited':sum(self.exited_by_path),'active_end':self.active_end,'conserved':self.spawned==sum(self.exited_by_path)+self.active_end,'scope':'Contagem inclui o aquecimento; veículos derivados mantêm identidade.'},'rerouted_at_nodes':self.dynamic_reroutes,'node_movements':[{'from_edge':a,'to_edge':b,'count':n,'from_route':self.net.edges[a].get('route'),'to_route':self.net.edges[b].get('route')} for (a,b),n in sorted(self.node_transfers.items())],'distribution':{**self.distribution_report,'actual_spawned_by_path':self.spawned_by_path,'count_scope':'Contagem inclui o aquecimento quando ativo.'},'entry_inset_m':getattr(self.s,'traffic_entry_inset_m',5),'route_only':getattr(self.s,'traffic_route_only',False),'collision_prevention':getattr(self.s,'traffic_prevent_collisions',True),'signals_respected':getattr(self.s,'traffic_respect_signals',True),'shoulder_probe':self.shoulder_probe.report(),'lateral_clearance_m':LATERAL_CLEARANCE,'lateral_buffer_per_vehicle_m':LATERAL_BUFFER,'narrow_corridor_admission_holds':self.polygon_safety.narrow_holds,'minimum_following_gap_m':self.HARD_GAP,'polygon_safety_interventions':self.polygon_safety.interventions,'alternating_traffic':self.alternating.report(),'pedestrians':self.pedestrians.report(),'vehicles':self.spawned,'rear_collisions':self.collisions,'side_collisions':self.side_collisions,
                 'min_gap_m':None if self.min_gap==math.inf else round(self.min_gap,2),'max_waiting_at_entries':self.max_queue,
-                'transport_controls':self.transport.report(),'control_stop_interventions':self.control_stops,'rerouted':self.rerouted,'blocks':len(self.blocks),'density':self.density,'lane_changes':self.lane_changes,
+                'transport_controls':self.transport.report(),'control_stop_interventions':self.control_stops,'rerouted':self.rerouted,'rerouted_at_nodes':self.dynamic_reroutes,'blocks':len(self.blocks),'density':self.density,'lane_changes':self.lane_changes,
                 'lane_change_blocked_rule':self.lc_blocked_rules,'lane_change_blocked_safety':self.lc_blocked_safety,
                 'safety_interventions':self.safety_interventions,'collision_free':(self.collisions==0 and self.side_collisions==0) if getattr(self.s,'traffic_prevent_collisions',True) else None,
                 'demand_vph_per_lane':getattr(self.s,'traffic_demand_vphpl',None),'capacity_vph_per_lane':round(self.capacity_vphpl),'entry_demand_study':self.entry_demand_study,'saturation_indicator':{'status':'sobressaturado — indicativo de F' if ratio is not None and ratio>1 else 'nível de serviço não determinado','demand_capacity_ratio':ratio,'scope':'Estimativa com fatores de equivalência internos; não é classificação DNIT/HCM. Depende de tipo de via, velocidade, densidade, atrasos e método aplicável.'},'motion_blocked_vehicles':self.motion_blocked,'lane_change_blocked_geometry':self.lc_blocked_geometry,'motion_profiles':{f'{p}:{v}':a for (p,v),a in self.motion_cache.items()},

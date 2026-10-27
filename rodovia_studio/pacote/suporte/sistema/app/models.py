@@ -232,6 +232,13 @@ class RouteAlignment(BaseModel):
     points: list[Point] = Field(min_length=2,max_length=20000)
     enabled: bool = True
     type: Literal['simples','dupla','unico'] = 'simples'   # tipo fora dos trechos
+    flow_role: Literal['automatico','principal','acesso','retorno','dispositivo','rotatoria'] = 'automatico'
+    flow_start: Literal['automatico','entrada','saida','conexao','fim'] = 'automatico'
+    flow_end: Literal['automatico','entrada','saida','conexao','fim'] = 'automatico'
+    flow_direction: Literal['automatico','crescente','decrescente','ambos'] = 'automatico'
+    roundabout_rotation: Literal['cadastro','horario','anti_horario'] = 'cadastro'
+    external_demand_vph: float | None = Field(default=None,gt=0,le=1000000)
+    external_vdm: float | None = Field(default=None,gt=0,le=1000000)
     lanes: int = Field(default=1,ge=1,le=6)
     median_m: float = Field(default=0,ge=0,le=60)
     lane_width_m: float = Field(default=3.5,ge=2.5,le=5)
@@ -251,6 +258,11 @@ class RouteAlignment(BaseModel):
     lane_change_sections: list[LaneChangeSection] = Field(default_factory=list,max_length=200)
     @model_validator(mode='after')
     def disable_micro_route(self):
+        from .flow_nodes import direction
+        direction(self)
+        if (self.external_demand_vph is not None or self.external_vdm is not None) and self.flow_role=='automatico':raise ValueError('Classifique o eixo antes de configurar sua entrada externa.')
+        if self.external_demand_vph is not None and self.external_vdm is not None:raise ValueError('Use veículos/h ou VDM na entrada externa, não os dois.')
+        if (self.external_demand_vph is not None or self.external_vdm is not None) and 'entrada' not in (self.flow_start,self.flow_end):raise ValueError('A demanda externa exige um nó de entrada explícito.')
         length=sum(math.hypot(b.x-a.x,b.y-a.y) for a,b in zip(self.points,self.points[1:]))
         ordered=sorted(self.cross_sections,key=lambda section:section.start_m)
         for i,section in enumerate(ordered):

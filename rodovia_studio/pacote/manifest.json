@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.30",
-  "description": "1.42.30: regras de fluxo, entrada de 5 m, distribuição de ramais, VDM e OAE por cota/orientação."
+  "version": "1.42.31",
+  "description": "1.42.31: eixos por função, nós orientadores, giro de rotatória, categorias 5/20 e balanço de fluxos no motor existente."
 }

@@ -12,7 +12,7 @@ class RouteLaneCache:
         self.folder=Path(directory)/'_cache'/'route_lanes' if directory else None
         self.hits=self.misses=self.invalid=self.write_errors=0
         digest=hashlib.sha256()
-        for name in ('routes.py','road_sections.py','route_lane_cache.py','models.py'):
+        for name in ('routes.py','road_sections.py','route_lane_cache.py','models.py','flow_nodes.py'):
             digest.update(Path(__file__).with_name(name).read_bytes())
         self.engine=digest.hexdigest()
 

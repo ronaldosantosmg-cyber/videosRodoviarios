@@ -194,6 +194,9 @@ class TrafficNetwork:
             coordinates=np.round(r.get('identity_points',r['points']),3).astype('<f8');geometry_key=min(coordinates.tobytes(),coordinates[::-1].tobytes())
             r['origin_key']=hashlib.sha256((str(r.get('source_id') or r.get('route') or r.get('native_id') or r.get('source',''))+'|'+str(r.get('level',0))).encode()+geometry_key).hexdigest()
             r['origin_aliases']=[r['origin_key']]
+            for old in r.get('legacy_identity_points',[]):
+                q=np.round(old,3).astype('<f8');key=min(q.tobytes(),q[::-1].tobytes())
+                r['origin_aliases'].append(hashlib.sha256((str(r.get('route') or r.get('source',''))+'|'+str(r.get('level',0))).encode()+key).hexdigest())
             if r.get('native_axis') and ',' not in r['native_id']:
                 # A revisão anterior reamostrava apenas os eixos principais.
                 # Seus cortes e desativações continuam vinculados à mesma fonte.
@@ -215,7 +218,9 @@ class TrafficNetwork:
             a=self.origin_info.get(o,(0.,False));self.origin_info[o]=(a[0]+L,a[1] or keep)
         from .direction_intervals import split_intervals
         raw,self.direction_report=split_intervals(raw,getattr(settings,'direction_marks',[]))
-        unresolved=sum(row['status']!='applied' for row in self.direction_report)
+        conflicts=sum(row['status']=='node_conflict' for row in self.direction_report)
+        if conflicts:self.warnings.append(f'{conflicts} marcação(ões) de sentido contradizem os nós. O percurso válido foi mantido; ajuste os nós ou remova a marcação contraditória.')
+        unresolved=sum(row['status'] not in ('applied','node_conflict') for row in self.direction_report)
         if unresolved:self.warnings.append(f'{unresolved} indicação(ões) de sentido curta(s) ou sem eixo único associado; use intervalo de pelo menos 5 m, selecione a linha explicitamente e confira início/fim.')
         raw=self.prune_automatic(self.split_contacts(raw),'contato')
         # Setas e cliques do usuário são resolvidos uma vez, sobre os trechos finais.
@@ -387,7 +392,7 @@ class TrafficNetwork:
         elif reversed_by_user and not both:forward=not forward
         disabled=bool(user.get('disable'))
         spd=user.get('speed_kmh') or r.get('speed_kmh')
-        route_meta={k:r.get(k) for k in ('native_axis','native_id','native_joined','route','route_name','route_dir','route_lane','route_lane_width_m','route_start_m','route_end_m','lane_change','lane_change_sections') if r.get(k) is not None}
+        route_meta={k:r.get(k) for k in ('flow_role','flow_start','flow_end','external_demand_vph','external_vdm','native_axis','native_id','native_joined','route','route_name','route_dir','route_lane','route_lane_width_m','route_start_m','route_end_m','lane_change','lane_change_sections') if r.get(k) is not None}
         self.raw_info.append({'base':base,'points':p,'kind':kind,'forward':bool(forward),'both':bool(both),'disabled':disabled,'reversed':reversed_by_user,'source':r['source'],'manual':bool(r.get('manual')),'override_ids':user.get('override_ids',[]),'protected_overrides':r.get('cut_disable_refs',[]),'recovery_enabled':bool(user.get('recover')),'recovery_reports':[],'origin_id':r.get('origin',base),'origin_key':r.get('origin_key',''),'level':r['level'],'speed_kmh':float(spd) if spd else None,**route_meta,**({'route_fixed':True} if r.get('fixed') else {}),**({'direction_mark_id':r['direction_mark_id'],'explicit_direction':r['explicit_direction']} if 'explicit_direction' in r else {})})
         # Paint belongs to the road center, not to an individual vehicle track.
         # 1.10: trechos curtos do esqueleto (ramos de junção) não recebem pintura no modo limpo.
@@ -756,6 +761,12 @@ class TrafficNetwork:
         p=edge['p'][0 if start else -1];origin=edge.get('origin')
         ends=getattr(self,'original_terminals',{}).get(origin,[])
         flag='native_start_portal' if start else 'native_end_portal'
+        if any(edge.get(k,'automatico')!='automatico' for k in ('flow_role','flow_start','flow_end')) and any(np.linalg.norm(p-q)<4 for q in ends):
+            from .flow_nodes import endpoint_kind
+            kind=endpoint_kind(edge,start)
+            if start and kind in ('saida','fim'):return False
+            if not start and kind=='entrada':return False
+            if kind=='conexao':return False
         if edge.get('native_axis') and flag in edge:return edge[flag]
         if any(np.linalg.norm(p-q)<4 for q in ends):return True
         if edge.get('native_axis'):return False  # Lacunas internas não viram entradas/saídas.
@@ -814,8 +825,8 @@ class TrafficNetwork:
                 if not self.edges[a_]['disabled']:rfull[b_].append(a_)
         entries={i for i in live if not reverse[i] and not rfull[i] and self.endpoint_available(self.edges[i],True) and self.portal_allowed(self.edges[i],True)};exits={i for i in live if not conn[i] and not self.connections[i] and self.endpoint_available(self.edges[i],False) and self.portal_allowed(self.edges[i],False)}
         main_entries={i for i in entries if self.edges[i]['kind']=='main'};main_exits={i for i in exits if self.edges[i]['kind']=='main'}
-        entries=(main_entries|{i for i in entries if self.edges[i].get('native_axis')}) or entries
-        exits=(main_exits|{i for i in exits if self.edges[i].get('native_axis')}) or exits
+        entries=(main_entries|{i for i in entries if self.edges[i].get('native_axis') or self.edges[i].get('flow_role','automatico')!='automatico'}) or entries
+        exits=(main_exits|{i for i in exits if self.edges[i].get('native_axis') or self.edges[i].get('flow_role','automatico')!='automatico'}) or exits
         # 1.18: a ponta de um acesso desenhado pelo operador também é origem/destino dos veículos.
         ends=[np.array([a.points[-1].x,a.points[-1].y]) for a in getattr(self.s,'accesses',[]) or [] if a.enabled and len(a.points)>=2]
         if ends:

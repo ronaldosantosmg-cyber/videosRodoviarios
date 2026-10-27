@@ -1,0 +1,24 @@
+{
+  "preparation_s": 0.9924,
+  "simulation_s": 5.4171,
+  "frame_s": 0.4014,
+  "maxrss_kib": 287528,
+  "paths": 1,
+  "spawned": 21,
+  "paths_sha256": "d0c169597219017290392438164f0bf66a437c33f98239a6115677ffbd9cb64b",
+  "trajectory_sha256": "c7665ebadda88f63e09e35f0bedf76645ac9f2977a74eda340556ec166a1d0f2",
+  "frame_sha256": "3d601b847e40b6454464b6d6ebdd133a49f3909576dd441435d7be3481967ae6",
+  "visibility": {
+    "time_s": 1.0,
+    "width_m": 750.0,
+    "enabled": true,
+    "active": 6,
+    "drawn": 6,
+    "outside_view": 0,
+    "outside_revealed_section": 0,
+    "body_outside_allowed": 0,
+    "subpixel": 0,
+    "reveal_pending": false
+  },
+  "scope": "Cenário legado idêntico em processos separados neste Linux; medições pontuais com outras tarefas ativas, não benchmark Windows nem ganho garantido."
+}

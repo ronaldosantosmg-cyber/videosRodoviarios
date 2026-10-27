@@ -25,6 +25,9 @@ def split_intervals(raw,marks,tolerance=6.):
         _,_,i,lo,hi,forward=best
         if hi-lo<5:
             report.append({'id':mark.id,'status':'intervalo_curto','minimum_m':5});continue
+        if raw[i].get('node_oriented'):
+            report.append({'id':mark.id,'status':'applied' if forward else 'node_conflict','forward':bool(forward),'origin_key':raw[i].get('origin_key',''),'reason':'Sentido definido pelos nós; marcação contraditória não altera o percurso.' if not forward else 'Marcação compatível com os nós, sem recortar novamente a faixa.'})
+            continue
         assigned.setdefault(i,[]).append((lo,hi,forward,mark.id))
         report.append({'id':mark.id,'status':'applied','start_m':round(lo,3),'end_m':round(hi,3),'forward':bool(forward),'origin_key':raw[i].get('origin_key','')})
     result=[]

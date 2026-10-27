@@ -66,6 +66,8 @@ def _build_lanes(route,settings=None):
         from .road_sections import section_offsets
         from .models import RouteAlignment
         offs=section_offsets(RouteAlignment.model_validate(route) if isinstance(route,dict) else route,s,[{} for _ in s] if g('sections_only',False) else offs)
+    from .flow_nodes import orient_offsets
+    offs=orient_offsets(route,offs)
     if settings is not None:
         from .road_sections import alternating_offsets
         offs=alternating_offsets(route,settings,s,offs)
@@ -125,16 +127,22 @@ def build_lanes(route,settings=None,lane_cache=None):
 
 def raw_paths(settings,lane_cache=None):
     """Entradas “raw” para a rede de tráfego (TrafficNetwork) a partir dos alinhamentos de rota ativos."""
+    from .flow_nodes import direction
     out=[]
     for r in getattr(settings,'route_alignments',[]) or []:
         if not getattr(r,'enabled',True):continue
         pts=np.array([[p.x,p.y] for p in r.points],dtype=float)
         route_len=float(np.sum(np.linalg.norm(np.diff(pts,axis=0),axis=1))) if len(pts)>1 else 0.0
         if not np.isfinite(route_len) or route_len < float(getattr(settings,'min_route_segment_m',50)):continue
+        legacy=[]
+        if r.flow_role!='automatico' or r.flow_start!='automatico' or r.flow_end!='automatico' or r.flow_direction!='automatico':
+            old=r.model_copy(update=dict(flow_role='automatico',flow_start='automatico',flow_end='automatico',flow_direction='automatico',roundabout_rotation='cadastro',external_demand_vph=None,external_vdm=None))
+            legacy=build_lanes(old,settings)
         for ln in build_lanes(r,settings,lane_cache):
             if ln['length']<float(getattr(settings,'min_route_segment_m',50)):continue
-            out.append({'points':ln['points'],'halfwidth':float(r.lane_width_m)/2,'source':f"{r.name} · {'sentido do desenho' if ln['dir']=='f' else 'sentido oposto'} · faixa {ln['lane']+1}",
-                        'level':int(r.level),'kind':'main','manual':True,'fixed':True,'nopaint':True,'free':bool(r.outside_pavement),'speed_kmh':r.speed_kmh,
+            out.append({'points':ln['points'],'legacy_identity_points':[v['points'] for v in legacy if v['lane']==ln['lane'] and (v['dir']==ln['dir'] or r.type=='unico')],'halfwidth':float(r.lane_width_m)/2,'source':f"{r.name} · {'sentido do desenho' if ln['dir']=='f' else 'sentido oposto'} · faixa {ln['lane']+1}",
+                        'node_oriented':bool(direction(r)),'flow_role':r.flow_role,'flow_start':r.flow_start,'flow_end':r.flow_end,'external_demand_vph':r.external_demand_vph,'external_vdm':r.external_vdm,
+                        'level':int(r.level),'kind':{'acesso':'access','retorno':'return','dispositivo':'device','rotatoria':'device'}.get(r.flow_role,'main'),'manual':True,'fixed':True,'nopaint':True,'free':bool(r.outside_pavement),'speed_kmh':r.speed_kmh,
                         'route':r.id or r.name,'route_name':r.name,'route_dir':ln['dir'],'route_lane':int(ln['lane']),'route_lane_width_m':ln['lane_width_m'],
                         'route_start_m':float(ln['start_m']),'route_end_m':float(ln['end_m']),
                         'lane_change':getattr(r,'lane_change','marked'),

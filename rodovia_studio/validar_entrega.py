@@ -18,6 +18,7 @@ PACKAGE=ROOT/'pacote'
 SYSTEM=PACKAGE/'suporte/sistema'
 EVIDENCE=ROOT/'evidencias'/json.loads((PACKAGE/'manifest.json').read_text())['version']
 TESTS=[
+ 'tests/test_v14231_flow_nodes.py','tests/test_v14231_flow_nodes_ui.py','tests/test_v14231_video.py',
  'tests/test_v14230_overtake.py','tests/test_v14230_flow_rules.py','tests/test_v14230_flow_ui.py','tests/test_v14230_fleet_video.py',
  'tests/test_v14229_shoulder_probe.py','tests/test_v14229_probe_visual.py',
  'tests/test_v14228_hatch_online.py',
