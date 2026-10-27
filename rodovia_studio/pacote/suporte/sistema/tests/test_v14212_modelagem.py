@@ -47,10 +47,10 @@ def test_shared_work_lane_has_opposite_directions_without_changing_source():
 def test_requested_vehicle_widths_and_lateral_reservation():
     assert all(PROFILES[k][1]==3 for k in ['truck','bus','carreta'])
     assert all(PROFILES[k][1]==1.8 for k in ['car','van','pickup']) and PROFILES['moto'][1]==.8
-    assert LATERAL_CLEARANCE==.5 and LATERAL_BUFFER==.25
+    assert LATERAL_CLEARANCE==.3 and LATERAL_BUFFER==.15
     reservation=SpatialReservations();reservation.add(1,body([100,0],[1,0],12,3,LATERAL_BUFFER))
-    assert reservation.clear(2,body([100,3.5],[1,0],12,3,LATERAL_BUFFER))
-    assert not reservation.clear(2,body([100,3.49],[1,0],12,3,LATERAL_BUFFER))
+    assert reservation.clear(2,body([100,3.3],[1,0],12,3,LATERAL_BUFFER))
+    assert not reservation.clear(2,body([100,3.29],[1,0],12,3,LATERAL_BUFFER))
     with pytest.raises(ValueError):body([np.nan,0],[1,0],4,1.8)
 
 

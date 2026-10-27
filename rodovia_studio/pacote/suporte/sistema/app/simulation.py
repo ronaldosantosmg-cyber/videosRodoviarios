@@ -89,6 +89,8 @@ class TrafficSim:
         from .alternating_traffic import AlternatingTraffic
         from .vehicle_safety import PolygonSafety
         self.alternating=AlternatingTraffic(settings,network);self.polygon_safety=PolygonSafety(self)
+        from .shoulder_probe import ShoulderProbe
+        self.shoulder_probe=ShoulderProbe(self)
         from .pedestrian_traffic import PedestrianTraffic
         self.pedestrians=PedestrianTraffic(settings,network,self.transport,self)
         self.lane_events=[]
@@ -159,6 +161,10 @@ class TrafficSim:
         key=(path_i,vehicle)
         if key not in self.motion_cache:
             self.motion_cache[key]=analyze_motion(self.paths[path_i]['p'],vehicle,getattr(self.net,'allowed',None))
+            probe=getattr(self,'shoulder_probe',None)
+            if probe is not None:
+                fallback=probe.curve_fallback(path_i,vehicle,self.motion_cache[key])
+                if fallback:self.motion_cache[key]=fallback
             if PROFILES.get(vehicle,PROFILES['car'])[1]>self.paths[path_i].get('route_lane_width_m',math.inf)+1e-6:
                 self.motion_cache[key]={**self.motion_cache[key],'ok':False,'reasons':list(self.motion_cache[key]['reasons'])+['veiculo_mais_largo_que_faixa']}
         return self.motion_cache[key]['ok']
@@ -263,6 +269,7 @@ class TrafficSim:
     def consider_lane_changes(self,V,t,occ):
         for v in sorted(V,key=lambda x:x['id']):
             if v.get('lc') is not None or t<v.get('lc_cooldown',-math.inf):continue
+            if getattr(self,'shoulder_probe',None) and self.shoulder_probe.event(v):continue
             cand=self.adjacent.get(v['p'],())
             if not cand:continue
             gap,_,lead=self.leader_state(v,occ,look=120.)
@@ -351,6 +358,7 @@ class TrafficSim:
                     if ds>safe+1e-9:
                         ds=safe;nv=min(nv,ds/DT if DT>0 else 0.);self.safety_interventions+=1
                 planned.append((nv,ds))
+            self.shoulder_probe.prepare(V)
             planned=self.polygon_safety.resolve(V,planned)
             alive=[]
             for v,(nv,ds) in zip(V,planned):
@@ -370,7 +378,7 @@ class TrafficSim:
                 to=np.array([v['lc']['to'] if v.get('lc') is not None else -1 for v in V],np.int32)
                 al=np.array([min(1.,v['lc']['elapsed']/v['lc']['duration']) if v.get('lc') is not None else 0. for v in V],np.float64)
                 frames.append((ids,ss,ps,to,al));self.warning_frames.append({v['id'] for v in V if v['v']<.3 and (v.get('_risk_stop') or math.isfinite(self.alternating.stop_gap(v)) or any(self.blocks[bi].active(t) and a-120<v['s']<b for bi,a,b in self.zones[v['p']]))});self.check(V)
-            if k%250==0:status(.22+.03*k/steps,f'Simulando tráfego: {tempo(max(0.,t))} de {tempo(self.duration)}')
+            if k%(25 if self.shoulder_probe.enabled else 250)==0:status(.22+.03*k/steps,f'Simulando tráfego: {tempo(max(0.,t))} de {tempo(self.duration)}')
         self.frames=frames;self.t_first=t0+first*DT
         self.queue_area_vehicle_s=queue_area;self.max_queue_lane=max_queue_lane;self.queue_discharged=queue_discharged;self.current_queue=list(pending)
 
@@ -488,6 +496,9 @@ class TrafficSim:
         states=self.state(t)
         for vid,i,s,to,a in states:
             vt=self.info[vid][1];path=self.paths[i];g=axle_geometry_prepared(*self.motion_points[i],vt,np.array([s]));pos=self._center(i,s,to,a);tan=g['heading'][0]
+            if to<0 and getattr(self,'shoulder_probe',None):
+                probe_pose=self.shoulder_probe.pose({'id':vid,'p':i,'s':s,'t':vt})
+                if probe_pose is not None:pos,tan=probe_pose
             if to>=0:
                 event=next((e for e in reversed(self.lane_events) if e['id']==vid and e['source']==i and e['target']==to and e['time']<=t+DT),None)
                 if event:
@@ -512,13 +523,16 @@ class TrafficSim:
             if to>=0 and not code:
                 c,h,_=self._sample_pose(i,s);delta=self._center(to,self.map_s(i,to,s),-1,0)-c
                 code=1 if np.array([-h[1],h[0]])@delta>0 else 2
+            probe=getattr(self,'shoulder_probe',None);event=probe.event({'id':vid,'p':i,'s':s}) if probe else None
+            if event and not code:
+                code=2 if s<event['stations'][1] else 1 if s>event['stations'][2] else 0
             out[int(vid)]=code
         return out
 
     def report(self):
         ratio=max([row['ratio'] for row in self.entry_demand_study],default=None)
         from .vehicle_safety import LATERAL_CLEARANCE,LATERAL_BUFFER
-        return {'model':'microssimulacao','lateral_clearance_m':LATERAL_CLEARANCE,'lateral_buffer_per_vehicle_m':LATERAL_BUFFER,'narrow_corridor_admission_holds':self.polygon_safety.narrow_holds,'minimum_following_gap_m':self.HARD_GAP,'polygon_safety_interventions':self.polygon_safety.interventions,'alternating_traffic':self.alternating.report(),'pedestrians':self.pedestrians.report(),'vehicles':self.spawned,'rear_collisions':self.collisions,'side_collisions':self.side_collisions,
+        return {'model':'microssimulacao','shoulder_probe':self.shoulder_probe.report(),'lateral_clearance_m':LATERAL_CLEARANCE,'lateral_buffer_per_vehicle_m':LATERAL_BUFFER,'narrow_corridor_admission_holds':self.polygon_safety.narrow_holds,'minimum_following_gap_m':self.HARD_GAP,'polygon_safety_interventions':self.polygon_safety.interventions,'alternating_traffic':self.alternating.report(),'pedestrians':self.pedestrians.report(),'vehicles':self.spawned,'rear_collisions':self.collisions,'side_collisions':self.side_collisions,
                 'min_gap_m':None if self.min_gap==math.inf else round(self.min_gap,2),'max_waiting_at_entries':self.max_queue,
                 'transport_controls':self.transport.report(),'control_stop_interventions':self.control_stops,'rerouted':self.rerouted,'blocks':len(self.blocks),'density':self.density,'lane_changes':self.lane_changes,
                 'lane_change_blocked_rule':self.lc_blocked_rules,'lane_change_blocked_safety':self.lc_blocked_safety,

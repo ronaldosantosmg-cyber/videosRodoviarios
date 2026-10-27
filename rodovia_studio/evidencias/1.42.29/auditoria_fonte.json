@@ -1,0 +1,1754 @@
+{
+  "method": "inventario_e_regras_estaticas",
+  "antivirus": false,
+  "files": [
+    {
+      "file": "ATUALIZACAO_1_42_15.md",
+      "bytes": 2052,
+      "sha256": "a3de5bc77be6af53b6c9a795adfaeca4bcf52510b12e3496f6ae6bc80b7fc96b"
+    },
+    {
+      "file": "ATUALIZACAO_1_42_16.md",
+      "bytes": 2790,
+      "sha256": "ecbc73ce135bba566e05d782d9b042e0f1d4433cf83fb185c5b2806f0171127a"
+    },
+    {
+      "file": "ATUALIZACAO_1_42_17.md",
+      "bytes": 2172,
+      "sha256": "287e966850a8827e10f3e620ae4c2f9982b066afea13a4d5aee9bcf725c47ccf"
+    },
+    {
+      "file": "ATUALIZACAO_1_42_18.md",
+      "bytes": 4387,
+      "sha256": "25902ec5081981b05bad2ba99e0285b7641bf46fba21b57483f6175cbbb22667"
+    },
+    {
+      "file": "ATUALIZACAO_1_42_19.md",
+      "bytes": 5102,
+      "sha256": "53b2410ba98d42aad5e78f4cdb298b1ab173e6c9d0bdace8c7a7b7979bfc6fd4"
+    },
+    {
+      "file": "ATUALIZACAO_1_42_20.md",
+      "bytes": 5014,
+      "sha256": "dbf8938471dcb7e4abc099ce9ddb0a2098a7a42fba419a57bbf40eaf7ca8c211"
+    },
+    {
+      "file": "ATUALIZACAO_1_42_21.md",
+      "bytes": 3986,
+      "sha256": "05de762406b76dab2b0ffb5d4626b0d675aa59347a626f8930fd5edb1651d6c9"
+    },
+    {
+      "file": "ATUALIZACAO_1_42_22.md",
+      "bytes": 4232,
+      "sha256": "a572616b2354e8447981b2886f22bc7414141e4ccf8cdf6dac528203e1254e3f"
+    },
+    {
+      "file": "ATUALIZACAO_1_42_23.md",
+      "bytes": 3783,
+      "sha256": "568b060a1c8603b2f200d07bb2e371115a171c260132b7be81eeea2214409e4f"
+    },
+    {
+      "file": "ATUALIZACAO_1_42_24.md",
+      "bytes": 3073,
+      "sha256": "15cff97a533a724080ecd8b2a4eb51875780d54e418a1938dd86af50880e19cb"
+    },
+    {
+      "file": "ATUALIZACAO_1_42_25.md",
+      "bytes": 5753,
+      "sha256": "84d9c59fa70184dad75e86dc1b4c51d78fbea877a4e06c89eb205c466380c027"
+    },
+    {
+      "file": "ATUALIZACAO_1_42_26.md",
+      "bytes": 2536,
+      "sha256": "5d2ae47034ef7c97bbed8dd44f11064221e91b91e892ea0b21585b3e6f8ec241"
+    },
+    {
+      "file": "ATUALIZACAO_1_42_27.md",
+      "bytes": 3189,
+      "sha256": "afe4a1b24a4849a34138a3bd4141f0416fe7ad311555d9c6635d1e8104813113"
+    },
+    {
+      "file": "ATUALIZACAO_1_42_28.md",
+      "bytes": 5658,
+      "sha256": "648101dd1c852d0269a82faa58545ab64dfd670f4d7964a8b27b75488c71f7e2"
+    },
+    {
+      "file": "ATUALIZACAO_1_42_29.md",
+      "bytes": 2856,
+      "sha256": "77e9dd55e766418a6f3d25538382780f0f0f2f80cf9b5482644dd441cc0d42da"
+    },
+    {
+      "file": "ATUALIZACAO_1_42_3.md",
+      "bytes": 3057,
+      "sha256": "8e0e053c2bcca83de7399688bcda6f017da36f6ef5288883f9b4106bfdbb916c"
+    },
+    {
+      "file": "ATUALIZACAO_1_42_4.md",
+      "bytes": 4193,
+      "sha256": "f55c036ba6ea9c8d59075a4cc417d86835ed8b6e545a26b7a047c62dafb039d2"
+    },
+    {
+      "file": "ATUALIZACAO_1_42_5.md",
+      "bytes": 2318,
+      "sha256": "1aa03150f61a3eb7596b0e8d0378a2ec3f6ed794db30c99d31baf2734f0c5267"
+    },
+    {
+      "file": "ATUALIZACAO_1_42_6.md",
+      "bytes": 5066,
+      "sha256": "ac859557ad04fb0da357370da06ff931d61f80cdd8ca36dc4eebbd228cba61fe"
+    },
+    {
+      "file": "ATUALIZACAO_1_42_7.md",
+      "bytes": 4174,
+      "sha256": "94968d74bdc3ce8f663929787f46409a92e5dd14bbf2d38e872970944e92eb09"
+    },
+    {
+      "file": "ATUALIZACAO_1_42_8.md",
+      "bytes": 4205,
+      "sha256": "08daa4c01ddf9a3a3dbfcdea4ba9ba68e5330d3d70b83b1a4a3a8ec3927b6806"
+    },
+    {
+      "file": "AUDITORIA_1_42_4.md",
+      "bytes": 5320,
+      "sha256": "5d2e87e64ae63718b3e3505a76935f81391682d29650af01f99654777d82c7ab"
+    },
+    {
+      "file": "AUDITORIA_1_42_5.md",
+      "bytes": 1465,
+      "sha256": "2f51984f604a991d07e22c60b4ca752c80cf6808a5301e0bff1630c20b678665"
+    },
+    {
+      "file": "AUDITORIA_1_42_6.md",
+      "bytes": 1370,
+      "sha256": "48b7425897f533d0c998645b609043399f97864345fed81cf2be33f7ec4a98d3"
+    },
+    {
+      "file": "manifest.json",
+      "bytes": 181,
+      "sha256": "d980221fb5cf95325cb006b8e82bdbe85e6ac0642678133c300859a91eaef587"
+    },
+    {
+      "file": "raiz/ABRIR RODOVIA STUDIO.cmd",
+      "bytes": 903,
+      "sha256": "024b31d4a987d3258aa308cf7d6e8bf79998a8f95923f07e35557517c4759741"
+    },
+    {
+      "file": "raiz/ATUALIZAR RODOVIA STUDIO.cmd",
+      "bytes": 1158,
+      "sha256": "7c4094bb96e620721d37148972ef7d75d7d558c5a23937ac3dfc42d1fc7e77b1"
+    },
+    {
+      "file": "raiz/COMPILAR INICIADOR.cmd",
+      "bytes": 1172,
+      "sha256": "a14d3688a48b68128de8f591526b95102484f02c3928dfffc502d841f4f54315"
+    },
+    {
+      "file": "raiz/LEIA-ME.txt",
+      "bytes": 1148,
+      "sha256": "5d993f7f0fca2fc9da60e21d9c1205cec72b670354b2fb661c5d6698e1db0e27"
+    },
+    {
+      "file": "raiz/VERIFICAR SEGURANCA.ps1",
+      "bytes": 932,
+      "sha256": "728e4fc8132883194d4031932afa7b0fd57e7685064a19635ad32c4c8b71477e"
+    },
+    {
+      "file": "suporte/RESTAURAR VERSAO ANTERIOR.cmd",
+      "bytes": 741,
+      "sha256": "be9614b559f318cb8c1cb324262d4ad1223717c8ad8a19311f4ab8251a2ea570"
+    },
+    {
+      "file": "suporte/documentacao/ARQUITETURA.md",
+      "bytes": 10383,
+      "sha256": "8f28da0522b16f2dd86b7825e6728c9eca88f35c395ec27f44c321bcab73196b"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_1.md",
+      "bytes": 3647,
+      "sha256": "7b45da881177973940ceeca8f6931460526967817a9d6cc46f726d86fa274b1e"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_10.md",
+      "bytes": 5825,
+      "sha256": "be8c7a4c8d847db00f6f84b2ceae6ee84dd05ef1821c0954f2c7de4f4d35c574"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_11.md",
+      "bytes": 5474,
+      "sha256": "72306a2a7c52f8bb14d5bcaf4bd24290d4ee67d36eecaedbb69ee6a5f23a546d"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_12.md",
+      "bytes": 5509,
+      "sha256": "c7501c7695704f42f5fa03a50c08fc124da857adaa5588ed47a19a8101c19e49"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_13.md",
+      "bytes": 2634,
+      "sha256": "aba93dc182f5c413565de5fe89b93c4aca53d422293e6bc27072a930af934598"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_14.md",
+      "bytes": 4200,
+      "sha256": "fb1d49134bd54c99b6e6b10ee25e47e5ef139f1c446d9c514da1791e9de9a2c4"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_15.md",
+      "bytes": 5928,
+      "sha256": "f5111f2a022cb84588e6bbc309b02507db8cbd9ae5423523db0d888378e309b7"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_16.md",
+      "bytes": 3426,
+      "sha256": "020fc86bfd75311fdaad948b6131c4532f3aa70ad846cc8df05af2e31877cbe3"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_17.md",
+      "bytes": 4172,
+      "sha256": "102c07dfb7be8a88113761056c130a590255b8ce1002024c86c9dd54e6c9ecbd"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_18.md",
+      "bytes": 4848,
+      "sha256": "d602a2eab2f5a2aeccec3abb0556675774c58ae81abd8330c46387b1dcba0faa"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_19.md",
+      "bytes": 8331,
+      "sha256": "18e27f3530e2e13167b6d9b12fe9629c5e3cf7ea74746b45140759fa1beb3fc7"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_2.md",
+      "bytes": 5304,
+      "sha256": "9ee441ef7e57a58892b7a205a916628f2e321b9209d77aeb28d85950d910b899"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_20.md",
+      "bytes": 7162,
+      "sha256": "8716d16739c0d99fdf7c882a8fad62f3fc9ef9f3993a3683474b7e82926cc138"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_21.md",
+      "bytes": 4237,
+      "sha256": "1bf592bb3c5e93abb4ef089cd3e3d18ee5b499ba30c830780de04d7169806852"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_22.md",
+      "bytes": 4345,
+      "sha256": "c876e75d1260dadabd25e8098f971af37f0dfaf0ce769a51115581d0fdc714ab"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_23.md",
+      "bytes": 4345,
+      "sha256": "97ebae59f319ec4f1f6e9824f4f8ae011b0b557222f9bc73018bc0e3f252c1d0"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_24.md",
+      "bytes": 9969,
+      "sha256": "b3c7eebdd14c5b2426a8363e2c3655e66bbf2754df5f79f3e905ff14389d7242"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_25.md",
+      "bytes": 4678,
+      "sha256": "79e557b0c1222bfeaafb547bb11d55068cfb7f9b7a6da194851a2cc2238dfa52"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_26.md",
+      "bytes": 8999,
+      "sha256": "4d8b82f941eaec4a2df11eac0ed291b7aac986cdff6959703761e45a86478c10"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_27.md",
+      "bytes": 8508,
+      "sha256": "b1508b5690683108b7dc8b0e0444c03283249da11f17928b733f6e2c0e904a42"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_28.md",
+      "bytes": 3294,
+      "sha256": "6f00ff77cf771e761716910856151a398003d724637e0a9e3656cbfdfe1c8c12"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_29.md",
+      "bytes": 6546,
+      "sha256": "bedec5f85fac5ef7594efb59e70a079f318b21afeaa396180bccf1ea26b27213"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_3.md",
+      "bytes": 5628,
+      "sha256": "1f6a1d2da3fd84d9992f2c8524e98face376ad0702ced2f60f6ca6d7a84567df"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_30.md",
+      "bytes": 8162,
+      "sha256": "e3f1e87f8a4ad7337160a0a5db78067a4c1b01a6b07dede53ff70e74ae1842c5"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_31.md",
+      "bytes": 4719,
+      "sha256": "ddfaca8ecae7ca1c7471cf3337036a06a0db25f4afb8cd559b95e31d54f1ea33"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_32.md",
+      "bytes": 9511,
+      "sha256": "570e218b266c5eb5d0710fd4507354b62cef8e094c08f17233d29c1b981adef4"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_33.md",
+      "bytes": 4825,
+      "sha256": "d42be4e6e66a279a092021c01d668b6d66ac96dcf757191f916673e289b85c8e"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_34.md",
+      "bytes": 8899,
+      "sha256": "e456e441ae36721234a2babf9cd5f9b9b45580371e490a164444219e5f47a770"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_35.md",
+      "bytes": 9230,
+      "sha256": "93f1d0fcba7c366ae27d4c9772813c99981ac9b99fd40230256fec966c00aec6"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_36.md",
+      "bytes": 4712,
+      "sha256": "03a1567222c8dec334499df068772349b3e0555b4535e8f60d7757e2efbf8927"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_37.md",
+      "bytes": 6083,
+      "sha256": "edca2a0b82702d1a09c69b57624d0bc14c9995985f994d8374e0270696b2bbed"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_38.md",
+      "bytes": 4301,
+      "sha256": "e3540de217425ff240ba0221b828fa7b8435abf0252665767a51d1df7c4a4521"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_39.md",
+      "bytes": 5280,
+      "sha256": "7be3826406214a304bc0becb054a08ffc4345bc0415da5b878428f2db85afaac"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_4.md",
+      "bytes": 4498,
+      "sha256": "9184665d597f1ae2f5e6335aa1151daaeaf74fdc91be224554faa6f67eb9fd97"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_40.md",
+      "bytes": 1996,
+      "sha256": "43737c937241e51a56276089733bc77628fdfa4951948edafb6130659b3b1489"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_40_3.md",
+      "bytes": 1150,
+      "sha256": "24b1ae694a3baa8d99067fd29257fb65f0013257673a5cbd486a2372c78a8f41"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_40_4.md",
+      "bytes": 2176,
+      "sha256": "b3823d2c87cff20ae7922e358457e1774ae5b69438211f66c4338fc6b71bbe95"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_40_5.md",
+      "bytes": 2560,
+      "sha256": "cb6bf9beecb24447af10497ce8aa368f56f85e51f5ff9c19ba3e1729fa751608"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_40_6.md",
+      "bytes": 1071,
+      "sha256": "a0f4fedb9ca84be9b9c5de3d6724663d6ce0dff6c439abbf8b723ad2e175db40"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_40_7.md",
+      "bytes": 2137,
+      "sha256": "908aecadb5f0cdbe3a9981eac2cfc55bce15ae30f930e44cab81303ab3b911b5"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_40_8.md",
+      "bytes": 1255,
+      "sha256": "af14cd0fc4d2bfa839dfc44c58fe38c1326781cb37e588f46b3d2ddd0d473701"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_40_9.md",
+      "bytes": 1741,
+      "sha256": "073dccc83af3123459acd4a2101a7a3a77a38e77e51e37fab4a2d173b7af4783"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_42.md",
+      "bytes": 1128,
+      "sha256": "3f002fc676289f52ec1a0681487e59668e3671bf575f54a1ebe5ecfe957904d5"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_42_1.md",
+      "bytes": 2664,
+      "sha256": "f6d211f347f489a847bfe29693c7f80b93f24b35e422ed87ca570edf4a20e6b5"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_42_2.md",
+      "bytes": 2152,
+      "sha256": "9eaf7d1c080400fcee58846c71405033d223b41a07c234b0f4bda3d75c57ec07"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_5.md",
+      "bytes": 3567,
+      "sha256": "47e0ab7a97c31eb62f19c9659953f9e479b2fee10442e019ed8ed0612cf00d54"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_6.md",
+      "bytes": 3111,
+      "sha256": "57435ad2b707b9bec1d79a1d8e56a71bced779a234eb5d74701066bc07c68108"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_7.md",
+      "bytes": 6432,
+      "sha256": "21f9b4e3952f11c1d514e9de1be8bcd25f9efa29f72fea22ba78ef2e11ad52c0"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_8.md",
+      "bytes": 5989,
+      "sha256": "08ada04ae9b3765c6ea8b30593934c7d513aae96193ce29be27baae8725f4d53"
+    },
+    {
+      "file": "suporte/documentacao/ATUALIZACAO_1_9.md",
+      "bytes": 5450,
+      "sha256": "91b1227c2902215976bb0a13fd37f13a3714f6d47366ae8ba94f7838e6a8b396"
+    },
+    {
+      "file": "suporte/documentacao/CORRECOES_1_42_9.md",
+      "bytes": 1692,
+      "sha256": "a638358511da1025d5feeee3d19d9965ca0a1afea4af8287b3f0647670c888ce"
+    },
+    {
+      "file": "suporte/documentacao/FLUXO_CONTINUO_1_42_13.md",
+      "bytes": 2968,
+      "sha256": "f7b2ec4e029b89660fb9b93951b0d2214d8c56572d5dee66ffd391585f6102bf"
+    },
+    {
+      "file": "suporte/documentacao/ICONES_1_42_11.md",
+      "bytes": 1675,
+      "sha256": "4bb41fd3f55c653d4e78d405065353eac4e1d50742475345ec86142bb74936af"
+    },
+    {
+      "file": "suporte/documentacao/IMAGEM_SECOES_1_42_12.md",
+      "bytes": 8597,
+      "sha256": "b5790e11d15cf8f464281c02fc3c55e6c82d6638f4df70e7bfc50e77681e4c7b"
+    },
+    {
+      "file": "suporte/documentacao/LEIA_PRIMEIRO.md",
+      "bytes": 20108,
+      "sha256": "73bde9ef04a11306447e322a34c904056fa4dc9618b96fdd9fb7444022a2a57d"
+    },
+    {
+      "file": "suporte/documentacao/OPERACOES_1_42_10.md",
+      "bytes": 4033,
+      "sha256": "868f95d99d87de3d4a0c7a89d7053281cd2af38d6a640272ca206f84cf71cf1e"
+    },
+    {
+      "file": "suporte/documentacao/ORTOMOSAICOS_E_ROLLBACK_1_40_2.md",
+      "bytes": 2124,
+      "sha256": "24d3d90d8bb2f6ac9d98ab66eb6f17786b747142f657ceb24e1ceacd60b01702"
+    },
+    {
+      "file": "suporte/documentacao/PAINEIS_ASSISTENTE_1_42_14.md",
+      "bytes": 3654,
+      "sha256": "dde4842d8379f6b692165f8e7ba122dcce2b817edc8c0e3f48d5fb57bd781d60"
+    },
+    {
+      "file": "suporte/documentacao/RECUPERACAO_1_42_10.md",
+      "bytes": 1666,
+      "sha256": "57b17a3fb069abd2620ea49f6831e419b3b958ec0adb9fddf36537bbd25ee928"
+    },
+    {
+      "file": "suporte/documentacao/RELATORIO_DE_TESTES.md",
+      "bytes": 17090,
+      "sha256": "c0dae9c62d42802bb516613d597c08dee74d70fc426a0d94a076c52688759b2b"
+    },
+    {
+      "file": "suporte/documentacao/VALIDACAO_PROVISORIA_1_42_12.md",
+      "bytes": 1878,
+      "sha256": "afb174039f6f46c357b024e9dd8cffd978243cdb5d1e7d8e3aa86368da1ca4de"
+    },
+    {
+      "file": "suporte/sistema/IA_LOCAL_3B.md",
+      "bytes": 6012,
+      "sha256": "6b9398e6f549d8642d633187a6cfbe5782d5abca8126ae5db5b3d6635e65d7fd"
+    },
+    {
+      "file": "suporte/sistema/REVISAO_FINAL_1_41.md",
+      "bytes": 1325,
+      "sha256": "2ab42664d7626fd4ecf66634c1dee51218e657ce51a4b45f6f58ad5b9215418a"
+    },
+    {
+      "file": "suporte/sistema/TESTAR INTERFACE.cmd",
+      "bytes": 168,
+      "sha256": "d07751db1716c0e79c161292a722b41b6f72fdb687a76a309e01636d04eeecd1"
+    },
+    {
+      "file": "suporte/sistema/VERSAO.json",
+      "bytes": 27443,
+      "sha256": "b83f64fb614ba608a9842f3ae66699be4b7ecfc1246b122208eb8710b43a1422"
+    },
+    {
+      "file": "suporte/sistema/app/__init__.py",
+      "bytes": 64,
+      "sha256": "6785ad18c7a1e44da20e19c7947880d30bc2d7baa7a26b971751536ec443604b"
+    },
+    {
+      "file": "suporte/sistema/app/access.py",
+      "bytes": 3796,
+      "sha256": "ab737e8994e4ced5076a1e37bb5e0c4e4a35102e054a8a7569b99d104744be9d"
+    },
+    {
+      "file": "suporte/sistema/app/ajuda.html",
+      "bytes": 49343,
+      "sha256": "935ba82719b6f483755d7a380490063c937928b5f759986519b9daf15756fcf0"
+    },
+    {
+      "file": "suporte/sistema/app/alignment.py",
+      "bytes": 2605,
+      "sha256": "2867e5b90a66d4ff7df6501addcb9ae775b4b90ec29ae16a9ced57606026365b"
+    },
+    {
+      "file": "suporte/sistema/app/alternating_traffic.py",
+      "bytes": 3739,
+      "sha256": "b8db2eea33b521d12f251a55117a72867f3ee18929ef0faa4936382abc6cdc30"
+    },
+    {
+      "file": "suporte/sistema/app/ambiente.py",
+      "bytes": 6710,
+      "sha256": "9c8a26827d186d72ce73ae449d9874d0284fb5634aa6304cc963ec816e46a074"
+    },
+    {
+      "file": "suporte/sistema/app/annotations.py",
+      "bytes": 6998,
+      "sha256": "bb4115702530c53a5425d28caf3b8815d5a948c14667b6d9eb2ed886fb356470"
+    },
+    {
+      "file": "suporte/sistema/app/app.js",
+      "bytes": 187,
+      "sha256": "7ee129314426f1e88fd16ba6972ee52cfabb1c2ac8fbdc08bbb3c9967d977eac"
+    },
+    {
+      "file": "suporte/sistema/app/artifacts.py",
+      "bytes": 2790,
+      "sha256": "3bea723332326759d216af46fdbe50ea60a7a12e91c17cc8919728c30e3baa4f"
+    },
+    {
+      "file": "suporte/sistema/app/asset_catalog.py",
+      "bytes": 5009,
+      "sha256": "606163ec01755ef2b0ad412ac4367d105c6558a1f71531553376bfb6fd6eb731"
+    },
+    {
+      "file": "suporte/sistema/app/assistance.py",
+      "bytes": 17156,
+      "sha256": "60cdc5e2b0726868def82b512f28f4b8d800eca4c91d1bd3d2db799a64f81caf"
+    },
+    {
+      "file": "suporte/sistema/app/assisted_execution.py",
+      "bytes": 10611,
+      "sha256": "4b1d0d715abec50f83fa7f175806b1f48f02a892fb65155c1ee4b6c6c661a215"
+    },
+    {
+      "file": "suporte/sistema/app/cabin.py",
+      "bytes": 17773,
+      "sha256": "45d4d1d9fb4bcfca5f18dc647dfd871e36c03ffe7cbc009feab548641ac7f731"
+    },
+    {
+      "file": "suporte/sistema/app/cad_curves.py",
+      "bytes": 8264,
+      "sha256": "da706a4536bf479286097b0abecd728faa9f06a0ee5ef601f6996ee973b527c4"
+    },
+    {
+      "file": "suporte/sistema/app/calculation_guidance.py",
+      "bytes": 8230,
+      "sha256": "65f4f51d9d7bd65e8400b6652c0ac502847c9d4001b07dc1a02f13475330e652"
+    },
+    {
+      "file": "suporte/sistema/app/capabilities.py",
+      "bytes": 1674,
+      "sha256": "38e5adba6ad0b500ab975b1b430fbc61a3b2dc9bfc3d94477d12b43e8c6fa8af"
+    },
+    {
+      "file": "suporte/sistema/app/capture3d.py",
+      "bytes": 8207,
+      "sha256": "64952ef4e95602ee0b486e73929b4618f6b71ab5ec8479841a418442b875fbf9"
+    },
+    {
+      "file": "suporte/sistema/app/chainage.py",
+      "bytes": 4374,
+      "sha256": "3744ddc899a772b32c84e41ff311b961ecdc85c3587f7f0ec8dedf8140e699df"
+    },
+    {
+      "file": "suporte/sistema/app/cities.py",
+      "bytes": 3264,
+      "sha256": "515db2191c8d84cace24ea1b1c552799f645101b2d8a57399b46e6ed09af8753"
+    },
+    {
+      "file": "suporte/sistema/app/dependencies.py",
+      "bytes": 5360,
+      "sha256": "8426055f5302b622df2f5c73dcab63ea4aa6ba76cfcd7ad6c911a78776497555"
+    },
+    {
+      "file": "suporte/sistema/app/detail.py",
+      "bytes": 28363,
+      "sha256": "73bd6aaab1484a8865c2c96188cb90ae735d4d763831f5dfd68478d01aec26e3"
+    },
+    {
+      "file": "suporte/sistema/app/direction_intervals.py",
+      "bytes": 3022,
+      "sha256": "e95f93de2910edc01c863ffd48a157fd718721ada3e3ddba69bdeec593183ac3"
+    },
+    {
+      "file": "suporte/sistema/app/dwg.py",
+      "bytes": 3133,
+      "sha256": "9bc81f5a80f53d58886c11cfa4a3cda3cd02d3e2119bf61a6b087da87ff8cecd"
+    },
+    {
+      "file": "suporte/sistema/app/earthworks.py",
+      "bytes": 2306,
+      "sha256": "cd1e43ec687662e3cb27f726418dd5ae60ed7412814fa20b38b7e540cd18e7c8"
+    },
+    {
+      "file": "suporte/sistema/app/ecw_engine.py",
+      "bytes": 12697,
+      "sha256": "d9742d7e13b850f23030fe62cb9c2ebf47da527ff44f384dcf706361df0f07ec"
+    },
+    {
+      "file": "suporte/sistema/app/elevation.py",
+      "bytes": 10533,
+      "sha256": "67e4a460c812134233590118edb725025153ba53678894d642a59ff5fc502baf"
+    },
+    {
+      "file": "suporte/sistema/app/encoding.py",
+      "bytes": 5284,
+      "sha256": "0855817dd695ddaecd48144bc275c1a4ba65e566120635f50cd3c2fdfb2deccf"
+    },
+    {
+      "file": "suporte/sistema/app/engineering_assets.py",
+      "bytes": 9372,
+      "sha256": "1181ed5d4716f79ccfb52720457229fe068175ddcd436e5d95f2ae565379d07a"
+    },
+    {
+      "file": "suporte/sistema/app/estilo.css",
+      "bytes": 100382,
+      "sha256": "627f20d6ad295d7f1eeb8044dd7700211d99c3d9c22057cf2109f7147c6178f2"
+    },
+    {
+      "file": "suporte/sistema/app/execlog.py",
+      "bytes": 17424,
+      "sha256": "f501daa0981fee19a5c8f6cde3ddaf74da0297054bccd293948b7300f6b0fdfe"
+    },
+    {
+      "file": "suporte/sistema/app/exporters.py",
+      "bytes": 22328,
+      "sha256": "59b4678d4ac72d61360a5ae3f2a25456ccfb47c7e6df670c18b15661c1726345"
+    },
+    {
+      "file": "suporte/sistema/app/exports_job.py",
+      "bytes": 3229,
+      "sha256": "0e03310dec26f710fe2069db81070a257bca3d98ba6643d570d951606785b09f"
+    },
+    {
+      "file": "suporte/sistema/app/flow_assistant.py",
+      "bytes": 4366,
+      "sha256": "9a2be3d4a95cd7e2512fb22067fbf4727f78a9b8208eca0cd5cd7bda2ac6ff7a"
+    },
+    {
+      "file": "suporte/sistema/app/flow_diagnostics.py",
+      "bytes": 8004,
+      "sha256": "f3be823223dc5dcfe9040c0ae6110e6078f71effae5e256a92a6bd9d9b1d9a85"
+    },
+    {
+      "file": "suporte/sistema/app/flow_fit.py",
+      "bytes": 1635,
+      "sha256": "4803c249650a0ce3e9981a7d9fa1dbdabd1d485cbdaa8d4df4fb8149ce2cab4c"
+    },
+    {
+      "file": "suporte/sistema/app/flow_reconstruction.py",
+      "bytes": 3189,
+      "sha256": "904071cd80f7818b35a5d82ce623280e2c6e10e12cd21c1cdb64e33269ded024"
+    },
+    {
+      "file": "suporte/sistema/app/flow_recovery.py",
+      "bytes": 5324,
+      "sha256": "d8db235ba12091ae60f98e63ced8cd06dce081de853768bdc1c0245e573c37c3"
+    },
+    {
+      "file": "suporte/sistema/app/flow_tools.py",
+      "bytes": 4563,
+      "sha256": "4893e101cfad1a589c4fee6c5d10171fa32cb94c6090915cef4832ac152c53f6"
+    },
+    {
+      "file": "suporte/sistema/app/full_update.py",
+      "bytes": 584,
+      "sha256": "68ff25c68dea4c9fabb24d2113af2c7b79202f2fe6c883f9a1a44c718fac4534"
+    },
+    {
+      "file": "suporte/sistema/app/geometry.py",
+      "bytes": 31780,
+      "sha256": "08725ad92e36399a6b5aee78b7d324ab69df6cfc5ef265ea0a0acb6436d77ac3"
+    },
+    {
+      "file": "suporte/sistema/app/geometry_cache.py",
+      "bytes": 4043,
+      "sha256": "c4252c9a0557f0152b1b2bc983df8757c0018cc76ec6a41e3fedff80d17f8514"
+    },
+    {
+      "file": "suporte/sistema/app/georas_logo.png",
+      "bytes": 113987,
+      "sha256": "25a67afcec55fd982a7b3353058f0e65111e783dda9d769ea1156b5dc5d79105"
+    },
+    {
+      "file": "suporte/sistema/app/hydrography.py",
+      "bytes": 9211,
+      "sha256": "06a3ac498ddb1bb7150df63cc032e80edf3be0f745bda70b8915050eb17e45d2"
+    },
+    {
+      "file": "suporte/sistema/app/icone.png",
+      "bytes": 36727,
+      "sha256": "686bccd5cfd40535596824eb0906c5362a88c99282194801662b0229e6c14717"
+    },
+    {
+      "file": "suporte/sistema/app/icons/infrarail-sprite.svg",
+      "bytes": 14986,
+      "sha256": "a54a83c01a61d34d60706f0d761e7d2226f36ba86dc9ebefd81989a72745e9dc"
+    },
+    {
+      "file": "suporte/sistema/app/image_context.py",
+      "bytes": 17140,
+      "sha256": "e462d71f377331c88f4fd76a2c44c184656e6df277fec1925b27cd264ae8afb1"
+    },
+    {
+      "file": "suporte/sistema/app/image_context_models.py",
+      "bytes": 3520,
+      "sha256": "809ebd1e5788b8e877c503b415503d6b394ecf8024f867fd2b357a997fa39f70"
+    },
+    {
+      "file": "suporte/sistema/app/image_semantic.py",
+      "bytes": 5376,
+      "sha256": "eba7b5e1bcd19879330462f044c0c4730ba4b3d297a52aab9083d8d67d0a42de"
+    },
+    {
+      "file": "suporte/sistema/app/imagery.py",
+      "bytes": 9584,
+      "sha256": "fbc6cfe251e500cf3128943c8c2d56b193e3eb3821a61238b1371cde8d581889"
+    },
+    {
+      "file": "suporte/sistema/app/imagery_cache.py",
+      "bytes": 4762,
+      "sha256": "712ae9735bd915c9648dd43fafe605477d21b69ddfe9f2d8275cac5e91564555"
+    },
+    {
+      "file": "suporte/sistema/app/index.html",
+      "bytes": 64982,
+      "sha256": "9f9b8e17a4ffb31928c767d10dc40cd6e262a5d854d53a1be390391d797fb135"
+    },
+    {
+      "file": "suporte/sistema/app/interface/estrutura.css",
+      "bytes": 6397,
+      "sha256": "fc0ed75d88d8b1a69c2e2cf969182d505914af7502a651c5e506fe4e7a2010e9"
+    },
+    {
+      "file": "suporte/sistema/app/interface/tema.js",
+      "bytes": 450,
+      "sha256": "a7503fc82a8ec87024d60ccaea66fa6db473d7bfd67dd5522670d7c5ed5bd4ef"
+    },
+    {
+      "file": "suporte/sistema/app/js/00_nucleo.js",
+      "bytes": 6734,
+      "sha256": "045e1d72caeef5bdd98bd169db03d55e1d2fd197765c61d9683e2ead698ab319"
+    },
+    {
+      "file": "suporte/sistema/app/js/01_estado_configuracao.js",
+      "bytes": 19231,
+      "sha256": "d7d764c52528896af2298d17917057d1b8560a44eb982274ef2a510e43e87658"
+    },
+    {
+      "file": "suporte/sistema/app/js/02_vista_imagem_web.js",
+      "bytes": 18362,
+      "sha256": "deba4ce96ec37bcb41281238508684936d94a153a6a8ee5225494d1245bc61ba"
+    },
+    {
+      "file": "suporte/sistema/app/js/03_geometria_km.js",
+      "bytes": 3461,
+      "sha256": "915fbfcfdc961e1a1ebffd6ddf13877e7a5076aaa52ca82a84f14c2335c259d5"
+    },
+    {
+      "file": "suporte/sistema/app/js/03_icones_infrarail.js",
+      "bytes": 1163,
+      "sha256": "3d99d92c9f3f103ece9f1056b4b4a1b9790d23c3a9188f79a14aa8dfa9e69e4a"
+    },
+    {
+      "file": "suporte/sistema/app/js/04_ferramentas.js",
+      "bytes": 44924,
+      "sha256": "90a28efeda9f90914f595ad0cf23836f25778f26a23a84991e185ee4a60d4939"
+    },
+    {
+      "file": "suporte/sistema/app/js/05_desenho.js",
+      "bytes": 19994,
+      "sha256": "898b4ec1608db714bf137d4911561fe2aa1db1138d106e5614e97ef01415df99"
+    },
+    {
+      "file": "suporte/sistema/app/js/06_lista_marcacoes.js",
+      "bytes": 20929,
+      "sha256": "ce73735d4eb44db9a893f99dc0bf3916ac3dd8a8d3705374f4dd9d05d2a8949c"
+    },
+    {
+      "file": "suporte/sistema/app/js/07_tarefas_intervencoes.js",
+      "bytes": 12014,
+      "sha256": "304932a973e6459a468d2e76408c64a47a0f6bc549080c8f3bd32372d4636b4e"
+    },
+    {
+      "file": "suporte/sistema/app/js/08_camadas_imagem_local.js",
+      "bytes": 13332,
+      "sha256": "40c876a6119f301772be5742ae01c5af4d8b22407390a3350a3d94808baa8626"
+    },
+    {
+      "file": "suporte/sistema/app/js/09_cabine_referencia_elevacao.js",
+      "bytes": 5346,
+      "sha256": "02e064ed2ae9477f4c7430ba0d4690c8e4d00908a0f121ecea565f66e121019d"
+    },
+    {
+      "file": "suporte/sistema/app/js/10_ajuda_dicas.js",
+      "bytes": 10091,
+      "sha256": "add0d89208d3c5e0792b43f9cdb0fa01b97d2fa702b25d64a6e79f353ccca455"
+    },
+    {
+      "file": "suporte/sistema/app/js/11_janelas_setas_perfis.js",
+      "bytes": 9497,
+      "sha256": "bdef9c5cfb0218e1e8b0f19227634b21e5845864d45065e25e7b97b54dff0ea0"
+    },
+    {
+      "file": "suporte/sistema/app/js/12_fonte_web_ajuste_local.js",
+      "bytes": 10071,
+      "sha256": "46a2b586a82bc0aca48934333bfb9f4e36cf94a440bd980de3d84d07e3400dfd"
+    },
+    {
+      "file": "suporte/sistema/app/js/13_pavimento.js",
+      "bytes": 5892,
+      "sha256": "a37f7edc3ddd4941fc82c14091c0f1fc165d3fe2e0b9afa923bce5d371ecc2cf"
+    },
+    {
+      "file": "suporte/sistema/app/js/14_cad_edicao.js",
+      "bytes": 23085,
+      "sha256": "71179eb63704d82ab38ea1ab9916edf96712b00c423ddb6aaaa66bd2e0faee22"
+    },
+    {
+      "file": "suporte/sistema/app/js/15_hachuras.js",
+      "bytes": 3487,
+      "sha256": "a1a6c5dacb8f685f01344f9c048e515f7a1adee6e219e2e5973ee3eb896dada2"
+    },
+    {
+      "file": "suporte/sistema/app/js/16_confirmar_menus_selecao.js",
+      "bytes": 22363,
+      "sha256": "41280bc381fa0eafcd8fb543f2e24d161832a99ae6d59ff26503f6d1185cb0da"
+    },
+    {
+      "file": "suporte/sistema/app/js/17_transformacoes_snap.js",
+      "bytes": 6425,
+      "sha256": "45458a712993f94dd04443ae6d56cfabe6fcb836e9120db1adea2665749be8de"
+    },
+    {
+      "file": "suporte/sistema/app/js/18_quickmapservices.js",
+      "bytes": 6105,
+      "sha256": "6d1cdbecd3ab24fdb1867051712387e37913af82656e91f227788fcee2fa7285"
+    },
+    {
+      "file": "suporte/sistema/app/js/19_porticos_chamadas.js",
+      "bytes": 14474,
+      "sha256": "24a5b6c2cd953b488562d9f813c5d93f660ec4ceb7eb69b462dde8e4bdb7a54f"
+    },
+    {
+      "file": "suporte/sistema/app/js/20_camadas_ocultar_hachuras.js",
+      "bytes": 7835,
+      "sha256": "f76e4d0acf8c18c8b452170561fe7fcccc84dbeee93b0709596b0f3db9fd3c8f"
+    },
+    {
+      "file": "suporte/sistema/app/js/21_alinhamento_comandos.js",
+      "bytes": 11458,
+      "sha256": "71a5a7898626a7c297e5ed1a58fff53d4e68acfc557d2295ac37e0290ac68502"
+    },
+    {
+      "file": "suporte/sistema/app/js/22_menu_contexto_tela.js",
+      "bytes": 11838,
+      "sha256": "00a88d51da017df18d2bb1b0b4a39b836d1c0aa6e05faf3a9b4a9eccfdb1ec6a"
+    },
+    {
+      "file": "suporte/sistema/app/js/23_sessoes_registros.js",
+      "bytes": 11035,
+      "sha256": "77facb7fb39b2d34f1a765064d4b8bfe0d5d80277330370e187fc8729731c26c"
+    },
+    {
+      "file": "suporte/sistema/app/js/24_edicao_direta.js",
+      "bytes": 26521,
+      "sha256": "a1dfa1728e15d13015a54eb0c636633c388971f306765f61b9acfa0ad06e6496"
+    },
+    {
+      "file": "suporte/sistema/app/js/25_fluxos_avanco.js",
+      "bytes": 17853,
+      "sha256": "7bcf3751eb823645bb37cdf78da3ebcbf7b556b7be72ae5cefc6091482893204"
+    },
+    {
+      "file": "suporte/sistema/app/js/26_menus_status.js",
+      "bytes": 6847,
+      "sha256": "0f6807a1d84a99b668ed1bd0b44db78846d2b0f48e0ce2c191624dae879ef637"
+    },
+    {
+      "file": "suporte/sistema/app/js/27_comandos_limpos.js",
+      "bytes": 4309,
+      "sha256": "d0b86ac1fe47f9bf4cd3bafcf636d2fc287b3b15b396033fb80521239799cf48"
+    },
+    {
+      "file": "suporte/sistema/app/js/28_opcoes_nomes.js",
+      "bytes": 9862,
+      "sha256": "f9a217494630c56b5c30ff40e9b3770958cedd4675671260d3250271f352634b"
+    },
+    {
+      "file": "suporte/sistema/app/js/29_arquivos_aparencia.js",
+      "bytes": 15333,
+      "sha256": "3ba48c151cdc02b37e352c3d583cf54eb0ee4c074466dec94b9f0b1530e64646"
+    },
+    {
+      "file": "suporte/sistema/app/js/30_faixa_opcoes.js",
+      "bytes": 8787,
+      "sha256": "21d8c2f5e1abc1f284e0d7cf94b9114543cc802dab5c5ad6e7d363c4c15ed1e3"
+    },
+    {
+      "file": "suporte/sistema/app/js/31_projetos_modelos.js",
+      "bytes": 12369,
+      "sha256": "ba651ae340fd6049d055fa016f1eca40d29f5f05dd013dad562818eb04b7a7e2"
+    },
+    {
+      "file": "suporte/sistema/app/js/32_rotas.js",
+      "bytes": 21251,
+      "sha256": "be095401167b9ed67226060ca9d3ef8c2198c2e2ad6d8814e11969967ba970aa"
+    },
+    {
+      "file": "suporte/sistema/app/js/33_paineis.js",
+      "bytes": 4167,
+      "sha256": "db1457d42dc8038dafddaa69797ae4b4d33ba6919d984b5ce909084e0a95462f"
+    },
+    {
+      "file": "suporte/sistema/app/js/34_gerenciador_camadas.js",
+      "bytes": 6481,
+      "sha256": "13d1ace6945f64bcc832d0a0c77faeb5913bfbce97cb05e91a9d3e80b47162f0"
+    },
+    {
+      "file": "suporte/sistema/app/js/35_pincel.js",
+      "bytes": 5329,
+      "sha256": "1e5d3e89f5f80d83540016e005de3e4cdec11bbbcc541103a8583f2c214e089f"
+    },
+    {
+      "file": "suporte/sistema/app/js/36_videos_limpeza_atualizar.js",
+      "bytes": 9110,
+      "sha256": "2dda38b01cf59f533130eb5dd578d16c7e6db206c1aa3e7551672e17148443a7"
+    },
+    {
+      "file": "suporte/sistema/app/js/37_janelas.js",
+      "bytes": 2091,
+      "sha256": "6af4337e51259926c1ace2ba8045771e1a0af90f7c96047d4e34cfe5254bd48a"
+    },
+    {
+      "file": "suporte/sistema/app/js/38_area_trabalho.js",
+      "bytes": 16856,
+      "sha256": "f3e5778802759a217b95864ae0f750992af380e7f1ed991dfe3394c5e706adcb"
+    },
+    {
+      "file": "suporte/sistema/app/js/39_paineis_menu.js",
+      "bytes": 8489,
+      "sha256": "5dc544e691da792e92758dc8dbe5a992ad23145bbea87db85824f3332b37a98b"
+    },
+    {
+      "file": "suporte/sistema/app/js/40_tema.js",
+      "bytes": 1873,
+      "sha256": "cc394d1f30a99d878b5e7c6a1fb8be20d4717a4f83760ffcc8cc98c86820f9b8"
+    },
+    {
+      "file": "suporte/sistema/app/js/41_progresso.js",
+      "bytes": 6144,
+      "sha256": "8d8a2858abafe8ae5609401f1952593341974aa3d692db1aa3286e5bdd80f523"
+    },
+    {
+      "file": "suporte/sistema/app/js/42_comandos_continuos.js",
+      "bytes": 4975,
+      "sha256": "4b5f5dd2dbecf7c15772729d3eab161184bbed95bf361dc058f403518865351a"
+    },
+    {
+      "file": "suporte/sistema/app/js/43_obras.js",
+      "bytes": 18798,
+      "sha256": "4e82fa3044d4d1ae7f0c51aff7b10e61e1563550d55638784f68431c0d655eaf"
+    },
+    {
+      "file": "suporte/sistema/app/js/44_selecao_propriedades.js",
+      "bytes": 7363,
+      "sha256": "e16bcd8046bbab0deccc1a85ae0e370a79710f34a75928be22020a1a2fe09b50"
+    },
+    {
+      "file": "suporte/sistema/app/js/45_menus_windows.js",
+      "bytes": 9350,
+      "sha256": "e1bc947315ef06eff23060723a22784a04f440ac73981539a7fdeb10d000143f"
+    },
+    {
+      "file": "suporte/sistema/app/js/46_simplificar.js",
+      "bytes": 3865,
+      "sha256": "9385116476a92bc5036105c363969d11748e9e591d36f956b1e33a2bc5598d10"
+    },
+    {
+      "file": "suporte/sistema/app/js/47_ambiente.js",
+      "bytes": 6010,
+      "sha256": "ba7b9b23bb2364db156a62d9ce0c042baed5095def979ba0efe3a5409288c69b"
+    },
+    {
+      "file": "suporte/sistema/app/js/48_vida_dwg.js",
+      "bytes": 10267,
+      "sha256": "c0042d8b30bf656f919ff93cf238af436e34bcd4a9bb74c98dad1d57bc4332a9"
+    },
+    {
+      "file": "suporte/sistema/app/js/49_rotas_trechos_curtos.js",
+      "bytes": 1390,
+      "sha256": "af45b6b8f5ee1ba19d253a85c75a44564bbf4d46c51830e38a301cde60bf28dc"
+    },
+    {
+      "file": "suporte/sistema/app/js/50_desktop_workspace.js",
+      "bytes": 8123,
+      "sha256": "007aac6c16b206fb4cc83db137ed745401efad18ca142fb724649dc74d6c097f"
+    },
+    {
+      "file": "suporte/sistema/app/js/51_shell_profissional.js",
+      "bytes": 8721,
+      "sha256": "2032f7045597b4d47cfb08d47b57b12a19223d2c463c25c8d33fe0a0790dfcf7"
+    },
+    {
+      "file": "suporte/sistema/app/js/52_interacao_camadas.js",
+      "bytes": 6357,
+      "sha256": "9110dc3374f361ebc189661204c654b2c2c5fabd1cb57d5e6efa8cc808f447fb"
+    },
+    {
+      "file": "suporte/sistema/app/js/53_interface_estudos.js",
+      "bytes": 59671,
+      "sha256": "117b8446e0e426bcb399c254a13000a9e74064562ed2e7d2cf1b2cb1b194c820"
+    },
+    {
+      "file": "suporte/sistema/app/js/54_vista_3d.js",
+      "bytes": 14945,
+      "sha256": "b5392e2b7868440570768308f2b0d09a722a47bc7d175c6e099454d9fc243452"
+    },
+    {
+      "file": "suporte/sistema/app/js/55_novo_projeto.js",
+      "bytes": 8163,
+      "sha256": "e05939c06eeddc8dd497466818c6cb5235f9c1ad8294085581f21d32294d5112"
+    },
+    {
+      "file": "suporte/sistema/app/js/56_atualizacao_fluxos.js",
+      "bytes": 445,
+      "sha256": "1c9e2d599625b77c61db1bf8ecb4d42c342ad02bf21e75c98592067d6dbed5c4"
+    },
+    {
+      "file": "suporte/sistema/app/js/57_ferrovia_semaforos.js",
+      "bytes": 18335,
+      "sha256": "a0c8305805036b904380a0cd8bc8fb4e850fe9faadb40c3703c8b18cac50489c"
+    },
+    {
+      "file": "suporte/sistema/app/js/58_demanda_capacidade.js",
+      "bytes": 2685,
+      "sha256": "5ef2fcd941cd89fe81fd72d9dcd79ecfce9045af1fe706fd13c59b26db72e83d"
+    },
+    {
+      "file": "suporte/sistema/app/js/58_historico_projeto.js",
+      "bytes": 1762,
+      "sha256": "094c5de4eb5425a74f925b14e7657ae8379c5fa7b53468de520a172ebc0c02a4"
+    },
+    {
+      "file": "suporte/sistema/app/js/59_paineis_destacados.js",
+      "bytes": 16681,
+      "sha256": "f69b6f53ebd7fce0d3ef1a9291735d99aec77ac6b0a9f0c187398bc93f1c5372"
+    },
+    {
+      "file": "suporte/sistema/app/js/60_recuperacao_mouse.js",
+      "bytes": 804,
+      "sha256": "91f416e6da17f760034eed3fe7432602dbc886009203a30a80a06bef54d455a5"
+    },
+    {
+      "file": "suporte/sistema/app/js/61_recuperar_fluxo.js",
+      "bytes": 2164,
+      "sha256": "942ceff2bb97fa3258e8c4d98a22da7c81d4261609ce22646729acfd105fbe75"
+    },
+    {
+      "file": "suporte/sistema/app/js/62_operacoes_fluxo.js",
+      "bytes": 6016,
+      "sha256": "6b77f06355b13ae09f47853a63a46bdfd1a3774791e863ad5a1f7e683ffd1f53"
+    },
+    {
+      "file": "suporte/sistema/app/js/63_catalogo_materiais.js",
+      "bytes": 9468,
+      "sha256": "a2f428e26cd9f36460174fb2f5f8dafb59e5e96b7815752b9721198ed1396a07"
+    },
+    {
+      "file": "suporte/sistema/app/js/64_janelas_modelagem.js",
+      "bytes": 3756,
+      "sha256": "a64122a8483ef498e994facf91a5c384009406d9c2d4f9a2963e23d158d806f9"
+    },
+    {
+      "file": "suporte/sistema/app/js/65_secoes_pare_siga.js",
+      "bytes": 18516,
+      "sha256": "d956a612391e07f09500b1083e60e5c3195f0dcd7ec80ceb3c6c845a18a602a5"
+    },
+    {
+      "file": "suporte/sistema/app/js/66_contexto_imagem.js",
+      "bytes": 15735,
+      "sha256": "4010bf867cba05bddca51fa4b0d1fce4a9ffc83bb63b2b8f11175a983f68aaf8"
+    },
+    {
+      "file": "suporte/sistema/app/js/67_assistente_fluxos.js",
+      "bytes": 1985,
+      "sha256": "02ff356729be1d7fae8ea93c4f813b6dde0de63b8910e8b0353a96161d2dcd71"
+    },
+    {
+      "file": "suporte/sistema/app/js/68_camadas_graficas.js",
+      "bytes": 3813,
+      "sha256": "1580820cf3c03a5386db70d132491db1554026df98511145066e2e1fc52427a8"
+    },
+    {
+      "file": "suporte/sistema/app/js/69_area_util.js",
+      "bytes": 1065,
+      "sha256": "c029ef7b39ce851c006f841ee4213f63db96bcf2f876308e7b40b21ad77187bf"
+    },
+    {
+      "file": "suporte/sistema/app/js/70_correcao_fluxos.js",
+      "bytes": 10473,
+      "sha256": "74b3f82454e404a2ca9ce95a622bed9bc9554736d8ad938d24e541d2165309e7"
+    },
+    {
+      "file": "suporte/sistema/app/js/71_orientacao_calculos.js",
+      "bytes": 4894,
+      "sha256": "bc89ba40de72f871afedca9eebced872a60685ba8218ee93df9993be236570be"
+    },
+    {
+      "file": "suporte/sistema/app/js/72_opcoes_agentes.js",
+      "bytes": 1728,
+      "sha256": "46ef0335bb0e57041649f898bd6c1b7fa9a7cd92f26fd5de75ef67ce05cfb411"
+    },
+    {
+      "file": "suporte/sistema/app/js/73_fontes_sentidos.js",
+      "bytes": 286,
+      "sha256": "c873f800054315c349db36452ba771df6c9cc6586ac39cbc4bf04883cc35052b"
+    },
+    {
+      "file": "suporte/sistema/app/js/74_maquete_artistica.js",
+      "bytes": 1429,
+      "sha256": "70477b3ea7206f536d65c091e7968148c77837ab2ac9c3b5f7e1653a35cd0055"
+    },
+    {
+      "file": "suporte/sistema/app/js/75_operacao_consolidada.js",
+      "bytes": 13008,
+      "sha256": "24ea1e41a491613a50b35319a2da699d2916dc88a78eb2fcb315e5e19ed3e9af"
+    },
+    {
+      "file": "suporte/sistema/app/js/76_politica_atualizacao.js",
+      "bytes": 5781,
+      "sha256": "02a832d9ec72fa51475f524f84a229f5163332b926c5d8eaaf364471599b0649"
+    },
+    {
+      "file": "suporte/sistema/app/js/77_assistencia_ia.js",
+      "bytes": 22972,
+      "sha256": "80ee32275e503580c9bd7d1cc1550110aa839a1bdeae4d3b1f23aa4c183af45b"
+    },
+    {
+      "file": "suporte/sistema/app/js/78_rodape_faixas.js",
+      "bytes": 3004,
+      "sha256": "ef26b0d9c3b325542b94b7d4e82d4ebd3bfc6f887db9ba72455c4edd5740898e"
+    },
+    {
+      "file": "suporte/sistema/app/js/79_execucao_protecao.js",
+      "bytes": 8838,
+      "sha256": "a660dcb06dc8b8db7155b2c6dfe2c99c4058703ff2a6d4fa096b3a22b90a2230"
+    },
+    {
+      "file": "suporte/sistema/app/js/80_cad_compacto.js",
+      "bytes": 4956,
+      "sha256": "00608a28665d1b8457cacb792de8c1f880260957947cc23a7b1f1797c6a081f8"
+    },
+    {
+      "file": "suporte/sistema/app/js/81_contrato_interface.js",
+      "bytes": 2135,
+      "sha256": "00bfc71b2d83e645f5427246b10f6b37cc25dc68ad4cba20440968fc901a5d19"
+    },
+    {
+      "file": "suporte/sistema/app/js/82_diagnostico_video.js",
+      "bytes": 8720,
+      "sha256": "72b2600fb0aa1541ac1417753baf52c89422807c354c224b68ffa00c4ac0b1f4"
+    },
+    {
+      "file": "suporte/sistema/app/js/83_ia_pequena.js",
+      "bytes": 11139,
+      "sha256": "026cf30fe07b89e3a7aba4fddf0dfca4ab8567b1138eea440f0642ab3e571f92"
+    },
+    {
+      "file": "suporte/sistema/app/js/84_diagnostico_veiculos.js",
+      "bytes": 4014,
+      "sha256": "e1c204e955ea72a188d664401faf7a0474975b2aa969b2c09f49f309dc267f90"
+    },
+    {
+      "file": "suporte/sistema/app/js/99_registros.js",
+      "bytes": 2369,
+      "sha256": "3bb2607351ea6c04863ff9ec13e534bdb9d49172997e2aa522abba7478d3a1d5"
+    },
+    {
+      "file": "suporte/sistema/app/kmz_validation.py",
+      "bytes": 6073,
+      "sha256": "b4e338f2f8e935c0973e4bc9e08f10de17337d049a36ba7702f2ea35be5568ea"
+    },
+    {
+      "file": "suporte/sistema/app/layer_catalog.py",
+      "bytes": 2498,
+      "sha256": "bb0e566ec86191737ac90676c155fd3d03beea1d01fbae051f0a8652fda71028"
+    },
+    {
+      "file": "suporte/sistema/app/layer_profiles.py",
+      "bytes": 6118,
+      "sha256": "dd037ccc7baa9bebb70b1adfd584212bb3393ffd14f4b3d575bb03b9881483e1"
+    },
+    {
+      "file": "suporte/sistema/app/local_imagery.py",
+      "bytes": 8829,
+      "sha256": "eb46e69eb6a9a0a28d01c3d0ae4f4952f20c3595e9b2e55dd8e8002279dba610"
+    },
+    {
+      "file": "suporte/sistema/app/local_tiles.py",
+      "bytes": 24698,
+      "sha256": "9e4f4f555aff1f2bd9a445e462e1e302f36a74c301fb7d2c39d605f686f1d3ef"
+    },
+    {
+      "file": "suporte/sistema/app/maintenance.py",
+      "bytes": 8136,
+      "sha256": "904773b9c933c37dd4b2054384e153abbf2a10e2c4b9de6321a51abab8f1bba0"
+    },
+    {
+      "file": "suporte/sistema/app/markup.py",
+      "bytes": 10203,
+      "sha256": "c27dca4e88481a0a23e4af80f3a61bfede81e79df24a8af81bc370092e2a7929"
+    },
+    {
+      "file": "suporte/sistema/app/migration.py",
+      "bytes": 7407,
+      "sha256": "bbb97928d1c8db22b54c3c85b442ca1c4cf770209b43e2cc2dadb8158407813a"
+    },
+    {
+      "file": "suporte/sistema/app/modelos.py",
+      "bytes": 4935,
+      "sha256": "eded53c990046d0e1bcd5939643566b9a65ea67eb7a31cc4734772c7f9309044"
+    },
+    {
+      "file": "suporte/sistema/app/models.py",
+      "bytes": 47950,
+      "sha256": "0961465a805afe924fdeedfaf3e02243f9838ba6a18668240b0c781418cb6021"
+    },
+    {
+      "file": "suporte/sistema/app/native_axes.py",
+      "bytes": 5902,
+      "sha256": "6a40c24cc79cd2cdee4f4e29a47ec946869cbc155cb6d92a6178bc8a05f6371c"
+    },
+    {
+      "file": "suporte/sistema/app/obras.py",
+      "bytes": 16876,
+      "sha256": "743fd041796d31202c64d228507840ea1c864f361356319d9b2a67e9004b2ba5"
+    },
+    {
+      "file": "suporte/sistema/app/obras_video.py",
+      "bytes": 6040,
+      "sha256": "88ef60db75f3478f2364c0d46a4d1905f74348453d1a3b3d8e772870f5582dc2"
+    },
+    {
+      "file": "suporte/sistema/app/orthomosaic.py",
+      "bytes": 9037,
+      "sha256": "e7b11fa82d205872d5799a7ecfee509a3f6e5a4e2ee19b4579c3140f3ca7901f"
+    },
+    {
+      "file": "suporte/sistema/app/parallel.py",
+      "bytes": 4140,
+      "sha256": "cbe57649cec56bf36022bc4dd0e58ceb592fd0ab5460891556f7dcf9c1c77fbb"
+    },
+    {
+      "file": "suporte/sistema/app/pavement.py",
+      "bytes": 10145,
+      "sha256": "0bcaea689b4674dbaff6ab8477f1461b5fe39a510fe01ee5b4df602e3b5ea5ae"
+    },
+    {
+      "file": "suporte/sistema/app/pedestrian_traffic.py",
+      "bytes": 17031,
+      "sha256": "c61b3fc4e930d4658dba82c0406c881c79ae9be3749d2ceaed5f0eb943d78c96"
+    },
+    {
+      "file": "suporte/sistema/app/per.py",
+      "bytes": 4582,
+      "sha256": "cb7a6b62304e8aa3a80051864b40cc139848c2f7c87f03e7727f821e6d0c1c6e"
+    },
+    {
+      "file": "suporte/sistema/app/planilha.py",
+      "bytes": 8228,
+      "sha256": "9a35059e2f06489a3ee60ceee0774f6e054038f6abbb9151f4d1816a07d27b1f"
+    },
+    {
+      "file": "suporte/sistema/app/project_integrity.py",
+      "bytes": 4844,
+      "sha256": "5a16c0a7bac17ed61fdcf6cb3b98f8394d6528f6660b66e1ef549743d1f8ce16"
+    },
+    {
+      "file": "suporte/sistema/app/project_state.py",
+      "bytes": 10811,
+      "sha256": "3b2973151ffa3f8c34120462faa1a56561b951b81f6096d9680fcedea6c7e392"
+    },
+    {
+      "file": "suporte/sistema/app/qms.py",
+      "bytes": 10878,
+      "sha256": "4dfaa38694da93c9bfc862afc3b77c1e5e70c65ee37a5f2ea5e44a42507ebb46"
+    },
+    {
+      "file": "suporte/sistema/app/rail_smoke.py",
+      "bytes": 1638,
+      "sha256": "b1266eba1a4349ff1959264dd5ccbd657daf04fc7ad9b49d282dcf60a55b9e6a"
+    },
+    {
+      "file": "suporte/sistema/app/render.py",
+      "bytes": 98596,
+      "sha256": "4fc8b8e9b81cdbeef2a32e5b5415d9d6c166a21c94fd42bbdc5c92c9065b2491"
+    },
+    {
+      "file": "suporte/sistema/app/road_sections.py",
+      "bytes": 4373,
+      "sha256": "f2b4006f9d7077fdd9b72e1ba8d2ecdc90baedc6eacc9104f1ba66a02e3d688c"
+    },
+    {
+      "file": "suporte/sistema/app/rotas/__init__.py",
+      "bytes": 74,
+      "sha256": "9fdc5c6141cb6adc0cc94a8e2dda425072cf0c68ab0adfc723ff4acaca7c73b4"
+    },
+    {
+      "file": "suporte/sistema/app/rotas/arquivos.py",
+      "bytes": 17944,
+      "sha256": "ac2b83341b143927d2e56679defb243860e602af0d7e74bb3dc3db9acdca6db7"
+    },
+    {
+      "file": "suporte/sistema/app/rotas/assistencia.py",
+      "bytes": 8063,
+      "sha256": "8a01dde96b7a04203ccd5b655d7cde6b3f1d4c5467a73609e79ac5d64aac7ac0"
+    },
+    {
+      "file": "suporte/sistema/app/rotas/camadas.py",
+      "bytes": 3427,
+      "sha256": "5b10acce66a63cb42f0dec77d6a0a2d4524e648f2965b546039b589f2fefcc50"
+    },
+    {
+      "file": "suporte/sistema/app/rotas/comum.py",
+      "bytes": 4500,
+      "sha256": "d82f22e5326ebd6a028c16088fa70e5283a1d28893170453deaa1ac244fa20e2"
+    },
+    {
+      "file": "suporte/sistema/app/rotas/editor.py",
+      "bytes": 19061,
+      "sha256": "8e97772a7f90e45a866c5d5e99a6fd0747bfcd3087a9eee14610a0b04a0a04c9"
+    },
+    {
+      "file": "suporte/sistema/app/rotas/modelagem.py",
+      "bytes": 4927,
+      "sha256": "cb84b67f53500f3182ab1eca33293577fd9020a7a84866d9242c05c8d15104a3"
+    },
+    {
+      "file": "suporte/sistema/app/rotas/modelos.py",
+      "bytes": 2993,
+      "sha256": "e7198638e5ed5b0ae8e255794a03e8ef69830f2848de2ea10c1faf956d8c53e5"
+    },
+    {
+      "file": "suporte/sistema/app/rotas/obras.py",
+      "bytes": 1668,
+      "sha256": "1c71710edfcf9d8f55cf196f7eb49d862913a8cea598f4de3752df5e682ccc8e"
+    },
+    {
+      "file": "suporte/sistema/app/rotas/paginas.py",
+      "bytes": 5288,
+      "sha256": "eff2883c2503ef10934f40f392f9da4f4ab2babf4245f0e63326b5e2f2bc2fb1"
+    },
+    {
+      "file": "suporte/sistema/app/rotas/projetos.py",
+      "bytes": 12577,
+      "sha256": "7fb67fa802276b938e97a9a58ec2b298e6ef8165af1bf21e0f09b19c5277d682"
+    },
+    {
+      "file": "suporte/sistema/app/rotas/protecao.py",
+      "bytes": 2242,
+      "sha256": "54061106f8150754cd2cadf04171cbbfffa3e77280d75165d8ca720cfa24e871"
+    },
+    {
+      "file": "suporte/sistema/app/rotas/sistema.py",
+      "bytes": 4355,
+      "sha256": "878e1b51400f2f61604ca00e09df3a6cb9f2d2b5a8de31e5cf6aade0f92d7548"
+    },
+    {
+      "file": "suporte/sistema/app/rotas/suporte.py",
+      "bytes": 4786,
+      "sha256": "a584fc1f36f1463488ec6b29eab3e10125e2bfc2235a3d9743fd406b7d111cd5"
+    },
+    {
+      "file": "suporte/sistema/app/rotas/tarefas.py",
+      "bytes": 6934,
+      "sha256": "55e49ae051a8b21180c04d740999ddc8a366ba19be093225d88a2f9725411cec"
+    },
+    {
+      "file": "suporte/sistema/app/rotas/videos.py",
+      "bytes": 3038,
+      "sha256": "182e5bb79be1b6d54f516b44193c2ee4bb84dc50195e1507c95ae347bd5cd536"
+    },
+    {
+      "file": "suporte/sistema/app/rotas/web.py",
+      "bytes": 4526,
+      "sha256": "cd50e047aafea1728e477588ed5adf489b12e2d3e62fe9860acb3affb1338fee"
+    },
+    {
+      "file": "suporte/sistema/app/route_lane_cache.py",
+      "bytes": 4457,
+      "sha256": "c38dd03794d1c7c646906077647eef4aa333b6a3c4bb7bc60aa7e4ed71d9f80e"
+    },
+    {
+      "file": "suporte/sistema/app/routes.py",
+      "bytes": 9732,
+      "sha256": "69a6197b1c56997ff69a934ac7f3f9ebbd5680db4b15352ebd6bac139f893a7c"
+    },
+    {
+      "file": "suporte/sistema/app/scene3d.py",
+      "bytes": 16462,
+      "sha256": "981ead39673f90e6ee3cab4afc939afe841b81dde49c1b48e3f26223f6824b42"
+    },
+    {
+      "file": "suporte/sistema/app/server.py",
+      "bytes": 6757,
+      "sha256": "9d1014f358bd0ff3b48b7e4f40d11bcb8901e305292d47ee5c74614fdebb4aef"
+    },
+    {
+      "file": "suporte/sistema/app/shoulder_probe.py",
+      "bytes": 8557,
+      "sha256": "83022d2916d69033ad5cd825ccfe5e38c2278ac4fa1c99af8537d117cbe8dc26"
+    },
+    {
+      "file": "suporte/sistema/app/signage.py",
+      "bytes": 36531,
+      "sha256": "7816a530807ccc2e707b3c54764d926d1d178d4a94e12c6c9730fadf11bb3e86"
+    },
+    {
+      "file": "suporte/sistema/app/simulation.py",
+      "bytes": 35075,
+      "sha256": "538c32d3905e68c9fa77d7012864fd7245fc00f73a3094aced56cf0653dc213e"
+    },
+    {
+      "file": "suporte/sistema/app/small_ai.py",
+      "bytes": 21808,
+      "sha256": "62c824f074c36cdde5bb23eb4223ab05e136b5b91677d4469d64567e040b5a85"
+    },
+    {
+      "file": "suporte/sistema/app/snapshot_auth.py",
+      "bytes": 2065,
+      "sha256": "cfdb5dca87bfd901719f11680861f377602151479b4e719ed3fc3b25777f5c81"
+    },
+    {
+      "file": "suporte/sistema/app/store.py",
+      "bytes": 4454,
+      "sha256": "ba31cb9ce6a9a68fca09e56036108cf30f13c6a9ecd62383992a65c4caf9be51"
+    },
+    {
+      "file": "suporte/sistema/app/structures.py",
+      "bytes": 4351,
+      "sha256": "a3a0933fced3fe8dcf8c83994cf1da55eca817f1fba32db97143fc8065435c4e"
+    },
+    {
+      "file": "suporte/sistema/app/surface_marks.py",
+      "bytes": 5527,
+      "sha256": "6e370627777241000964f1c56f16e13acf1b19f358a8e3774c87646680ec7c9b"
+    },
+    {
+      "file": "suporte/sistema/app/tempo.py",
+      "bytes": 475,
+      "sha256": "163023b38b21f92058c9e273df6f17460121c26e5f01ab58fe59bb62beb6e65e"
+    },
+    {
+      "file": "suporte/sistema/app/traffic.py",
+      "bytes": 65606,
+      "sha256": "d4d12987657555caacbc52d1f8b0b47891a88c93afa04aec2dd9a08257ff4a1f"
+    },
+    {
+      "file": "suporte/sistema/app/traffic_indicators.py",
+      "bytes": 963,
+      "sha256": "da7e062d90df9bac39b7a0714b72d3b9c65f781922d9f5db8f735c8423f31c56"
+    },
+    {
+      "file": "suporte/sistema/app/traffic_presentation.py",
+      "bytes": 8780,
+      "sha256": "e3400d8aa4fef72c766b250090785d355b1a3bbdfab5b22f174f9674c62eeb3b"
+    },
+    {
+      "file": "suporte/sistema/app/transport.py",
+      "bytes": 13356,
+      "sha256": "72ba77b6c3597215b828fc0964cec882e55ed0e9a6205cd9c7dd2ad7f7639831"
+    },
+    {
+      "file": "suporte/sistema/app/transport_cabin.py",
+      "bytes": 4471,
+      "sha256": "a680a777b4f44cb172c621cb1113a8a4bdd4515302a8d24f7c96b2d989376750"
+    },
+    {
+      "file": "suporte/sistema/app/transport_models.py",
+      "bytes": 5115,
+      "sha256": "1475111adbdd49ecb18de4b9f31dda744644bef122898cd6ad8a26a7252f58d8"
+    },
+    {
+      "file": "suporte/sistema/app/transport_render.py",
+      "bytes": 7486,
+      "sha256": "f51c411677624a69777b94fb5985afaa1fbf35f5aa1fbf25c203397ea8294f6b"
+    },
+    {
+      "file": "suporte/sistema/app/usage_catalog.py",
+      "bytes": 2871,
+      "sha256": "6e9a528ce7358ccc2f00af37823eb826c0a16fd61ad563ececc31fc118ca42c0"
+    },
+    {
+      "file": "suporte/sistema/app/vehicle_motion.py",
+      "bytes": 5271,
+      "sha256": "f46ddbe1b730f4e4b87a2f9672cce496824a450f8489ea0acf4b51ce1918a922"
+    },
+    {
+      "file": "suporte/sistema/app/vehicle_safety.py",
+      "bytes": 10446,
+      "sha256": "baf85bbbdb0cd052c8f6f5ca2bbf02e58a7015f261d83449a03d98827208fc18"
+    },
+    {
+      "file": "suporte/sistema/app/vendor/DEPENDENCIAS.json",
+      "bytes": 2278,
+      "sha256": "ca303bf16f577502e7c20a478f336ae33a7f124a769d37f52fbe72cdf05d3bc8"
+    },
+    {
+      "file": "suporte/sistema/app/vendor/LUCIDE-LICENSE.txt",
+      "bytes": 880,
+      "sha256": "1e7290b35280a048667bbf0ebabac1c7fd52a75300e8b2946ac165715997f2bc"
+    },
+    {
+      "file": "suporte/sistema/app/vendor/three/LICENSE",
+      "bytes": 1081,
+      "sha256": "bfe119ea4fd413f5f7ca3fcd63adb0c4a073ed39daa2fe7d3e6b769e21272601"
+    },
+    {
+      "file": "suporte/sistema/app/vendor/three/build/three.core.js",
+      "bytes": 1403455,
+      "sha256": "eb077d2417f61d3e6d9264c317cabc4ea35769ed6b0ab533067292a550784c20"
+    },
+    {
+      "file": "suporte/sistema/app/vendor/three/build/three.module.js",
+      "bytes": 603113,
+      "sha256": "c8211c69345d2e9949dc7a8ac969380497aa0600a5a8ac6a459c8cd02dd9cb8a"
+    },
+    {
+      "file": "suporte/sistema/app/vendor/three/examples/jsm/controls/OrbitControls.js",
+      "bytes": 38728,
+      "sha256": "b45cb15fd75ac22aef3a44828b8b615c7b6d2256e203b7803c120975fe36cd47"
+    },
+    {
+      "file": "suporte/sistema/app/vendor/three/examples/jsm/geometries/RoundedBoxGeometry.js",
+      "bytes": 6501,
+      "sha256": "2055675dad18782a6d846f5b503a2a40513935dffaa8a2ac4fde239da5257164"
+    },
+    {
+      "file": "suporte/sistema/app/vendor/three/package.json",
+      "bytes": 89,
+      "sha256": "5adebdeb87b1fe2837d1f1386dee0db08677b3cccb9482f28fc975b1c343448f"
+    },
+    {
+      "file": "suporte/sistema/app/vida.py",
+      "bytes": 7842,
+      "sha256": "8d39f71f96b02e5d2697694d90285f6a42ff731ded9ddc7e508d964f1616ae74"
+    },
+    {
+      "file": "suporte/sistema/app/video_profile.py",
+      "bytes": 6130,
+      "sha256": "f89867ea0055e64d8d38d5b7382e0195808e2796d00cd2702b855ab40503ba0d"
+    },
+    {
+      "file": "suporte/sistema/app/videos.py",
+      "bytes": 5538,
+      "sha256": "1b249c8b3496d76f80f0522214cbbb1ebc3c2658db37331e2d33386219a07969"
+    },
+    {
+      "file": "suporte/sistema/app/visual.py",
+      "bytes": 40205,
+      "sha256": "ff8355f382f06d21814da53f011287d15e05844ee5c79c04b12438e594f27ee6"
+    },
+    {
+      "file": "suporte/sistema/app/webgl/agents.mjs",
+      "bytes": 5097,
+      "sha256": "ecb5a6b6deef41e7aac376ff7a7868ab81c39a08cc328958baa4d3ac83d80c0a"
+    },
+    {
+      "file": "suporte/sistema/app/webgl/viewer.mjs",
+      "bytes": 29160,
+      "sha256": "b06841004c48e92222029a3beb1a8cf4621cad47349fa7523844f91a5b503e04"
+    },
+    {
+      "file": "suporte/sistema/app/webmap.py",
+      "bytes": 18350,
+      "sha256": "5baf77b9f2ac3052878d5e8c9fd57c171ec1b7f540af39f98217d547cef08671"
+    },
+    {
+      "file": "suporte/sistema/app/worker.py",
+      "bytes": 14514,
+      "sha256": "d7accc13805125bab31cf6380f04c5f3dd13403ae1d02d74d1723a3c8dbb3776"
+    },
+    {
+      "file": "suporte/sistema/app/workreset.py",
+      "bytes": 3202,
+      "sha256": "eebae564f0bcc7e770287beb94f481f5b3e2d7c8721a35d8d75509f1c54aa90d"
+    },
+    {
+      "file": "suporte/sistema/assets/fonts/DejaVuSans-Bold.ttf",
+      "bytes": 708920,
+      "sha256": "a4c5bc453ca281d90ea079e596da7ae0dfeb5777497c29ec254e76d97ff6f890"
+    },
+    {
+      "file": "suporte/sistema/assets/fonts/DejaVuSans.ttf",
+      "bytes": 759720,
+      "sha256": "57f73e11f51999432bf7ab22ce55b6f945d5eca1bf824404cfa9ec2e3718c84e"
+    },
+    {
+      "file": "suporte/sistema/assets/fonts/LICENCA-DejaVu.txt",
+      "bytes": 3859,
+      "sha256": "63d3ba759d12804c5b31a9d5940d855c1820d1f5999e6b0872eb1c7ff045fbc9"
+    },
+    {
+      "file": "suporte/sistema/assets/marca/georas_icone_512.png",
+      "bytes": 93248,
+      "sha256": "bf75b4c60c8a43a925d6c6df7c1b75a19e7e435e4f3f29d3874ddaafed675a7e"
+    },
+    {
+      "file": "suporte/sistema/assets/marca/georas_logo.png",
+      "bytes": 113987,
+      "sha256": "25a67afcec55fd982a7b3353058f0e65111e783dda9d769ea1156b5dc5d79105"
+    },
+    {
+      "file": "suporte/sistema/assets/marca/georas_original.png",
+      "bytes": 114809,
+      "sha256": "8d83d3d73d53b616bece4ea0349053ce98cc638136e54b5cb3cba55bcafd5218"
+    },
+    {
+      "file": "suporte/sistema/assets/th57/referencia_ficha.json",
+      "bytes": 722,
+      "sha256": "eb44b331028c99bf4f4ffdf1044eb65ab437c55625bd86b2ac4caa504c024158"
+    },
+    {
+      "file": "suporte/sistema/atualizador.py",
+      "bytes": 38350,
+      "sha256": "0569a5cd6976a9ec4f1318551d23f5785b65357a2416d57fc740ca128ddeb426"
+    },
+    {
+      "file": "suporte/sistema/atualizar.ps1",
+      "bytes": 1882,
+      "sha256": "261c58f637f3318fd0d2da238f394e1b689b98b92cf712caa2f7309b40095275"
+    },
+    {
+      "file": "suporte/sistema/atualizar_portatil.py",
+      "bytes": 2229,
+      "sha256": "fa7872d5adc789efbb115dc8228a36b31340cc82f18b2823597c014923cb78aa"
+    },
+    {
+      "file": "suporte/sistema/diagnostico.py",
+      "bytes": 754,
+      "sha256": "8839c74a9745601d19cb85f6d1d9fa3c7a17bbbb91474b7e65641838a7fcd318"
+    },
+    {
+      "file": "suporte/sistema/executar_testes_visuais.py",
+      "bytes": 733,
+      "sha256": "083b7d811b21f609ab91d224ef7e0fa2921d6faebed84e357169d53bd244eb28"
+    },
+    {
+      "file": "suporte/sistema/iniciador/RodoviaStudio.cs",
+      "bytes": 42073,
+      "sha256": "0b1e06a01404c02bc815d34d80508dbd98c102eae884313c2b17c7f6b5c8c05e"
+    },
+    {
+      "file": "suporte/sistema/iniciar.ps1",
+      "bytes": 698,
+      "sha256": "64e1bafe9b8d222b8324facce231161c699e771515463ef327bfc39fdcf6fdeb"
+    },
+    {
+      "file": "suporte/sistema/iniciar.sh",
+      "bytes": 182,
+      "sha256": "f2a2788dffba89f1ba7fd332401475156c3dbc3fab20c759b50f81d3931ee18c"
+    },
+    {
+      "file": "suporte/sistema/pip-bootstrap.lock",
+      "bytes": 91,
+      "sha256": "f409e9c999da22f4920b4724c68adadb416a515f38d760dfd34ae6382d43df04"
+    },
+    {
+      "file": "suporte/sistema/preparar.py",
+      "bytes": 2331,
+      "sha256": "a23d68de515d5c00bd9347d8b2927dfa322f0ca82576e316b46513957ac958b4"
+    },
+    {
+      "file": "suporte/sistema/processar_ortomosaico.py",
+      "bytes": 1407,
+      "sha256": "0b6a8d1767a69ef5c890f6232fc77a4d2f8ff643a80fd3952e928e9976359fd0"
+    },
+    {
+      "file": "suporte/sistema/requirements-dev.txt",
+      "bytes": 68,
+      "sha256": "c4f35b72c387747574cc6ab908b2b2e48dcf9e387e35326037d8ca3e9938460f"
+    },
+    {
+      "file": "suporte/sistema/requirements-windows.lock",
+      "bytes": 3579,
+      "sha256": "36f2c7caf8e7832d9b3a2fa9a41f090f25af217ae7f04e5ac67836d6ed90f2e0"
+    },
+    {
+      "file": "suporte/sistema/requirements.txt",
+      "bytes": 272,
+      "sha256": "1c67f4798b1bbaa349ab4ada00568b15d4091da1bbb57e448ce89f22cd8a0552"
+    },
+    {
+      "file": "suporte/sistema/resultados_testes_visuais/01_shell_inicial.png",
+      "bytes": 57608,
+      "sha256": "3f2dcce3c46d405647da0effca1fe0121438ae352d3d91099c394000d088fad3"
+    },
+    {
+      "file": "suporte/sistema/resultados_testes_visuais/02_painel_projeto.png",
+      "bytes": 85653,
+      "sha256": "f2908be5ad83f0128a67cdca00d965be3ccd116f15303d5eb729e89c1d27fd39"
+    },
+    {
+      "file": "suporte/sistema/resultados_testes_visuais/03_painel_lateral_recolhido.png",
+      "bytes": 57606,
+      "sha256": "a01c717feae2ae86fc76cf7423383d8aebf16df5422c65a32177145ec04b10b1"
+    },
+    {
+      "file": "suporte/sistema/resultados_testes_visuais/04_linha_comando.png",
+      "bytes": 70473,
+      "sha256": "961ce9a681f51775d32efd57ba1bda79e76085c8b934cd656ca8a4c7a8b051cd"
+    },
+    {
+      "file": "suporte/sistema/resultados_testes_visuais/05_modo_projeto.png",
+      "bytes": 46673,
+      "sha256": "839e660c18d21353f230ddb406c6cbbd0d90b8c1496654bf209fc01871b2df96"
+    },
+    {
+      "file": "suporte/sistema/resultados_testes_visuais/06_1366x768.png",
+      "bytes": 53117,
+      "sha256": "b44b584f80d8d0b267f6990a35439e8edde1155747712aac978c3a5dc71f6c51"
+    },
+    {
+      "file": "suporte/sistema/rodovia.ico",
+      "bytes": 60617,
+      "sha256": "15d2806408f3f7b75956a732ad07561269d593a897d48d2c75a669d14dba86a7"
+    },
+    {
+      "file": "suporte/sistema/run.py",
+      "bytes": 2940,
+      "sha256": "3ac719b491830b759f7e857d8c8056e3ac94a4f286fe837b28ad57baa3f237c0"
+    }
+  ],
+  "pe_binaries": [],
+  "findings": [],
+  "limitations": "Não comprova ausência de malware. Conferir antivírus corporativo, assinaturas, dependências e comportamento em Windows."
+}

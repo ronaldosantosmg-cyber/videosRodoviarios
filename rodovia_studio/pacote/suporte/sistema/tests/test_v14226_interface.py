@@ -24,7 +24,8 @@ class Contract(HTMLParser):
 def test_document_keeps_motor_contract_without_inline_scripts():
     current=Contract((APP/'index.html').read_text())
     previous=json.loads((Path(__file__).parent/'fixtures/interface_14225.json').read_text())
-    assert current.fields==previous['fields']
+    assert {k:v for k,v in current.fields.items() if k!='heavy_shoulder_probe'}==previous['fields']
+    assert current.fields['heavy_shoulder_probe']==['input','checkbox',None]
     assert set(previous['ids'])<=set(current.ids)
     assert len(current.ids)==len(set(current.ids))
     assert current.scripts==['/interface/tema.js'] and not current.inline

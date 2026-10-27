@@ -140,6 +140,10 @@ class TrafficNetwork:
         from .route_lane_cache import RouteLaneCache
         self.route_lane_cache=RouteLaneCache(directory)
         roads=list(roads)+section_corridors(settings,self.route_lane_cache)
+        self.operational_pavement=unary_union(roads) if roads else Polygon()
+        from .shoulder_probe import envelope
+        exclusions=[Polygon([(p.x,p.y) for p in a]) for a in settings.exclusions]
+        self.shoulder_envelope=envelope(self.operational_pavement,obstacles,exclusions,self.bridges)
         self.allowed=unary_union(roads).difference(unary_union(obstacles).buffer(.15)).buffer(-.12) if roads else Polygon()
         self.paved=self.allowed  # superfície para as linhas de bordo (sem as exclusões de limpeza)
         if settings.exclusions:self.allowed=self.allowed.difference(unary_union([Polygon([(p.x,p.y) for p in a]) for a in settings.exclusions]))

@@ -1,0 +1,12 @@
+{
+  "tests": 123,
+  "method": "Último ensaio iniciado por caso, conforme timestamp da suíte; retentativas não são novos casos. Relatórios brutos preservados, inclusive a janela inicial de vídeo que não continha uma manobra ativa.",
+  "sources_in_order": [
+    "pytest-sonda.xml",
+    "pytest-regressao-inicial.xml",
+    "pytest-video-sonda.xml",
+    "pytest-reproducao-final.xml",
+    "pytest-seguranca-final.xml"
+  ],
+  "failures_latest": 0
+}

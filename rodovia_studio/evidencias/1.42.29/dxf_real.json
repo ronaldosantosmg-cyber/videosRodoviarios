@@ -1,0 +1,26 @@
+{
+  "source_sha256": "7936e09e195212a85a894dbc48f5ad337f0cbe4f3195225e6f8137297e3e4538",
+  "vehicle_visibility": {
+    "time_s": 1.0,
+    "width_m": 350.0,
+    "enabled": true,
+    "active": 7,
+    "drawn": 1,
+    "outside_view": 6,
+    "outside_revealed_section": 0,
+    "body_outside_allowed": 0,
+    "subpixel": 0,
+    "reveal_pending": false
+  },
+  "flows": 6,
+  "revalidated_flows": 6,
+  "axes": 31,
+  "original_preserved": true,
+  "full_geometry_recalculated": true,
+  "full_surface_recalculated": true,
+  "width": 1280,
+  "height": 720,
+  "imagery_pixels": 2048,
+  "seconds": 42.82,
+  "limitations": "DXF disponível em prévia neutra HD com mosaico limitado a 2048 para ensaio dirigido. Não é o projeto salvo atual do usuário nem teste de carga/Windows."
+}

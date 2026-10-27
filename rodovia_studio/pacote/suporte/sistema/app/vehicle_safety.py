@@ -2,10 +2,10 @@
 import math
 from collections import defaultdict
 import numpy as np
-from shapely.geometry import Polygon,MultiPoint
+from shapely.geometry import Polygon,MultiPoint,Point
 from .vehicle_motion import PROFILES,axle_geometry_prepared
 
-LATERAL_CLEARANCE=.5  # Distância livre total entre os corpos de dois veículos.
+LATERAL_CLEARANCE=.3  # Distância livre total entre os corpos de dois veículos.
 LATERAL_BUFFER=LATERAL_CLEARANCE/2
 LONGITUDINAL_GAP=2.
 
@@ -79,6 +79,8 @@ class PolygonSafety:
             if self.level(new) is not None and self.level(other) is not None and self.level(new)!=self.level(other):continue
             pair=tuple(sorted((p,q)))
             if self.corridor_conflict(p,q,width,other_width):
+                probe=getattr(self.sim,'shoulder_probe',None)
+                if probe and probe.try_pair(new,other):continue
                 self.waiting.setdefault(pair,p);self.waiting_widths[pair]={p:width,q:other_width};self.bursts.setdefault(pair,(q,other.get('entered_s',getattr(self.sim,'time',0))));self.narrow_holds+=1;return False
         return True
     def admitted(self,new):
@@ -88,6 +90,10 @@ class PolygonSafety:
             if wanted==new['p'] and self.corridor_conflict(wanted,other,width,self.waiting_widths[pair][other]):
                 del self.waiting[pair];self.waiting_widths.pop(pair,None);self.bursts[pair]=(new['p'],getattr(self.sim,'time',0))
     def pose(self,v,forward=0.,dt=.2):
+        probe=getattr(self.sim,'shoulder_probe',None)
+        if probe is not None:
+            shifted=probe.pose(v,forward)
+            if shifted is not None:return shifted
         sim=self.sim;i=v['p'];s=v['s']+forward;vt=v.get('t','car');L,B,wb,_=PROFILES.get(vt,PROFILES['car']);lc=v.get('lc')
         if not lc:
             g=axle_geometry_prepared(*sim.motion_points[i],vt,np.array([s]));return g['center'][0],g['heading'][0]
@@ -103,6 +109,14 @@ class PolygonSafety:
     def footprint(self,v,forward=0.,dt=.2):
         c,h=self.pose(v,forward,dt);L,B,_,_=PROFILES.get(v.get('t','car'),PROFILES['car']);return body(c,h,L,B,LATERAL_BUFFER)
     def admission(self,new,vehicles):
+        probe=getattr(self.sim,'shoulder_probe',None)
+        pedestrians=getattr(self.sim,'pedestrians',None)
+        if probe and probe.enabled:
+            poly=self.footprint(new);level=self.level(new)
+            for agent in getattr(pedestrians,'agents',[]):
+                if agent['route']['kind']=='passarela':continue
+                if level is not None and abs(agent['route']['height']-level)>2.5:continue
+                if poly.intersects(Point(pedestrians.pose(agent)[0]).buffer(.4)):return False
         if not vehicles:return True
         if not self.narrow_admission(new,vehicles):return False
         poly=self.footprint(new);level=self.level(new)
@@ -114,8 +128,21 @@ class PolygonSafety:
         hull=MultiPoint(points).convex_hull
         return hull.buffer(.03) if np.linalg.norm(self.pose(v)[1]-self.pose(v,forward)[1])>.002 else hull
     def resolve(self,vehicles,planned):
-        if len(vehicles)<2:return planned
+        if not vehicles:return planned
         reservations=SpatialReservations()
+        probe=getattr(self.sim,'shoulder_probe',None)
+        if probe and probe.enabled:
+            pedestrians=getattr(self.sim,'pedestrians',None)
+            for a in getattr(pedestrians,'agents',[]):
+                if a['route']['kind']=='passarela':continue
+                reservations.add(('pedestre',a['id']),Point(pedestrians.pose(a)[0]).buffer(.4),round(a['route']['height']))
+            for index,block in enumerate(getattr(self.sim,'blocks',[])):
+                if block.mode=='total' and (block.active(self.sim.time) or block.active(self.sim.time+.2)):reservations.add(('obra',index),block.poly,None)
+            transport=getattr(self.sim,'transport',None)
+            if transport:
+                for at in (self.sim.time,self.sim.time+.2):
+                    for index,part in enumerate(transport.train_parts(at)):
+                        reservations.add(('trem',at,index),body(part['p'],part['heading'],part['length'],part['width']),part.get('level',0))
         for v in vehicles:reservations.add(v['id'],self.footprint(v),self.level(v))
         result=list(planned)
         for index in sorted(range(len(vehicles)),key=lambda j:(-vehicles[j]['s']/max(self.sim.paths[vehicles[j]['p']]['length'],1),vehicles[j]['id'])):

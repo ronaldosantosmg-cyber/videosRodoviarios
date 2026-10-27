@@ -874,10 +874,12 @@ class Scene:
         # O desenho usa o corpo real validado, sem margem gráfica adicional que ocultava veículos.
         # Cache por posição/rumo exatos: um ponto da mesma aresta pode ter outro afastamento.
         if not np.isfinite(np.r_[pt,tan]).all():return False
-        key=(vtype,*map(float,pt),*map(float,tan))
+        probe=getattr(getattr(self,'_sim',None),'shoulder_probe',None)
+        exceptional=bool(probe and probe.permits(i,vtype))
+        key=(vtype,exceptional,*map(float,pt),*map(float,tan))
         if key not in self._fit:
             if len(self._fit)>=4096:self._fit.clear()
-            T=visual.TYPES[vtype];self._fit[key]=self.allowed.covers(Polygon(visual.body(pt,tan,T['L'],T['B'])))
+            T=visual.TYPES[vtype];self._fit[key]=(probe.area if exceptional else self.allowed).covers(Polygon(visual.body(pt,tan,T['L'],T['B'])))
         return self._fit[key]
     def draw_vehicles(self,im,t,cam,width,progress):
         from .traffic_presentation import visible

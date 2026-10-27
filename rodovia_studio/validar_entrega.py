@@ -18,6 +18,7 @@ PACKAGE=ROOT/'pacote'
 SYSTEM=PACKAGE/'suporte/sistema'
 EVIDENCE=ROOT/'evidencias'/json.loads((PACKAGE/'manifest.json').read_text())['version']
 TESTS=[
+ 'tests/test_v14229_shoulder_probe.py','tests/test_v14229_probe_visual.py',
  'tests/test_v14228_hatch_online.py',
  'tests/test_v14228_vehicle_presentation.py',
  'tests/test_small_ai_bridge.py',

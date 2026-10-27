@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.28",
-  "description": "1.42.28: fechamento de hachuras em projetos legados, conexão online configurável e propostas de IA validadas pelo contrato do motor."
+  "version": "1.42.29",
+  "description": "1.42.29: sondagem local do acostamento em conflitos de pesados, limite de 1 m, retorno e reserva espacial."
 }

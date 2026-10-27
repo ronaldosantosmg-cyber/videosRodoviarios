@@ -781,6 +781,7 @@ class Settings(BaseModel):
     traffic_demand_vphpl: float | None = Field(default=None,gt=0,le=20000)
     queue_capacity_model: bool = True
     heavy_vehicle_reaction: bool = True
+    heavy_shoulder_probe: bool = True
     median_crossing: Literal['returns','marked','free'] = 'returns'
     # 1.39: trechos curtos (ramos do esqueleto nos encontros) abaixo disto não entram nas rotas (sem ziguezague); 0 = como antes.
     min_route_segment_m: float = Field(default=50,ge=0,le=500)
