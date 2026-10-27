@@ -60,7 +60,7 @@ function drawSceneLayers(){
  if(window.RodoviaLayers)RodoviaLayers.compose(background,technical);else{background();technical()}
  if(annotationsInMain){ctx.lineJoin='round';ctx.lineCap='round';drawProjectAnnotations()}
 }
-function draw(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c1722';ctx.fillRect(0,0,canvas.width,canvas.height);if(!ready()){ctx.fillStyle='#9cb3bf';ctx.font='16px system-ui';ctx.fillText(pid?'Clique “Analisar arquivos” (seção 1) para editar sobre a imagem web, ou gere uma prévia.':'Crie ou abra um projeto.',24,40);return}
+function drawBase(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c1722';ctx.fillRect(0,0,canvas.width,canvas.height);if(!ready()){ctx.fillStyle='#9cb3bf';ctx.font='16px system-ui';ctx.fillText(pid?'Clique “Analisar arquivos” (seção 1) para editar sobre a imagem web, ou gere uma prévia.':'Crie ou abra um projeto.',24,40);return}
  drawSceneLayers();ctx.lineJoin='round';ctx.lineCap='round';
  if(layerShow&&layerShow.p){ctx.save();ctx.strokeStyle='#ff4fd8';ctx.lineWidth=4;ctx.shadowColor='#000';ctx.shadowBlur=4;for(const q of layerShow.p){poly(q.map(v=>({x:v[0],y:v[1]})));ctx.stroke()}ctx.restore()}
  // rascunhos
@@ -73,6 +73,8 @@ function draw(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c1722';ctx.fillRe
  // escala gráfica
  const ppm=pxPerM();let len=[1,2,5,10,20,50,100,200,500,1000,2000,5000].find(v=>v*ppm>90)||5000;ctx.fillStyle='#081623cc';ctx.fillRect(10,canvas.height-34,len*ppm+20,24);ctx.fillStyle='#fff';ctx.fillRect(20,canvas.height-18,len*ppm,4);ctx.font='11px system-ui';ctx.fillText(len+' m',20,canvas.height-22);
  if(useGeo()&&baseMode==='map'){const wi=cfg.web_imagery||{},t='Imagem: '+(webSrc()==='wayback'?'Esri World Imagery Wayback '+(wi.wayback_label||''):webSrc()!=='esri'?(wi.attribution||'fonte indicada pelo usuário'):geo.attribution)+(tileState.fail&&!tileState.ok?' · sem internet/cache nesta área':'');ctx.font='11px system-ui';const w=ctx.measureText(t).width+12;ctx.fillStyle='#081623b0';ctx.fillRect(canvas.width-w-6,canvas.height-22,w,18);ctx.fillStyle='#dfe';ctx.fillText(t,canvas.width-w,canvas.height-9)}}
+
+function draw(){drawBase();RodoviaLifecycle.paint()}
 
 function drawSignIcon(p,code,text,dim){const [x,y]=W2C(p),st=SIGN_STYLE[code]||SIGN_STYLE.I,r=10;ctx.save();ctx.globalAlpha=dim?.45:1;ctx.strokeStyle='#081623';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y-14);ctx.stroke();const cy=y-14-r;ctx.beginPath();
  if(code==='R-1'){for(let k=0;k<8;k++){const a=Math.PI/8+k*Math.PI/4;ctx.lineTo(x+r*Math.cos(a),cy+r*Math.sin(a))}ctx.closePath()}else if(code==='R-2'){ctx.moveTo(x-r,cy-r*.8);ctx.lineTo(x+r,cy-r*.8);ctx.lineTo(x,cy+r);ctx.closePath()}else if(code==='R-19'){ctx.arc(x,cy,r,0,7)}else if(code==='A'||code==='OBRAS'){ctx.moveTo(x,cy-r);ctx.lineTo(x+r,cy);ctx.lineTo(x,cy+r);ctx.lineTo(x-r,cy);ctx.closePath()}else{ctx.rect(x-r*1.4,cy-r*.7,r*2.8,r*1.4)}

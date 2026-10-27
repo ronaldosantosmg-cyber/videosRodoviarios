@@ -41,9 +41,9 @@ function rotateArrow(a,vec){
  const seg=nearestSegment({x:P[0],y:P[1]},6);if(seg&&sgn<0){seg.forward=!seg.forward}
  changed('Seta girada: o fluxo da faixa passa a seguir a seta. Clique “⟳ Atualizar fluxos” para recalcular a rede (o vídeo usa o novo sentido).')}
 let layerShow=null,layerPrev=null;
-async function showLayer(name){
+async function showLayer(name){const project=pid,context=projectSession.context;
  if(layerShow&&layerShow.name===name){layerShow=null;draw();return}
- if(!layerPrev){try{layerPrev=await api('/api/projects/'+pid+'/layers_preview.json')}catch(e){return msg('Analise os arquivos para ver as camadas no editor.',true)}}
+ if(!layerPrev){try{const result=await api('/api/projects/'+project+'/layers_preview.json');if(pid!==project||projectSession.context!==context)return;layerPrev=result}catch(e){return msg('Analise os arquivos para ver as camadas no editor.',true)}}
  const d=layerPrev[name];if(!d||!d.p.length)return msg('Camada sem geometria desenhável (texto, cota ou bloco vazio).',true);
  layerShow={name,p:d.p};let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;for(const q of d.p)for(const [x,y] of q){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y)}
  if(ready()){const c={x:(x0+x1)/2,y:(y0+y1)/2};const [ix,iy]=worldToImg(c);const span=Math.max(40,Math.hypot(x1-x0,y1-y0));view.s=Math.max(minScale(),Math.min(useGeo()?240:60,canvas.width*mpp()/span*.8));view.ox=canvas.width/2-ix*view.s;view.oy=canvas.height/2-iy*view.s;draw()}

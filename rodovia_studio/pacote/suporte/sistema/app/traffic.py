@@ -187,7 +187,8 @@ class TrafficNetwork:
         raw=[]
         from .native_axes import native_paths
         native,self.native_axis_report=native_paths(axes,settings,self.allowed)
-        if not native and not any(p.enabled for p in settings.traffic_paths) and not any(r.enabled for r in settings.route_alignments):self.warnings.append('Nenhum eixo autorizado para tráfego: associe a camada Eixo ou selecione uma linha como rota com sentido explícito. O pavimento sozinho não cria fluxos.')
+        if not native and not any(p.enabled for p in settings.traffic_paths) and not any(r.enabled for r in settings.route_alignments):self.warnings.append('Nenhum eixo autorizado para tráfego: cadastre a camada como Eixo ou selecione uma linha como rota com sentido explícito. Sugestão pelo nome não autoriza circulação. O pavimento sozinho não cria fluxos.')
+        self.source_registration={'policy':'explicit_axis_required','native_authorized':len(native),'ignored_unregistered':self.native_axis_report['ignored_sources'],'manual_axes':sum(p.enabled for p in settings.traffic_paths),'registered_alignments':sum(r.enabled for r in settings.route_alignments)}
         raw=native
         for r in settings.traffic_paths:
             if not getattr(r,'enabled',True):continue
@@ -278,6 +279,7 @@ class TrafficNetwork:
         self.warnings.extend(oae_warnings)
         self.report={'oae':self.oae_report,'section_continuity':sections,'route_lane_cache':self.route_lane_cache.report(),'directed_edges':len(self.edges),'connections':sum(map(len,self.connections.values())),'itineraries':len(self.paths),'coverage':dict(collections.Counter(e['kind'] for e in self.edges)),'used_kinds':dict(collections.Counter(k for p in self.paths for k in p['kinds'])),'warnings':self.warnings,'signage':getattr(self,'report_signage',{}),'automatic_segments_pruned':len(self.auto_pruned),'minimum_flow_length_m':self.min_route,'short_segments_ignored':len(self.short_ignored),'explicit_flow_cuts':getattr(self,'cut_report',[]),'recovered_principal_paths':getattr(self,'recovered_paths',0),'motion_rejected_paths':len(self.rejected_paths),'motion_rejected_connections':dict(self.rejected_connectors),'motion_scope':'Geometria e restrições disponíveis no projeto; sem certificação CONTRAN.'}
         self.report['native_axes']=self.native_axis_report
+        self.report['source_registration']=self.source_registration
         self.report['source_policy']='somente_eixos_designados_ou_selecao_explicita'
         self.report['direction_intervals']=self.direction_report
     def prune_automatic(self,raw,stage):

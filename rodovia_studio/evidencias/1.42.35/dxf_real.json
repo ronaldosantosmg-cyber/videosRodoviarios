@@ -1,0 +1,36 @@
+{
+  "source_sha256": "7936e09e195212a85a894dbc48f5ad337f0cbe4f3195225e6f8137297e3e4538",
+  "registered_axis_layers": [
+    "000-HGT-F1-HZ-EIXO",
+    "C-EC-ESTACAS-EIXO",
+    "EIXO_DESCOMISIONADO",
+    "EIXO_LESTE",
+    "EIXO_OESTE",
+    "F-HZ-EIXO"
+  ],
+  "vehicle_visibility": {
+    "time_s": 1.0,
+    "width_m": 350.0,
+    "enabled": true,
+    "active": 6,
+    "drawn": 2,
+    "outside_view": 4,
+    "outside_revealed_section": 0,
+    "body_outside_allowed": 0,
+    "subpixel": 0,
+    "reveal_pending": false
+  },
+  "flows": 7,
+  "revalidated_flows": 7,
+  "axes": 31,
+  "source_registration": {
+    "policy": "explicit_axis_required",
+    "native_authorized": 30,
+    "ignored_unregistered": 0,
+    "manual_axes": 0,
+    "registered_alignments": 0
+  },
+  "original_preserved": true,
+  "seconds": 36.47,
+  "limitations": "Prévia neutra HD, fontes cadastradas explicitamente no ensaio; não é o projeto salvo atual do usuário, benchmark nem homologação Windows."
+}

@@ -40,6 +40,13 @@ async function save(){
    let epoch=projectSession.epoch,s=collect(),payload=JSON.stringify(s);
    let options=json('PUT',s);if(projectSession.revision)options.headers['If-Match']=projectSession.revision;
    let result;try{result=await api('/api/projects/'+id+'/config',options)}catch(error){
+    if(error.unconfirmed&&pid===id&&projectSession.context===context){
+     const stable=x=>JSON.stringify(x,(_,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.keys(v).sort().map(k=>[k,v[k]])):v);
+     try{const remote=await api('/api/projects/'+id,{timeoutMs:15000});if(pid!==id||projectSession.context!==context)throw error;
+      if(stable(remote.config)===stable(s))return confirmSave(remote,s,epoch,payload,id,context);
+     }catch(check){if(!check.unconfirmed&&check!==error)error.message+=' Não foi possível conferir a revisão: '+check.message}
+     error.saveUncertain=true;error.message='Gravação não confirmada. Suas edições foram mantidas. Confira a conexão e tente salvar novamente; a revisão será conciliada.';throw error;
+    }
     if(error.status!==409||pid!==id||projectSession.context!==context)throw error;
     const remote=await api('/api/projects/'+id);if(pid!==id||projectSession.context!==context)throw error;
     const conflicts=[];mergeProjectConfig(projectSession.baseConfig||cfg,collect(),remote.config,[],conflicts);
@@ -48,15 +55,18 @@ async function save(){
     result=await api('/api/projects/'+id+'/config',options);
    }
    if(pid!==id||projectSession.context!==context)return result;
+   return confirmSave(result,s,epoch,payload,id,context);
+ });projectSession.queue=pending;
+ try{return await pending}catch(e){if(pid===id&&projectSession.context===context){savePending=true;$('saveState').textContent='não salvo: '+e.message}throw e}
+}
+
+function confirmSave(result,s,epoch,payload,id,context){
    projectSession.revision=result.config_revision||result.revision||projectSession.revision;projectSession.artifacts=result.artifacts||{};projectSession.baseConfig=structuredClone(result.config||s);
    const unchanged=projectSession.epoch===epoch&&JSON.stringify(collect())===payload;
    if(unchanged){cfg=result.config||s;savePending=false;$('saveState').textContent='salvo na configuração';announce({t:'saved'})}
    else{savePending=true;$('saveState').textContent='alterações posteriores aguardam gravação…'}
    window.dispatchEvent(new CustomEvent('rodovia:project-state',{detail:{project:id,...result}}));$('configDownload').href='/api/projects/'+id+'/config.json';$('configDownload').hidden=false;return result;
- });projectSession.queue=pending;
- try{return await pending}catch(e){if(pid===id&&projectSession.context===context){savePending=true;$('saveState').textContent='não salvo: '+e.message}throw e}
 }
-
 async function list(){const rows=await api('/api/projects');$('projects').innerHTML='<option value="">Selecione…</option>'+rows.map(r=>`<option value="${r.id}">${esc(r.name)} · ${esc(r.created)}</option>`).join('');$('projects').value=pid}
 let sourceLayerCatalog=null;
 function showRouteChoices(preserve=false){
@@ -67,7 +77,7 @@ function showRouteChoices(preserve=false){
  $('routes').innerHTML=rows.map(r=>`<tr><td>Eixo ${esc(r.id)} · ${Number(r.length_m).toFixed(1)} m<br>${esc(r.layer)}</td><td><select data-route="${esc(r.id)}">${[['auto','Automático'],['forward','Crescente (km)'],['reverse','Decrescente (km)'],['off','Sem veículos']].map(([k,v])=>`<option value="${k}" ${(cfg.route_directions||{})[r.id]===k?'selected':''}>${v}</option>`).join('')}</select></td></tr>`).join('');
 }
 for(const event of ['input','change'])$('min_route_segment_m')?.addEventListener(event,()=>showRouteChoices(true));
-function showLayers(){const rows=[...new Map([...(sourceLayerCatalog?.layers||[]),...(analysis?.layers||[])].map(l=>[l.name,l])).values()];if(!rows)return;$('layers').innerHTML=rows.map(l=>{let current=Object.entries(cfg.layers||{}).find(([k,v])=>v.includes(l.name))?.[0]||(!Object.keys(cfg.layers||{}).length?l.suggested_role:'');return `<tr><td>${esc(l.name)}<br><small>${l.count} entidades</small></td><td><select data-layer="${esc(l.name)}"><option value="">Ignorar</option>${Object.entries(roles).map(([k,v])=>`<option value="${k}" ${k===current?'selected':''}>${v}</option>`).join('')}</select></td><td><button class="mini" data-showlayer="${esc(l.name)}" title="Destacar esta camada no editor">Ver</button></td></tr>`}).join('');showRoleColors();
+function showLayers(){const rows=sourceLayerCatalog?.source==='input.dxf'?sourceLayerCatalog.layers:[...(analysis?.layers||[])];if(!rows)return;$('layers').innerHTML=rows.map(l=>{let current=Object.entries(cfg.layers||{}).find(([k,v])=>v.includes(l.name))?.[0]||(!Object.keys(cfg.layers||{}).length&&l.suggested_role!=='axis'?l.suggested_role:'');return `<tr><td>${esc(l.name)}<br><small>${l.count} entidades · ${l.declared?Number(l.count)===0?'CAD: camada declarada vazia':'Fonte CAD':'Análise do projeto'}</small></td><td><select data-layer="${esc(l.name)}"><option value="">Ignorar</option>${Object.entries(roles).map(([k,v])=>`<option value="${k}" ${k===current?'selected':''}>${v}</option>`).join('')}</select></td><td><button class="mini" data-showlayer="${esc(l.name)}" title="Destacar esta camada no editor">Ver</button></td></tr>`}).join('');showRoleColors();
  if(!analysis){$('routes').innerHTML='';$('warnings').textContent=(sourceLayerCatalog?.warnings||[]).join('\n');return}
  showRouteChoices();
  $('warnings').textContent=(analysis.warnings||[]).join('\n');$('geom').textContent=`Comprimento geométrico: ${(analysis.geometric_length_m/1000).toFixed(3)} km. A extensão de referência permanece independente.`+(analysis.georef_check?` Conferência DXF × KMZ (${analysis.georef_check.points} pontos ao longo do eixo): desvio mediano ${analysis.georef_check.median_m.toFixed(2)} m, 95% até ${analysis.georef_check.p95_m.toFixed(2)} m, máximo ${analysis.georef_check.max_m.toFixed(2)} m.`:' Sem KMZ: a posição não foi conferida contra outra referência.')}
@@ -88,6 +98,18 @@ async function syncWorkerConfig(remote,revision){
  const undo=undoStack.slice(),redo=redoStack.slice();fill(merged);undoStack=undo;redoStack=redo;updateUndo();
  projectSession.baseConfig=structuredClone(remote);projectSession.revision=revision;savePending=JSON.stringify(merged)!==JSON.stringify(remote);$('saveState').textContent=savePending?'Resultado recebido; edições locais aguardam gravação.':'Configuração da conversão recebida.';
 }
+// Dados derivados pertencem a um projeto; nunca conservar destaques do anterior.
+function resetProjectPresentation(){
+ if(window.Rodovia3D?.stats().project&&Rodovia3D.stats().project!==pid)Rodovia3D.close();
+ analysis=null;editor=null;meta=null;baseImage=null;sourceLayerCatalog=null;lastRender=null;
+ geo=null;vec=null;vecPaths=null;localInfo=null;geoPid='';axisCache=null;
+ layerShow=null;layerPrev=null;hatchPrev=null;alignResult=null;
+ selected=null;draft=null;drag=null;sel=null;selSeg=null;selSet=[];dxfSel=null;selLink=null;
+ snapIndex=null;exactSnap=null;cadCmd=null;rsDraft=null;routeLanes=[];routeSig='';clearTimeout(routeTimer);
+ localTiles.clear();window.RodoviaLayers?.invalidate();
+ $('layers').replaceChildren();$('routes').replaceChildren();$('warnings').textContent='';$('geom').textContent='';
+ window.dispatchEvent(new CustomEvent('rodovia:project-reset',{detail:{project:pid,context:projectSession.context}}));
+}
 async function load(id,options={}){
  const intent=++projectSession.loadIntent,resultsOnly=!!options.resultsOnly&&pid===id;
  const previousFrame={meta,baseImage};const retainedView=resultsOnly?captureProjectView():null;
@@ -96,9 +118,9 @@ async function load(id,options={}){
  const r=await api('/api/projects/'+id);if(intent!==projectSession.loadIntent)return false;
  if(!resultsOnly&&pid&&(savePending||JSON.stringify(collect())!==openingFingerprint)){savePending=true;throw Error('Existem novas alterações feitas durante a abertura. Salve-as antes de trocar de projeto.')}
 
- if(!resultsOnly){clearTimeout(saveTimer);pid=id;projectSession.context++;projectSession.epoch=0;savePending=false;localStorage.setItem('rodovia_project',pid);fill(r.config);projectSession.revision=r.config_revision||null;projectSession.baseConfig=structuredClone(r.config)}
+ if(!resultsOnly){clearTimeout(saveTimer);pid=id;projectSession.context++;projectSession.epoch=0;savePending=false;localStorage.setItem('rodovia_project',pid);resetProjectPresentation();fill(r.config);projectSession.revision=r.config_revision||null;projectSession.baseConfig=structuredClone(r.config)}
  else if(options.syncConfig)await syncWorkerConfig(r.config,r.config_revision);
- if(!resultsOnly){sourceLayerCatalog=null;if(r.files.dxf)try{sourceLayerCatalog=await api('/api/projects/'+id+'/layers')}catch(e){msg(e.message,true)}if(intent!==projectSession.loadIntent)return false}
+ if(!resultsOnly){sourceLayerCatalog=null;if(r.files.dxf)try{const catalog=await api('/api/projects/'+id+'/layers');if(intent===projectSession.loadIntent&&pid===id)sourceLayerCatalog=catalog}catch(e){msg(e.message,true)}if(intent!==projectSession.loadIntent)return false}
  projectSession.artifacts=r.artifacts||{};lastRender=r.render_info||null;analysis=r.analysis||null;meta=r.preview||(resultsOnly?previousFrame.meta:null);
  const retainedPreview=resultsOnly&&!r.preview&&!!(previousFrame.meta&&previousFrame.baseImage);
  $('fileState').textContent=`DXF: ${r.files.dxf?'carregado':'ausente'} · KMZ: ${r.files.kmz?'carregado':'ausente'}`;{const edits=resultsOnly?[...document.querySelectorAll('#layers select,#routes select')].map(el=>({layer:el.dataset.layer,route:el.dataset.route,value:el.value})):[];showLayers();for(const edit of edits){const el=[...document.querySelectorAll('#layers select,#routes select')].find(el=>edit.layer!==undefined?el.dataset.layer===edit.layer:el.dataset.route===edit.route);if(el)el.value=edit.value}}$('projects').value=pid;$('configDownload').href='/api/projects/'+pid+'/config.json';$('configDownload').hidden=false;

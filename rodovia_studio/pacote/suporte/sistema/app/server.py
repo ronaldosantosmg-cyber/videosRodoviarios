@@ -29,7 +29,7 @@ def dispatcher():
         try:wlog=open(store.ROOT/j['project']/'worker.log','ab')
         except OSError:wlog=subprocess.DEVNULL
         try:
-            proc=subprocess.Popen([sys.executable,'-m','app.worker',j['id']],cwd=BASE,stdout=wlog,stderr=wlog)
+            proc=subprocess.Popen([sys.executable,'-m','app.worker',j['id']],cwd=BASE,stdout=wlog,stderr=wlog,start_new_session=os.name!='nt')
         except Exception as e:
             # Falha ao criar o worker não pode matar o despachante nem travar as tarefas seguintes.
             store.update(j['id'],state='failed',message='Não foi possível iniciar a operação.',error=f'{type(e).__name__}: {str(e)[:1000]}')
@@ -40,10 +40,25 @@ def dispatcher():
             continue
         finally:
             if wlog is not subprocess.DEVNULL:wlog.close()
+        from .process_supervision import stop_process,heartbeat_path
+        heartbeat=heartbeat_path(store.ROOT/j['project'],j['id']);started=time.monotonic();cancel_since=None;forced=None
         while proc.poll() is None:
-            if stop.wait(.2):proc.terminate();proc.wait();break
+            if stop.wait(.2):stop_process(proc,tree=True);break
+            state=store.job(j['id'])['state']
+            if state=='cancel_requested':
+                cancel_since=cancel_since or time.monotonic()
+                if time.monotonic()-cancel_since>30:
+                    stop_process(proc,tree=True);forced='cancelled';break
+            try:silence=time.time()-heartbeat.stat().st_mtime
+            except FileNotFoundError:silence=time.monotonic()-started
+            # Não é limite da duração do cálculo: o sinal de vida continua durante etapas longas.
+            if silence>600:
+                stop_process(proc,tree=True);forced='failed';break
+        heartbeat.unlink(missing_ok=True)
         state=store.job(j['id'])['state']
-        if state in ['running','cancel_requested']:store.update(j['id'],state='interrupted',message='Processo interrompido. Consulte o log e gere novamente.')
+        if state in ['running','cancel_requested']:
+            store.update(j['id'],state=forced or 'interrupted',message='Cancelado por supervisão; arquivos originais preservados.' if forced=='cancelled' else 'Processo sem resposta ou interrompido. Consulte o log e gere novamente.')
+
 @asynccontextmanager
 async def lifespan(app):
     stop.clear();maintenance_pending.clear()

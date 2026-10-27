@@ -12,7 +12,7 @@ def project(tmp_path,traffic=True,hole=False):
     m.add_lwpolyline([(500050,7800000),(500450,7800000)],dxfattribs={'layer':'EIXO'})
     h=m.add_hatch(dxfattribs={'layer':'PAVIMENTO'});h.paths.add_polyline_path([(500000,7799980),(500500,7799980),(500500,7800020),(500000,7800020)],is_closed=True)
     if hole:h.paths.add_polyline_path([(500200,7800008),(500260,7800008),(500260,7800018),(500200,7800018)],is_closed=True,flags=0)
-    doc.saveas(d/'input.dxf');s=Settings(width=1280,fps=24,duration_s=3,imagery='neutral',coordinates_confirmed=True,hydrography=False,traffic=traffic)
+    doc.saveas(d/'input.dxf');s=Settings(layers={'axis':['EIXO'],'pavement':['PAVIMENTO']},width=1280,fps=24,duration_s=3,imagery='neutral',coordinates_confirmed=True,hydrography=False,traffic=traffic)
     (d/'config.json').write_text(s.model_dump_json());return d,s
 
 

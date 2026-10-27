@@ -1,0 +1,39 @@
+# Revisão técnica do Rodovia Studio
+
+Data: 27/10/2026. Base publicada 1.42.34; árvore de desenvolvimento com correção de desempenho dos nós ainda não empacotada. Branch desenvolvimento/rodovia-studio-1.42. Análise de código e testes dirigidos; não é auditoria exaustiva de segurança nem homologação Windows. Nenhum código funcional alterado nesta análise. Main não modificada.
+
+## Escopo
+
+Inventário: 105 módulos Python diretamente em app/, 90 módulos JavaScript em app/js/ e 158 arquivos test_*.py. Esses números não representam cobertura. Examinados os caminhos de abertura/estado, catálogo CAD, cache/dependências, tarefas, paralelismo, interface gráfica, persistência, integridade, IA e atualização. Não foi executado cada comando do aplicativo ou projeto real salvo do usuário.
+
+## Melhorias por prioridade
+
+1. **P0 — recuperar tarefas e gravações que não respondem.** app/js/00_nucleo.js não define timeout para fetch; 64_janelas_modelagem.js mantém busy até a resposta. parallel.py Pool.frame usa readinto bloqueante e Pool.close usa wait sem prazo; dispatcher verifica término do processo, não ausência de avanço. Um auxiliar vivo sem produzir quadro pode atrasar a observação do cancelamento. Implementar heartbeat, supervisão de processos e prazos por etapa, com cancelamento cooperativo seguido de encerramento controlado. Timeout no cliente não prova falha de gravação: consultar revisão e conciliar antes de repetir ou restaurar rascunho. Critério: simular servidor lento, perda de resposta depois do commit e auxiliar que para de emitir quadros; permitir recuperação sem duplicação, perda ou tarefa eterna.
+
+2. **P0 — eixo-base obrigatório e proveniência por projeto.** native_axes.py ainda admite classificação por role/nome EIXO, sem exigir sempre associação explícita; pedido recente não implementado. load em 01_estado_configuracao.js preenche configuração antes de substituir análise/editor e buscar layers; investigar essa janela de estado antigo. loadGeo já possui guarda de projeto/contexto, que deve ser preservada. Catálogo CAD inclui todas as camadas declaradas, inclusive vazias: isso pode explicar itens da lista, mas não comprova a origem da sujeira desenhada. Distinguir CAD declarado, CAD com geometria, gerado e manual. Testar A→B→novo com falhas e respostas fora de ordem. Não apagar camadas legítimas nem esconder obstáculos reais.
+
+3. **P1 — atualizar apenas dependências alteradas.** dependencies.py já separa geometria/topologia/simulação/aparência/câmera. Entretanto worker envolve refresh/preview/render/scene3d em complete_update, e geometry_cache required força reconstrução nessa operação. 76_politica_atualizacao também chama refresh em abertura e Salvar projeto, conforme escolha anterior do usuário. Melhorar por revisão de conteúdo, mantendo atualização completa explícita e a garantia de consistência antes de exportar. Não retirar silenciosamente o comportamento solicitado. Critério: alteração de densidade não lê DXF; alteração de material não reconstrói faixas; exportação nunca usa revisão obsoleta.
+
+4. **P1 — orçamento global para PC de 8 GB.** parallel.py limita trabalhadores automaticamente por memória, mas requested retorna até 32 antes desse limite. Fazer modo manual passar pelo mesmo teto físico, com aviso explicativo. Considerar memória conjunta de cena, simulação, navegadores, texturas e IA. O cache 2D tem orçamento próprio de 32 MiB e a inspeção tem limite próprio, mas isso não é um orçamento global. Testar exportação/3D/IA em Windows com memória disponível restrita, sem prometer que 8 GB bastem para todo projeto.
+
+5. **P1 — consolidar o ciclo de vida da interface.** Diversos módulos envolvem/redefinem draw, load, save, changed e menus. Isso torna ordem de carregamento e estados ocupados difíceis de rastrear. Migrar incrementalmente para registro explícito de etapas de desenho, serviço de projeto e controlador de formulários, mantendo as funções antigas como adaptadores durante a transição. Não reconstruir a interface. Critério: confirmar/descartar/cancelar e falhas funcionam em todas as famílias de janela; nenhum resultado muda seleção/enquadramento sem comando.
+
+6. **P1 — diagnóstico operacional dos fluxos.** Manter as regras existentes e distinguir impedimento físico, aviso, ligação recusada e configuração pendente. Exibir fonte, nó, sentido, seção e razão do veículo não aparecer, com localização. Unificar ações de correção na mesma central e validar alterações isoladamente antes de aplicar. Não liberar via insegura apenas para retirar vermelho; clássico permanece ensaio explícito. Testar retornos, ramais, semáforos e mistura de veículos com contabilidade de entrada/saída.
+
+7. **P2 — aproveitar e medir as camadas gráficas existentes.** 68_camadas_graficas.js já implementa dois caches auxiliares e canvas principal; não falta simplesmente criar três canvas. Chaves incluem câmera e alguns estados de seleção/ferramenta; medir reconstruções por evento e retirar dependências que não mudam conteúdo estático. Na resolução acima do orçamento há fallback para desenho direto, relevante em telas de alta densidade. Fazer LOD/ladrilhos progressivos, limites conjuntos CPU/GPU e buffers reduzidos por camada quando apropriado. Preservar coordenadas completas e resolução original para exportação. Avaliar 3D separadamente, sem assumir que cache Canvas2D o otimiza.
+
+8. **P2 — observabilidade e IA assistida.** execlog já registra etapas, duração, tarefa e orientação por regras. Completar cobertura dos erros recuperáveis hoje silenciados e separar falha opcional de falha crítica. Registrar correlação projeto/revisão/operação e razão de invalidação/cache; apresentar diagnóstico com evidências. small_ai já valida propostas e possui adaptadores; pacote 3B e inferência real em 8 GB não estão homologados. Ampliar executores permitidos com prévia, validação, confirmação e rollback, sem executar código arbitrário de resposta. Não confundir adaptador com IA instalada.
+
+9. **P2 — distribuição profissional Windows.** Há conferência SHA-256 e snapshots/rollback; hash confere integridade, mas não autentica sozinho o publicador se manifesto e pacote forem trocados juntos. Verificar/implementar assinatura de manifesto e binários, versão fixa das dependências e ensaios de instalação em caminho longo, OneDrive, usuário comum e interrupção de energia/processo. Não atribuir detecções anteriores a falso positivo sem laudo. Não criar exclusões de antivírus.
+
+## Bases existentes a preservar
+
+Persistência por revisão, histórico, escrita atômica, recuperação conferida e recusa de recriar projeto ausente; bloqueios locais de Host/Origin; validação numérica; cache de geometria não baseado em pickle; cache de faixas reaproveitado com auditoria de novos obstáculos; isolamento por contexto em vários caminhos assíncronos; verificação de decodificação MP4. A presença desses recursos não prova ausência de todos os defeitos.
+
+## Verificação atual
+
+23 testes passaram em 2,56 s nesta árvore: test_v14225_protection.py completo; dois testes de cache/barreira de test_v14222_reliability.py; parametrização de dependências da simulação de test_v14221_simplification.py. XML ao lado. Uma advertência de depreciação Starlette/httpx no ambiente de testes, sem falha. Nenhum vídeo novo, benchmark global, ensaio prolongado ou homologação Windows foi executado nesta análise. Os três testes de nós da alteração anterior são evidência separada, não somados aqui.
+
+## Sequência recomendada
+
+Primeiro estabilizar gravação/cancelamento e isolar fontes por projeto; depois reduzir trabalho repetido e impor orçamento de memória; em seguida consolidar formulários e diagnóstico do fluxo; por fim medir gráficos/exportação e homologar a distribuição Windows. Não começar por mais efeitos visuais ou troca de motor. Ganhos de tempo, memória e prontidão devem ser medidos em cenários nomeados, incluindo o projeto problemático do usuário.

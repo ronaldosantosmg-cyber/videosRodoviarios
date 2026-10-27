@@ -150,7 +150,7 @@ def prepare(d,q):
         editor=json.loads(f.read_text());s=next((s for s in editor['segments'] if s['id']==q.segment),None)
         if not s:raise ValueError('Selecione um segmento atual para consultar.')
         if s.get('disabled') or s.get('technical_exclusion')=='length_limit':raise ValueError('Desligamento manual ou limite de comprimento preservado.')
-        editor_revision=editor.get('engine_revision');evidence['flow']={k:s.get(k) for k in ('id','technical_status','technical_message','technical_reasons','technical_points','length_m')}
+        editor_revision=editor.get('engine_revision');evidence['flow']={k:s.get(k) for k in ('id','technical_status','technical_message','technical_reasons','technical_points','technical_context','technical_circulation','length_m')}
         evidence['flow']['technical_points']=(s.get('technical_points') or [])[:2]
     if q.phase=='textures':
         evidence['classes']={k:v for k,v in report['roles'].items() if k in A.SURFACES}

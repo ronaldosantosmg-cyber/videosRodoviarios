@@ -1,0 +1,14 @@
+{
+  "inputs": [
+    "pytest-nucleo-entrega.xml",
+    "pytest-interface-entrega.xml",
+    "pytest-layout-entrega.xml"
+  ],
+  "unique_passed": 100,
+  "deduplicated_layout_case": true,
+  "full_historical_suite_executed": false,
+  "earlier_failed_and_interrupted_run_preserved": "pytest-interrompido-antes-correcao.xml",
+  "earlier_failure": "Duas verificações detectaram thread de escrita não encerrada após cancelamento/prazo. Corrigido com sinal de parada e repetido em pytest-nucleo-entrega.xml.",
+  "deselected_core_cases": 8,
+  "deselection_scope": "Oito casos de navegador ficaram fora da rodada de motor; a seleção de interface desta revisão está no XML próprio, sem alegar execução de todos os casos históricos."
+}

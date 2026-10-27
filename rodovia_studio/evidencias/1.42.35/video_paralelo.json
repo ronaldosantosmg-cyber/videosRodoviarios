@@ -1,0 +1,372 @@
+{
+  "video": {
+    "frames": 120,
+    "fps": 24,
+    "duration_s": 5.0,
+    "width": 1280,
+    "height": 720,
+    "video_quality": "padrao",
+    "superamostragem": 1,
+    "codec": "H.264 High",
+    "encoder": "libx264",
+    "encoder_reason": "NVENC indisponível; usando CPU. Unrecognized option 'rc'.\nError splitting the argument list: Option not found",
+    "quality": {
+      "crf": 16
+    },
+    "pix_fmt": "yuv420p",
+    "geometric_length_m": 400.0,
+    "reference_length_m": 1000,
+    "geometry_cache_hit": false,
+    "visual_quality": "enhanced",
+    "render_profile": "final",
+    "workers": 2,
+    "workers_reason": "definido na configuração",
+    "camera": "aerial",
+    "cabin_reaches_path_end": null,
+    "preparation_seconds": 0.65,
+    "total_seconds": 15.458,
+    "validation": {
+      "codec": "h264",
+      "pix_fmt": "yuv420p",
+      "width": 1280,
+      "height": 720,
+      "fps": 24.0,
+      "frames_decoded": 120,
+      "frames_expected": 120,
+      "decode_errors": "",
+      "faststart": true,
+      "ok": true,
+      "problems": []
+    },
+    "motion_audit": {
+      "model": "microssimulacao",
+      "flow_balance": {
+        "entered": 5,
+        "exited": 4,
+        "active_end": 1,
+        "conserved": true,
+        "scope": "Contagem inclui o aquecimento; veículos derivados mantêm identidade."
+      },
+      "rerouted_at_nodes": 0,
+      "node_movements": [],
+      "distribution": {
+        "external_entries": [],
+        "effective_mode": "densidade",
+        "default_secondary_percent": 20,
+        "movements": [],
+        "entries": [
+          {
+            "entry": "('e', 0)",
+            "vehicles_h": 143.672,
+            "itineraries": [
+              {
+                "path": 0,
+                "percent": 100.0
+              }
+            ]
+          }
+        ],
+        "vdm": null,
+        "mode": "densidade",
+        "scope": "Percentuais de escolha dos itinerários disponíveis, não garantia de contagem em vídeo curto. VDM refere-se ao conjunto das entradas e à fração horária configurada; não certifica nível de serviço.",
+        "actual_spawned_by_path": [
+          5
+        ],
+        "count_scope": "Contagem inclui o aquecimento quando ativo."
+      },
+      "entry_inset_m": 5,
+      "route_only": false,
+      "collision_prevention": true,
+      "signals_respected": true,
+      "shoulder_probe": {
+        "enabled": true,
+        "overtake_requested": false,
+        "overtake_scope": "Ensaio opcional; o próprio pesado passa à direita e retorna. Somente com reserva entre veículos ativa, espaço integral e sem faixa cadastrada à direita. Não autoriza circulação normativa pelo acostamento.",
+        "maximum_beyond_pavement_m": 1.0,
+        "counts": {},
+        "maneuvers": 0,
+        "curve_profiles": 0,
+        "scope": "Sondagem local de pesados com corpo rígido conservador e reserva espacial; não é certificação de veículo articulado nem autorização normativa de uso do acostamento."
+      },
+      "lateral_clearance_m": 0.3,
+      "lateral_buffer_per_vehicle_m": 0.15,
+      "narrow_corridor_admission_holds": 0,
+      "minimum_following_gap_m": 2.0,
+      "polygon_safety_interventions": 0,
+      "alternating_traffic": {
+        "zones": 0,
+        "release_s": [],
+        "clearance": "até o último veículo desocupar; sem inversão forçada",
+        "phase_changes": 1
+      },
+      "pedestrians": {
+        "routes": 0,
+        "admitted": 0,
+        "arrived": 0,
+        "yield_steps": 0,
+        "waiting_steps": 0,
+        "rejected_paths": 0,
+        "maximum_agents": 80,
+        "vehicle_collisions": 0,
+        "people_collisions": 0,
+        "train_collisions": 0,
+        "history_samples": 0,
+        "history_bytes": 0,
+        "warnings": [],
+        "scope": "Agentes locais ilustrativos; sem calibração ou certificação normativa."
+      },
+      "vehicles": 5,
+      "rear_collisions": 0,
+      "side_collisions": 0,
+      "min_gap_m": null,
+      "max_waiting_at_entries": 1,
+      "transport_controls": {
+        "coverage": [],
+        "warnings": [],
+        "ambiguous_railway_conflicts": 0,
+        "railways": 0,
+        "signals": 0,
+        "crossings": 0,
+        "stop_lines": 0,
+        "signal_offsets_s": {},
+        "scope": "Simulação ilustrativa com temporização informada pelo usuário; sem certificação de sinalização."
+      },
+      "control_stop_interventions": 0,
+      "rerouted": 0,
+      "blocks": 0,
+      "density": 1.0,
+      "lane_changes": 0,
+      "lane_change_blocked_rule": 0,
+      "lane_change_blocked_safety": 0,
+      "safety_interventions": 0,
+      "collision_free": true,
+      "demand_vph_per_lane": null,
+      "capacity_vph_per_lane": 1900,
+      "entry_demand_study": [],
+      "saturation_indicator": {
+        "status": "nível de serviço não determinado",
+        "demand_capacity_ratio": null,
+        "scope": "Estimativa com fatores de equivalência internos; não é classificação DNIT/HCM. Depende de tipo de via, velocidade, densidade, atrasos e método aplicável."
+      },
+      "motion_blocked_vehicles": 0,
+      "lane_change_blocked_geometry": 0,
+      "motion_profiles": {
+        "0:truck": {
+          "ok": true,
+          "reasons": [],
+          "message": "Trajetória cinemática válida.",
+          "max_steering_deg": 0.0,
+          "vehicle": "truck",
+          "samples": 777,
+          "critical_station_m": 0.0,
+          "critical_center_xy": [
+            500056.2,
+            7799998.35
+          ],
+          "front_xy": [
+            500062.2,
+            7799998.35
+          ],
+          "rear_xy": [
+            500050.2,
+            7799998.35
+          ]
+        },
+        "0:car": {
+          "ok": true,
+          "reasons": [],
+          "message": "Trajetória cinemática válida.",
+          "max_steering_deg": 0.0,
+          "vehicle": "car",
+          "samples": 781,
+          "critical_station_m": 0.0,
+          "critical_center_xy": [
+            500055.0,
+            7799998.35
+          ],
+          "front_xy": [
+            500057.25,
+            7799998.35
+          ],
+          "rear_xy": [
+            500052.75,
+            7799998.35
+          ]
+        },
+        "0:bus": {
+          "ok": true,
+          "reasons": [],
+          "message": "Trajetória cinemática válida.",
+          "max_steering_deg": 0.0,
+          "vehicle": "bus",
+          "samples": 776,
+          "critical_station_m": 0.0,
+          "critical_center_xy": [
+            500056.4,
+            7799998.35
+          ],
+          "front_xy": [
+            500062.6,
+            7799998.35
+          ],
+          "rear_xy": [
+            500050.2,
+            7799998.35
+          ]
+        }
+      },
+      "max_queue_by_lane": [
+        1
+      ],
+      "current_queue_by_lane": [
+        0
+      ],
+      "queue_vehicle_seconds_by_lane": [
+        1.2
+      ],
+      "queue_discharged_by_lane": [
+        5
+      ],
+      "body_samples": [
+        {
+          "width_m": 3.0,
+          "polygon": [
+            [
+              500216.763194932,
+              7799996.85
+            ],
+            [
+              500229.16319493204,
+              7799996.85
+            ],
+            [
+              500229.16319493204,
+              7799999.85
+            ],
+            [
+              500216.763194932,
+              7799999.85
+            ],
+            [
+              500216.763194932,
+              7799996.85
+            ]
+          ],
+          "collision_envelope": [
+            [
+              500216.763194932,
+              7799996.699999999
+            ],
+            [
+              500229.16319493204,
+              7799996.699999999
+            ],
+            [
+              500229.16319493204,
+              7800000.0
+            ],
+            [
+              500216.763194932,
+              7800000.0
+            ],
+            [
+              500216.763194932,
+              7799996.699999999
+            ]
+          ],
+          "id": 4,
+          "front": [
+            500229.16319493204,
+            7799998.35
+          ],
+          "rear": [
+            500216.763194932,
+            7799998.35
+          ],
+          "heading": [
+            1.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    "network_safety": {
+      "rejected_paths": 0,
+      "rejected_connections": {}
+    },
+    "traffic_presentation": {
+      "enabled": true,
+      "status": "visivel",
+      "notice": "Há veículos compatíveis com o enquadramento nos instantes amostrados.",
+      "samples": [
+        {
+          "time_s": 0.0,
+          "width_m": 180.0,
+          "enabled": true,
+          "active": 1,
+          "drawn": 1,
+          "outside_view": 0,
+          "outside_revealed_section": 0,
+          "body_outside_allowed": 0,
+          "subpixel": 0,
+          "reveal_pending": false
+        },
+        {
+          "time_s": 2.5,
+          "width_m": 180.0,
+          "enabled": true,
+          "active": 1,
+          "drawn": 1,
+          "outside_view": 0,
+          "outside_revealed_section": 0,
+          "body_outside_allowed": 0,
+          "subpixel": 0,
+          "reveal_pending": false
+        },
+        {
+          "time_s": 4.958,
+          "width_m": 180.0,
+          "enabled": true,
+          "active": 1,
+          "drawn": 1,
+          "outside_view": 0,
+          "outside_revealed_section": 0,
+          "body_outside_allowed": 0,
+          "subpixel": 0,
+          "reveal_pending": false
+        }
+      ],
+      "scope": "Amostras antes da exportação; não é contagem de todos os quadros nem garantia de visibilidade permanente."
+    },
+    "pedestrian_audit": {
+      "routes": 0,
+      "admitted": 0,
+      "arrived": 0,
+      "yield_steps": 0,
+      "waiting_steps": 0,
+      "rejected_paths": 0,
+      "maximum_agents": 80,
+      "vehicle_collisions": 0,
+      "people_collisions": 0,
+      "train_collisions": 0,
+      "history_samples": 0,
+      "history_bytes": 0,
+      "warnings": [],
+      "scope": "Agentes locais ilustrativos; sem calibração ou certificação normativa."
+    },
+    "rail_smoke": true
+  },
+  "decoded": {
+    "codec": "h264",
+    "pix_fmt": "yuv420p",
+    "width": 1280,
+    "height": 720,
+    "fps": 24.0,
+    "frames_decoded": 120,
+    "frames_expected": 120,
+    "decode_errors": "",
+    "faststart": true,
+    "ok": true,
+    "problems": []
+  }
+}

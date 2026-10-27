@@ -43,10 +43,15 @@ async function concluirRota(d){if(d.pts.length<2)return msg('Marque pelo menos d
   changed(`Rota ${n} criada (${polyLen(d.pts).toFixed(0)} m, ${ROUTE_TYPE[routeOpt.type].toLowerCase()}). Use “Trecho da rota” para outro tipo num trecho; clique “Atualizar fluxos” para os veículos usarem.`);if(routeLen<minFlowLength())msg(`Rota preservada (${routeLen.toFixed(1)} m), sem veículos: limite do projeto ${minFlowLength()} m.`,true);refreshRouteLanes(true);}
 // Faixas calculadas no servidor (mesmo cálculo da rede de tráfego).
 let routeLanes=[],routeSig='',routeTimer=null;
-function routeSignature(){return JSON.stringify((M.route_alignments||[]).map(r=>{let sx=0,sy=0;for(const p of r.points){sx+=p.x;sy+=p.y}return [r.points.length,sx.toFixed(3),sy.toFixed(3),r.enabled,r.type,r.lanes,r.median_m,r.lane_width_m,r.taper_m,r.sections,r.cross_sections,M.alternating_zones||[]]}))}
+function routeSignature(){return JSON.stringify([M.route_alignments||[],M.alternating_zones||[]])}
+let routeRequest=0;
 function refreshRouteLanes(now){const sig=routeSignature();if(sig===routeSig&&!now)return;routeSig=sig;clearTimeout(routeTimer);
+ const token=++routeRequest,project=pid,context=projectSession.context;
  if(!(M.route_alignments||[]).length){routeLanes=[];return}
- routeTimer=setTimeout(async()=>{try{const r=await api('/api/rotas_previa',json('POST',{route_alignments:M.route_alignments,alternating_zones:M.alternating_zones||[]}));routeLanes=r.lanes||[];draw()}catch(e){}},now?0:250)}
+ const body=structuredClone({route_alignments:M.route_alignments,alternating_zones:M.alternating_zones||[]});
+ routeTimer=setTimeout(async()=>{try{const r=await api('/api/rotas_previa',json('POST',body));
+ if(token!==routeRequest||pid!==project||projectSession.context!==context||routeSignature()!==sig)return;
+ routeLanes=r.lanes||[];draw()}catch(e){if(token===routeRequest&&pid===project&&projectSession.context===context)msg('Prévia de faixas não atualizada: '+e.message,true)}},now?0:250)}
 const RT_COL={simples:'#4fa3ff',dupla:'#b67cff',unico:'#ffd166'};
 estender('draw',_d=>function(){_d();if(!ready())return;try{refreshRouteLanes();
  if(draft&&draft.type==='route'&&draft.pts.length){const pts=draft.pts.slice();if(routeMode==='cliques'&&typeof lastWorld!=='undefined'&&lastWorld)pts.push(lastWorld);poly(pts);ctx.strokeStyle='#ff9f1c';ctx.lineWidth=4;ctx.setLineDash([8,5]);ctx.stroke();ctx.setLineDash([])}

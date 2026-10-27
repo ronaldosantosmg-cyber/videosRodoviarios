@@ -1,10 +1,9 @@
-# Próxima revisão após a 1.42.34
+# Continuidade após a revisão 1.42.35
 
-Solicitações do usuário em 27/10/2026, posteriores ao escopo da 1.42.34:
+Atendido nesta revisão: cadastro explícito de fonte de tráfego nativa (papel Eixo ou seleção com sentido), preservando alinhamentos e trajetórias manuais do cadastro existente; bloqueio também no clássico; sugestões de nome não selecionam Eixo automaticamente. Limpeza dos destaques e estado gráfico ao trocar projetos, rejeição de respostas atrasadas de faixas/camadas/hachuras e catálogo CAD atual como fonte dos nomes. Camadas CAD declaradas vazias continuam preservadas e identificadas.
 
-1. Impedir a formação de fluxos sem eixo-base cadastrado. Exigir origem identificável e associação explícita; não basta encontrar uma linha cujo nome parece Eixo. Integrar com Escolher eixo/Configurar faixas e com os nós, sem cadastro paralelo independente ou reativação de desligamentos. Tratar projetos antigos com orientação clara e preservação das fontes. A regra deve valer também para o modo clássico, sem uma exceção silenciosa.
-2. Investigar “sujeira de layer” ao abrir projeto novo, ausente no CAD. Foi perguntado se aparece na lista, no desenho ou em ambos e qual nome, aguardando resposta. Não presumir a causa. Conferir troca de projeto, respostas atrasadas, catálogo da fonte, camadas declaradas vazias, sobreposições e caches técnicos. Limpar somente dados derivados comprovadamente obsoletos; preservar fontes e elementos reais cadastrados. Identificar a origem do que aparece (CAD, KMZ, imagem/contexto, gerado, edição manual).
+Causas de resíduo comprovadas no código: layerShow/layerPrev não isolados na troca e prévias de faixas sem guarda de contexto. Testes sintéticos cobrem ambos os caminhos. A ocorrência específica no projeto salvo do usuário ainda não foi reproduzida; não declarar que todo desenho residual possível foi eliminado.
 
-Critérios: projeto sem eixo cadastrado não produz itinerários e orienta o cadastro; eixo associado produz fluxo; remoção/desligamento não cria nova fonte; troca A→B→projeto novo não deixa objetos de A ou B; resultado atrasado não se aplica ao contexto novo; lista de camadas corresponde à fonte/proveniência; testes dirigidos funcionais e visuais antes do ZIP.
+Pendências de homologação: uso prolongado Windows/WebView2 e 8 GB, projeto salvo real do usuário, modelo/runtime 3B e API real. Limite de processos é estimativa, não quota global de memória. Migrar outras extensões de desenho para o registro comum apenas com regressões próprias; não reescrever a interface.
 
-Não incluído no pacote 1.42.34. Main permanece protegida; continuar somente na branch de desenvolvimento.
+Manter branch de desenvolvimento, main protegida, fontes e dados persistentes preservados, testes atuais antes de qualquer pacote e ZIPs históricos intactos em atualizacoes/.

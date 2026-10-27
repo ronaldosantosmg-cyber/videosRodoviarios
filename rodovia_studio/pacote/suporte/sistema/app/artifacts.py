@@ -4,7 +4,7 @@ from pathlib import Path
 from .project_state import locked,_state,_write
 from .dependencies import FILES,revisions
 
-OUTPUTS={'refresh':('analysis','editor','vectors','preview'),'analyze':('analysis','editor','vectors'),'preview':('analysis','editor','vectors','preview'),'scene3d':('analysis','editor','vectors','scene3d'),'render':('analysis','editor','vectors','video')}
+OUTPUTS={'rebuild':('analysis','editor','vectors','preview'),'refresh':('analysis','editor','vectors','preview'),'analyze':('analysis','editor','vectors'),'preview':('analysis','editor','vectors','preview'),'scene3d':('analysis','editor','vectors','scene3d'),'render':('analysis','editor','vectors','video')}
 
 def _read(d):
     p=_state(d)/'resultados.json'

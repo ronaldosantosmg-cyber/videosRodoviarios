@@ -4,7 +4,7 @@ const previous=showSegProps;
 showSegProps=function(...args){const result=previous(...args),seg=segById(selSeg?.id),guide=seg?.technical_assistant;
  if(!seg||!guide||seg.technical_status==='ok'||$('propPanel').hidden)return result;
  const details=document.createElement('details');details.className='rsFlowAssistant';details.dataset.flowAssistant=String(seg.id);
- const summary=document.createElement('summary');summary.textContent='Como corrigir este fluxo · assistente local';details.appendChild(summary);
+ const summary=document.createElement('summary');summary.textContent='Como corrigir este fluxo · assistente local';details.appendChild(summary);const context=seg.technical_context;if(context){const info=document.createElement('p');info.textContent='Fonte: '+(context.source||'não informada')+' · Alinhamento: '+(context.route_id||'eixo CAD cadastrado')+' · Sentido: '+context.direction+' · Nível: '+context.level;details.appendChild(info)}
  const title=document.createElement('h4');title.textContent=guide.title;details.appendChild(title);
  const list=document.createElement('ol');
  for(const step of Array.isArray(guide.steps)?guide.steps:[]){if(!step||typeof step!=='object')continue;const item=document.createElement('li'),text=document.createElement('p');text.textContent=step.instruction||'';item.appendChild(text);

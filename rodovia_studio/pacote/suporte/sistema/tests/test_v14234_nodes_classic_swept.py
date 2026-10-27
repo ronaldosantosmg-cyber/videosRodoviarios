@@ -13,6 +13,7 @@ from app.simulation import TrafficSim
 
 def network(settings,axis=None,roads=None,barriers=(),medians=()):
     p=np.array([[0.,0.],[600.,0.]]) if axis is None else axis
+    settings=settings.model_copy(update={'layers':{'axis':['EIXO']}}) # fonte cadastrada explicitamente nesta regressão
     return TrafficNetwork([box(-20,-30,650,60)] if roads is None else roads,list(barriers)+list(medians),[dict(points=p,role='axis',layer='EIXO')],p,np.r_[0,np.cumsum(np.linalg.norm(np.diff(p,axis=0),axis=1))],settings,median_obstacles=medians)
 
 

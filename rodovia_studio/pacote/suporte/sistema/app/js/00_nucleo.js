@@ -6,6 +6,11 @@
 // A ordem das extensões fica registrada em EXTENSOES (veja Ajuda › Sobre › Estrutura) — antes cada versão
 // fazia {const _x=nome;nome=function(){...}} sem registro.
 const EXTENSOES={};
+const RodoviaLifecycle=(()=>{const painters=new Map();return Object.freeze({
+ addPainter(name,paint){if(painters.has(name))throw Error('Etapa de desenho duplicada: '+name);painters.set(name,paint)},
+ paint(){for(const [name,paint] of painters)try{paint()}catch(e){msg('Falha na camada '+name+': '+e.message,true)}},
+ painters:()=>[...painters.keys()]
+})})();window.RodoviaLifecycle=RodoviaLifecycle;
 function estender(nome,fabrica,rotulo=''){const original=globalThis[nome];if(typeof original!=='function')throw Error(`estender: “${nome}” não é uma função global.`);
  const nova=fabrica(original);if(typeof nova!=='function')throw Error(`estender: a extensão de “${nome}” não devolveu uma função.`);(EXTENSOES[nome]=EXTENSOES[nome]||[]).push(rotulo);globalThis[nome]=nova;return nova}
 // 1.31: registros. Uma função nova se declara num lugar só, em vez de embrulhar click/finishDraft/toolOptions/
@@ -31,7 +36,13 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const uid=()=>(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2));
 function msg(s,error=false){$('message').textContent=s;$('message').classList.toggle('error',error)}
 function validationMessage(detail){if(!Array.isArray(detail))return typeof detail==='string'?detail:'Não foi possível concluir a solicitação.';const labels={traffic_capacity_vphpl:'Capacidade nominal por faixa',traffic_demand_vphpl:'Demanda por faixa',min_wagons:'Mínimo de vagões',max_wagons:'Máximo de vagões'};return detail.map(e=>{const loc=(e.loc||[]).filter(v=>v!=='body'),key=loc.at(-1),label=labels[key]||loc.join(' · ')||'Configuração',ctx=e.ctx||{};let m=({greater_than:`informe um número maior que ${ctx.gt}`,greater_than_equal:`informe um número maior ou igual a ${ctx.ge}`,less_than_equal:`informe um número menor ou igual a ${ctx.le}`,less_than:`informe um número menor que ${ctx.lt}`,finite_number:'informe um número finito (sem NaN ou infinito)',float_parsing:'informe um número válido',float_type:'informe um número válido',int_parsing:'informe um número inteiro',int_from_float:'informe um número inteiro',missing:'campo obrigatório',literal_error:'selecione uma opção válida'})[e.type];if(!m)m=e.type==='value_error'?String(e.msg||'Valor inválido').replace(/^Value error, /,''):'valor ou formato inválido';return label+': '+m+'.'}).join(' ')}
-async function api(url,opt={}){const r=await fetch(url,opt);if(!r.ok){let e;try{e=await r.json()}catch{throw Error('Falha HTTP '+r.status)}const error=Error(validationMessage(e.detail));error.status=r.status;error.detail=e.detail;throw error}return r.json()}
+async function api(url,opt={}){const {timeoutMs=(/\/assistencia\/modelo$/.test(url)&&opt.method==='POST'?360000:/\/config$/.test(url)?30000:120000),...options}=opt,controller=new AbortController();let timedOut=false;
+ const abort=()=>controller.abort();options.signal?.addEventListener('abort',abort,{once:true});if(options.signal?.aborted)controller.abort();
+ const timer=setTimeout(()=>{timedOut=true;controller.abort()},timeoutMs);let r;
+ try{r=await fetch(url,{...options,signal:controller.signal});if(!r.ok){let e;try{e=await r.json()}catch{throw Error('Falha HTTP '+r.status)}const error=Error(validationMessage(e.detail));error.status=r.status;error.detail=e.detail;throw error}return await r.json()}
+ catch(e){if(timedOut||e instanceof TypeError||e.name==='AbortError'){const error=Error(timedOut?'O servidor não respondeu no prazo. A operação pode ter sido concluída; confira antes de repetir.':'Conexão interrompida. Confira o resultado antes de repetir.');error.status=0;error.unconfirmed=true;throw error}throw e}
+ finally{clearTimeout(timer);options.signal?.removeEventListener('abort',abort)}
+}
 const json=(method,body)=>({method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
 function guard(fn,label='ação'){return async(...a)=>{try{if(typeof fn!=='function')throw Error(`Ação indisponível: ${label}. Recarregue a interface ou restabeleça a versão anterior.`);return await fn(...a)}catch(e){const m=e&&e.message?e.message:String(e);try{if(typeof reportClient==='function')reportClient(m,e&&e.stack||'',label)}catch{};msg(m,true);return null}}}
 function safeCall(fn,...a){try{if(typeof fn!=='function')return null;return fn(...a)}catch(e){try{if(typeof reportClient==='function')reportClient(e.message,e.stack,'safeCall')}catch{};msg(e.message||String(e),true);return null}}

@@ -41,7 +41,11 @@ const originalLoad=load;load=async function(id,options={}){const value=await ori
 queueMicrotask(()=>queueMicrotask(()=>{
  const label=document.createElement('label');label.className='rsUpdateModeChoice';label.innerHTML='Atualização <select id="rsUpdateMode" aria-label="Modo de atualização"><option value="manual">Manual</option><option value="automatic">Automático</option></select>';
  label.title='Automático recalcula ao confirmar formulários. Abrir/reabrir, Salvar projeto, Salvar como, Prévia e Vídeo sempre atualizam o modelo.';
- $('rsUpdateProject').after(label);$('rsUpdateMode').value=mode;$('rsUpdateMode').title=label.title;$('rsUpdateMode').setAttribute('aria-description',label.title);$('rsUpdateMode').onchange=e=>setMode(e.target.value);
+ $('rsUpdateProject').after(label);
+ const advanced=document.createElement('details');advanced.className='rsUpdateAdvanced';const title=document.createElement('summary');title.textContent='Diagnóstico';advanced.append(title);
+ const force=document.createElement('button');force.type='button';force.textContent='Reconstruir integralmente';force.title='Descarta a reutilização de resultados derivados nesta tarefa; preserva arquivos originais e cadastros.';
+ force.onclick=guard(async()=>{advanced.open=false;if(await confirmBox('Refazer integralmente as derivações sem reutilizar caches? Os arquivos originais serão preservados.','Reconstruir','Cancelar'))await start('rebuild')});advanced.append(force);label.after(advanced);
+$('rsUpdateMode').value=mode;$('rsUpdateMode').title=label.title;$('rsUpdateMode').setAttribute('aria-description',label.title);$('rsUpdateMode').onchange=e=>setMode(e.target.value);
  for(const [id,fn] of [['saveProject',saveProject],['save',saveProject],['saveAsProject',saveAs]]){const old=$(id);if(!old)continue;const button=old.cloneNode(true);old.replaceWith(button);button.onclick=guard(fn,id==='saveAsProject'?'Salvar como':'Salvar projeto')}
 }));
 })();

@@ -538,7 +538,7 @@ class Scene:
         from .dependencies import revisions
         return {'engine_revision':revisions(self.directory,self.s)['editor'],'crs':self.s.crs,'axis':pts(self.axis,step) if step==1 else pts(np.vstack([self.axis[::step],self.axis[-1:]])),'axis_length_m':self.length,
                 'stationing':{**st.info(),'mode':self.s.chainage.mode},
-                'alignment':self.report.get('alignment'),'segments':segments,
+                'alignment':self.report.get('alignment'),'segments':segments,'source_registration':self.network.report.get('source_registration',{}),
                 'pois':[{'id':p.get('id'),'title':p.get('title'),'kind':p.get('kind'),'x':p['x'],'y':p['y'],'km_m':p.get('km_m'),'km_auto_m':p.get('km_auto_m'),'km_mode':p.get('km_mode','auto'),'anchor':p.get('anchor'),'source':p.get('source','')} for p in self.pois],
                 'oae':[{'id':o['id'],'name':o['name'],'km_start_m':o['km_start_m'],'km_end_m':o['km_end_m'],'km_auto':o['km_auto'],'line':pts(o['line']),'level_m':o['level_m'],'width_m':o['width_m'],'direction':o.get('direction','both'),'polygon':bool(o.get('polygon'))} for o in self.oae],
                 'oae_traffic':getattr(self.network,'oae_report',[]),'connection_report':getattr(self.network,'rule_report',[]),'itineraries':len(self.network.paths),'section_continuity':self.network.report.get('section_continuity',[]),'route_lane_cache':self.network.route_lane_cache.report(),'warnings':self.report['warnings'][-20:],
@@ -1203,16 +1203,19 @@ def render(directory,s,status=lambda *a:None,cancel=lambda:False):
         log.write(('\nEncoder: '+profile['label']+' — '+profile['reason']+'\n').encode('utf-8'));log.flush()
         cmd=[ff,'-y','-v','error','-f','rawvideo','-pix_fmt','rgb24','-s',f'{OW}x{OH}','-r',str(s.fps),'-i','-','-an']+profile['args']+['-g','250','-pix_fmt','yuv420p','-movflags','+faststart',str(out)]
         enc=subprocess.Popen(cmd,stdin=subprocess.PIPE,stderr=log);run_start=time.monotonic()
-        pool=Pool(snap,workers,0,frames-1,'cabin' if cabin else 'aerial',snap,key=snapshot_key) if workers>1 else None
+        from .process_supervision import PipeWriter
+        writer=PipeWriter(enc.stdin,cancel=cancel)
+        pool=None
         shape=(scene.H,scene.W,3);nbytes=scene.H*scene.W*3;tag=f' · {workers} processos' if workers>1 else ''
         # Reset callout state if GPU failed and a CPU retry is required.
         scene.shown_poi=None;scene.poi_since=-100
         try:
+            pool=Pool(snap,workers,0,frames-1,'cabin' if cabin else 'aerial',snap,key=snapshot_key) if workers>1 else None
             previous=None;last_scene=None;fade_from=None;fade_start=0
             for k in range(frames):
                 if cancel():raise InterruptedError('Geração cancelada pelo usuário.')
                 t=k/s.fps
-                if pool is not None:im=pool.frame(k,nbytes,shape)
+                if pool is not None:im=pool.frame(k,nbytes,shape,cancel=cancel)
                 elif cabin is not None:im=cabin.frame(t)[0]
                 else:im=scene.frame(t)[0]
                 if ssaa:im=cv2.resize(im,(OW,OH),interpolation=cv2.INTER_AREA)
@@ -1224,21 +1227,21 @@ def render(directory,s,status=lambda *a:None,cancel=lambda:False):
                     if fade_from is not None and t-fade_start<.8:
                         a=(t-fade_start)/.8;a=a*a*(3-2*a);im=cv2.addWeighted(fade_from,1-a,im,a,0)
                     last_scene=key;previous=im.copy()
-                enc.stdin.write(im.tobytes())
+                writer.write(im.tobytes())
                 if os.environ.get('RODOVIA_FRAME_LOG'):
                     with open(os.environ['RODOVIA_FRAME_LOG'],'a') as fl:fl.write(f'{k} {hashlib.sha256(im.tobytes()).hexdigest()[:12]}\n')
                 if k%max(1,s.fps)==0:
                     elapsed=max(.001,time.monotonic()-run_start);speed=(k+1)/elapsed;remaining=(frames-k-1)/speed
                     status(.25+.74*(k+1)/frames,f"{profile['label']}{tag}{' · cabine' if cabin else ''} · {k+1}/{frames} quadros · {speed:.1f} q/s · falta ~{tempo(remaining)}")
-            enc.stdin.close()
-            if enc.wait()!=0:raise RuntimeError('FFmpeg falhou. Consulte ffmpeg.log do projeto.')
+            writer.finish()
+            if enc.wait(timeout=120)!=0:raise RuntimeError('FFmpeg falhou. Consulte ffmpeg.log do projeto.')
             if pool is not None and any(pool.close()):raise RuntimeError('Processo auxiliar terminou com erro.')
             pool=None
         except BaseException:
-            enc.kill();enc.wait();out.unlink(missing_ok=True)
+            enc.kill();enc.wait(timeout=10);out.unlink(missing_ok=True)
             if pool is not None:pool.close(kill=True)
             raise
-        finally:log.close()
+        finally:writer.join();log.close()
         return frames
     try:
         frames=encode_attempt(encoding)

@@ -1,0 +1,202 @@
+{
+  "engine": {
+    "antes": {
+      "mode": "antes",
+      "scenario": "DXF sintético 500 m; fonte explícita; neutral HD; 3 s; atualização completa antiga versus incremental nova",
+      "operations": [
+        {
+          "operation": "abrir",
+          "preparation_s": 1.5306,
+          "frame_s": 2.1627,
+          "dxf_reads": 1,
+          "geometry_cache_hit": false,
+          "paths": 1,
+          "vehicles_drawn": 0
+        },
+        {
+          "operation": "densidade",
+          "preparation_s": 1.0888,
+          "frame_s": 2.9372,
+          "dxf_reads": 1,
+          "geometry_cache_hit": false,
+          "paths": 1,
+          "vehicles_drawn": 3
+        },
+        {
+          "operation": "material",
+          "preparation_s": 0.665,
+          "frame_s": 1.502,
+          "dxf_reads": 1,
+          "geometry_cache_hit": false,
+          "paths": 1,
+          "vehicles_drawn": 0
+        }
+      ],
+      "total_dxf_reads": 3,
+      "peak_rss_mib": 467.15,
+      "limits": "Uma execução por versão em host compartilhado; não é benchmark de Windows, memória global ou medição de 8 GB."
+    },
+    "depois": {
+      "mode": "depois",
+      "scenario": "DXF sintético 500 m; fonte explícita; neutral HD; 3 s; atualização completa antiga versus incremental nova",
+      "operations": [
+        {
+          "operation": "abrir",
+          "preparation_s": 0.8114,
+          "frame_s": 1.428,
+          "dxf_reads": 1,
+          "geometry_cache_hit": false,
+          "paths": 1,
+          "vehicles_drawn": 0
+        },
+        {
+          "operation": "densidade",
+          "preparation_s": 0.0684,
+          "frame_s": 2.343,
+          "dxf_reads": 0,
+          "geometry_cache_hit": true,
+          "paths": 1,
+          "vehicles_drawn": 3
+        },
+        {
+          "operation": "material",
+          "preparation_s": 0.6811,
+          "frame_s": 1.5168,
+          "dxf_reads": 0,
+          "geometry_cache_hit": true,
+          "paths": 1,
+          "vehicles_drawn": 0
+        }
+      ],
+      "total_dxf_reads": 1,
+      "peak_rss_mib": 446.76,
+      "limits": "Uma execução por versão em host compartilhado; não é benchmark de Windows, memória global ou medição de 8 GB."
+    }
+  },
+  "interface": {
+    "antes": {
+      "scenario": "DXF sintético 400 m; Chromium SwiftShader 1366×620; fonte EIXO cadastrada",
+      "mode": "antes",
+      "open_s": 14.0017,
+      "reopen_s": 12.2838,
+      "draw": {
+        "twenty_draws_ms": 52.299999952316284,
+        "before": {
+          "backgroundBuilds": 11,
+          "technicalBuilds": 10,
+          "hits": 31,
+          "buildMs": 151.69999992847443,
+          "fallbacks": 0,
+          "panReuses": 0,
+          "enabled": true,
+          "bytes": 3631832,
+          "budgetBytes": 33554432,
+          "surfaces": 3
+        },
+        "after": {
+          "backgroundBuilds": 11,
+          "technicalBuilds": 10,
+          "hits": 71,
+          "buildMs": 151.69999992847443,
+          "fallbacks": 0,
+          "panReuses": 0,
+          "enabled": true,
+          "bytes": 3631832,
+          "budgetBytes": 33554432,
+          "surfaces": 3
+        }
+      },
+      "pan_s": 15.7824,
+      "pan_cache_before": {
+        "backgroundBuilds": 11,
+        "technicalBuilds": 10,
+        "hits": 71,
+        "buildMs": 151.69999992847443,
+        "fallbacks": 0,
+        "panReuses": 0,
+        "enabled": true,
+        "bytes": 3631832,
+        "budgetBytes": 33554432,
+        "surfaces": 3
+      },
+      "pan_cache_after": {
+        "backgroundBuilds": 12,
+        "technicalBuilds": 11,
+        "hits": 71,
+        "buildMs": 152.4999998807907,
+        "fallbacks": 0,
+        "panReuses": 44,
+        "enabled": true,
+        "bytes": 3631832,
+        "budgetBytes": 33554432,
+        "surfaces": 3
+      },
+      "zoom_pair_s": 1.5253,
+      "save_node_s": 0.9472,
+      "renderer_js_heap_bytes": 6887344,
+      "limits": "Uma execução por revisão, host compartilhado, tempos de pan/zoom incluem automação/espera; não são FPS nem benchmark Windows/8 GB."
+    },
+    "depois": {
+      "scenario": "DXF sintético 400 m; Chromium SwiftShader 1366×620; fonte EIXO cadastrada",
+      "mode": "depois",
+      "open_s": 11.0901,
+      "reopen_s": 5.4599,
+      "draw": {
+        "twenty_draws_ms": 35.5,
+        "before": {
+          "backgroundBuilds": 13,
+          "technicalBuilds": 8,
+          "hits": 31,
+          "buildMs": 48.80000013113022,
+          "fallbacks": 0,
+          "panReuses": 0,
+          "enabled": true,
+          "bytes": 3503184,
+          "budgetBytes": 33554432,
+          "surfaces": 3
+        },
+        "after": {
+          "backgroundBuilds": 13,
+          "technicalBuilds": 8,
+          "hits": 71,
+          "buildMs": 48.80000013113022,
+          "fallbacks": 0,
+          "panReuses": 0,
+          "enabled": true,
+          "bytes": 3503184,
+          "budgetBytes": 33554432,
+          "surfaces": 3
+        }
+      },
+      "pan_s": 2.5723,
+      "pan_cache_before": {
+        "backgroundBuilds": 13,
+        "technicalBuilds": 8,
+        "hits": 71,
+        "buildMs": 48.80000013113022,
+        "fallbacks": 0,
+        "panReuses": 0,
+        "enabled": true,
+        "bytes": 3503184,
+        "budgetBytes": 33554432,
+        "surfaces": 3
+      },
+      "pan_cache_after": {
+        "backgroundBuilds": 14,
+        "technicalBuilds": 9,
+        "hits": 73,
+        "buildMs": 49.40000009536743,
+        "fallbacks": 0,
+        "panReuses": 44,
+        "enabled": true,
+        "bytes": 3503184,
+        "budgetBytes": 33554432,
+        "surfaces": 3
+      },
+      "zoom_pair_s": 1.1125,
+      "save_node_s": 0.1085,
+      "renderer_js_heap_bytes": 7229444,
+      "limits": "Uma execução por revisão, host compartilhado, tempos de pan/zoom incluem automação/espera; não são FPS nem benchmark Windows/8 GB."
+    }
+  }
+}

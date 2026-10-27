@@ -90,6 +90,7 @@ def flow_diagnostics(network):
         from .flow_assistant import guidance
         assistant=guidance(status,reasons,disabled=bool(raw.get('disabled')),length=effective_length,minimum=minimum,points=critical)
         out.append({'technical_status':status,'technical_message':message,'technical_assistant':assistant,
+                    'technical_context':{'source':raw.get('source'),'route_id':raw.get('route'),'origin_key':raw.get('origin_key'),'direction':'crescente' if raw.get('forward') else 'decrescente','level':raw.get('level',0),'base_registered':bool(raw.get('native_axis') or raw.get('route') or raw.get('manual'))},
                     'technical_exclusion':('manual' if raw.get('disabled') else 'length_limit' if finite and length>0 and effective_length<minimum else None),
                     'technical_circulation':{'enabled':bool(circulating),'used_edges':len(circulating),'active_edges':len(active),'blocked_edges':sum(bool(e.get('disabled')) for _,e in edges)},
                     'technical_lateral_fits':raw.get('lateral_fits',[]),'technical_automatic':automatic,'technical_manual':manual,'technical_recovery':recovery_info,'technical_points':critical[:20],'technical_reasons':reasons})

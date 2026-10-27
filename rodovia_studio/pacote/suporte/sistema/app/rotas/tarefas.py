@@ -15,6 +15,8 @@ router=APIRouter()
 
 @router.post('/api/projects/{pid}/analyze',status_code=202)
 def analyze_job(pid):return enqueue(pid,'analyze')
+@router.post('/api/projects/{pid}/rebuild',status_code=202)
+def rebuild_job(pid):return enqueue(pid,'rebuild')
 @router.post('/api/projects/{pid}/refresh',status_code=202)
 def refresh_job(pid):return enqueue(pid,'refresh')
 @router.post('/api/projects/{pid}/preview',status_code=202)

@@ -36,7 +36,7 @@ hatchUi=function(){const box=$('hatchList');if(!box)return;const H=analysis?.hat
 function showGeom(name,P,text){if(layerShow&&layerShow.name===name){layerShow=null;draw();return}if(!P||!P.length)return msg('Sem geometria para mostrar.',true);layerShow={name,p:P};
  let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;for(const q of P)for(const [x,y] of q){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y)}
  if(ready()){const c={x:(x0+x1)/2,y:(y0+y1)/2};const [ix,iy]=worldToImg(c);const span=Math.max(40,Math.hypot(x1-x0,y1-y0));view.s=Math.max(minScale(),Math.min(useGeo()?240:60,canvas.width*mpp()/span*.8));view.ox=canvas.width/2-ix*view.s;view.oy=canvas.height/2-iy*view.s;draw()}msg(text)}
-document.addEventListener('click',guard(async e=>{const b=e.target.closest&&e.target.closest('[data-hatchshow]');if(!b)return;e.preventDefault();requireProject();if(!hatchPrev)hatchPrev=await api(`/api/projects/${pid}/hachuras_previa`);
+document.addEventListener('click',guard(async e=>{const b=e.target.closest&&e.target.closest('[data-hatchshow]');if(!b)return;e.preventDefault();requireProject();const project=pid,context=projectSession.context;if(!hatchPrev){const result=await api(`/api/projects/${project}/hachuras_previa`);if(pid!==project||projectSession.context!==context)return;hatchPrev=result}
  const sig=b.dataset.hatchshow;showGeom('hatch:'+sig,hatchPrev[sig],`Hachuras “${sig}” destacadas em magenta. Clique “Ver” de novo para apagar.`)}));
 estender('load',_l=>async (id,options={})=>{hatchPrev=null;imgCache.clear();const loaded=await _l(id,options);if(loaded===false||pid!==id)return false;if(options.resultsOnly)return loaded;try{hatchUi()}catch{};return loaded},'hachuras: confiança, motivo, indicação pela cor e “Ver”');
 

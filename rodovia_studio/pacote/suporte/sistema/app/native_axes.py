@@ -28,7 +28,7 @@ def native_paths(axes, settings, allowed, tolerance=.25):
         if axis.get('reference_only') and direction not in ('forward','reverse'):ignored_sources+=1;continue
         if axis.get('role') not in (None,'axis'):ignored_sources+=1;continue
         layer=str(axis.get('layer',''))
-        if layer and axis.get('role')!='axis' and 'EIXO' not in layer.upper() and layer not in settings.layers.get('axis',[]):ignored_sources+=1;continue
+        if layer not in settings.layers.get('axis',[]) and direction not in ('forward','reverse'):ignored_sources+=1;continue
         try:p,d=prepare_points(axis['points'])
         except (ValueError,TypeError,KeyError,OverflowError):invalid+=1;continue
         identity=p.copy();level=axis.get('level',0)
