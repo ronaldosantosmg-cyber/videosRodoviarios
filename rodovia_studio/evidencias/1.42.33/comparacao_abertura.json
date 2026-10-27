@@ -1,0 +1,39 @@
+{
+  "before": {
+    "mode": "before",
+    "dxf_reads": 2,
+    "peak_rss_mib": 370.60546875,
+    "analysis_s": 40.949900579988025,
+    "flow_setup_s": 35.838091795973014,
+    "total_s": 76.78799237596104,
+    "geometry_preview_sha256": "34b51c0baa9bc366bf4199fa4dc319eececf416e117f28fd948c0464bca00aa1",
+    "editor_sha256": "a5c6a50334068ad0a43e97e5e6d10dcdedcfe6415b6477bd416b4506e4f3ba0b",
+    "entities": 9538,
+    "axes": 31,
+    "source_sha256": "7936e09e195212a85a894dbc48f5ad337f0cbe4f3195225e6f8137297e3e4538"
+  },
+  "after": {
+    "mode": "after",
+    "dxf_reads": 1,
+    "peak_rss_mib": 350.45703125,
+    "analysis_s": 15.466590898984578,
+    "flow_setup_s": 4.673937261977699,
+    "total_s": 20.140528160962276,
+    "geometry_preview_sha256": "34b51c0baa9bc366bf4199fa4dc319eececf416e117f28fd948c0464bca00aa1",
+    "editor_sha256": "a5c6a50334068ad0a43e97e5e6d10dcdedcfe6415b6477bd416b4506e4f3ba0b",
+    "entities": 9538,
+    "axes": 31,
+    "source_sha256": "7936e09e195212a85a894dbc48f5ad337f0cbe4f3195225e6f8137297e3e4538"
+  },
+  "reduction_pct": 73.77,
+  "geometry_hatches_preview_equal": true,
+  "editor_flow_content_equal": true,
+  "excluded_from_editor_comparison": [
+    "engine_revision: muda necessariamente com o código",
+    "route_lane_cache: contadores operacionais"
+  ],
+  "derived_cache_empty_for_each_run": true,
+  "host_load_isolated": false,
+  "scenario": "Mesmo DXF de 21 MiB, 9538 entidades convertidas e 31 eixos; análise com prévias de camadas/hachuras + preparação leve de fluxos. Duas execuções sequenciais em processos separados, antes e depois; carga compartilhada do host não isolada. Não mede abertura integral da interface nem uma compilação C#.",
+  "limits": "Um par de medições local Linux; sem limpeza do cache de páginas do sistema operacional. Não é benchmark nativo Windows, carga prolongada ou garantia de ganho em todos os projetos."
+}

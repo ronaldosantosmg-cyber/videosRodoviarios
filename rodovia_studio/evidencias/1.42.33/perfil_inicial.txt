@@ -1,0 +1,35 @@
+Tue Oct 27 17:09:32 2026    /workspace/onboarding/14233-baseline.prof
+
+         316881492 function calls (316346777 primitive calls) in 109.540 seconds
+
+   Ordered by: cumulative time
+   List reduced from 2612 to 25 due to restriction <25>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000  109.601  109.601 /workspace/videosRodoviarios/rodovia_studio/pacote/suporte/sistema/app/geometry.py:494(analyze)
+        1    0.001    0.001  109.600  109.600 /workspace/videosRodoviarios/rodovia_studio/pacote/suporte/sistema/app/geometry_cache.py:28(cached_analyze)
+        1    0.554    0.554  109.599  109.599 /workspace/videosRodoviarios/rodovia_studio/pacote/suporte/sistema/app/geometry.py:211(analyze)
+    45986    0.208    0.000   76.597    0.002 /workspace/videosRodoviarios/rodovia_studio/pacote/suporte/sistema/app/geometry.py:20(guess)
+    45986    2.862    0.000   76.306    0.002 /workspace/videosRodoviarios/rodovia_studio/pacote/suporte/sistema/app/layer_profiles.py:47(role_for)
+  3888857    3.449    0.000   73.425    0.000 /workspace/videosRodoviarios/rodovia_studio/pacote/suporte/sistema/app/layer_profiles.py:44(matches)
+  7777714    8.553    0.000   64.738    0.000 /workspace/videosRodoviarios/rodovia_studio/pacote/suporte/sistema/app/layer_profiles.py:41(norm)
+  7855373   17.133    0.000   52.598    0.000 {method 'join' of 'str' objects}
+116711714   24.868    0.000   35.452    0.000 /workspace/videosRodoviarios/rodovia_studio/pacote/suporte/sistema/app/layer_profiles.py:42(<genexpr>)
+        1    0.000    0.000   16.099   16.099 /workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/ezdxf/filemanagement.py:98(readfile)
+        1    0.000    0.000   16.097   16.097 /workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/ezdxf/filemanagement.py:72(read)
+        1    0.000    0.000   16.097   16.097 /workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/ezdxf/document.py:336(read)
+        1    0.001    0.001   16.097   16.097 /workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/ezdxf/document.py:352(load)
+        1    0.000    0.000   16.096   16.096 /workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/ezdxf/document.py:375(_load)
+109234341   10.586    0.000   10.586    0.000 {built-in method unicodedata.combining}
+    59633    0.513    0.000    9.687    0.000 /workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/ezdxf/lldxf/tags.py:303(group_tags)
+        1    0.049    0.049    9.670    9.670 /workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/ezdxf/lldxf/loader.py:21(load_dxf_structure)
+   656579    1.891    0.000    8.942    0.000 /workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/ezdxf/lldxf/tagger.py:249(tag_compiler)
+    25855    2.152    0.000    8.841    0.000 /workspace/videosRodoviarios/rodovia_studio/pacote/suporte/sistema/app/geometry.py:57(convert)
+        1    0.000    0.000    6.426    6.426 /workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/ezdxf/document.py:383(_load_section_dict)
+        1    0.064    0.064    6.099    6.099 /workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/ezdxf/lldxf/loader.py:141(load_and_bind_dxf_content)
+    30122    0.078    0.000    5.729    0.000 /workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/ezdxf/lldxf/loader.py:134(load_dxf_entities)
+  3888857    2.651    0.000    5.238    0.000 /opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/fnmatch.py:64(fnmatchcase)
+  1657945    0.397    0.000    4.571    0.000 {built-in method builtins.next}
+    30117    0.052    0.000    4.318    0.000 /workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/ezdxf/entities/factory.py:68(load)
+
+

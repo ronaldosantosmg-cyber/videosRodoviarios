@@ -49,7 +49,9 @@ def run(jid):
             from .scene3d import build
             build(d,s,status,cancel);end_message='Cena 3D pronta'
         elif j['kind']=='analyze':
-            unmapped=[];hp={};items,axis,_,_,r=analyze(d,s,preview=unmapped,hatch_preview=hp);store.write_json(d/'analysis.json',r)
+            status(.02,'Lendo DXF e preparando camadas e hachuras')
+            unmapped=[];hp={};geometry=analyze(d,s,preview=unmapped,hatch_preview=hp)
+            items,axis,_,_,r=geometry;status(.35,'Geometria lida; preparando o editor');store.write_json(d/'analysis.json',r)
             try:(d/'hachuras_previa.json').write_text(json.dumps({k:v['p'] for k,v in hp.items()},separators=(',',':')),encoding='utf-8')
             except Exception:pass
             try:
@@ -62,7 +64,7 @@ def run(jid):
             # 1.11: fluxos, sentidos e sinalização para o editor, sem precisar da prévia.
             try:
                 status(.4,'Calculando fluxos e sinalização para o editor')
-                lt=Scene.light(d,s,lambda p,m:status(.4+.55*p,m));store.write_json(d/'editor.json',lt.editor_data())
+                lt=Scene.light(d,s,lambda p,m:status(.4+.55*p,m),_geometry=geometry);store.write_json(d/'editor.json',lt.editor_data())
             except Exception as exc:r['warnings'].append('Fluxos do editor não calculados: '+str(exc)[:160])
             store.write_json(d/'analysis.json',r)
             status(1,'Análise concluída')

@@ -192,11 +192,13 @@ class Scene:
         self.detail=Detail(self)
         status(.25,'Geometria pronta')
     @classmethod
-    def light(cls,directory,s,status=lambda *a:None):
+    def light(cls,directory,s,status=lambda *a:None,*,_geometry=None):
         """1.11: cena só com geometria, estaqueamento e rede de tráfego (sem imagem aérea nem rasterização).
         Usada pela análise para o editor mostrar fluxos, sentidos e sinalização sem gerar a prévia."""
         self=cls.__new__(cls);self.directory=Path(directory);self.s=s;self.W=s.width;self.H=s.width*9//16;self.scale=self.W/2560
-        status(.1,'Lendo geometria');self.items,self.axis,self.ds,self.axes,self.report=analyze(directory,s)
+        # Handoff interno da mesma tarefa/configuração: não relê nem reconverte o DXF.
+        status(.1,'Preparando geometria analisada' if _geometry is not None else 'Lendo geometria')
+        self.items,self.axis,self.ds,self.axes,self.report=_geometry if _geometry is not None else analyze(directory,s)
         from .image_context import accepted_items
         self.image_context_items=accepted_items(s,self.items,directory)
         self.length=self.ds[-1]

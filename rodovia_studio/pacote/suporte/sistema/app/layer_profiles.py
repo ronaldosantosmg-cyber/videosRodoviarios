@@ -7,6 +7,7 @@ empresa) e aplica em qualquer projeto. Nada é fixo no código: o mapeamento fin
 do projeto e pode ser alterado camada a camada.
 """
 import json,re,unicodedata,fnmatch,threading
+from functools import lru_cache
 from pathlib import Path
 from .project_state import locked,revision
 from .store import write_json
@@ -38,15 +39,25 @@ BUILTIN={'name':'Padrão (nomes comuns)','builtin':True,'rules':[
 
 _lock=threading.Lock()
 
+def _normalize(text):
+    return ''.join(c for c in unicodedata.normalize('NFKD',text.upper()) if not unicodedata.combining(c))
+
+@lru_cache(maxsize=2048)
+def _normalized_name(text):
+    return _normalize(text)
+
 def norm(s):
-    return ''.join(c for c in unicodedata.normalize('NFKD',str(s).upper()) if not unicodedata.combining(c))
+    text=str(s)
+    # Limita também o tamanho de cada entrada; não retém documentos ou logs.
+    return _normalized_name(text) if len(text)<=1024 else _normalize(text)
 
 def matches(pattern,name):
     return fnmatch.fnmatchcase(norm(name),norm(pattern))
 
 def role_for(name,rules):
+    normalized=norm(name)
     for r in rules:
-        if r.get('role') in ROLE_LABELS and matches(r.get('pattern',''),name):return r['role']
+        if r.get('role') in ROLE_LABELS and fnmatch.fnmatchcase(normalized,norm(r.get('pattern',''))):return r['role']
     return None
 
 def apply(layer_names,profile):

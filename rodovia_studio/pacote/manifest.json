@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.32",
-  "description": "1.42.32: confirmação consistente de edições, rodapés acessíveis e camadas com salvar/descartar/cancelar; estado auditado do modo IA."
+  "version": "1.42.33",
+  "description": "1.42.33: abertura DXF com classificação reutilizada e geometria compartilhada na análise dos fluxos."
 }
