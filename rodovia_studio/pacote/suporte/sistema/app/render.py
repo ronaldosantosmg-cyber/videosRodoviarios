@@ -406,8 +406,14 @@ class Scene:
         obstacles=physical_obstacles(self.items)
         decks=[o['deck'] for o in self.oae]
         roads.extend(decks)
-        from .markup import oae_direction_marks
-        self.network=TrafficNetwork(roads,obstacles,self.axes,self.axis,self.ds,self.s,[poly(e) for e in self.items if e['closed'] and e['role']=='oae']+decks,oae_direction_marks(self.oae,self.stationing),[e['points'] for e in self.items if e['role']=='edge_line' and len(e['points'])>=2],[e for e in self.items if e['role']=='sign_h'],[e for e in self.items if e['role']=='sign_v'],directory=self.directory)
+        from .markup import oae_direction_marks,deck_geometry
+        oae_info=[{**o,'grade_confirmed':True} for o in self.oae]
+        for item in self.items:
+            if item['role']!='oae' or not item['closed']:continue
+            try:
+                deck,line,_,_,_=deck_geometry(item['points']);oae_info.append({'id':item.get('layer','OAE'),'deck':deck,'line':line,'level_m':float(item.get('elevation_m') or 0),'elevation_valid':item.get('elevation_valid',True),'grade_confirmed':False})
+            except ValueError:continue
+        self.network=TrafficNetwork(roads,obstacles,self.axes,self.axis,self.ds,self.s,[poly(e) for e in self.items if e['closed'] and e['role']=='oae']+decks,oae_direction_marks(self.oae,self.stationing),[e['points'] for e in self.items if e['role']=='edge_line' and len(e['points'])>=2],[e for e in self.items if e['role']=='sign_h'],[e for e in self.items if e['role']=='sign_v'],directory=self.directory,oae_info=oae_info)
         self.allowed=self.network.allowed
         self.save_editor_geometry(roads,obstacles)
         self.routes=[(e['p'],e['t'],np.ones(len(e['p']),bool),e['length'],i) for i,e in enumerate(self.network.edges)]
@@ -486,7 +492,7 @@ class Scene:
                 for g in (list(pg.geoms) if hasattr(pg,'geoms') else [pg]):
                     if g.geom_type!='Polygon' or g.area<20:continue
                     ring=np.asarray(g.buffer(-.3).exterior.coords) if not g.buffer(-.3).is_empty and g.buffer(-.3).geom_type=='Polygon' else np.asarray(g.exterior.coords)
-                    self.oae_detail.append({'ring':np.asarray(g.exterior.coords),'level':5.,'joints':joints(g),'rails':side_rails(ring),'bbox':np.r_[np.asarray(g.bounds)],'chain_max':float(self.ch[self.tree.query(np.asarray(g.exterior.coords))[1]].max())})
+                    self.oae_detail.append({'ring':np.asarray(g.exterior.coords),'level':0.,'joints':joints(g),'rails':side_rails(ring),'bbox':np.r_[np.asarray(g.bounds)],'chain_max':float(self.ch[self.tree.query(np.asarray(g.exterior.coords))[1]].max())})
         for o in self.oae:
             g=o['deck'];g=g if g.geom_type=='Polygon' else max(g.geoms,key=lambda x:x.area)
             js=joints(g) if not o.get('polygon') else [h for h in o.get('heads',[])]+joints(g)
@@ -531,7 +537,7 @@ class Scene:
                 'alignment':self.report.get('alignment'),'segments':segments,
                 'pois':[{'id':p.get('id'),'title':p.get('title'),'kind':p.get('kind'),'x':p['x'],'y':p['y'],'km_m':p.get('km_m'),'km_auto_m':p.get('km_auto_m'),'km_mode':p.get('km_mode','auto'),'anchor':p.get('anchor'),'source':p.get('source','')} for p in self.pois],
                 'oae':[{'id':o['id'],'name':o['name'],'km_start_m':o['km_start_m'],'km_end_m':o['km_end_m'],'km_auto':o['km_auto'],'line':pts(o['line']),'level_m':o['level_m'],'width_m':o['width_m'],'direction':o.get('direction','both'),'polygon':bool(o.get('polygon'))} for o in self.oae],
-                'itineraries':len(self.network.paths),'section_continuity':self.network.report.get('section_continuity',[]),'route_lane_cache':self.network.route_lane_cache.report(),'warnings':self.report['warnings'][-20:],
+                'oae_traffic':getattr(self.network,'oae_report',[]),'connection_report':getattr(self.network,'rule_report',[]),'itineraries':len(self.network.paths),'section_continuity':self.network.report.get('section_continuity',[]),'route_lane_cache':self.network.route_lane_cache.report(),'warnings':self.report['warnings'][-20:],
                 # 1.11: sinalização e setas como no vídeo (vetores nítidos no editor).
                 'markings':[[round(float(a[0]),2),round(float(a[1]),2),round(float(b[0]),2),round(float(b[1]),2),1 if tuple(c)==(244,200,70) else 0] for a,b,c in self.network.markings],
                 'arrows':[[round(float(p[0]),2),round(float(p[1]),2),round(float(t[0]),4),round(float(t[1]),4)]+([round(float(c[0]),2),round(float(c[1]),2)] if c is not None else []) for (p,t),c in zip(self.network.arrows,list(getattr(self.network,'arrow_anchors',[]) or [])+[None]*len(self.network.arrows))],
@@ -986,10 +992,11 @@ class Scene:
         return np.dstack([np.clip(color,0,255),alpha*255]).round().astype(np.uint8)
     def frame(self,t,overview=False,view=None):
         self.reveal_opacity=1.
-        if self.s.duration_s<45 and self.s.short_video_mode=='auto' and self.s.camera_mode!='trafego' and not overview and view is None:
+        if self.s.duration_s<45 and self.s.short_video_mode=='auto' and self.s.camera_mode!='trafego' and not self.s.traffic_route_only and not overview and view is None:
             f=float(np.clip(t/max(1,min(8,self.s.duration_s*.55)),0,1));self.reveal_opacity=f*f*(3-2*f)
         self._t=t;self._night=visual.night_factor(self.s,t);self._night_items=[]
         cam,width,progress,poi,scene=self.pose(t)
+        if self.s.traffic_route_only:progress=1.;self.reveal_opacity=1.
         if overview:cam=self.center;width=self.overview;progress=1;poi=None;scene='preview'
         if view is not None:cam=np.asarray(view[0],float);width=float(view[1]);progress=1;poi=None;scene='preview'
         key=scene if scene.startswith('detalhe') and getattr(self,'_matte',None) is None else None
@@ -1145,6 +1152,9 @@ class Scene:
             if 0<x<self.W and header<y<self.H-footer:
                 pts=np.array([[x0,header],[x0,header+int(18*sc)],[x,y]],np.int32)
                 cv2.polylines(im,[pts],False,(10,28,43),max(2,round(5*sc)),cv2.LINE_AA);cv2.polylines(im,[pts],False,(134,220,233),max(1,round(2*sc)),cv2.LINE_AA)
+        if self.s.heavy_shoulder_overtake or not self.s.traffic_prevent_collisions or not self.s.traffic_respect_signals:
+            cv2.rectangle(im,(0,self.H-30),(self.W,self.H),(110,35,20),-1)
+            cv2.putText(im,'ENSAIO: ultrapassagem pelo acostamento ou controles desativados',(12,self.H-9),cv2.FONT_HERSHEY_SIMPLEX,.5,(255,255,255),1,cv2.LINE_AA)
         self.report['traffic_visibility']=self._vehicle_visibility
         return im,{'traffic_visibility':self._vehicle_visibility,'camera':cam.tolist(),'width_m':width,'screen_width':self.W,'screen_height':self.H,'right':self.right.tolist(),'up':self.up.tolist()}
 

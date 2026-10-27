@@ -13,7 +13,7 @@ OBJ_SPECS.push(['connection_rules','Regra de ligação','line',o=>[[o,'a'],[o,'b
 ENUMS.action=ENUMS.action||{};ENUMS.action.connection_rules={deny:'Proibir o movimento',force:'Forçar a ligação'};
 Object.assign(PROP_LABEL,{speed_pct:['Velocidade (% da normal)','50 = metade da velocidade (mais tempo neste trecho); 200 = o dobro.'],speed_kmh:['Velocidade (km/h)','Limite dos veículos neste fluxo; vazio = velocidade do vídeo.'],
  action:['Ação','Proibir: os veículos não fazem este movimento. Forçar: cria a ligação entre os dois trechos.'],direction:['Sentido','Auto, crescente, decrescente ou dois sentidos.'],level:['Nível','Nível do fluxo (viadutos: 1, 2…).'],texture:['Textura','']});
-NULLABLE_NUM.add('speed_kmh');
+NULLABLE_NUM.add('speed_kmh');NULLABLE_NUM.add('share_pct');PROP_LABEL.share_pct=['Parcela do fluxo (%)','Percentual de veículos destinado a esta saída; vazio usa a distribuição padrão.'];
 
 // ---------- utilidades ----------
 function selObjs(){return allSelected()}

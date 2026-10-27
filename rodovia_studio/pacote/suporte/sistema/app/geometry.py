@@ -67,7 +67,13 @@ def convert(e,layer,role,units,entities,warnings,extra=None):
         ps=[]
         for p in paths:
             tolerance=.005 if role=='axis' else .12
-            pts=np.array([(v.x,v.y) for v in p.flattening(tolerance/units,segments=8)])*units
+            vertices=list(p.flattening(tolerance/units,segments=8))
+            pts=np.array([(v.x,v.y) for v in vertices])*units
+            if not np.isfinite(pts).all():raise ValueError('Coordenadas não finitas no desenho.')
+            if role=='oae' and vertices:
+                z=np.array([v.z*units for v in vertices],float);valid=bool(np.isfinite(z).all())
+                extra={**extra,'elevation_valid':valid,'elevation_m':float(np.median(z)) if valid else None,'elevation_range_m':[float(z.min()),float(z.max())] if valid else None}
+                if not valid:warnings.append('OAE: cota Z inválida na camada '+layer+'. Confira a cota; nenhum desnível foi presumido.')
             if len(pts)>=2: ps.append(pts)
         if hatch and ps:
             # Even/odd fill respects islands rather than filling every loop independently.

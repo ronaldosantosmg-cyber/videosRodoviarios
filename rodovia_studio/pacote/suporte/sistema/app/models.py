@@ -297,6 +297,7 @@ class ConnectionRule(BaseModel):
     a: Point            # ponto no trecho de chegada (perto do fim)
     b: Point            # ponto no trecho de saída (perto do início)
     action: Literal['deny','force'] = 'deny'
+    share_pct: float | None = Field(default=None,ge=0,le=100)
     enabled: bool = True
 
 class OAEMark(BaseModel):
@@ -782,6 +783,16 @@ class Settings(BaseModel):
     queue_capacity_model: bool = True
     heavy_vehicle_reaction: bool = True
     heavy_shoulder_probe: bool = True
+    heavy_shoulder_overtake: bool = False
+    traffic_entry_inset_m: float = Field(default=5,ge=0,le=30)
+    traffic_branch_share_pct: float = Field(default=20,ge=0,le=100)
+    traffic_vdm: float | None = Field(default=None,gt=0,le=1000000)
+    traffic_peak_hour_fraction: float = Field(default=.1,gt=0,le=1)
+    traffic_forward_share_pct: float = Field(default=50,ge=0,le=100)
+    traffic_route_only: bool = False
+    traffic_no_median_crossing: bool = False
+    traffic_respect_signals: bool = True
+    traffic_prevent_collisions: bool = True
     median_crossing: Literal['returns','marked','free'] = 'returns'
     # 1.39: trechos curtos (ramos do esqueleto nos encontros) abaixo disto não entram nas rotas (sem ziguezague); 0 = como antes.
     min_route_segment_m: float = Field(default=50,ge=0,le=500)
@@ -834,7 +845,7 @@ class Settings(BaseModel):
     pedestrians: bool = True            # pessoas nas faixas de pedestre, passarelas e caminhos
     pedestrian_seed: int = Field(default=1729,ge=0,le=10**9)
     rail_smoke: bool = True
-    vehicle_mix: Literal['classico','variado'] = 'variado'   # variado: carros, motos, vans, caminhões, carretas e ônibus
+    vehicle_mix: Literal['classico','variado','engenharia'] = 'variado'   # variado: carros, motos, vans, caminhões, carretas e ônibus
     # 1.21: pavimento flexível (asfalto) ou rígido (concreto com juntas), texturas no modo técnico e contraste projeto × imagem.
     pavement_material: Literal['flexivel','rigido'] = 'flexivel'
     existing_material: Literal['flexivel','rigido'] = 'flexivel'

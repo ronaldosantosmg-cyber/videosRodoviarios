@@ -1,0 +1,13 @@
+{
+  "tests": 238,
+  "method": "Último ensaio iniciado por caso; retentativas não contam como novos casos. Relatórios brutos preservados.",
+  "sources": [
+    "pytest-entrega-final.xml",
+    "pytest-integracao.xml",
+    "pytest-manobra-final.xml",
+    "pytest-regressoes.xml",
+    "pytest-seguranca-final.xml",
+    "pytest-ultrapassagem-visual.xml"
+  ],
+  "failures_latest": 0
+}

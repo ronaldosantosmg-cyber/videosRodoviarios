@@ -110,7 +110,8 @@ class Transport:
                     if level_at(d)!=rail['config'].level:continue
                     rs=rail['line'].project(q);_,road_h=at(path['p'],path['d'],d);_,rail_h=at(rail['p'],rail['d'],rs)
                     from .engineering_assets import oae_grade_separated
-                    if oae_grade_separated(self.s,q,road_h,rail_h,level_at(d),rail['config'].level):continue
+                    from .oae_traffic import grade_separated
+                    if oae_grade_separated(self.s,q,road_h,rail_h,level_at(d),rail['config'].level) or grade_separated(getattr(network,'oae_info',[]),q,road_h,rail_h):continue
                     sine=abs(float(road_h[0]*rail_h[1]-road_h[1]*rail_h[0]));permanent=ambiguous or sine<.15
                     speed=max(.1,self.s.traffic_speed_kmh/3.6*.7*.8)
                     if envelope is not None:
@@ -141,6 +142,7 @@ class Transport:
                 gap=stop['s']-station-v['L']/2
                 if gap<-.01:continue # veículo comprometido com a travessia deve sair, nunca voltar.
                 if stop['kind']=='signal':
+                    if not getattr(self.s,'traffic_respect_signals',True):continue
                     signal=stop['signal'];other=signal.lanes_a if stop['axis']==0 else signal.lanes_b
                     closed=self.signal_state(signal,t)[stop['axis']]!='green' or leader_gap<stop['s']+stop.get('clear_span',other*signal.lane_width_m+16)+v['L']/2-station
                 else:closed=self.rail_stop_closed(stop,t) or leader_gap<stop['cross']+stop.get('clear_after_m',12)+v['L']/2-station
@@ -149,7 +151,7 @@ class Transport:
     def admission_allowed(self,path,t,length):
         for stop in self.stops[path]:
             if stop['s']>length/2+1:continue
-            if stop['kind']=='signal' and self.signal_state(stop['signal'],t)[stop['axis']]!='green':return False
+            if stop['kind']=='signal' and getattr(self.s,'traffic_respect_signals',True) and self.signal_state(stop['signal'],t)[stop['axis']]!='green':return False
             if stop['kind']=='rail' and self.rail_stop_closed(stop,t):return False
         return True
     def train_parts(self,t):

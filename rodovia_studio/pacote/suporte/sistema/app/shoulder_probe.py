@@ -8,7 +8,7 @@ from .vehicle_motion import PROFILES,interpolate,analyze_motion
 from .vehicle_safety import body,LATERAL_BUFFER
 
 MAX_EDGE_EXTENSION=1.
-HEAVY=frozenset(('truck','bus','carreta'))
+HEAVY=frozenset(('truck','bus','carreta','truck18','long30'))
 
 
 def envelope(pavement,obstacles,exclusions=(),bridges=None):
@@ -112,6 +112,55 @@ class ShoulderProbe:
             if any(a['route']['kind']!='passarela' and abs(a['route']['height']-float(safety.level(v) or 0))<2.5 and any(p.intersects(Point(pedestrians.pose(a)[0]).buffer(.4)) for p in bodies) for a in getattr(pedestrians,'agents',[])):continue
             self.events.setdefault(key,[]).append(e);self.counts['manobras_aceitas']+=1;return True
         self.counts['manobras_recusadas']+=1;return False
+    def laterally_separated(self,v,w):
+        """Dispensa só o seguimento escalar quando os corpos já estão lado a lado."""
+        if not (self.event(v) or self.event(w)):return False
+        a,h=self.sim.polygon_safety.pose(v);b,k=self.sim.polygon_safety.pose(w)
+        if float(h@k)<.95:return False
+        width=PROFILES[v['t']][1]/2+PROFILES[w['t']][1]/2+2*LATERAL_BUFFER
+        return abs(float((b-a)@np.array([-h[1],h[0]])))>=width+.02 and not self.geometry(v,v['s']).intersects(self.geometry(w,w['s']))
+    def try_overtake(self,v,other,vehicles):
+        # Autorização explícita de ensaio, nunca uma faixa permanente.
+        if not getattr(self.sim.s,'heavy_shoulder_overtake',False) or getattr(self.sim.s,'traffic_route_only',False) or not getattr(self.sim.s,'traffic_prevent_collisions',True) or not self.enabled_for(v.get('t')):return False
+        if v.get('lc') or other.get('lc') or self.event(v) or v['p']!=other['p'] or other['s']<=v['s']:return False
+        key=(int(v['id']),int(v['p']));now=float(getattr(self.sim,'time',0))
+        if now-self.last_probe.get(('o',*key),-1e9)<2 or self.counts['ultrapassagens_aceitas']>=4096:return False
+        self.last_probe[('o',*key)]=now
+        if len(self.last_probe)>8192:self.last_probe.pop(next(iter(self.last_probe)))
+        L,B,wb,_=PROFILES[v['t']];speed=min(12.,float(v['v0']));ospeed=max(0.,float(other['v']))
+        if speed-ospeed<2 or v['v']>speed*1.1:return False
+        distance=other['s']-v['s'];gap=distance-(L+other['L'])/2;ramp=max(24.,wb*4)
+        if gap<max(4.,(speed-ospeed)*ramp/speed+3) or gap>80:return False
+        a,h=self.sim.polygon_safety.pose(v);b,k=self.sim.polygon_safety.pose(other)
+        if float(h@k)<.98:return False
+        # Não atravessar outra faixa cadastrada para alcançar o acostamento.
+        right=np.array([h[1],-h[0]])
+        for lane in getattr(self.sim,'adjacent',{}).get(v['p'],()):
+            points,stations=self.sim.motion_points[lane]
+            near=points[int(np.argmin(np.linalg.norm(points-a,axis=1)))]
+            if float((near-a)@right)>.5:return False
+        start=float(v['s']);back_clear=(L+other['L'])/2+4
+        return_at=start+speed*(distance+back_clear+ospeed*ramp/speed)/(speed-ospeed)
+        return_at=max(start+ramp+10,return_at);end=return_at+ramp
+        if end+L/2+5>=self.sim.paths[v['p']]['length'] or end-start>500:return False
+        ss=np.linspace(start,end,max(65,int((end-start)/.5)+1));dt=(ss-start)/speed
+        for offset in np.arange((B+PROFILES[other['t']][1])/2+2*LATERAL_BUFFER+.05,4.01,.1):
+            e=dict(path=v['p'],vehicle=v['t'],stations=(start,start+ramp,return_at,end),offset=float(offset),created_s=now,kind='ultrapassagem',target=int(other['id']))
+            points=np.array([self.center(v['p'],s,e) for s in ss])
+            if not analyze_motion(points,v['t'],self.area)['ok']:continue
+            bodies=[self.geometry(v,s,e,False) for s in ss]
+            if any(not self.area.covers(p) for p in bodies):continue
+            if any(not self.area.covers(MultiPoint([*a.exterior.coords,*b.exterior.coords]).convex_hull) for a,b in zip(bodies,bodies[1:])):continue
+            padded=[self.geometry(v,s,e) for s in ss];blocked=False
+            for w in vehicles:
+                if w['id']==v['id']:continue
+                future=np.clip(w['s']+dt*max(0.,w['v']),0,self.sim.paths[w['p']]['length'])
+                if any(p.intersection(self.geometry(w,q)).area>1e-7 for p,q in zip(padded,future)):blocked=True;break
+            if blocked:continue
+            if any(any(bl.active(now+tau) and bl.poly.intersects(p) for tau,p in zip(dt,bodies)) for bl in self.sim.blocks):continue
+            # A reserva espacial por passo continua protegendo pessoas/trens e o retorno.
+            self.events.setdefault(key,[]).append(e);self.counts['ultrapassagens_aceitas']+=1;return True
+        self.counts['ultrapassagens_sem_espaco']+=1;return False
     def prepare(self,vehicles):
         if not self.enabled:return
         # A seleção espacial evita comparar toda a frota; trabalho e memória limitados.
@@ -121,6 +170,6 @@ class ShoulderProbe:
         for i,v in enumerate(vehicles):
             if not self.enabled_for(v.get('t')) or self.event(v):continue
             for j in sorted(tree.query_ball_point(centers[i],100))[:16]:
-                if i!=j and self.try_pair(v,vehicles[j]):break
+                if i!=j and (self.try_overtake(v,vehicles[j],vehicles) or self.try_pair(v,vehicles[j])):break
     def report(self):
-        return {'enabled':self.enabled,'maximum_beyond_pavement_m':MAX_EDGE_EXTENSION,'counts':dict(self.counts),'maneuvers':sum(map(len,self.events.values())),'curve_profiles':len(self.curve_paths),'scope':'Sondagem local de pesados com corpo rígido conservador e reserva espacial; não é certificação de veículo articulado nem autorização normativa de uso do acostamento.'}
+        return {'enabled':self.enabled,'overtake_requested':bool(getattr(self.sim.s,'heavy_shoulder_overtake',False)),'overtake_scope':'Ensaio opcional; o próprio pesado passa à direita e retorna. Somente com reserva entre veículos ativa, espaço integral e sem faixa cadastrada à direita. Não autoriza circulação normativa pelo acostamento.','maximum_beyond_pavement_m':MAX_EDGE_EXTENSION,'counts':dict(self.counts),'maneuvers':sum(map(len,self.events.values())),'curve_profiles':len(self.curve_paths),'scope':'Sondagem local de pesados com corpo rígido conservador e reserva espacial; não é certificação de veículo articulado nem autorização normativa de uso do acostamento.'}

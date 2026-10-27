@@ -168,3 +168,17 @@ def section_corridors(settings,lane_cache=None):
             extended=np.vstack([p[0]-a*12,p,p[-1]+b*12])
             result.append(LineString(extended).buffer(lane['lane_width_m']/2,cap_style='flat',join_style='round'))
     return result
+
+
+def confirmed_corridors(settings,lane_cache=None):
+    """Autorização por alinhamento, sem usar largura do acostamento como pista."""
+    from shapely.geometry import LineString
+    out=[]
+    for route in settings.route_alignments:
+        if not route.enabled or not route.outside_pavement:continue
+        for lane in build_lanes(route,settings,lane_cache):
+            if lane['length']<settings.min_route_segment_m:continue
+            p=lane['points'];a=p[1]-p[0];b=p[-1]-p[-2]
+            a/=max(float(np.linalg.norm(a)),1e-9);b/=max(float(np.linalg.norm(b)),1e-9)
+            out.append(LineString(np.vstack([p[0]-a*16,p,p[-1]+b*16])).buffer(lane['lane_width_m']/2,cap_style=2))
+    return out

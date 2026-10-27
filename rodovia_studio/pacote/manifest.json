@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.29",
-  "description": "1.42.29: sondagem local do acostamento em conflitos de pesados, limite de 1 m, retorno e reserva espacial."
+  "version": "1.42.30",
+  "description": "1.42.30: regras de fluxo, entrada de 5 m, distribuição de ramais, VDM e OAE por cota/orientação."
 }

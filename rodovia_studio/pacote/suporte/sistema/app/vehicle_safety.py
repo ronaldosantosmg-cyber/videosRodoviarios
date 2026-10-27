@@ -26,14 +26,16 @@ class SpatialReservations:
     def add(self,identity,geometry,level=0):
         row=(identity,geometry,level)
         for key in self.keys(geometry):self.cells[key].append(row)
-    def clear(self,identity,geometry,level=0):
+    def clear(self,identity,geometry,level=0,ignore=None):
         seen=set()
         for key in self.keys(geometry):
             for other,poly,other_level in self.cells.get(key,()):
                 if level is not None and other_level is not None and level!=other_level:continue
                 if other==identity or id(poly) in seen:continue
                 seen.add(id(poly))
-                if geometry.intersects(poly) and geometry.intersection(poly).area>1e-7:return False
+                if geometry.intersects(poly) and geometry.intersection(poly).area>1e-7:
+                    if ignore is not None and ignore(other,poly):continue
+                    return False
         return True
 
 class PolygonSafety:
@@ -108,16 +110,15 @@ class PolygonSafety:
         h=front-back;return center,h/max(float(np.linalg.norm(h)),1e-9)
     def footprint(self,v,forward=0.,dt=.2):
         c,h=self.pose(v,forward,dt);L,B,_,_=PROFILES.get(v.get('t','car'),PROFILES['car']);return body(c,h,L,B,LATERAL_BUFFER)
-    def admission(self,new,vehicles):
-        probe=getattr(self.sim,'shoulder_probe',None)
+    def admission(self,new,vehicles,vehicle_check=True):
         pedestrians=getattr(self.sim,'pedestrians',None)
-        if probe and probe.enabled:
+        if getattr(pedestrians,'agents',[]):
             poly=self.footprint(new);level=self.level(new)
             for agent in getattr(pedestrians,'agents',[]):
                 if agent['route']['kind']=='passarela':continue
                 if level is not None and abs(agent['route']['height']-level)>2.5:continue
                 if poly.intersects(Point(pedestrians.pose(agent)[0]).buffer(.4)):return False
-        if not vehicles:return True
+        if not vehicle_check or not vehicles:return True
         if not self.narrow_admission(new,vehicles):return False
         poly=self.footprint(new);level=self.level(new)
         return all(poly.intersection(self.footprint(v)).area<1e-7 for v in vehicles if v['id']!=new['id'] and (level is None or self.level(v) is None or self.level(v)==level) and np.linalg.norm(self.pose(v)[0]-self.pose(new)[0])<40)
@@ -127,32 +128,41 @@ class PolygonSafety:
         for ds in np.linspace(0,forward,max(3,min(17,int(math.ceil(forward/.5))+1))):points.extend(self.footprint(v,float(ds),.2*float(ds)/forward).exterior.coords)
         hull=MultiPoint(points).convex_hull
         return hull.buffer(.03) if np.linalg.norm(self.pose(v)[1]-self.pose(v,forward)[1])>.002 else hull
-    def resolve(self,vehicles,planned):
+    def resolve(self,vehicles,planned,vehicle_check=True):
         if not vehicles:return planned
-        reservations=SpatialReservations()
-        probe=getattr(self.sim,'shoulder_probe',None)
-        if probe and probe.enabled:
-            pedestrians=getattr(self.sim,'pedestrians',None)
-            for a in getattr(pedestrians,'agents',[]):
-                if a['route']['kind']=='passarela':continue
-                reservations.add(('pedestre',a['id']),Point(pedestrians.pose(a)[0]).buffer(.4),round(a['route']['height']))
-            for index,block in enumerate(getattr(self.sim,'blocks',[])):
-                if block.mode=='total' and (block.active(self.sim.time) or block.active(self.sim.time+.2)):reservations.add(('obra',index),block.poly,None)
-            transport=getattr(self.sim,'transport',None)
-            if transport:
-                for at in (self.sim.time,self.sim.time+.2):
-                    for index,part in enumerate(transport.train_parts(at)):
-                        reservations.add(('trem',at,index),body(part['p'],part['heading'],part['length'],part['width']),part.get('level',0))
-        for v in vehicles:reservations.add(v['id'],self.footprint(v),self.level(v))
+        reservations=SpatialReservations();train_info={};now=float(getattr(self.sim,'time',0))
+        pedestrians=getattr(self.sim,'pedestrians',None)
+        for a in getattr(pedestrians,'agents',[]):
+            if a['route']['kind']=='passarela':continue
+            reservations.add(('pedestre',a['id']),Point(pedestrians.pose(a)[0]).buffer(.4),round(a['route']['height']))
+        for index,block in enumerate(getattr(self.sim,'blocks',[])):
+            if block.mode=='total' and (block.active(now) or block.active(now+.2)):reservations.add(('obra',index),block.poly,None)
+        transport=getattr(self.sim,'transport',None)
+        if transport:
+            for at in (now,now+.2):
+                for index,part in enumerate(transport.train_parts(at)):
+                    identity=('trem',at,index);train_info[identity]=part
+                    reservations.add(identity,body(part['p'],part['heading'],part['length'],part['width']),part.get('level',0))
+        if vehicle_check:
+            for v in vehicles:reservations.add(v['id'],self.footprint(v),self.level(v))
         result=list(planned)
         for index in sorted(range(len(vehicles)),key=lambda j:(-vehicles[j]['s']/max(self.sim.paths[vehicles[j]['p']]['length'],1),vehicles[j]['id'])):
             v=vehicles[index];v['_risk_stop']=False;speed,distance=result[index];sweep=self.sweep(v,distance)
-            if not reservations.clear(v['id'],sweep,self.level(v)):
+            def clear(shape):
+                def separated(identity,poly):
+                    if identity not in train_info:return False
+                    from .engineering_assets import oae_grade_separated
+                    from .oae_traffic import grade_separated
+                    part=train_info[identity];point=shape.intersection(poly).representative_point();heading=self.pose(v)[1]
+                    return oae_grade_separated(getattr(self.sim,'s',None),point,heading,part['heading'],self.level(v) or 0,part.get('level',0)) or grade_separated(getattr(self.sim.net,'oae_info',[]),point,heading,part['heading'])
+                return reservations.clear(v['id'],shape,self.level(v),ignore=separated if train_info else None)
+            if not clear(sweep):
                 lo=0.;hi=distance
                 for _ in range(9):
                     mid=(lo+hi)/2
-                    if reservations.clear(v['id'],self.sweep(v,mid),self.level(v)):lo=mid
+                    if clear(self.sweep(v,mid)):lo=mid
                     else:hi=mid
                 distance=max(0.,lo-.03);speed=min(speed,distance/.2);self.interventions+=1;v['_risk_stop']=speed<.3;sweep=self.sweep(v,distance)
-            result[index]=(speed,distance);reservations.add(v['id'],sweep,self.level(v))
+            result[index]=(speed,distance)
+            if vehicle_check:reservations.add(v['id'],sweep,self.level(v))
         return result

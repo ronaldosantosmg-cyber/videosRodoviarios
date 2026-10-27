@@ -237,7 +237,11 @@ TYPES={'car':{'L':4.5,'B':1.8,'H':1.5},'truck':{'L':12.,'B':3.0,'H':3.6},'bus':{
        # 1.37 (frota variada)
        'moto':{'L':2.1,'B':.8,'H':1.3},'van':{'L':5.4,'B':1.8,'H':2.4},'carreta':{'L':18.6,'B':3.0,'H':4.0},'pickup':{'L':5.3,'B':1.8,'H':1.8}}
 
+TYPES.update({k:{**TYPES[style],'L':L,'B':B,'style':style} for k,style,L,B in [('car6','car',6.,2.),('moto2','moto',2.,.5),('truck18','truck',18.,3.),('long30','carreta',30.,3.)]})
+
 def vehicle_type(path_kinds,identity,mix='classico'):
+    if mix=='engenharia':
+        base=vehicle_type(path_kinds,identity,'variado');return {'car':'car6','pickup':'car6','van':'car6','moto':'moto2','truck':'truck18','carreta':'long30'}.get(base,base)
     i,k,cycle=identity;h=(i*7919+k*104729+cycle*31)%100
     if mix=='variado':
         # 1.37: frota variada (proporções típicas de rodovia; motos e vans também nos ramos).
@@ -247,6 +251,7 @@ def vehicle_type(path_kinds,identity,mix='classico'):
     return 'truck' if h<16 else 'bus' if h<26 else 'car'
 
 def vehicle_color(identity,vtype):
+    vtype=TYPES[vtype].get('style',vtype)
     i,k,cycle=identity;h=(i*31+k*17+cycle*7)%len(CAR_COLORS)
     if vtype=='bus':return [(226,226,214),(204,64,48),(38,104,170),(240,190,40)][h%4]
     if vtype=='carreta':return [(236,236,230),(30,90,160),(170,36,34),(60,120,70),(210,210,200)][h%5]
@@ -260,7 +265,7 @@ def body(pt,tan,L,B,x0=None,x1=None):
     return np.array([pt+tan*a-n*B/2,pt+tan*b-n*B/2,pt+tan*b+n*B/2,pt+tan*a+n*B/2])
 
 def draw_vehicle(im,pt,tan,vtype,color,screen,m_per_px,shadow_layer=None):
-    T=TYPES[vtype];L,B=T['L'],T['B'];n=np.array([-tan[1],tan[0]])
+    T=TYPES[vtype];L,B=T['L'],T['B'];vtype=T.get('style',vtype);n=np.array([-tan[1],tan[0]])
     def P(poly):return screen(poly).astype(np.int32)
     # Sombra suave projetada (sol a noroeste), proporcional à altura.
     sh=body(pt+np.array([.25,-.38])*T['H'],tan,L*1.02,B*1.05)
@@ -280,9 +285,9 @@ def draw_vehicle(im,pt,tan,vtype,color,screen,m_per_px,shadow_layer=None):
         cv2.fillPoly(im,[P(body(pt,tan,0,B-.45,L/2-.9,L/2-.35))],(46,66,80),cv2.LINE_AA)
     elif vtype=='moto':
         cv2.fillPoly(im,[P(body(pt,tan,L,.34))],(30,30,32),cv2.LINE_AA)                                  # rodas e quadro
-        cv2.fillPoly(im,[P(body(pt,tan,0,.62,-.55,.45))],color,cv2.LINE_AA)                                # tanque/carenagem
+        cv2.fillPoly(im,[P(body(pt,tan,0,min(.62,B),-.55,.45))],color,cv2.LINE_AA)                                # tanque/carenagem
         hd=pt-tan*.25;r=max(1,int(round(.2/m_per_px)));c=tuple(np.rint(screen(hd[None])[0]).astype(int));cv2.circle(im,c,r,(230,230,226),-1,cv2.LINE_AA)  # capacete
-        q=P(np.array([pt+tan*.55-n*.42,pt+tan*.55+n*.42]));cv2.line(im,tuple(q[0]),tuple(q[1]),(60,60,62),max(1,round(.08/m_per_px)),cv2.LINE_AA)  # guidão
+        q=P(np.array([pt+tan*.55-n*min(.42,B/2),pt+tan*.55+n*min(.42,B/2)]));cv2.line(im,tuple(q[0]),tuple(q[1]),(60,60,62),max(1,round(.08/m_per_px)),cv2.LINE_AA)  # guidão
     elif vtype in ('van','pickup'):
         cv2.fillPoly(im,[P(body(pt,tan,L,B))],dark,cv2.LINE_AA);cv2.fillPoly(im,[P(body(pt,tan,L-.18,B-.18))],color,cv2.LINE_AA)
         cv2.fillPoly(im,[P(body(pt,tan,0,B-.4,L/2-1.25,L/2-.55))],(46,66,80),cv2.LINE_AA)                # para-brisa
