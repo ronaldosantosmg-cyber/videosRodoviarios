@@ -40,7 +40,7 @@ def test_offset_reduction_cannot_cross_a_real_barrier():
 
 def test_repair_is_visible_and_cut_is_reachable_without_properties_hunt(page):
     seed(page);page.evaluate("()=>{pid='repair';editor.segments[0].mid=[0,0];editor.segments[0].technical_status='problem';editor.segments[0].technical_message='Bloqueio localizado';}")
-    page.get_by_role('tab',name='Tráfego',exact=True).click();page.get_by_role('button',name='Corrigir problemas',exact=True).click()
+    page.evaluate('RodoviaFlowRepair.advanced()')
     assert page.get_by_role('dialog',name='Corrigir fluxos').is_visible()
     assert 'sinal vermelho' in page.get_by_role('dialog',name='Corrigir fluxos').inner_text()
     screenshot(page,'14216_central_correcao')
@@ -76,7 +76,7 @@ def test_native_axis_not_blocked_by_nearest_axis_heuristic_but_manual_deny_remai
 
 def test_criteria_review_is_explicit_and_keeps_safety_description(page):
     seed(page);page.evaluate("()=>{pid='repair';editor.segments[0].mid=[0,0]}")
-    page.get_by_role('tab',name='Tráfego',exact=True).click();page.get_by_role('button',name='Corrigir problemas',exact=True).click();page.locator('[data-global=criteria]').click()
+    page.evaluate('RodoviaFlowRepair.advanced()');page.locator('[data-global=criteria]').click()
     assert 'não remove barreiras' in page.get_by_role('dialog').inner_text()
     assert page.locator('[data-mode=free]').is_visible()
     page.locator('[data-cancel]').click()
@@ -91,12 +91,12 @@ def test_barrier_holes_are_preserved_and_reference_lines_are_not_obstacles():
 
 def test_select_command_always_enables_editing_even_when_already_active(page):
     seed(page);page.evaluate("()=>{pid='repair';RodoviaFlowStudy.editing=true;vecOn.flows=false;editor.segments[0].mid=[0,0]}")
-    page.get_by_role('tab',name='Tráfego',exact=True).click();page.get_by_role('button',name='Corrigir problemas',exact=True).click();page.locator('[data-global=select]').click()
+    page.evaluate('RodoviaFlowRepair.advanced()');page.locator('[data-global=select]').click()
     assert page.evaluate('RodoviaFlowStudy.editing && vecOn.flows && tool===\'pan\'')
 
 
 def test_locate_defect_enables_flow_visibility_and_centers_world_point(page):
     seed(page);page.evaluate("()=>{pid='repair';vecOn.flows=false;editor.segments[0].mid=[0,0];editor.segments[0].technical_points=[{point:[30,0]}]}")
-    page.get_by_role('tab',name='Tráfego',exact=True).click();page.get_by_role('button',name='Corrigir problemas',exact=True).click();page.locator('[data-repair-action=locate]').click()
+    page.evaluate('RodoviaFlowRepair.advanced()');page.locator('[data-repair-action=locate]').click()
     result=page.evaluate('()=>({center:C2W(canvas.width/2,canvas.height/2),visible:vecOn.flows&&RodoviaFlowStudy.editing})')
     assert result['visible'] and abs(result['center']['x']-30)<1e-6

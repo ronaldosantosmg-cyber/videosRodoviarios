@@ -645,3 +645,10 @@ dialog#rsNewProject{padding:20px 24px;box-sizing:border-box;border:1px solid var
 
 /* Diagnóstico avançado no rodapé, recolhido por padrão. */
 .rsUpdateAdvanced{position:relative;font-size:11px;flex:none}.rsUpdateAdvanced summary{cursor:pointer}.rsUpdateAdvanced>button{position:absolute;bottom:100%;right:0;white-space:nowrap;z-index:60;background:var(--panel,#fff);padding:8px}
+
+/* Central de correção: cabeçalho/fechamento fixos, conteúdo rolável. */
+.rsFlowCenter[open]{display:flex;flex-direction:column;overflow:hidden;padding:0!important;max-height:92vh;max-width:96vw}
+.rsFlowCenter>header,.rsFlowCenter>footer{flex:none;padding:12px 16px;border-bottom:1px solid var(--cromo-borda);display:flex;align-items:center;gap:8px}
+.rsFlowCenter>header h2{margin:0;font-size:1.15rem}.rsFlowCenter>footer{justify-content:flex-end;border-top:1px solid var(--cromo-borda);border-bottom:0}
+.rsFlowCenter>p{flex:none;margin:8px 16px}.rsFlowCenterBody{overflow:auto;min-height:0;padding:0 16px 12px}.rsFlowCenterBody section{overflow-wrap:anywhere}
+@media(max-width:640px){.rsFlowCenter .row button{flex:1 1 140px}.rsModelDialog>footer{flex-wrap:wrap}.rsModelDialog>header h2{font-size:1rem}}

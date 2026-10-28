@@ -1,0 +1,17 @@
+{
+  "baseline_commit": "14973929b2695f43369de39608f644f790929196",
+  "branch": "desenvolvimento/rodovia-studio-1.42",
+  "html_elements": 404,
+  "runtime_buttons_summaries": 454,
+  "runtime_fields": 329,
+  "menu_entries_including_submenu_headers": 165,
+  "base_tools": 63,
+  "extended_tools": 21,
+  "unique_tool_ids": 63,
+  "registered_command_aliases": 78,
+  "page_errors": [],
+  "scope": "Auditoria estática e navegação Chromium; não regressão funcional de todos os comandos.",
+  "product_changed": false,
+  "main_changed": false,
+  "duplicate_field_ids_in_loaded_dom": {}
+}

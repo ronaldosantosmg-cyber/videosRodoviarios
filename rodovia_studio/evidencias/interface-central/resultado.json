@@ -1,0 +1,254 @@
+{
+  "base_version": "1.42.36",
+  "stage": "Menus, confirmações e central de correção",
+  "unique_tests": 33,
+  "passed": 33,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "runs": [
+    {
+      "report": "testes.xml",
+      "cases": 18,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "report": "testes-central-avancados.xml",
+      "cases": 17,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "report": "testes-confirmacao-final.xml",
+      "cases": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "report": "testes-recuperacao-final.xml",
+      "cases": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "report": "testes-interface-definitiva.xml",
+      "cases": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "cases": [
+    {
+      "name": "test_menu_unique_and_nodes_group",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14237_interface_central",
+      "status": "passed",
+      "report": "testes-interface-definitiva.xml"
+    },
+    {
+      "name": "test_central_disabled_flow_and_small_screen_close",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14237_interface_central",
+      "status": "passed",
+      "report": "testes-interface-definitiva.xml"
+    },
+    {
+      "name": "test_failed_proposal_releases_button_without_changing_model",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14237_interface_central",
+      "status": "passed",
+      "report": "testes-interface-definitiva.xml"
+    },
+    {
+      "name": "test_cancel_keeps_draft_until_explicit_discard",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14237_interface_central",
+      "status": "passed",
+      "report": "testes-interface-definitiva.xml"
+    },
+    {
+      "name": "test_real_motor_previews_applies_revalidates_and_undoes_without_touching_dxf",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14225_execution",
+      "status": "passed",
+      "report": "testes.xml"
+    },
+    {
+      "name": "test_proposal_binds_content_even_when_timestamp_and_size_are_kept",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14225_execution",
+      "status": "passed",
+      "report": "testes.xml"
+    },
+    {
+      "name": "test_obsolete_or_cross_project_proposal_cannot_modify_config",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14225_execution",
+      "status": "passed",
+      "report": "testes.xml"
+    },
+    {
+      "name": "test_manual_disable_is_preserved",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14225_execution",
+      "status": "passed",
+      "report": "testes.xml"
+    },
+    {
+      "name": "test_failure_before_commit_and_cancel_leave_project_unchanged",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14225_execution",
+      "status": "passed",
+      "report": "testes.xml"
+    },
+    {
+      "name": "test_undo_never_discards_later_user_edits",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14225_execution",
+      "status": "passed",
+      "report": "testes.xml"
+    },
+    {
+      "name": "test_unregistered_action_is_refused",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14225_execution",
+      "status": "passed",
+      "report": "testes.xml"
+    },
+    {
+      "name": "test_physical_barrier_cannot_be_removed_by_proposal",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14225_execution",
+      "status": "passed",
+      "report": "testes.xml"
+    },
+    {
+      "name": "test_video_smoke_and_density_have_visible_commit_and_direct_discard[size0]",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14232_confirmation",
+      "status": "passed",
+      "report": "testes-interface-definitiva.xml"
+    },
+    {
+      "name": "test_video_smoke_and_density_have_visible_commit_and_direct_discard[size1]",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14232_confirmation",
+      "status": "passed",
+      "report": "testes-interface-definitiva.xml"
+    },
+    {
+      "name": "test_layer_changes_are_draft_then_saved_or_discarded_without_losing_previous_data",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14232_confirmation",
+      "status": "passed",
+      "report": "testes-interface-definitiva.xml"
+    },
+    {
+      "name": "test_layer_filters_do_not_create_pending_edits_and_escape_confirms_real_edits",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14232_confirmation",
+      "status": "passed",
+      "report": "testes-interface-definitiva.xml"
+    },
+    {
+      "name": "test_layer_failed_save_keeps_draft_buttons_and_server_configuration",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14232_confirmation",
+      "status": "passed",
+      "report": "testes-interface-definitiva.xml"
+    },
+    {
+      "name": "test_confirmation_footer_is_available_in_project_materials_and_configuration",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14232_confirmation",
+      "status": "passed",
+      "report": "testes-interface-definitiva.xml"
+    },
+    {
+      "name": "test_committed_plan_cannot_be_submitted_again_after_refresh_failure",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14237_interface_central",
+      "status": "passed",
+      "report": "testes-interface-definitiva.xml"
+    },
+    {
+      "name": "test_reduces_offset_to_fit_narrow_pavement_without_moving_axis",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14216_flow_repair",
+      "status": "passed",
+      "report": "testes-interface-definitiva.xml"
+    },
+    {
+      "name": "test_two_way_fit_never_merges_opposing_lanes_into_axis",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14216_flow_repair",
+      "status": "passed",
+      "report": "testes-interface-definitiva.xml"
+    },
+    {
+      "name": "test_perpendicular_reference_is_ignored_but_open_barrier_blocks",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14216_flow_repair",
+      "status": "passed",
+      "report": "testes-interface-definitiva.xml"
+    },
+    {
+      "name": "test_offset_reduction_cannot_cross_a_real_barrier",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14216_flow_repair",
+      "status": "passed",
+      "report": "testes-interface-definitiva.xml"
+    },
+    {
+      "name": "test_repair_is_visible_and_cut_is_reachable_without_properties_hunt",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14216_flow_repair",
+      "status": "passed",
+      "report": "testes-interface-definitiva.xml"
+    },
+    {
+      "name": "test_real_network_fits_one_way_dxf_axis_on_narrow_surface",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14216_flow_repair",
+      "status": "passed",
+      "report": "testes-interface-definitiva.xml"
+    },
+    {
+      "name": "test_native_axis_not_blocked_by_nearest_axis_heuristic_but_manual_deny_remains",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14216_flow_repair",
+      "status": "passed",
+      "report": "testes-interface-definitiva.xml"
+    },
+    {
+      "name": "test_criteria_review_is_explicit_and_keeps_safety_description",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14216_flow_repair",
+      "status": "passed",
+      "report": "testes-interface-definitiva.xml"
+    },
+    {
+      "name": "test_barrier_holes_are_preserved_and_reference_lines_are_not_obstacles",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14216_flow_repair",
+      "status": "passed",
+      "report": "testes-interface-definitiva.xml"
+    },
+    {
+      "name": "test_select_command_always_enables_editing_even_when_already_active",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14216_flow_repair",
+      "status": "passed",
+      "report": "testes-interface-definitiva.xml"
+    },
+    {
+      "name": "test_locate_defect_enables_flow_visibility_and_centers_world_point",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14216_flow_repair",
+      "status": "passed",
+      "report": "testes-interface-definitiva.xml"
+    },
+    {
+      "name": "test_visible_repair_action_reaches_real_motor_and_preserves_dxf",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14216_repair_live",
+      "status": "passed",
+      "report": "testes-recuperacao-final.xml"
+    },
+    {
+      "name": "test_save_and_close_confirms_once_and_removes_dialog",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14237_interface_central",
+      "status": "passed",
+      "report": "testes-interface-definitiva.xml"
+    },
+    {
+      "name": "test_receiving_results_preserves_selection_without_opening_properties",
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14237_interface_central",
+      "status": "passed",
+      "report": "testes-interface-definitiva.xml"
+    }
+  ],
+  "javascript_syntax": "Todos os módulos app/js; executor validar_entrega.run",
+  "visual": "Central 760x620 inspecionada; painéis 1366x620 e760x480 nos testes",
+  "video_exported_this_stage": false,
+  "windows_native_tested": false,
+  "release_zip_created": false,
+  "main_untouched": true,
+  "readiness_score": 7.8,
+  "score_note": "Mantida avaliação anterior; sem certificação ou ganho não medido."
+}

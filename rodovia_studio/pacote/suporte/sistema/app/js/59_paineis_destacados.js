@@ -1,6 +1,6 @@
 // Janelas amplas para os mesmos campos do painel; alterações ficam pendentes até confirmar.
 (()=>{'use strict';
-let active=null,committing=false,closing=false,decision=null,closePending=null;
+let active=null,committing=false,closing=false,decision=null,closePending=null,resultsLoading=0;
 const clone=x=>JSON.parse(JSON.stringify(x));
 const originalSave=save,originalSchedule=scheduleSave,originalStart=start,originalLoad=load;
 function surface(){return active?.surface||dialog()}
@@ -99,8 +99,10 @@ const oldSchedulePreview=scheduleViewPreview,oldViewPreview=runViewPreview;
 scheduleViewPreview=function(...args){if(active){previewStale=true;pauseTimers();return}return oldSchedulePreview(...args)};
 runViewPreview=async function(...args){if(active){previewStale=true;pauseTimers();return false}return oldViewPreview(...args)};
 start=async function(...args){const project=pid,context=projectSession.context;if(args[2]?.automatic&&document.querySelector('dialog[open]'))return false;if(args[2]?.policyAuto&&active)return false;if(active&&!committing){pauseTimers();if(!await requestClose())return false}if(pid!==project||projectSession.context!==context)return false;if(['refresh','preview','render','scene3d'].includes(args[0]))window.RodoviaUpdatePolicy?.consumePending();return originalStart(...args)};
-load=async function(...args){if(active&&!committing&&!args[1]?.resultsOnly){if(!await requestClose()){$('projects').value=pid;return false}}return originalLoad(...args)};
+load=async function(...args){if(active&&!committing&&!args[1]?.resultsOnly){if(!await requestClose()){$('projects').value=pid;return false}}const resultsOnly=!!args[1]?.resultsOnly;if(resultsOnly)resultsLoading++;try{return await originalLoad(...args)}finally{if(resultsOnly)resultsLoading--}};
 const oldDock=abrirAba;abrirAba=function(id,click){
+ // Receber um resultado atualiza campos e seleção, sem abrir outra janela.
+ if(resultsLoading&&!click)return;
  if(closing)return oldDock(id,click);
  const key='dock:'+id;
  if(active){if(active.key===key){if(click)void requestClose();return}void requestClose().then(ok=>{if(ok)abrirAba(id,click)});return}

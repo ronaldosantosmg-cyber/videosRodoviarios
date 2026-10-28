@@ -1,0 +1,330 @@
+﻿indice,id,nome,tipo,rotulo,contexto,atributos
+1,layoutWide,,checkbox,Tela ampla,,{}
+2,layoutCompact,,checkbox,Compacto,,{}
+3,helpToggle,,checkbox,Dicas nos campos,,{}
+4,min_route_segment_m,,select-one,Desligar fluxos abaixo de50 m (padrão) 20 m 40 m 60 m 80 m 100 m 120 m 140 m 160 m 180 m 200 m,,{}
+5,rsPresentationBase,,select-one,Imagem da apresentação Mapa georreferenciadoImagem local + mapa georreferenciadoSomente imagem localFundo neutroCache legado (conferir cobertura),,{}
+6,rs3dTime,,range,Tempo da prévia,,{}
+7,projects,,select-one,Projetos salvos?Selecione…Novo trecho · 2026-10-28 00:14:46,1. Projeto e arquivos,{}
+8,files,,file,"Arquivos DXF, KMZ ou KML?",1. Projeto e arquivos,{}
+9,fileDxf,,file,,1. Projeto e arquivos,{}
+10,fileKmz,,file,,1. Projeto e arquivos,{}
+11,name,,text,Nome do trecho?,2. Configuração,{}
+12,origin,,text,Origem?,2. Configuração,{}
+13,destination,,text,Destino?,2. Configuração,{}
+14,km_start_m,,text,Km inicial?,2. Configuração,{}
+15,km_end_m,,text,Km final?,2. Configuração,{}
+16,reference_length_m,,text,Extensão de referência (km)?,2. Configuração,{}
+17,work_year,,text,Ano da obra?,2. Configuração,{}
+18,crs,,text,Sistema de coordenadas do DXF?,2. Configuração,{}
+19,units_to_m,,number,Fator da unidade → metros?,2. Configuração,{}
+20,imagery,,select-one,Imagem aérea?Esri online Imagem guardada no pacote (trecho de exemplo) Fundo neutro (sem satélite) Imagem local georreferenciada,2. Configuração,{}
+21,webSource,,select-one,FonteEsri World Imagery (atual) Esri Wayback (escolher data) Serviço XYZ (ladrilhos) Serviço WMS,2. Configuração,{}
+22,wbRelease,,select-one,Data da Wayback— carregar lista —,2. Configuração,{}
+23,webUrl,,text,Endereço do serviço,2. Configuração,{}
+24,webLayers,,text,Camadas (WMS),2. Configuração,{}
+25,webMaxZoom,,number,Zoom máximo,2. Configuração,{}
+26,webAttr,,text,Atribuição / crédito,2. Configuração,{}
+27,qmsQ,,text,Buscar,2. Configuração,{}
+28,qmsTipo,,select-one,TipoTMS/XYZ e WMS Só TMS/XYZ Só WMS,2. Configuração,{}
+29,qmsCobre,,checkbox,Só os que cobrem o trecho,2. Configuração,{}
+30,qmsWorks,,checkbox,Só os que estão funcionando,2. Configuração,{}
+31,qmsImg,,checkbox,Só imagens aéreas/satélite,2. Configuração,{}
+32,reverse_axis,,checkbox,Inverter início e fim do eixo?,2. Configuração,{}
+33,coordinates_confirmed,,checkbox,"Conferi CRS, unidades e alinhamento na prévia?",2. Configuração,{}
+34,hatch_auto,,checkbox,Aplicar as sugestões automaticamente às hachuras de camadas sem tipo,2. Configuração,{}
+35,,,select-one,,2. Configuração,"{""hk"": ""role""}"
+36,,,select-one,,2. Configuração,"{""hk"": ""material""}"
+37,layerProfile,,select-one,,2. Configuração,{}
+38,,,select-one,,2. Configuração,"{""layer"": ""0""}"
+39,,,select-one,,2. Configuração,"{""layer"": ""Defpoints""}"
+40,,,select-one,,2. Configuração,"{""layer"": ""EIXO""}"
+41,,,select-one,,2. Configuração,"{""layer"": ""PAVIMENTO""}"
+42,layer_split,,select-one,Camada única (tudo na layer 0)Separar automaticamente por cor e tipo de entidade Separar todas as camadas por cor e tipo Não separar (nomes de camada como no DXF),2. Configuração,{}
+43,,,color,Bordo (linha de borda),2. Configuração,"{""rolecolor"": ""edge_line""}"
+44,,,color,Hidrografia,2. Configuração,"{""rolecolor"": ""water""}"
+45,,,color,Pista existente,2. Configuração,"{""rolecolor"": ""existing_pavement""}"
+46,,,color,Pista projetada,2. Configuração,"{""rolecolor"": ""pavement""}"
+47,,,color,Acostamento,2. Configuração,"{""rolecolor"": ""shoulder""}"
+48,,,color,Canteiro,2. Configuração,"{""rolecolor"": ""median""}"
+49,,,color,Barreira,2. Configuração,"{""rolecolor"": ""barrier""}"
+50,,,color,OAE,2. Configuração,"{""rolecolor"": ""oae""}"
+51,,,color,Corte,2. Configuração,"{""rolecolor"": ""cut""}"
+52,,,color,Aterro,2. Configuração,"{""rolecolor"": ""fill""}"
+53,,,color,Faixa de domínio,2. Configuração,"{""rolecolor"": ""domain""}"
+54,auto_earthworks,,checkbox,Hachuras “HATCH_MATERIAL” sem tipo viram talude (corte/aterro pela proximidade),2. Configuração,{}
+55,,,select-one,,2. Configuração,"{""route"": ""axis:6e01dffc33e38036b689f358d64d37752f445aee9224c3f9198a6729a22dec67""}"
+56,importFile,,file,,2. Configuração,{}
+57,overlayFile,,file,Arquivo DXF?,"Camadas, imagem local e intercâmbio",{}
+58,imgFiles,,file,"Arquivos (selecione juntos a imagem, o arquivo de mundo e o .prj)?","Camadas, imagem local e intercâmbio",{}
+59,imgCrs,,text,CRS da imagem (opcional se houver .prj/GeoTIFF),"Camadas, imagem local e intercâmbio",{}
+60,imgMode,,select-one,Ao enviarSubstituir a imagem principal Acrescentar ao mosaico,"Camadas, imagem local e intercâmbio",{}
+61,liDetail,,checkbox,Usar na aproximação do vídeo (detalhe),"Camadas, imagem local e intercâmbio",{}
+62,liEditor,,checkbox,Mostrar no editor,"Camadas, imagem local e intercâmbio",{}
+63,liBright,,range,Brilho,"Camadas, imagem local e intercâmbio",{}
+64,liContrast,,range,Contraste,"Camadas, imagem local e intercâmbio",{}
+65,liSat,,range,Saturação,"Camadas, imagem local e intercâmbio",{}
+66,liNodata,,select-one,"Bordas pretas/brancasTransparentes só no branco 255 / preto 0 da beira Anterior (quase branco ≥253 e quase preto ≤3, em toda a imagem) Manter","Camadas, imagem local e intercâmbio",{}
+67,elSource,,select-one,Fonte?Sem elevação MDT local Web (AWS Terrain Tiles),"Camadas, imagem local e intercâmbio",{}
+68,elExag,,number,Exagero vertical,"Camadas, imagem local e intercâmbio",{}
+69,elHill,,checkbox,Relevo sombreado em planta?,"Camadas, imagem local e intercâmbio",{}
+70,elHillOp,,number,Opacidade do sombreado,"Camadas, imagem local e intercâmbio",{}
+71,elCont,,checkbox,Curvas de nível?,"Camadas, imagem local e intercâmbio",{}
+72,elInt,,number,Intervalo das curvas (m),"Camadas, imagem local e intercâmbio",{}
+73,elLevel,,checkbox,Nivelar a pista pelo perfil do eixo?,"Camadas, imagem local e intercâmbio",{}
+74,elFiles,,file,Arquivos do MDT local (GeoTIFF; ou TIF/PNG + arquivo de mundo + .prj),"Camadas, imagem local e intercâmbio",{}
+75,elCrs,,text,CRS do MDT (se não houver .prj/GeoTIFF),"Camadas, imagem local e intercâmbio",{}
+76,markFile,,file,"Importar marcações (GeoJSON, KML, KMZ ou CSV de obras)","Camadas, imagem local e intercâmbio",{}
+77,pkgFile,,file,Abrir pacote de projeto (.zip) — cria um projeto novo,"Camadas, imagem local e intercâmbio",{}
+78,pngStart,,number,Início (s),"Camadas, imagem local e intercâmbio",{}
+79,pngEnd,,number,Fim (s),"Camadas, imagem local e intercâmbio",{}
+80,pngEvery,,number,Salvar 1 a cada N quadros,"Camadas, imagem local e intercâmbio",{}
+81,pngRgba,,checkbox,Também camadas RGBA (fundo transparente)?,"Camadas, imagem local e intercâmbio",{}
+82,per_display,,select-one,No vídeoTrecho colorido do km inicial ao final + caixa Só a caixa de chamada,Obras do PER e cronograma,{}
+83,schedule_mode,,select-one,Linha do tempo pelo cronogramaDesligada (todas as obras como projeto) Ligada: o vídeo percorre as datas,Obras do PER e cronograma,{}
+84,schedule_start,,date,Data inicial do vídeo,Obras do PER e cronograma,{}
+85,schedule_end,,date,Data final do vídeo,Obras do PER e cronograma,{}
+86,schedule_show_planned,,checkbox,Mostrar as obras previstas (ainda não iniciadas) em tracejado,Obras do PER e cronograma,{}
+87,width,,select-one,Resolução?3840 × 2160 (4K) 2560 × 1440 1920 × 1080 1280 × 720,5. Exportar vídeo,{}
+88,video_quality,,select-one,"Qualidade do vídeo?Padrão (como antes) Alta — fundo mais nítido, menos compressão Máxima — superamostragem e detalhe 0,1 m (mais lenta)",5. Exportar vídeo,{}
+89,fps,,select-one,Quadros/segundo?30 24,5. Exportar vídeo,{}
+90,duration_s,,number,Duração (segundos)?,5. Exportar vídeo,{}
+91,render_profile,,select-one,"Perfil de geração?Final (superamostragem da imagem) Rápido (rascunho, sem superamostragem)",5. Exportar vídeo,{}
+92,camera_mode,,select-one,Voo da câmeraPercurso + paradas nas intervenções Contínuo até o fim do segmento (sem paradas) Pontos-chave marcados (voo entre as vistas escolhidas)Tráfego — veículos em evidência,5. Exportar vídeo,{}
+93,weather,,select-one,ClimaCéu limpo (como antes) Nublado Chuva (pista molhada) Neblina,5. Exportar vídeo,{}
+94,weather_intensity,,range,Intensidade do clima 60%,5. Exportar vídeo,{}
+95,sun_shadows,,checkbox,Sombras pela hora do sol,5. Exportar vídeo,{}
+96,sun_hour,,range,Hora do sol 15h00,5. Exportar vídeo,{}
+97,pedestrians,,checkbox,"Pedestres (faixas de pedestre, passarelas e caminhos marcados)",5. Exportar vídeo,{}
+98,rail_smoke,,checkbox,Fumaça dos trens,5. Exportar vídeo,{}
+99,pedestrian_seed,,number,Semente dos pedestres,5. Exportar vídeo,{}
+100,vehicle_mix,,select-one,"VeículosEngenharia (leves 2×6 m, motos 0,5×2 m, pesados 3×18 m e longos 3×30 m)Frota variada (carros, picapes, vans, motos, caminhões, carretas, ônibus) Clássica (carros, caminhões e ônibus)",5. Exportar vídeo,{}
+101,before_after,,checkbox,Comparação antes/depois no final do vídeo,5. Exportar vídeo,{}
+102,before_after_s,,number,Duração da comparação (s),5. Exportar vídeo,{}
+103,cabinEnabled,,checkbox,Gerar o vídeo pela vista da cabine?,5. Exportar vídeo,{}
+104,cabinDuration,,number,Duração do trecho (s),5. Exportar vídeo,{}
+105,cabinHeight,,number,Altura do olho (m),5. Exportar vídeo,{}
+106,cabinFov,,number,Campo de visão (°),5. Exportar vídeo,{}
+107,cabinPitch,,number,Inclinação para baixo (°),5. Exportar vídeo,{}
+108,cabinSmooth,,number,Suavização (s),5. Exportar vídeo,{}
+109,cabinSpeed,,number,"Velocidade (km/h, vazio = tráfego)",5. Exportar vídeo,{}
+110,cabinHood,,checkbox,Capô e painel,5. Exportar vídeo,{}
+111,view_width_m,,number,Largura da vista (metros)?,5. Exportar vídeo,{}
+112,short_video_mode,,select-one,Vídeos com menos de 45 segundos?Vista geral estável e aparecimento suave Manter sobrevoo completo (mais rápido),5. Exportar vídeo,{}
+113,traffic_model,,select-one,"Movimento dos veículos?Simulado sem colisão (fila, interdições, desvios) Anterior",5. Exportar vídeo,{}
+114,traffic_density,,number,Densidade do tráfego?Usar densidade,5. Exportar vídeo,{}
+115,traffic_capacity_vphpl,,number,Capacidade nominal por faixa (ucp/h)?,5. Exportar vídeo,{}
+116,traffic_demand_vphpl,,number,"Demanda por faixa (veíc/h, vazio = automática)",5. Exportar vídeo,{}
+117,queue_capacity_model,,checkbox,Formar/dissipar filas pela capacidade da faixa?,5. Exportar vídeo,{}
+118,heavy_shoulder_probe,,checkbox,Sondar acostamento em conflitos de pesados (até 1 m),5. Exportar vídeo,{}
+119,heavy_vehicle_reaction,,checkbox,"Reação específica a caminhões, ônibus e carretas?",5. Exportar vídeo,{}
+120,median_crossing,,select-one,"Travessia do canteiro?Só em retornos (desnível, rotatória, em nível) e locais permitidos Só desnível/rotatória e locais permitidos Livre (anterior)",5. Exportar vídeo,{}
+121,traffic,,checkbox,Incluir veículos em trajetórias conectadas?,5. Exportar vídeo,{}
+122,traffic_speed_kmh,,number,Velocidade ilustrativa (km/h)?,5. Exportar vídeo,{}
+123,project_contrast,,range,Contraste projeto × imagem,5. Exportar vídeo,{}
+124,vehicle_paths,,select-one,"Trajetória dos veículosEm linha reta (suavizada, sem recuos nas emendas) Clássico",5. Exportar vídeo,{}
+125,direction_reference,,select-one,Sentido sem seta marcadaPelo eixo do projeto (direita do eixo = km crescente) Clássico,5. Exportar vídeo,{}
+126,progress_indicator,,checkbox,Indicador de progresso da revelação (%) no rodapé,5. Exportar vídeo,{}
+127,technical_textures,,checkbox,"No vídeo técnico, aplicar também as texturas realistas sobre as hachuras",5. Exportar vídeo,{}
+128,render_engine,,select-one,"Motor de montagemOtimizado (1.24, mais rápido) Clássico (quadros idênticos aos anteriores)",5. Exportar vídeo,{}
+129,callout_layout,,select-one,Caixas de chamada?Automáticas sem sobreposição Clássico,5. Exportar vídeo,{}
+130,advance_mode,,select-one,Avanço da câmera sobre a imagem?Pela duração digitada do vídeo Pela velocidade de avanço (duração calculada),5. Exportar vídeo,{}
+131,advance_speed_kmh,,number,Velocidade de avanço (km/h sobre a imagem)?,5. Exportar vídeo,{}
+132,curve_speed,,checkbox,Veículos reduzem nas curvas e ligações?,5. Exportar vídeo,{}
+133,day_night,,select-one,Iluminação?Dia (como antes) Transição dia → noite Noite,5. Exportar vídeo,{}
+134,night_start_s,,number,Início do anoitecer (s)?,5. Exportar vídeo,{}
+135,night_transition_s,,number,Duração da transição (s)?,5. Exportar vídeo,{}
+136,night_darkness,,number,Escuridão?,5. Exportar vídeo,{}
+137,night_signage_glow,,checkbox,Sinalização refletiva em destaque à noite?,5. Exportar vídeo,{}
+138,signage_style,,select-one,Pintura de faixas?Limpa (sem sobras nas junções) Anterior,5. Exportar vídeo,{}
+139,flow_arrows,,select-one,Setas de fluxo?A cada km e nos pontos de conflito Frequentes (anterior) Sem setas,5. Exportar vídeo,{}
+140,flow_arrow_spacing_m,,number,Espaçamento das setas (m)?,5. Exportar vídeo,{}
+141,signage_detail,,select-one,"Sinalização horizontal e verticalCompleta (faixas, zebrados, PARE, placas) Básica",5. Exportar vídeo,{}
+142,lanes_per_direction,,select-one,Faixas por sentido na pista principal2 (o restante é acostamento) 1 3 4 Pela largura da pista,5. Exportar vídeo,{}
+143,lane_width_m,,number,Largura da faixa (m),5. Exportar vídeo,{}
+144,lane_arrow_repeat,,select-one,Setas repetidas em cada faixaSó antes de saídas e acessos Em todas as setas Nunca (uma seta por pista),5. Exportar vídeo,{}
+145,arrow_min_gap_m,,number,Distância mínima entre setas (m),5. Exportar vídeo,{}
+146,dxf_signage,,select-one,Sinalização do DXFSubstitui a gerada Soma à gerada,5. Exportar vídeo,{}
+147,lane_arrows,,checkbox,Setas por faixa (reta/direita/esquerda pelo itinerário),5. Exportar vídeo,{}
+148,gore_hatch,,checkbox,Zebrados automáticos nos gores,5. Exportar vídeo,{}
+149,stop_lines,,checkbox,Retenção/PARE e dê a preferência,5. Exportar vídeo,{}
+150,auto_signs,,checkbox,"Placas automáticas (PARE, dê a preferência)",5. Exportar vídeo,{}
+151,cities_radius_km,,number,Raio para cidades (km)?,5. Exportar vídeo,{}
+152,imagery_detail,,select-one,"Imagem detalhada (aproximação)?Automática: Esri ~0,3 m quando a câmera se aproxima Desligada (só o mosaico)",5. Exportar vídeo,{}
+153,detail_textures,,checkbox,"Texturas do projeto em alta resolução (0,2 m)?",5. Exportar vídeo,{}
+154,detail_resolution_m,,select-one,"Resolução do detalhe0,2 m por pixel 0,1 m por pixel (vídeo 4K/imagem local; mais lento)",5. Exportar vídeo,{}
+155,km_markers,,checkbox,Marcos do km inicial e final no mapa?,5. Exportar vídeo,{}
+156,direction_badge,,checkbox,Seta no topo com o sentido do estaqueamento?,5. Exportar vídeo,{}
+157,median_grass,,checkbox,Grama nos canteiros?,5. Exportar vídeo,{}
+158,cities_show,,checkbox,Nomes das cidades próximas?,5. Exportar vídeo,{}
+159,visual_quality,,select-one,"Qualidade visual?Aprimorada (asfalto em metros, concreto, veículos por tipo) Anterior",5. Exportar vídeo,{}
+160,hydrography,,checkbox,Hidrografia IBGE/OSM?,5. Exportar vídeo,{}
+161,water_texture,,checkbox,Textura da água?,5. Exportar vídeo,{}
+162,water_texture_opacity,,number,Opacidade da textura,5. Exportar vídeo,{}
+163,water_names,,checkbox,Nomes dos rios?,5. Exportar vídeo,{}
+164,water_names_opacity,,number,Opacidade dos nomes,5. Exportar vídeo,{}
+165,water_animated,,checkbox,Ondulação animada sutil?,5. Exportar vídeo,{}
+166,headlights,,checkbox,Faróis acesos?,5. Exportar vídeo,{}
+167,encoder,,select-one,Aceleração?Automática: testar NVIDIA e usar CPU se necessário Priorizar NVIDIA NVENC (com retorno à CPU) Somente CPU,5. Exportar vídeo,{}
+168,cpu_preset,,select-one,Perfil da CPU?Rápido — veryfast Original — fast,5. Exportar vídeo,{}
+169,imagery_pixels,,select-one,Resolução do mosaico?4096 8192 2048,5. Exportar vídeo,{}
+170,render_workers,,select-one,Processos de montagem?Automático (núcleos e memória do PC) 1 (sem paralelismo) 2 3 4 6 8 12,5. Exportar vídeo,{}
+171,poiTitle,,text,Nome?,4. Intervenções e identificações,{}
+172,poiKind,,select-one,Categoria?DuplicaçãoFaixa adicional (3ª faixa)Via marginalIluminaçãoPassarelaOAE (ponte/viaduto)Alargamento de OAEInterseção/dispositivoRetornoAcessoCorreção de traçadoAcostamentoPavimento (restauração)DrenagemContenção/taludeSinalizaçãoDefensa/barreiraCicloviaCalçada/passeioPraça de pedágioPosto/base operacionalCerca/alambradoPassagem de faunaBaia de ônibusTravessia de pedestresOutra obra,4. Intervenções e identificações,{}
+173,poiSubtitle,,text,Subtítulo?,4. Intervenções e identificações,{}
+174,poiKmMode,,select-one,Km?Calculado pelo estaqueamento Manual (referência oficial),4. Intervenções e identificações,{}
+175,poiKm,,text,Km manual?,4. Intervenções e identificações,{}
+176,poiX,,number,X — coordenada do projeto?,4. Intervenções e identificações,{}
+177,poiY,,number,Y — coordenada do projeto?,4. Intervenções e identificações,{}
+178,bridgeSpan,,number,Vão da passarela,4. Intervenções e identificações,{}
+179,bridgeWidth,,number,Largura do tabuleiro,4. Intervenções e identificações,{}
+180,bridgeAccess,,select-one,AcessoRampas dos dois lados Escadas Sem acesso representado,4. Intervenções e identificações,{}
+181,rampFlight,,number,Comprimento de cada lance de rampa,4. Intervenções e identificações,{}
+182,busLength,,number,Comprimento da parada de ônibus,4. Intervenções e identificações,{}
+183,busDepth,,number,Profundidade da baia,4. Intervenções e identificações,{}
+184,busSide,,select-one,Sentido da baiaCrescente — lado direito do eixo Decrescente — lado esquerdo do eixo,4. Intervenções e identificações,{}
+185,preview_mode,,select-one,,"Vista, prévia e sessões",{}
+186,preview_time_s,,range,Instante da câmera do vídeo: 30 s?,"Vista, prévia e sessões",{}
+187,baseMode,,select-one,Fundo de edição?Imagem web (Esri) + vetores do DXF/KMZ Prévia renderizada Só vetores (sem imagem),"Vista, prévia e sessões",{}
+188,tileAlpha,,range,Imagem?,"Vista, prévia e sessões",{}
+189,vecAlpha,,range,Vetores?,"Vista, prévia e sessões",{}
+190,,,checkbox,Pavimento (1),"Vista, prévia e sessões","{""vrole"": ""pavement""}"
+191,,,checkbox,Eixos (1),"Vista, prévia e sessões","{""vrole"": ""axis""}"
+192,,,checkbox,Sinalização do vídeo (539),"Vista, prévia e sessões","{""vrole"": ""signage""}"
+193,,,checkbox,Setas de fluxo do vídeo (1),"Vista, prévia e sessões","{""vrole"": ""arrows""}"
+194,,,checkbox,Trajetórias e sentidos (1),"Vista, prévia e sessões","{""vrole"": ""flows""}"
+195,sessList,,select-one,Sessão?— sessões salvas —,"Vista, prévia e sessões",{}
+196,sessAuto,,checkbox,Retomar ao abrir?,"Vista, prévia e sessões",{}
+197,rsPresentationProfile,,select-one,Perfil de apresentaçãoPersonalizadoTécnicoMaquete artística,Materiais e apresentação,{}
+198,style_profile,,select-one,"Montagem do vídeoArtístico (realista: texturas de asfalto e concreto) Técnico (hachuras de desenho: asfalto, concreto com juntas)",Materiais e apresentação,{}
+199,pavement_material,,select-one,"Pista novaPavimento flexível (asfalto) Pavimento rígido (concreto, placas com juntas)",Materiais e apresentação,{}
+200,existing_material,,select-one,Pista existentePavimento flexível (asfalto) Pavimento rígido (concreto),Materiais e apresentação,{}
+201,shoulder_material,,select-one,AcostamentoFlexível (asfalto) Rígido (concreto),Materiais e apresentação,{}
+202,joint_spacing_m,,number,Juntas transversais do concreto a cada (m),Materiais e apresentação,{}
+203,texture_style,,select-one,"TexturasArtístico realista (bordas, cor do asfalto, pedriscos, grama em manchas) Realistas (agregado, remendos, fissuras, trilhas de roda) Anteriores",Materiais e apresentação,{}
+204,earthwork_look,,select-one,"Aparência dos taludesHachura de projeto (corte vermelho, aterro verde) Terreno (solo no corte, grama no aterro)",Materiais e apresentação,{}
+205,natural_materials_only,,checkbox,Usar materiais naturais na maquete (preservar hachuras técnicas no projeto),Materiais e apresentação,{}
+206,,,range,Grão / agregado 1.00,Materiais e apresentação,"{""f"": ""grao""}"
+207,,,range,Variação de tom 1.00,Materiais e apresentação,"{""f"": ""tom""}"
+208,,,range,Remendos / manchas 1.00,Materiais e apresentação,"{""f"": ""remendos""}"
+209,,,range,Fissuras 1.00,Materiais e apresentação,"{""f"": ""fissuras""}"
+210,,,range,Brilho 0.00,Materiais e apresentação,"{""f"": ""brilho""}"
+211,,,range,Grão / agregado 1.00,Materiais e apresentação,"{""f"": ""grao""}"
+212,,,range,Variação de tom 1.00,Materiais e apresentação,"{""f"": ""tom""}"
+213,,,range,Remendos / manchas 1.00,Materiais e apresentação,"{""f"": ""remendos""}"
+214,,,range,Fissuras 1.00,Materiais e apresentação,"{""f"": ""fissuras""}"
+215,,,range,Brilho 0.00,Materiais e apresentação,"{""f"": ""brilho""}"
+216,,,range,Grão / agregado 1.00,Materiais e apresentação,"{""f"": ""grao""}"
+217,,,range,Variação de tom 1.00,Materiais e apresentação,"{""f"": ""tom""}"
+218,,,range,Remendos / manchas 1.00,Materiais e apresentação,"{""f"": ""remendos""}"
+219,,,range,Fissuras 1.00,Materiais e apresentação,"{""f"": ""fissuras""}"
+220,,,range,Brilho 0.00,Materiais e apresentação,"{""f"": ""brilho""}"
+221,,,range,Grão / agregado 1.00,Materiais e apresentação,"{""f"": ""grao""}"
+222,,,range,Variação de tom 1.00,Materiais e apresentação,"{""f"": ""tom""}"
+223,,,range,Remendos / manchas 1.00,Materiais e apresentação,"{""f"": ""remendos""}"
+224,,,range,Fissuras 1.00,Materiais e apresentação,"{""f"": ""fissuras""}"
+225,,,range,Brilho 0.00,Materiais e apresentação,"{""f"": ""brilho""}"
+226,,,range,Grão / agregado 1.00,Materiais e apresentação,"{""f"": ""grao""}"
+227,,,range,Variação de tom 1.00,Materiais e apresentação,"{""f"": ""tom""}"
+228,,,range,Remendos / manchas 1.00,Materiais e apresentação,"{""f"": ""remendos""}"
+229,,,range,Fissuras 1.00,Materiais e apresentação,"{""f"": ""fissuras""}"
+230,,,range,Brilho 0.00,Materiais e apresentação,"{""f"": ""brilho""}"
+231,,,range,Grão / agregado 1.00,Materiais e apresentação,"{""f"": ""grao""}"
+232,,,range,Variação de tom 1.00,Materiais e apresentação,"{""f"": ""tom""}"
+233,,,range,Remendos / manchas 1.00,Materiais e apresentação,"{""f"": ""remendos""}"
+234,,,range,Fissuras 1.00,Materiais e apresentação,"{""f"": ""fissuras""}"
+235,,,range,Brilho 0.00,Materiais e apresentação,"{""f"": ""brilho""}"
+236,,,range,Grão / agregado 1.00,Materiais e apresentação,"{""f"": ""grao""}"
+237,,,range,Variação de tom 1.00,Materiais e apresentação,"{""f"": ""tom""}"
+238,,,range,Remendos / manchas 1.00,Materiais e apresentação,"{""f"": ""remendos""}"
+239,,,range,Fissuras 1.00,Materiais e apresentação,"{""f"": ""fissuras""}"
+240,,,range,Brilho 0.00,Materiais e apresentação,"{""f"": ""brilho""}"
+241,,,range,Grão / agregado 1.00,Materiais e apresentação,"{""f"": ""grao""}"
+242,,,range,Variação de tom 1.00,Materiais e apresentação,"{""f"": ""tom""}"
+243,,,range,Remendos / manchas 1.00,Materiais e apresentação,"{""f"": ""remendos""}"
+244,,,range,Fissuras 1.00,Materiais e apresentação,"{""f"": ""fissuras""}"
+245,,,range,Brilho 0.00,Materiais e apresentação,"{""f"": ""brilho""}"
+246,,,select-one,,Materiais e apresentação,"{""k"": ""pattern""}"
+247,,,color,Preenchimento,Materiais e apresentação,"{""k"": ""fill""}"
+248,,,color,Hachura/juntas,Materiais e apresentação,"{""k"": ""hatch""}"
+249,,,number,Espaçamento (m),Materiais e apresentação,"{""k"": ""spacing_m""}"
+250,,,number,Ângulo (°),Materiais e apresentação,"{""k"": ""angle_deg""}"
+251,,,number,Espessura do traço (m),Materiais e apresentação,"{""k"": ""line_m""}"
+252,,,select-one,,Materiais e apresentação,"{""k"": ""pattern""}"
+253,,,color,Preenchimento,Materiais e apresentação,"{""k"": ""fill""}"
+254,,,color,Hachura/juntas,Materiais e apresentação,"{""k"": ""hatch""}"
+255,,,number,Espaçamento (m),Materiais e apresentação,"{""k"": ""spacing_m""}"
+256,,,number,Ângulo (°),Materiais e apresentação,"{""k"": ""angle_deg""}"
+257,,,number,Espessura do traço (m),Materiais e apresentação,"{""k"": ""line_m""}"
+258,,,select-one,,Materiais e apresentação,"{""k"": ""pattern""}"
+259,,,color,Preenchimento,Materiais e apresentação,"{""k"": ""fill""}"
+260,,,color,Hachura/juntas,Materiais e apresentação,"{""k"": ""hatch""}"
+261,,,number,Espaçamento (m),Materiais e apresentação,"{""k"": ""spacing_m""}"
+262,,,number,Ângulo (°),Materiais e apresentação,"{""k"": ""angle_deg""}"
+263,,,number,Espessura do traço (m),Materiais e apresentação,"{""k"": ""line_m""}"
+264,,,select-one,"ModoDesligado (km só quando digitado)Automático (início do eixo, sentido do eixo)Manual (início/fim/sentido no mapa)",3. Editor (imagem web ou prévia),"{""f"": ""chainage.mode""}"
+265,,,checkbox,Ajuste proporcional ao km final (precisa de início e fim),3. Editor (imagem web ou prévia),"{""f"": ""chainage.calibrate""}"
+266,alignMode,,select-one,Modelo?Translação Similaridade (rotação + escala),3. Editor (imagem web ou prévia),{}
+267,alignState,,text,Estado,3. Editor (imagem web ou prévia),{}
+268,pathName,,text,Nome do fluxo,3. Editor (imagem web ou prévia),{}
+269,pathKind,,select-one,TipoRetorno Dispositivo Marginal Principal,3. Editor (imagem web ou prévia),{}
+270,pathDirection,,select-one,DireçãoAutomática Crescente Decrescente Dois sentidos,3. Editor (imagem web ou prévia),{}
+271,pathLevel,,number,Nível da via,3. Editor (imagem web ou prévia),{}
+272,traffic_network_preview,,checkbox,Mostrar trajetórias validadas na imagem da prévia?,3. Editor (imagem web ou prévia),{}
+273,cmdLine,,text,,,{}
+274,snapOn,,checkbox,Snap,,{}
+275,hudOn,,checkbox,Info,,{}
+276,orthoOn,,checkbox,Orto,,{}
+277,rsUpdateMode,,select-one,Atualização ManualAutomático,,{}
+278,inputValue,,text,,,{}
+279,td_kind,,select-one,Tipo da superfíciePista nova Pista existente Acostamento,,{}
+280,td_mat,,select-one,MaterialPadrão do projeto Flexível (asfalto) Rígido (concreto),,{}
+281,td_grao,,range,Grão,,{}
+282,td_tom,,range,Variação de tom,,{}
+283,td_remendos,,range,Remendos,,{}
+284,td_fissuras,,range,Fissuras,,{}
+285,td_brilho,,range,Brilho,,{}
+286,td_scope,,select-one,Aplicar aSó a área selecionada (textura própria) Todas as áreas deste tipo (textura do tipo),,{}
+287,sd_surf,,select-one,SuperfícieTalude de corte Talude de aterro Canteiro (grama) Pista nova Pista existente Acostamento Concreto,,{}
+288,sd_grao,,range,Grão,,{}
+289,sd_tom,,range,Variação de tom,,{}
+290,sd_remendos,,range,Manchas,,{}
+291,sd_fissuras,,range,Fissuras / sulcos,,{}
+292,sd_brilho,,range,Brilho,,{}
+293,sd_color,,color,Cor,,{}
+294,sd_look,,select-one,"Aparência dos taludesHachura (técnica) Natural (terreno, com textura)",,{}
+295,sd_scope,,select-one,Aplicar aSó a área selecionada (região com textura própria) Todo o projeto (textura do tipo),,{}
+296,sd_wcolor,,color,Cor da água,,{}
+297,sd_wtex,,checkbox,Textura (ondulação),,{}
+298,sd_wop,,range,Opacidade da textura,,{}
+299,sd_wanim,,checkbox,Água animada no vídeo,,{}
+300,sd_wnames,,checkbox,Nomes dos rios,,{}
+301,sd_white,,color,Cor da tinta branca,,{}
+302,sd_yellow,,color,Cor da tinta amarela,,{}
+303,sd_wear,,range,Desgaste,,{}
+304,sd_sop,,range,Opacidade,,{}
+305,resetOutputs,,checkbox,"Apagar também o vídeo, a prévia e o cache de aproximação (são gerados de novo)",,{}
+306,ruleName,,text,Nome do perfil,,{}
+307,ruleText,,textarea,,,{}
+308,opSearch,,search,,,{}
+309,opSort,,select-one,OrdenarMais recentes (gravação) Mais recentes (criação) Nome (A–Z),,{}
+310,tsName,,text,Nome do modelo,,{}
+311,tsDesc,,text,Descrição (opcional),,{}
+312,tsMarks,,checkbox,"Incluir as marcações do projeto (áreas, placas, fluxos, rotas, destaques…)",,{}
+313,lmSearch,,search,,,{}
+314,lmShow,,select-one,MostrarTodas Só visíveis Só ocultas Só congeladas Com função definida,,{}
+315,lmAll,,checkbox,Marcar todas,,{}
+316,rsNewName,,text,Nome do projeto,,{}
+317,rsNewOrigin,,text,Origem,,{}
+318,rsNewDestination,,text,Destino,,{}
+319,rsNewStart,,text,Km inicial,,{}
+320,rsNewEnd,,text,Km final,,{}
+321,rsNewCrs,,text,CRS do projeto,,{}
+322,rsNewCoordinates,,checkbox,Confirmei o CRS e as unidades em metros nos arquivos,,{}
+323,rsNewWidth,,select-one,ResoluçãoHD — 1280 × 720Full HD — 1920 × 1080QHD — 2560 × 14404K — 3840 × 2160,,{}
+324,rsNewFps,,select-one,Quadros por segundo2430,,{}
+325,rsNewDuration,,number,Duração (s),,{}
+326,rsNewLimit,,select-one,Desligar fluxos abaixo de50 m (padrão)20 m40 m60 m80 m100 m120 m140 m160 m180 m200 m,,{}
+327,rsNewQuality,,select-one,QualidadePadrãoAltaMáxima,,{}
+328,rsNewImagery,,select-one,FundoNeutro — funciona sem internetImagem local — enviar no projetoImagem aérea online / cache,,{}
+329,rsNewFiles,,file,Arquivos iniciais (opcional),,{}

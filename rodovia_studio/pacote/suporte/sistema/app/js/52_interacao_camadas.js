@@ -20,7 +20,7 @@ function capture(){
   }}catch{}
   return st;
 }
-function restore(st,{selection=true,anchor=true}={}){
+function restore(st,{selection=true,anchor=true,properties=false}={}){
   if(!st||S.restoring)return;S.restoring=true;
   try{
     if(typeof ready==='function'&&ready()&&canvas&&st.ppm&&st.center){
@@ -35,7 +35,8 @@ function restore(st,{selection=true,anchor=true}={}){
       if(st.sel&&ok(st.sel))sel={...st.sel};
       else if(typeof sel!=='undefined')sel=null;
       if(typeof selSet!=='undefined')selSet=(st.selSet||[]).filter(ok).map(x=>({...x}));
-      try{
+      // Restaurar vista/seleção não é uma solicitação para abrir propriedades.
+      if(properties)try{
         const keepClosed=typeof dockClosedSelection!=='undefined'&&dockClosedSelection===dockSelectionKey();
         if(keepClosed){/* A seleção continua realçada; resize não reabre uma janela fechada. */}
         else if(typeof selLink!=='undefined'&&selLink)showLinkProps();

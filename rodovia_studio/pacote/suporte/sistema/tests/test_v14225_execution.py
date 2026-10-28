@@ -16,7 +16,7 @@ def corner(tmp_path):
  d=tmp_path/('a'*32);d.mkdir();doc=ezdxf.new();doc.layers.new('EIXO');doc.layers.new('PAVIMENTO');m=doc.modelspace()
  m.add_lwpolyline([(500050,7800000),(500200,7800000),(500200,7800150)],dxfattribs={'layer':'EIXO'})
  h=m.add_hatch(dxfattribs={'layer':'PAVIMENTO'});h.paths.add_polyline_path([(500000,7799980),(500500,7799980),(500500,7800200),(500000,7800200)],is_closed=True);doc.saveas(d/'input.dxf')
- s=Settings(width=1280,fps=24,duration_s=3,imagery='neutral',hydrography=False,route_directions={'0':'forward'},coordinates_confirmed=True)
+ s=Settings(width=1280,fps=24,duration_s=3,imagery='neutral',hydrography=False,route_directions={'axis:'+__import__('app.native_axes',fromlist=['axis_fingerprint']).axis_fingerprint([(500050,7800000),(500200,7800000),(500200,7800150)],'EIXO',0):'forward'},coordinates_confirmed=True)
  P.save_config(d,s.model_dump());data=publish(d,s);assert data['segments'][0]['technical_status']=='problem';return d,s,data
 
 def propose(corner):

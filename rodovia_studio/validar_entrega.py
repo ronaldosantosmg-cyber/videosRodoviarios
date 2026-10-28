@@ -18,6 +18,7 @@ PACKAGE=ROOT/'pacote'
 SYSTEM=PACKAGE/'suporte/sistema'
 EVIDENCE=ROOT/'evidencias'/json.loads((PACKAGE/'manifest.json').read_text())['version']
 TESTS=[
+ 'tests/test_v14237_interface_central.py',
  'tests/test_v14236_circulation.py','tests/test_v14236_circulation_ui.py',
  'tests/test_v14235_critical.py','tests/test_v14235_critical_ui.py','tests/test_v14235_node_save.py','tests/test_v14235_high.py',
  'tests/test_v14234_nodes_classic_swept.py','tests/test_v14234_nodes_ui_video.py',

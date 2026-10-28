@@ -9,3 +9,11 @@ Próximos ensaios: projeto salvo atual do usuário, sessões prolongadas Windows
 Consolidar futuramente cadastros/ações ainda duplicados e ampliar correções tipadas, sem outro motor nem código arbitrário de IA. Não prometer reconstrução universal de qualquer ligação ou conformidade normativa. Pesos/runtime 3B real e API real permanecem sem homologação.
 
 Somente branch de desenvolvimento, main protegida, fontes e dados persistentes preservados, testes atuais antes de pacote e ZIPs históricos intactos em atualizacoes/.
+
+## Etapa de desenvolvimento: menus e central de correção
+
+Iniciada a consolidação solicitada (itens 4 e 2 da auditoria). O menu Editar não repete transformações dentro de Propriedades; ações de arquivo ficam em Arquivo. Nós e edição de trechos têm submenu próprio em Tráfego, com Sentidos e nós/Testar circulação explícitos. Botões rápidos e contratos dos nós permanecem.
+
+RodoviaFlowRepair.open encaminha à central baseada na assistência de execução existente; ferramentas antigas ficam em RodoviaFlowRepair.advanced. A central explica passos, propõe antes de aplicar, preserva desligamentos e revalida pelo mesmo motor. Diálogos de modelagem identificam Salvar e fechar / Salvar e atualizar. Janela com rodapé fixo; bloqueio de cliques duplicados e liberação após erro. Não reaplicar proposta já confirmada se a leitura posterior falhar. Receber resultados mantém seleção e não abre Propriedades automaticamente.
+
+Esta etapa não altera versão/schema nem cria novo ZIP. Evidências e limites em evidencias/interface-central/LEIA_ME.md. A reorganização integral de todos os formulários e o registro único de comandos ainda não foram concluídos.
