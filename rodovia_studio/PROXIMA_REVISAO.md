@@ -41,3 +41,8 @@ ZIP novo gerado após aprovação de 961 casos, zero falhas/erros/ignorados, com
 ### Correção dirigida do acompanhamento — após 1.42.37
 
 Reconexão de leitura sem reenviar o cálculo, espera na fila sem limite arbitrário de dois minutos, Retomar visível no rodapé e eliminação de consultas finais redundantes. A fila aguarda a aplicação do resultado. 18 testes dirigidos aprovados, incluindo perda de conexão no servidor real e confirmação de POST único. Evidências em evidencias/acompanhamento-reconexao/. Sem novo ZIP nem nova aprovação integral; pacote histórico 1.42.37 preservado.
+
+
+### Entrega 1.42.38 — acompanhamento corrigido e empacotado
+
+A correção antes disponível apenas na branch agora integra um ZIP novo, após aprovação consolidada de 971 casos, splash e compilação C#. Atualização 37 → 38, arquivos corrigidos instalados e rollback para 37 conferidos com preservação de dados de teste. Evidências em evidencias/1.42.38/. A preferência de sempre entregar novo ZIP após correções foi registrada em AGENTS.md; a tentativa anterior sem pacote é histórico. Limites Windows/8 GB/carga prolongada e nota de referência 7,8/10 mantidos.

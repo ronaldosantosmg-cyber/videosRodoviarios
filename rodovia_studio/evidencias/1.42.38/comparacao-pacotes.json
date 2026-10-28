@@ -1,0 +1,15 @@
+{
+  "previous": "1.42.37",
+  "current": "1.42.38",
+  "changed_runtime": [
+    "pacote/manifest.json",
+    "pacote/suporte/sistema/VERSAO.json",
+    "pacote/suporte/sistema/app/js/07_tarefas_intervencoes.js",
+    "pacote/suporte/sistema/app/js/36_videos_limpeza_atualizar.js",
+    "pacote/suporte/sistema/app/js/38_area_trabalho.js",
+    "pacote/suporte/sistema/app/js/75_operacao_consolidada.js",
+    "pacote/suporte/sistema/app/js/87_circulacao_simples.js"
+  ],
+  "bytes": 11877570,
+  "sha256": "d655a7b174084a4c0a518ba08ffbcb363467342fa2f21fb1e7bab39b3c24c708"
+}

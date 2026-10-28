@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.37",
-  "description": "1.42.37: correções de fluxo e hachuras, imagem combinada, UTF-8 e interface compacta."
+  "version": "1.42.38",
+  "description": "1.42.38: reconexão do acompanhamento sem reenviar cálculos, fila sem prazo arbitrário e Retomar no rodapé."
 }

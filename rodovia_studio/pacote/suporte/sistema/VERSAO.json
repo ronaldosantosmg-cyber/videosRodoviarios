@@ -1,5 +1,5 @@
 {
-  "version": "1.42.37",
+  "version": "1.42.38",
   "schema_version": 31,
   "reference_video_sha256": "1d8cc8267015132a80ec4363bb1e5a66f39361d2a7e897ba509c7974f97e488b",
   "reference_note": "O vídeo TH57 aprovado foi substituído pela ficha técnica assets/th57/referencia_ficha.json (dados do arquivo e métricas de imagem para comparação). SHA-256 histórico mantido.",
@@ -540,7 +540,7 @@
     "oda_converter_real_tested": false,
     "windows_tested": false
   },
-  "notes": "1.42.37: correções de fluxo e hachuras, imagem combinada, UTF-8 e interface compacta.",
+  "notes": "1.42.38: reconexão do acompanhamento sem reenviar cálculos, fila sem prazo arbitrário e Retomar no rodapé.",
   "v1_40_7_validation": {
     "technical_tests": 28,
     "workflow_tests": 7,

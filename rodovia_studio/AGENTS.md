@@ -12,3 +12,5 @@
 - Executar testes funcionais e visuais antes de gerar entrega. Usar validar_entrega.py; gerar pacote somente quando todos os testes exigidos passarem, sem ignorados. ZIPs de entrega exclusivamente em atualizacoes/ na raiz do repositório.
 - Preservar ZIPs históricos. Publicar links HTTPS verificáveis, porque links sandbox não funcionaram para este usuário.
 - Informar uma nota fundamentada de prontidão para uso intenso ao concluir a revisão. Não afirmar validação nativa Windows/WebView2, carga prolongada, conformidade CONTRAN ou identidade binária de vídeo sem evidência específica.
+
+- Preferência explícita do usuário: toda correção deve terminar com um novo ZIP de revisão, após os testes exigidos. Não encerrar a entrega somente com código na branch. Preservar ZIPs anteriores e devolver link HTTPS verificado e SHA-256.
