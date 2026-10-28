@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="4" time="92.393" timestamp="2026-10-28T02:31:36.477667+00:00" hostname="23b78f9c05ea"><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_view_preview_sessions" name="test_view_groups_keep_original_controls_and_open_without_calculations" time="36.178"><failure message="AssertionError: assert (1 == 1 and False)&#10; +  where 1 = count()&#10; +    where count = &lt;Locator frame=&lt;Frame name= url='http://127.0.0.1:44471/'&gt; selector='#rsPanelPopup &gt;&gt; #fitView'&gt;.count&#10; +      where &lt;Locator frame=&lt;Frame name= url='http://127.0.0.1:44471/'&gt; selector='#rsPanelPopup &gt;&gt; #fitView'&gt; = locator(('#' + 'fitView'))&#10; +        where locator = &lt;Locator frame=&lt;Frame name= url='http://127.0.0.1:44471/'&gt; selector='#rsPanelPopup'&gt;.locator&#10; +  and   False = is_visible()&#10; +    where is_visible = &lt;Locator frame=&lt;Frame name= url='http://127.0.0.1:44471/'&gt; selector='#rsPanelPopup &gt;&gt; #fitView'&gt;.is_visible&#10; +      where &lt;Locator frame=&lt;Frame name= url='http://127.0.0.1:44471/'&gt; selector='#rsPanelPopup &gt;&gt; #fitView'&gt; = locator(('#' + 'fitView'))&#10; +        where locator = &lt;Locator frame=&lt;Frame name= url='http://127.0.0.1:44471/'&gt; selector='#rsPanelPopup'&gt;.locator">gl_page = &lt;Page url='http://127.0.0.1:44471/'&gt;
+
+    def test_view_groups_keep_original_controls_and_open_without_calculations(gl_page):
+        p=gl_page;p.set_viewport_size(dict(width=760,height=620));writes=[]
+        p.on('request',lambda r:writes.append(r.url) if r.method=='POST' and r.url.endswith(('/preview','/refresh','/analyze','/scene3d')) else None)
+        open_view(p);d=p.locator('#rsPanelPopup')
+        for name in ['Navegação e enquadramento','Prévia e instante','Fundo e camadas da edição','Sessões de trabalho']:assert d.get_by_role('group',name=name,exact=True).is_visible()
+&gt;       for identity in ['preview','preview_mode','fitView','tileAlpha','vecAlpha','sessList','sessSave','sessLoad','sessDel']:assert d.locator('#'+identity).count()==1 and d.locator('#'+identity).is_visible()
+                                                                                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: assert (1 == 1 and False)
+E        +  where 1 = count()
+E        +    where count = &lt;Locator frame=&lt;Frame name= url='http://127.0.0.1:44471/'&gt; selector='#rsPanelPopup &gt;&gt; #fitView'&gt;.count
+E        +      where &lt;Locator frame=&lt;Frame name= url='http://127.0.0.1:44471/'&gt; selector='#rsPanelPopup &gt;&gt; #fitView'&gt; = locator(('#' + 'fitView'))
+E        +        where locator = &lt;Locator frame=&lt;Frame name= url='http://127.0.0.1:44471/'&gt; selector='#rsPanelPopup'&gt;.locator
+E        +  and   False = is_visible()
+E        +    where is_visible = &lt;Locator frame=&lt;Frame name= url='http://127.0.0.1:44471/'&gt; selector='#rsPanelPopup &gt;&gt; #fitView'&gt;.is_visible
+E        +      where &lt;Locator frame=&lt;Frame name= url='http://127.0.0.1:44471/'&gt; selector='#rsPanelPopup &gt;&gt; #fitView'&gt; = locator(('#' + 'fitView'))
+E        +        where locator = &lt;Locator frame=&lt;Frame name= url='http://127.0.0.1:44471/'&gt; selector='#rsPanelPopup'&gt;.locator
+
+tests/test_view_preview_sessions.py:14: AssertionError</failure></testcase><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_view_preview_sessions" name="test_discard_restores_background_opacity_and_stored_preferences" time="21.646" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_view_preview_sessions" name="test_sessions_save_restore_and_child_escape_do_not_dirty_project" time="21.268" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_view_preview_sessions" name="test_switching_classic_layout_preserves_control_identity" time="12.159" /></testsuite></testsuites>

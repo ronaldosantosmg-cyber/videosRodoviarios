@@ -17,3 +17,13 @@ Iniciada a consolidação solicitada (itens 4 e 2 da auditoria). O menu Editar n
 RodoviaFlowRepair.open encaminha à central baseada na assistência de execução existente; ferramentas antigas ficam em RodoviaFlowRepair.advanced. A central explica passos, propõe antes de aplicar, preserva desligamentos e revalida pelo mesmo motor. Diálogos de modelagem identificam Salvar e fechar / Salvar e atualizar. Janela com rodapé fixo; bloqueio de cliques duplicados e liberação após erro. Não reaplicar proposta já confirmada se a leitura posterior falhar. Receber resultados mantém seleção e não abre Propriedades automaticamente.
 
 Esta etapa não altera versão/schema nem cria novo ZIP. Evidências e limites em evidencias/interface-central/LEIA_ME.md. A reorganização integral de todos os formulários e o registro único de comandos ainda não foram concluídos.
+
+## Continuação de formulários e informações da interface
+
+Confirmação compartilhada em RodoviaDialogDecision para modelagem, catálogo, assistente e conexão. Salvar perfil não aplica no projeto nem recalcula. A faixa preserva ícones/atalhos durante expansão; legenda 2D compartilha estado/paleta com desenho e distingue desligado (cinza), impedido (vermelho), pendente (amarelo), válido (verde). Artefato antigo não aparece como aprovação atual.
+
+Exigência reforçada do usuário: rodapé em uma linha, sem aumentar altura nem tomar área do canvas. A proposta responsiva de duas linhas foi retirada. Corrigir valores/informações, usar indeterminado quando não há medição, explicitar decorrido/estimativa. Evidências em evidencias/formularios-etapa2. Ainda sem ZIP, versão/schema preservados. Próxima etapa: seções/sentidos/nós e restante do cadastro de materiais/layers, depois regressão de vídeo e atualização.
+
+### Vista, prévia e sessões — continuação
+
+Organizados controles existentes em grupos, com opções avançadas recolhidas. Corrigida visibilidade de sessões/navegação no popup, descarte das preferências reais e respostas antigas de sessões após troca de contexto. Mantida barra inferior em uma linha. Evidências consolidadas em evidencias/formularios-etapa2; etapa sem ZIP, exportação MP4 ou homologação Windows.

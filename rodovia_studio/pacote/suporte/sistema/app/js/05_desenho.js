@@ -1,8 +1,9 @@
 /* ---------- Desenho ---------- */
-const FLOW_STUDY_COLORS={ok:'#22c55e',problem:'#ef4444',adjustment:'#eab308'};
+const FLOW_STUDY_COLORS={ok:'#22c55e',problem:'#ef4444',adjustment:'#eab308',off:'#94a3b8'};
+function flowStudyResultsPending(){const artifact=projectSession.artifacts?.editor;return !!(savePending||window.RodoviaFlowStudy?.stale||artifact&&artifact.state!=='ready')}
 function flowStudyStatus(s){
- if(window.RodoviaFlowStudy?.stale)return 'adjustment';
- if(s?.disabled||s?.enabled===false)return 'problem';
+ if(s?.disabled||s?.enabled===false||s?.technical_exclusion==='length_limit')return 'off';
+ if(flowStudyResultsPending())return 'adjustment';
  return Object.hasOwn(FLOW_STUDY_COLORS,s?.technical_status)?s.technical_status:'adjustment';
 }
 function flowStudyColor(s){return FLOW_STUDY_COLORS[flowStudyStatus(s)]}

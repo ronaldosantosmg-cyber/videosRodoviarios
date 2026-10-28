@@ -8,13 +8,14 @@ function panelStatus(text){const el=surface().querySelector('[data-rs-edit-statu
 function controls(root=document){return [...root.querySelectorAll('input,select,textarea')].filter(e=>e.type!=='file'&&!e.matches('[data-rs-transient]')).map(e=>({el:e,value:e.value,checked:e.checked}))}
 function fingerprint(root=active?.node||document){let data;try{data=collect()}catch{data=null}const values=(root?.dataset?.rsConfigOnly==='true'?[]:controls(root)).map(c=>JSON.stringify([c.el.id||c.el.name||JSON.stringify(c.el.dataset),c.el.type,c.value,c.checked])).sort();return JSON.stringify([data,values])}
 function differs(){return !!active&&(fingerprint()!==active.fingerprint||projectSession.epoch!==active.epoch)}
-function state(node){const signature=fingerprint(node);return {cfg:clone(cfg),marks:clone(M),undo:undoStack.slice(),redo:redoStack.slice(),controls:controls(node),pending:savePending,studyStale:!!window.RodoviaFlowStudy?.stale,previewStale:typeof previewStale==='undefined'?false:previewStale,epoch:projectSession.epoch,fingerprint:signature}}
+function state(node){const signature=fingerprint(node);return {viewPreferences:node?.id==='secVista'?window.RodoviaViewPanel?.capture():null,cfg:clone(cfg),marks:clone(M),undo:undoStack.slice(),redo:redoStack.slice(),controls:controls(node),pending:savePending,studyStale:!!window.RodoviaFlowStudy?.stale,previewStale:typeof previewStale==='undefined'?false:previewStale,epoch:projectSession.epoch,fingerprint:signature}}
 function pauseTimers(){clearTimeout(saveTimer);if(typeof prevTimer!=='undefined')clearTimeout(prevTimer);if(typeof flowTimer!=='undefined')clearTimeout(flowTimer)}
 function restore(base){
  cfg=base.cfg;M=base.marks;undoStack=base.undo;redoStack=base.redo;
  for(const c of base.controls)if(c.el.isConnected){c.el.value=c.value;c.el.checked=c.checked}
  projectSession.epoch=base.epoch;savePending=base.pending;if(window.RodoviaFlowStudy)RodoviaFlowStudy.stale=base.studyStale;if(typeof previewStale!=='undefined')previewStale=base.previewStale;axisCache=null;snapIndex=null;exactSnap=null;
  refreshLists();updateUndo();showProps();if(analysis)showLayers();if(typeof refreshRouteLanes==='function')refreshRouteLanes(true);draw();
+ if(base.viewPreferences)window.RodoviaViewPanel?.restore(base.viewPreferences);
  $('saveState').textContent=savePending?'alterações anteriores aguardam gravação…':'alterações da janela descartadas';syncImagery();
 }
 function dialog(){
@@ -23,7 +24,7 @@ function dialog(){
  d.innerHTML='<header><h2 id="rsPanelTitle"></h2><button type="button" id="rsPanelClose" aria-label="Fechar janela">×</button></header><div id="rsPanelBody"></div><footer><span id="rsPanelStatus" data-rs-edit-status role="status">Alterações de configuração serão confirmadas ao salvar.</span><button type="button" id="rsPanelCancel">Cancelar</button><button type="button" id="rsPanelDiscard">Descartar alterações</button><button type="button" id="rsPanelSave" class="primary">Salvar e fechar</button></footer>';
  document.body.appendChild(d);$('rsPanelClose').onclick=()=>void requestClose();$('rsPanelCancel').onclick=()=>void requestClose();$('rsPanelSave').onclick=()=>void commitClose();$('rsPanelDiscard').onclick=discardClose;
  d.addEventListener('cancel',e=>{e.preventDefault();void requestClose()});
- d.addEventListener('input',()=>{scheduleSave();panelStatus('Alterações pendentes — salve ou descarte antes de fechar.')});return d;
+ d.addEventListener('input',e=>{if(e.target.matches('[data-rs-transient]'))return;scheduleSave();panelStatus('Alterações pendentes — salve ou descarte antes de fechar.')});return d;
 }
 function open(node,title,key){
  if(!node||closing)return;
@@ -134,7 +135,7 @@ document.addEventListener('click',e=>{
  e.preventDefault();e.stopImmediatePropagation();const project=pid;
  void requestClose().then(ok=>{if(ok&&pid===project&&button.isConnected&&!button.disabled)button.click()}).catch(err=>msg(err.message,true));
 },true);
-document.addEventListener('keydown',e=>{if(active&&!decision&&e.key==='Tab'){const items=[...surface().querySelectorAll('button,input,select,textarea,a[href]')].filter(el=>!el.disabled&&el.getClientRects().length);if(items.length){const first=items[0],last=items[items.length-1];if(e.shiftKey&&(e.target===first||!surface().contains(e.target))){e.preventDefault();last.focus()}else if(!e.shiftKey&&(e.target===last||!surface().contains(e.target))){e.preventDefault();first.focus()}}}if(active&&(e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();e.stopImmediatePropagation();void (async()=>{if(await commitClose()&&window.RodoviaUpdatePolicy)await RodoviaUpdatePolicy.saveProject()})().catch(e=>msg(e.message,true));return}if(active&&e.key==='Escape'&&!decision){e.preventDefault();e.stopImmediatePropagation();void requestClose()}},true);
+document.addEventListener('keydown',e=>{if(active&&e.target.closest?.('dialog')&&e.target.closest('dialog')!==surface())return;if(active&&!decision&&e.key==='Tab'){const items=[...surface().querySelectorAll('button,input,select,textarea,a[href]')].filter(el=>!el.disabled&&el.getClientRects().length);if(items.length){const first=items[0],last=items[items.length-1];if(e.shiftKey&&(e.target===first||!surface().contains(e.target))){e.preventDefault();last.focus()}else if(!e.shiftKey&&(e.target===last||!surface().contains(e.target))){e.preventDefault();first.focus()}}}if(active&&(e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();e.stopImmediatePropagation();void (async()=>{if(await commitClose()&&window.RodoviaUpdatePolicy)await RodoviaUpdatePolicy.saveProject()})().catch(e=>msg(e.message,true));return}if(active&&e.key==='Escape'&&!decision){e.preventDefault();e.stopImmediatePropagation();void requestClose()}},true);
 window.addEventListener('beforeunload',e=>{if(active&&differs()){e.preventDefault();e.returnValue=''}});
 function currentImagery(){const image=$('imagery')?.value||cfg.imagery;if(image==='esri')return cfg.local_imagery?.image&&cfg.local_imagery.detail!==false&&($('imagery_detail')?.value||cfg.imagery_detail)!=='off'?'mixed':'map';return image||'map'}
 function syncImagery(){const select=$('rsPresentationBase');if(select){const mode=currentImagery();select.value=mode;const legacy=select.querySelector('option[value=cache]');if(legacy){legacy.hidden=mode!=='cache';legacy.disabled=mode!=='cache'}}}

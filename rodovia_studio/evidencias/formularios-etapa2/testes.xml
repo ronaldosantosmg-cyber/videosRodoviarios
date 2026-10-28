@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="28" time="275.642" timestamp="2026-10-28T01:47:30.532844+00:00" hostname="23b78f9c05ea"><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_dialog_drafts" name="test_shared_decision_is_single_and_escape_preserves_draft" time="13.374"><failure message="playwright._impl._errors.Error: Locator.input_value: Error: strict mode violation: locator(&quot;dialog input&quot;) resolved to 39 elements:&#10;    1) &lt;input maxlength=&quot;80&quot; id=&quot;inputValue&quot;/&gt; aka locator(&quot;#inputValue&quot;)&#10;    2) &lt;input min=&quot;0&quot; max=&quot;3&quot; step=&quot;0.05&quot; id=&quot;td_grao&quot; type=&quot;range&quot;/&gt; aka get_by_label(&quot;Trocar textura&quot;).get_by_label(&quot;Grão&quot;, exact=True)&#10;    3) &lt;input min=&quot;0&quot; max=&quot;3&quot; id=&quot;td_tom&quot; step=&quot;0.05&quot; type=&quot;range&quot;/&gt; aka get_by_label(&quot;Trocar textura&quot;).get_by_label(&quot;Variação de tom&quot;, exact=True)&#10;    4) &lt;input min=&quot;0&quot; max=&quot;3&quot; step=&quot;0.05&quot; type=&quot;range&quot; id=&quot;td_remendos&quot;/&gt; aka get_by_label(&quot;Remendos&quot;, exact=True)&#10;    5) &lt;input min=&quot;0&quot; max=&quot;3&quot; step=&quot;0.05&quot; type=&quot;range&quot; id=&quot;td_fissuras&quot;/&gt; aka get_by_label(&quot;Fissuras&quot;, exact=True)&#10;    6) &lt;input max=&quot;0.3&quot; min=&quot;-0.3&quot; step=&quot;0.01&quot; type=&quot;range&quot; id=&quot;td_brilho&quot;/&gt; aka get_by_label(&quot;Trocar textura&quot;).get_by_label(&quot;Brilho&quot;, exact=True)&#10;    7) &lt;input min=&quot;0&quot; max=&quot;3&quot; step=&quot;0.05&quot; id=&quot;sd_grao&quot; type=&quot;range&quot;/&gt; aka locator(&quot;#sd_grao&quot;)&#10;    8) &lt;input min=&quot;0&quot; max=&quot;3&quot; id=&quot;sd_tom&quot; step=&quot;0.05&quot; type=&quot;range&quot;/&gt; aka locator(&quot;#sd_tom&quot;)&#10;    9) &lt;input min=&quot;0&quot; max=&quot;3&quot; step=&quot;0.05&quot; type=&quot;range&quot; id=&quot;sd_remendos&quot;/&gt; aka get_by_label(&quot;Manchas&quot;, exact=True)&#10;    10) &lt;input min=&quot;0&quot; max=&quot;3&quot; step=&quot;0.05&quot; type=&quot;range&quot; id=&quot;sd_fissuras&quot;/&gt; aka get_by_label(&quot;Fissuras / sulcos&quot;)&#10;    ...&#10;&#10;Call log:&#10;  - waiting for locator(&quot;dialog input&quot;)">gl_page = &lt;Page url='http://127.0.0.1:49563/'&gt;
+
+    def test_shared_decision_is_single_and_escape_preserves_draft(gl_page):
+        p=gl_page;p.evaluate("()=&gt;{window.ownerDraft=document.createElement('dialog');ownerDraft.innerHTML='&lt;input value=Rascunho&gt;';document.body.append(ownerDraft);ownerDraft.showModal();window.resultDraft=null;const a=RodoviaDialogDecision.ask(ownerDraft);const b=RodoviaDialogDecision.ask(ownerDraft);window.sameDraft=a===b;a.then(v=&gt;resultDraft=v)}")
+        assert p.locator('.rsDraftDecision').count()==1 and p.evaluate('sameDraft')
+        p.keyboard.press('Escape');assert p.evaluate('resultDraft')=='continue'
+&gt;       assert p.locator('dialog input').input_value()=='Rascunho'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_dialog_drafts.py:9: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:17129: in input_value
+    self._sync(self._impl_obj.input_value(timeout=timeout))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:484: in input_value
+    return await self._frame.input_value(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:789: in input_value
+    return await self._channel.send(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;playwright._impl._connection.Connection object at 0x7fc54bb574d0&gt;
+cb = &lt;function Channel.send.&lt;locals&gt;.&lt;lambda&gt; at 0x7fc54b707420&gt;
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -&gt; Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+&gt;           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.Error: Locator.input_value: Error: strict mode violation: locator("dialog input") resolved to 39 elements:
+E               1) &lt;input maxlength="80" id="inputValue"/&gt; aka locator("#inputValue")
+E               2) &lt;input min="0" max="3" step="0.05" id="td_grao" type="range"/&gt; aka get_by_label("Trocar textura").get_by_label("Grão", exact=True)
+E               3) &lt;input min="0" max="3" id="td_tom" step="0.05" type="range"/&gt; aka get_by_label("Trocar textura").get_by_label("Variação de tom", exact=True)
+E               4) &lt;input min="0" max="3" step="0.05" type="range" id="td_remendos"/&gt; aka get_by_label("Remendos", exact=True)
+E               5) &lt;input min="0" max="3" step="0.05" type="range" id="td_fissuras"/&gt; aka get_by_label("Fissuras", exact=True)
+E               6) &lt;input max="0.3" min="-0.3" step="0.01" type="range" id="td_brilho"/&gt; aka get_by_label("Trocar textura").get_by_label("Brilho", exact=True)
+E               7) &lt;input min="0" max="3" step="0.05" id="sd_grao" type="range"/&gt; aka locator("#sd_grao")
+E               8) &lt;input min="0" max="3" id="sd_tom" step="0.05" type="range"/&gt; aka locator("#sd_tom")
+E               9) &lt;input min="0" max="3" step="0.05" type="range" id="sd_remendos"/&gt; aka get_by_label("Manchas", exact=True)
+E               10) &lt;input min="0" max="3" step="0.05" type="range" id="sd_fissuras"/&gt; aka get_by_label("Fissuras / sulcos")
+E               ...
+E           
+E           Call log:
+E             - waiting for locator("dialog input")
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: Error</failure></testcase><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_dialog_drafts" name="test_failed_save_keeps_question_and_retry_finishes_once" time="9.058" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_dialog_drafts" name="test_catalog_close_saves_profile_without_applying_to_project" time="10.970" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_dialog_drafts" name="test_ai_profile_has_save_discard_continue_and_no_implicit_application" time="9.185" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_dialog_drafts" name="test_online_connection_discard_does_not_send_key" time="10.282" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_dialog_drafts" name="test_decision_actions_fit_small_window" time="10.865" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_image_border_alpha" name="test_rgba_border_removed_but_254_and_internal_white_preserved" time="0.250" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_image_border_alpha" name="test_existing_transparency_is_never_restored_and_keep_mode_keeps_white" time="0.254" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_image_border_alpha" name="test_irregular_white_collar_preserves_colored_island_and_internal_roof" time="0.019" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14237_interface_central" name="test_menu_unique_and_nodes_group" time="29.349" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14237_interface_central" name="test_central_disabled_flow_and_small_screen_close" time="10.043" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14237_interface_central" name="test_failed_proposal_releases_button_without_changing_model" time="10.581" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14237_interface_central" name="test_cancel_keeps_draft_until_explicit_discard" time="11.132" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14237_interface_central" name="test_committed_plan_cannot_be_submitted_again_after_refresh_failure" time="11.000" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14237_interface_central" name="test_save_and_close_confirms_once_and_removes_dialog" time="16.661" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14237_interface_central" name="test_receiving_results_preserves_selection_without_opening_properties" time="11.319" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14228_hatch_online" name="test_legacy_empty_origin_does_not_trap_hatch_editor" time="15.723" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14228_hatch_online" name="test_close_then_save_hatch_changes_and_failed_save_preserves_draft" time="12.604" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14228_hatch_online" name="test_online_configuration_secret_is_memory_only_and_never_echoed" time="8.876" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14228_hatch_online" name="test_invalid_connection_returns_no_secret_or_unapproved_target[data0]" time="7.653" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14228_hatch_online" name="test_invalid_connection_returns_no_secret_or_unapproved_target[data1]" time="7.942" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14228_hatch_online" name="test_invalid_connection_returns_no_secret_or_unapproved_target[data2]" time="21.626" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14228_hatch_online" name="test_online_ui_contract_reply_reaches_review_and_confirmed_engine_apply" time="14.963" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14228_hatch_online" name="test_wrong_provider_reply_is_refused_without_applying" time="9.376" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14228_hatch_online" name="test_provider_error_has_guidance_without_leaking_credentials[401-Chave recusada]" time="0.003" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14228_hatch_online" name="test_provider_error_has_guidance_without_leaking_credentials[429-Limite ou saldo]" time="0.004" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14228_hatch_online" name="test_cancel_does_not_block_waiting_for_connection_close" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14228_hatch_online" name="test_online_cancel_allows_close_and_discards_late_response" time="10.541" /></testsuite></testsuites>

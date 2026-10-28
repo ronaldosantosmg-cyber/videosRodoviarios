@@ -1,3 +1,22 @@
+// Confirmação compartilhada: mantém rascunho em erro e uma pergunta por janela.
+(()=>{'use strict';
+const pending=new WeakMap();
+function ask(owner,{title='Salvar alterações?',message='Há alterações ainda não salvas.',save,saveLabel='Salvar e fechar'}={}){
+ if(pending.has(owner))return pending.get(owner);
+ let resolve;const promise=new Promise(r=>resolve=r);pending.set(owner,promise);
+ const q=document.createElement('dialog');q.className='winDlg rsDraftDecision';q.setAttribute('aria-label',title);
+ const heading=document.createElement('h3'),text=document.createElement('p'),error=document.createElement('p'),row=document.createElement('div');heading.textContent=title;text.textContent=message;error.setAttribute('role','alert');row.className='row';q.append(heading,text,error,row);
+ let busy=false;const finish=value=>{q.close();q.remove();pending.delete(owner);if(owner.isConnected)owner.querySelector('[data-close],button')?.focus();resolve(value)};
+ for(const [value,label] of [['continue','Continuar editando'],['discard','Descartar'],...(save?[['save',saveLabel]]:[])]){const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.draftChoice=value;row.append(b);b.onclick=async()=>{
+  if(busy)return;if(value!=='save'){finish(value);return}busy=true;error.textContent='';q.setAttribute('aria-busy','true');const states=[...row.querySelectorAll('button')].map(x=>[x,x.disabled]);states.forEach(([x])=>x.disabled=true);
+  try{if(!owner.isConnected)throw Error('A janela original foi fechada.');if(await save()===false){error.textContent='Não foi possível salvar. Confira os campos e tente novamente.';return}finish('save')}
+  catch(e){error.textContent=e.message||'Não foi possível salvar. O rascunho foi preservado.'}
+  finally{busy=false;q.removeAttribute('aria-busy');states.forEach(([x,disabled])=>x.disabled=disabled)}};
+ }
+ q.oncancel=e=>{e.preventDefault();if(!busy)finish('continue')};document.body.append(q);q.showModal();return promise;
+}
+window.RodoviaDialogDecision=Object.freeze({ask});
+})();
 // Edição em rascunho, com salvar/descartar/continuar e erros visíveis.
 (()=>{'use strict';
 function open({id,title,html,save,calculate=false}){
@@ -6,7 +25,7 @@ function open({id,title,html,save,calculate=false}){
  let dirty=false,busy=false;d.addEventListener('input',()=>dirty=true);d.addEventListener('change',()=>dirty=true);
  const finish=()=>{d.close();d.remove()};
  async function apply(calc=false){if(busy)return false;const snapshot=structuredClone(M),history=undoStack.slice(),future=redoStack.slice(),pendingBefore=savePending,configBefore=structuredClone(cfg);let committed=false;busy=true;const controls=[...d.querySelectorAll('button,input,select,textarea')].map(el=>[el,el.disabled]);controls.forEach(([el])=>el.disabled=true);d.setAttribute('aria-busy','true');try{if(project!==pid||context!==projectSession.context)throw Error('O projeto mudou. Reabra a janela.');d.querySelector('[data-error]').textContent='Salvando e conferindo a configuração…';if(await save(d)===false)return false;dirty=false;committed=true;finish();if(calc){msg('Configuração aplicada. Aguardando o processamento atual para recalcular…');const deadline=Date.now()+120000;while(task||taskRequestPending){if(Date.now()>deadline)throw Error('Dados salvos. A tarefa atual continua; use Atualizar fluxos quando ela terminar.');await new Promise(resolve=>setTimeout(resolve,150));if(project!==pid||context!==projectSession.context)return false}await (window.RodoviaUpdatePolicy?RodoviaUpdatePolicy.refresh():start('analyze'))}else window.dispatchEvent(new CustomEvent('rodovia:form-committed',{detail:{project,context}}));return true}catch(e){if(!committed&&!e.saveUncertain&&project===pid&&context===projectSession.context){cfg=configBefore;M=snapshot;undoStack=history;redoStack=future;savePending=pendingBefore;clearTimeout(saveTimer);updateUndo();draw()}if(d.isConnected)d.querySelector('[data-error]').textContent=e.message;else msg(e.message,true);return false}finally{busy=false;d.removeAttribute('aria-busy');controls.forEach(([el,disabled])=>el.disabled=disabled)}}
- async function close(){if(busy)return;if(!dirty){finish();return}const q=document.createElement('dialog');q.className='winDlg';q.innerHTML='<h3>Salvar alterações?</h3><p>As alterações desta janela ainda não foram aplicadas.</p><div class="row"><button data-continue>Continuar editando</button><button data-discard>Descartar</button><button data-apply>Salvar</button></div>';document.body.appendChild(q);const end=()=>{q.close();q.remove()};q.querySelector('[data-continue]').onclick=end;q.querySelector('[data-discard]').onclick=()=>{end();finish()};q.querySelector('[data-apply]').onclick=async()=>{end();await apply()};q.oncancel=e=>{e.preventDefault();end()};q.showModal()}
+ async function close(){if(busy)return;if(!dirty){finish();return}const choice=await RodoviaDialogDecision.ask(d,{message:'As alterações desta janela ainda não foram aplicadas.',save:()=>apply()});if(choice==='discard')finish()}
  d.querySelectorAll('[data-close]').forEach(b=>b.onclick=close);d.querySelector('[data-save]').onclick=()=>void apply();d.querySelector('[data-calculate]')?.addEventListener('click',()=>void apply(true));d.oncancel=e=>{e.preventDefault();void close()};d.rsDirty=()=>dirty=true;d.rsContext=()=>project===pid&&context===projectSession.context;d.showModal();return d;
 }
 function number(input,name,min=-Infinity,max=Infinity){if(!input?.value?.trim())throw Error('Preencha '+name+'.');const v=Number(input.value.replace(',','.'));if(!Number.isFinite(v)||v<min||v>max)throw Error(name+' fora do intervalo permitido.');return v}

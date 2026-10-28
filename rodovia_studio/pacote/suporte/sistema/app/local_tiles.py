@@ -441,7 +441,7 @@ def convert(g,src,dst,status=lambda *a:None):
     if r.returncode!=0 or not tmp.exists():
         r2=_run(g,[g['translate'],'-of','GTiff','-co','TILED=YES','-co','COMPRESS=DEFLATE','-co','BIGTIFF=IF_SAFER',str(src),str(tmp)])
         if r2.returncode!=0 or not tmp.exists():raise ValueError('GDAL não converteu o arquivo: '+((r2.stderr or r.stderr) or '').strip()[-400:])
-    status(.7,'Gerando visões reduzidas')
+    status(.7,'Gerando visões reduzidas · percentual indisponível nesta etapa')
     if Path(g['addo']).exists():
         _run(g,[g['addo'],'-r','average','--config','COMPRESS_OVERVIEW','DEFLATE',str(tmp),'2','4','8','16','32','64'])
     tmp.replace(dst);return dst

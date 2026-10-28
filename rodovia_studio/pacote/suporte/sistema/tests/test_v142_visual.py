@@ -98,7 +98,7 @@ def test_flow_states_green_red_yellow_and_recalculation_pending(page):
       const pending=flowStudyColor({technical_status:'ok'});RodoviaFlowStudy.stale=false;
       return {a,b,c,pending};
     }""")
-    assert status==dict(a='#22c55e',b='#ef4444',c='#eab308',pending='#eab308')
+    assert status==dict(a='#22c55e',b='#94a3b8',c='#eab308',pending='#eab308')
     assert 'não aparece no vídeo' in page.inner_text('#rsFlowLegend')
     screenshot(page,'142_07_legenda_fluxos')
 

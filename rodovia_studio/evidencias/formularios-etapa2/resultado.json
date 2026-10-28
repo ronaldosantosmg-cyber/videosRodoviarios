@@ -1,0 +1,338 @@
+{
+  "base_version": "1.42.36",
+  "stage": "Formulários etapa2; expansão, legenda e progresso",
+  "tests_unique": 41,
+  "passed": 41,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "runs": [
+    {
+      "file": "testes.xml",
+      "tests": 28,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "file": "testes-final.xml",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "file": "testes-legenda-final.xml",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "file": "testes-expansao-final.xml",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "file": "testes-perfil-final.xml",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "file": "testes-rodape-final.xml",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "file": "testes-vista-final.xml",
+      "tests": 6,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "file": "testes-vista-definitiva.xml",
+      "tests": 4,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "file": "testes-sessoes-contexto.xml",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "file": "testes-vista-abertura.xml",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "cases": [
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_dialog_drafts",
+      "name": "test_shared_decision_is_single_and_escape_preserves_draft",
+      "status": "passed",
+      "report": "testes-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_dialog_drafts",
+      "name": "test_failed_save_keeps_question_and_retry_finishes_once",
+      "status": "passed",
+      "report": "testes-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_dialog_drafts",
+      "name": "test_catalog_close_saves_profile_without_applying_to_project",
+      "status": "passed",
+      "report": "testes-perfil-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_dialog_drafts",
+      "name": "test_ai_profile_has_save_discard_continue_and_no_implicit_application",
+      "status": "passed",
+      "report": "testes-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_dialog_drafts",
+      "name": "test_online_connection_discard_does_not_send_key",
+      "status": "passed",
+      "report": "testes-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_dialog_drafts",
+      "name": "test_decision_actions_fit_small_window",
+      "status": "passed",
+      "report": "testes-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_image_border_alpha",
+      "name": "test_rgba_border_removed_but_254_and_internal_white_preserved",
+      "status": "passed",
+      "report": "testes-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_image_border_alpha",
+      "name": "test_existing_transparency_is_never_restored_and_keep_mode_keeps_white",
+      "status": "passed",
+      "report": "testes-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_image_border_alpha",
+      "name": "test_irregular_white_collar_preserves_colored_island_and_internal_roof",
+      "status": "passed",
+      "report": "testes-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14237_interface_central",
+      "name": "test_menu_unique_and_nodes_group",
+      "status": "passed",
+      "report": "testes-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14237_interface_central",
+      "name": "test_central_disabled_flow_and_small_screen_close",
+      "status": "passed",
+      "report": "testes-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14237_interface_central",
+      "name": "test_failed_proposal_releases_button_without_changing_model",
+      "status": "passed",
+      "report": "testes-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14237_interface_central",
+      "name": "test_cancel_keeps_draft_until_explicit_discard",
+      "status": "passed",
+      "report": "testes-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14237_interface_central",
+      "name": "test_committed_plan_cannot_be_submitted_again_after_refresh_failure",
+      "status": "passed",
+      "report": "testes-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14237_interface_central",
+      "name": "test_save_and_close_confirms_once_and_removes_dialog",
+      "status": "passed",
+      "report": "testes-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14237_interface_central",
+      "name": "test_receiving_results_preserves_selection_without_opening_properties",
+      "status": "passed",
+      "report": "testes-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14228_hatch_online",
+      "name": "test_legacy_empty_origin_does_not_trap_hatch_editor",
+      "status": "passed",
+      "report": "testes.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14228_hatch_online",
+      "name": "test_close_then_save_hatch_changes_and_failed_save_preserves_draft",
+      "status": "passed",
+      "report": "testes.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14228_hatch_online",
+      "name": "test_online_configuration_secret_is_memory_only_and_never_echoed",
+      "status": "passed",
+      "report": "testes.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14228_hatch_online",
+      "name": "test_invalid_connection_returns_no_secret_or_unapproved_target[data0]",
+      "status": "passed",
+      "report": "testes.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14228_hatch_online",
+      "name": "test_invalid_connection_returns_no_secret_or_unapproved_target[data1]",
+      "status": "passed",
+      "report": "testes.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14228_hatch_online",
+      "name": "test_invalid_connection_returns_no_secret_or_unapproved_target[data2]",
+      "status": "passed",
+      "report": "testes.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14228_hatch_online",
+      "name": "test_online_ui_contract_reply_reaches_review_and_confirmed_engine_apply",
+      "status": "passed",
+      "report": "testes.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14228_hatch_online",
+      "name": "test_wrong_provider_reply_is_refused_without_applying",
+      "status": "passed",
+      "report": "testes.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14228_hatch_online",
+      "name": "test_provider_error_has_guidance_without_leaking_credentials[401-Chave recusada]",
+      "status": "passed",
+      "report": "testes.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14228_hatch_online",
+      "name": "test_provider_error_has_guidance_without_leaking_credentials[429-Limite ou saldo]",
+      "status": "passed",
+      "report": "testes.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14228_hatch_online",
+      "name": "test_cancel_does_not_block_waiting_for_connection_close",
+      "status": "passed",
+      "report": "testes.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14228_hatch_online",
+      "name": "test_online_cancel_allows_close_and_discards_late_response",
+      "status": "passed",
+      "report": "testes.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_contextual_toolbar_status",
+      "name": "test_expansion_preserves_shortcuts_icons_and_fits_viewport",
+      "status": "passed",
+      "report": "testes-rodape-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_contextual_toolbar_status",
+      "name": "test_legend_uses_same_colors_as_render_and_marks_previous_results",
+      "status": "passed",
+      "report": "testes-legenda-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_contextual_toolbar_status",
+      "name": "test_progress_unknown_stage_is_indeterminate_and_time_is_labeled",
+      "status": "passed",
+      "report": "testes-legenda-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_contextual_toolbar_status",
+      "name": "test_stale_artifact_cannot_show_green_even_if_local_flag_is_false",
+      "status": "passed",
+      "report": "testes-legenda-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v142_visual",
+      "name": "test_flow_states_green_red_yellow_and_recalculation_pending",
+      "status": "passed",
+      "report": "testes-legenda-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_contextual_toolbar_status",
+      "name": "test_progress_remains_single_line_without_reducing_graphical_area",
+      "status": "passed",
+      "report": "testes-rodape-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_view_preview_sessions",
+      "name": "test_view_groups_keep_original_controls_and_open_without_calculations",
+      "status": "passed",
+      "report": "testes-vista-abertura.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_view_preview_sessions",
+      "name": "test_discard_restores_background_opacity_and_stored_preferences",
+      "status": "passed",
+      "report": "testes-vista-definitiva.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_view_preview_sessions",
+      "name": "test_sessions_save_restore_and_child_escape_do_not_dirty_project",
+      "status": "passed",
+      "report": "testes-sessoes-contexto.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_view_preview_sessions",
+      "name": "test_switching_classic_layout_preserves_control_identity",
+      "status": "passed",
+      "report": "testes-vista-definitiva.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14232_confirmation",
+      "name": "test_video_smoke_and_density_have_visible_commit_and_direct_discard[size0]",
+      "status": "passed",
+      "report": "testes-vista-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14232_confirmation",
+      "name": "test_video_smoke_and_density_have_visible_commit_and_direct_discard[size1]",
+      "status": "passed",
+      "report": "testes-vista-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_view_preview_sessions",
+      "name": "test_old_session_listing_is_discarded_after_context_changes",
+      "status": "passed",
+      "report": "testes-sessoes-contexto.xml"
+    }
+  ],
+  "js_modules": 93,
+  "real_online_provider_tested": false,
+  "local_3b_inference_tested": false,
+  "real_user_orthophoto_tested": false,
+  "new_mp4_exported": false,
+  "windows_native_tested": false,
+  "release_zip_created": false,
+  "readiness_score": 7.8,
+  "readiness_note": "Mantida avaliação global anterior; melhorias de interface não substituem homologação de Windows/projeto real."
+}

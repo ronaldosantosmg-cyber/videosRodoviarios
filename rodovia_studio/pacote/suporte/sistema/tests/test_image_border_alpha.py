@@ -18,3 +18,15 @@ def test_existing_transparency_is_never_restored_and_keep_mode_keeps_white(tmp_p
     m=montar(tmp_path,a,'none')
     assert amostra(m,150,600)[:,:,3].min()==255
     assert amostra(m,1100,450)[:,:,3].max()==0
+
+
+def test_irregular_white_collar_preserves_colored_island_and_internal_roof(tmp_path):
+    a=np.zeros((200,200,4),np.uint8);a[:]=(40,110,50,255)
+    for y in range(200):
+        start=75+(y//20%2)*15;a[y,start:start+50,:3]=255
+    a[80:110,100:120,:3]=(45,130,55)  # ilha colorida no branco externo
+    a[130:150,20:40,:3]=255  # branco interno não conectado ao perímetro
+    m=montar(tmp_path,a,'borda');out=m.sample_box(m.bbox[0],200,200)
+    assert out[30,115,3]==0
+    assert out[95,110,3]>240
+    assert out[140,30,3]>240

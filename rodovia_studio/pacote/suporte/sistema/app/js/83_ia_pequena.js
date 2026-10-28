@@ -12,13 +12,16 @@ async function connect(updated=async()=>{}){
  function sources(){links.replaceChildren();const p=capabilities.providers.find(p=>p.id===provider.value);for(const [label,href] of [['Obter chave no provedor',p.keys_url],['Consultar modelos disponíveis',p.models_url]]){const a=el('a',label);a.href=href;a.target='_blank';a.rel='noopener noreferrer';links.append(a)}}
  provider.onchange=()=>{key.value='';model.value=provider.value==='openai'?'gpt-4.1-mini':'';sources()};sources();status.setAttribute('role','status');
  const row=el('div');row.className='row';const save=el('button','Usar conexão nesta sessão'),disconnect=el('button','Desconectar'),close=el('button','Fechar');for(const b of [save,disconnect,close])b.type='button';row.append(save,disconnect,close);d.append(links,status,row);
- const finish=()=>{key.value='';d.close();d.remove()};close.onclick=finish;d.oncancel=e=>{e.preventDefault();finish()};
+ const initialProvider=provider.value,initialModel=model.value;
+ const finish=()=>{key.value='';d.close();d.remove()};
+ async function requestClose(){if(busy){status.textContent='Aguarde a gravação da conexão antes de fechar.';return}if(key.value||provider.value!==initialProvider||model.value!==initialModel){const choice=await RodoviaDialogDecision.ask(d,{title:'Salvar conexão nesta sessão?',message:'A chave permanece somente na memória desta sessão. Descartar remove o rascunho desta janela.',saveLabel:'Usar conexão e fechar',save:()=>commit()});if(choice==='continue')return}finish()}
+ close.onclick=()=>void requestClose();d.oncancel=e=>{e.preventDefault();void requestClose()};
  let busy=false;
- async function commit(remove=false){if(busy)return;busy=true;save.disabled=disconnect.disabled=true;try{
+ async function commit(remove=false){if(busy)return;busy=true;save.disabled=disconnect.disabled=provider.disabled=model.disabled=key.disabled=true;try{
   if(remove)await api('/api/assistencia/conexao',{method:'DELETE'});else await api('/api/assistencia/conexao',json('POST',{provider:provider.value,model:model.value.trim(),key:key.value}));
-  key.value='';await updated();finish();msg(remove?'API desconectada.':'API configurada nesta sessão. A primeira consulta verificará a chave e o modelo.');
- }catch(e){status.textContent=e.message;key.value=''}finally{busy=false;save.disabled=disconnect.disabled=false}}
- save.onclick=()=>void commit();disconnect.onclick=()=>void commit(true);document.body.append(d);d.showModal();
+  key.value='';await updated();finish();msg(remove?'API desconectada.':'API configurada nesta sessão. A primeira consulta verificará a chave e o modelo.');return true;
+ }catch(e){status.textContent=e.message;key.value='';throw e}finally{busy=false;save.disabled=disconnect.disabled=provider.disabled=model.disabled=key.disabled=false}}
+ save.onclick=()=>void commit().catch(()=>{});disconnect.onclick=()=>void commit(true).catch(()=>{});document.body.append(d);d.showModal();
 }
 async function open(phase='general',segment=null){
  requireProject();if(!await RodoviaPanels.close())return;await save();
