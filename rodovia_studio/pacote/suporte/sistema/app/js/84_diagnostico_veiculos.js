@@ -20,6 +20,9 @@ async function open(){
   await calculate('preview');
  });
  button('Escolher eixo e configurar faixas',()=>{d.close();d.remove();return RodoviaSections.chooseAxis()});
+ button('Conferir pavimento e hachuras',()=>{d.close();d.remove();return RodoviaIA.open('layers')});
+ button('Revisar modo de ensaio e proteções',()=>{d.close();d.remove();return RodoviaFlowPolicy.open()});
+ button('Conferir sentidos e nós',()=>{d.close();d.remove();return RodoviaCirculation.directions()});
  button('Corrigir problemas dos fluxos',()=>{d.close();d.remove();return RodoviaExecution.open()});
  button('Configuração do vídeo',()=>{d.close();d.remove();return psOpenHub('video')});
  const close=button('Fechar',()=>{d.close();d.remove()});d.oncancel=e=>{e.preventDefault();if(!busy)close.click()};d.showModal();try{await read()}catch(e){error.textContent=e.message}

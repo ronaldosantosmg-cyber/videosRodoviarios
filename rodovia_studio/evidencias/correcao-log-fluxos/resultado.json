@@ -1,0 +1,600 @@
+{
+  "base": "1.42.36",
+  "delivery": "código de desenvolvimento; sem ZIP novo",
+  "unique_tests": 87,
+  "passed": 87,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "js_modules": 93,
+  "runs": [
+    {
+      "report": "pytest-motor.xml",
+      "tests": 57,
+      "failures": 4,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "report": "pytest-interface.xml",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "report": "pytest-motor-final.xml",
+      "tests": 78,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "report": "pytest-final.xml",
+      "tests": 83,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "report": "pytest-combinacao-final.xml",
+      "tests": 86,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "report": "pytest-imagem-mista-final.xml",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "report": "pytest-ultima-verificacao.xml",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "cases": [
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_log_flow_recovery",
+      "name": "test_assisted_correction_and_receipt_use_utf8_under_windows_default",
+      "status": "passed",
+      "report": "pytest-ultima-verificacao.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_log_flow_recovery",
+      "name": "test_no_routes_is_diagnostic_and_never_a_silent_empty_video",
+      "status": "passed",
+      "report": "pytest-ultima-verificacao.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_log_flow_recovery",
+      "name": "test_refresh_publishes_editor_and_overview_without_reactivating_routes",
+      "status": "passed",
+      "report": "pytest-ultima-verificacao.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_log_flow_recovery",
+      "name": "test_kmz_polygons_are_not_axes_or_charged_to_line_budget",
+      "status": "passed",
+      "report": "pytest-ultima-verificacao.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_log_flow_recovery",
+      "name": "test_missing_axis_identifies_unmapped_candidate_without_inventing_traffic",
+      "status": "passed",
+      "report": "pytest-ultima-verificacao.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_kmz_above_100mb_due_to_images_is_read_without_extracting_attachments",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_invalid_xml_or_coordinates_rejected[<kml xmlns=\"http://www.opengis.net/kml/2.2\"><Document><Placemark><name>Refer\\xeancia</name><LineString><coordinates>NaN,-19 -43.001,-19.001</coordinates></LineString></Placemark></Document></kml>]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_invalid_xml_or_coordinates_rejected[<kml xmlns=\"http://www.opengis.net/kml/2.2\"><Document><Placemark><name>Refer\\xeancia</name><LineString><coordinates>900,-19 -43.001,-19.001</coordinates></LineString></Placemark></Document></kml>]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_invalid_xml_or_coordinates_rejected[<kml>]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_invalid_xml_or_coordinates_rejected[<!DOCTYPE kml [<!ENTITY x \"aaa\">]><kml>&x;</kml>]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_missing_kml_and_traversal_have_specific_messages",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_kml_namespace_21_and_no_namespace_are_supported",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_high_positive_capacity_and_demand_are_accepted[3500]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_high_positive_capacity_and_demand_are_accepted[5000]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_high_positive_capacity_and_demand_are_accepted[10000]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_high_positive_capacity_and_demand_are_accepted[20000]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_zero_and_invalid_traffic_inputs_are_rejected[0-traffic_capacity_vphpl]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_zero_and_invalid_traffic_inputs_are_rejected[0-traffic_demand_vphpl]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_zero_and_invalid_traffic_inputs_are_rejected[-1-traffic_capacity_vphpl]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_zero_and_invalid_traffic_inputs_are_rejected[-1-traffic_demand_vphpl]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_zero_and_invalid_traffic_inputs_are_rejected[-traffic_capacity_vphpl]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_zero_and_invalid_traffic_inputs_are_rejected[-traffic_demand_vphpl]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_zero_and_invalid_traffic_inputs_are_rejected[nan-traffic_capacity_vphpl]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_zero_and_invalid_traffic_inputs_are_rejected[nan-traffic_demand_vphpl]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_zero_and_invalid_traffic_inputs_are_rejected[inf-traffic_capacity_vphpl]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_zero_and_invalid_traffic_inputs_are_rejected[inf-traffic_demand_vphpl]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_zero_and_invalid_traffic_inputs_are_rejected[20001-traffic_capacity_vphpl]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_zero_and_invalid_traffic_inputs_are_rejected[20001-traffic_demand_vphpl]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_demand_3500_builds_queue_against_1900_without_forcing_3500_discharge",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_import_capacity",
+      "name": "test_shared_itineraries_do_not_multiply_per_lane_demand",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14236_circulation",
+      "name": "test_direction_and_off_follow_physical_axis_when_order_changes",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14236_circulation",
+      "name": "test_unknown_legacy_off_does_not_reenable_or_transfer",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14236_circulation",
+      "name": "test_fleet_report_exposes_partial_compatibility_without_releasing_long_vehicle",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14236_circulation",
+      "name": "test_lightweight_report_does_not_audit_unattempted_classes",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14236_circulation",
+      "name": "test_reversing_nodes_and_direction_preserves_geometry_and_disabled_state",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14236_circulation",
+      "name": "test_zero_oae_does_not_issue_direction_marks_but_confirmed_elevated_one_can",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14236_circulation",
+      "name": "test_oae_contour_without_grade_is_not_a_bridge_constraint_or_physical_barrier",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14236_circulation",
+      "name": "test_oae_direction_cannot_reverse_explicit_native_flow",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14236_circulation",
+      "name": "test_dxf_oae_zero_crossing_and_parallel_contours_preserve_circulation",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14236_circulation",
+      "name": "test_origin_keys_and_manual_shutdown_survive_axis_reordering",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14236_circulation",
+      "name": "test_changed_axis_does_not_silently_reenable_a_previous_stable_shutdown",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14236_circulation",
+      "name": "test_older_runtime_refuses_new_direction_schema_instead_of_ignoring_shutdown",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14225_execution",
+      "name": "test_real_motor_previews_applies_revalidates_and_undoes_without_touching_dxf",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14225_execution",
+      "name": "test_proposal_binds_content_even_when_timestamp_and_size_are_kept",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14225_execution",
+      "name": "test_obsolete_or_cross_project_proposal_cannot_modify_config",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14225_execution",
+      "name": "test_manual_disable_is_preserved",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14225_execution",
+      "name": "test_failure_before_commit_and_cancel_leave_project_unchanged",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14225_execution",
+      "name": "test_undo_never_discards_later_user_edits",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14225_execution",
+      "name": "test_unregistered_action_is_refused",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14225_execution",
+      "name": "test_physical_barrier_cannot_be_removed_by_proposal",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14228_vehicle_presentation",
+      "name": "test_wide_view_no_longer_hides_simulated_vehicles_and_focus_makes_them_readable",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14228_vehicle_presentation",
+      "name": "test_fit_cache_varies_with_position_and_keeps_actual_body_inside_pavement",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14228_vehicle_presentation",
+      "name": "test_focus_rejects_missing_itinerary_without_mutating_restrictions",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14228_vehicle_presentation",
+      "name": "test_diagnostic_does_not_invent_simulation_and_ignores_stale_results",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14228_vehicle_presentation",
+      "name": "test_real_browser_vehicle_diagnostic_can_generate_focused_preview",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14228_vehicle_presentation",
+      "name": "test_focused_traffic_mp4_decodes_with_visible_real_vehicles[1]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v14228_vehicle_presentation",
+      "name": "test_focused_traffic_mp4_decodes_with_visible_real_vehicles[2]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_log_flow_ui",
+      "name": "test_brush_ignores_area_response_after_escape_or_context_change[False]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_log_flow_ui",
+      "name": "test_brush_ignores_area_response_after_escape_or_context_change[True]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_log_flow_ui",
+      "name": "test_vehicle_help_exposes_direction_review_without_releasing_routes",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_transport",
+      "name": "test_exact_formulas_mutual_exclusion_and_pedestrian_phase[2-5]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_transport",
+      "name": "test_exact_formulas_mutual_exclusion_and_pedestrian_phase[3-15]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_transport",
+      "name": "test_train_counts_determinism_single_double_and_full_tail_clearance",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_transport",
+      "name": "test_wave_offset_and_invalid_links",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_transport",
+      "name": "test_invalid_speeds_cannot_reach_motor[nan]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_transport",
+      "name": "test_invalid_speeds_cannot_reach_motor[inf]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_transport",
+      "name": "test_invalid_speeds_cannot_reach_motor[None]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_transport",
+      "name": "test_invalid_speeds_cannot_reach_motor[]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_transport",
+      "name": "test_invalid_speeds_cannot_reach_motor[0]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_transport",
+      "name": "test_invalid_speeds_cannot_reach_motor[-1]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_transport",
+      "name": "test_disabled_and_separate_levels_do_not_block",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_transport",
+      "name": "test_real_simulation_stops_and_releases[rail]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_transport",
+      "name": "test_real_simulation_stops_and_releases[signal]",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_transport",
+      "name": "test_adjustable_five_to_one_hundred_wagons_and_safe_interval",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_transport",
+      "name": "test_all_one_hundred_wagons_exist_and_last_tail_holds_crossing",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_transport",
+      "name": "test_entry_inside_intersection_does_not_spawn_during_red_and_long_crossing_gets_clearance",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_transport",
+      "name": "test_extreme_coordinates_rejected_before_projection",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_transport",
+      "name": "test_skew_intersection_controls_both_axes_and_rejects_parallel_plans",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_transport",
+      "name": "test_short_alignment_warns_before_train_enters_and_across_cycle_boundary",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_transport",
+      "name": "test_short_crossing_clears_heavy_vehicle_bodies_before_train_arrival",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_v1426_transport",
+      "name": "test_shared_rail_and_road_alignment_is_blocked_with_diagnostic",
+      "status": "passed",
+      "report": "pytest-combinacao-final.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_log_flow_recovery",
+      "name": "test_trial_notice_reports_exact_enabled_option_without_changing_settings",
+      "status": "passed",
+      "report": "pytest-ultima-verificacao.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_log_flow_recovery",
+      "name": "test_hatch_is_not_promoted_to_a_traffic_axis",
+      "status": "passed",
+      "report": "pytest-ultima-verificacao.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_mixed_imagery_traffic",
+      "name": "test_mixed_imagery_exports_decoded_video_with_vehicles_and_no_trial_banner[False]",
+      "status": "passed",
+      "report": "pytest-ultima-verificacao.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_mixed_imagery_traffic",
+      "name": "test_mixed_imagery_exports_decoded_video_with_vehicles_and_no_trial_banner[True]",
+      "status": "passed",
+      "report": "pytest-ultima-verificacao.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_mixed_imagery_traffic",
+      "name": "test_pavement_hatch_names_retain_existing_or_projected_class",
+      "status": "passed",
+      "report": "pytest-ultima-verificacao.xml"
+    },
+    {
+      "class": "rodovia_studio.pacote.suporte.sistema.tests.test_mixed_imagery_traffic",
+      "name": "test_mixed_imagery_does_not_treat_cancellation_as_network_failure",
+      "status": "passed",
+      "report": "pytest-ultima-verificacao.xml"
+    }
+  ],
+  "web_source": "simulada nos testes; sem consulta real à Esri",
+  "windows_native": false,
+  "windows_default_encoding_simulated": "cp1252",
+  "video": {
+    "codec": "H.264",
+    "width": 1280,
+    "height": 720,
+    "fps": 24,
+    "frames": 72,
+    "fully_decoded": true
+  },
+  "real_saved_user_project": false,
+  "source_dxf_preserved": true,
+  "main_changed": false,
+  "readiness": 7.8
+}

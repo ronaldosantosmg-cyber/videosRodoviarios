@@ -12,7 +12,9 @@ def rail(**kw):return dict(id='R',points=[{'x':200,'y':-300},{'x':200,'y':300}],
 def signal(**kw):return dict(id='S',point={'x':200,'y':0},**kw)
 def network(s):
     p=np.array([[0.,0.],[600.,0.]])
-    return TrafficNetwork([box(-30,-12,630,12)],[],[{'points':p}],p,np.array([0.,600.]),s)
+    # A fixture representa um eixo cadastrado, como exige o motor atual.
+    registered=s.model_copy(update={'layers':{**s.layers,'axis':['EIXO_TESTE']}})
+    return TrafficNetwork([box(-30,-12,630,12)],[],[{'points':p,'role':'axis','layer':'EIXO_TESTE'}],p,np.array([0.,600.]),registered)
 
 @pytest.mark.parametrize('phases,extra',[(2,5),(3,15)])
 def test_exact_formulas_mutual_exclusion_and_pedestrian_phase(phases,extra):

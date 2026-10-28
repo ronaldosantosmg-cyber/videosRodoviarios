@@ -14,6 +14,26 @@ def enhance(a):
     return cv2.cvtColor(h,cv2.COLOR_HSV2RGB)
 
 def mosaic(directory,settings,bounds,status=lambda *a:None,warnings=None):
+    try:return _mosaic_base(directory,settings,bounds,status,warnings)
+    except InterruptedError:raise
+    except OSError as exc:
+        # Falha de rede não deve impedir um vídeo que possui imagem local válida.
+        # CRS inválido, fonte local corrompida e erros de configuração continuam visíveis.
+        li=getattr(settings,'local_imagery',None)
+        if settings.imagery!='esri' or li is None or not li.image or not li.detail or settings.imagery_detail=='off':raise
+        from .local_tiles import LocalMosaic
+        local=LocalMosaic(directory,settings)
+        neutral=settings.model_copy(update={'imagery':'neutral'})
+        base,box,_=_mosaic_base(directory,neutral,bounds,status,warnings)
+        rgba=local.render_base(box,base.shape[0],status)
+        if not np.any(rgba[:,:,3]):raise ValueError('Mapa web indisponível e a imagem local não cobre a área do projeto. Confira CRS e posicionamento da imagem.') from exc
+        alpha=rgba[:,:,3:4].astype(np.float32)/255
+        image=np.clip(rgba[:,:,:3]*alpha+base*(1-alpha),0,255).astype(np.uint8)
+        if warnings is not None:warnings.append('Mapa web indisponível: usando imagem local válida e fundo neutro fora de sua cobertura. '+str(exc)[:160])
+        return image,box,'Imagem local georreferenciada'
+
+
+def _mosaic_base(directory,settings,bounds,status=lambda *a:None,warnings=None):
     directory=Path(directory);lo,hi=np.array(bounds);padding=max(200,min(1000,np.max(hi-lo)*.08));lo-=padding;hi+=padding
     span=max(hi-lo);center=(hi+lo)/2;lo=center-span/2;hi=center+span/2
     if settings.imagery=='neutral':

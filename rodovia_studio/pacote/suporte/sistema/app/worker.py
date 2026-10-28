@@ -38,7 +38,7 @@ def run(jid):
             status(1,end_message)
         elif j['kind']=='assisted_plan':
             from .assisted_execution import preview,folder
-            request=json.loads((folder(d)/'pedido.json').read_text())
+            request=json.loads((folder(d)/'pedido.json').read_text(encoding='utf-8-sig'))
             plan=preview(d,request,status,cancel);store.write_json(folder(d)/'ultima.json',{'id':plan['id']})
             end_message='Proposta pronta; revise e confirme antes de aplicar'
         elif j['kind']=='traffic_check':
@@ -83,11 +83,22 @@ def run(jid):
                 # O editor continua na vista geral (coordenadas em planta) para posicionar marcações.
                 im,meta=sc.frame(0,overview=True);meta={**meta,'cabin':cm}
             else:
-                if s.preview_mode!='overview' and getattr(sc,'detail',None) is not None:
-                    cw=(np.asarray(view[0],float),float(view[1])) if view else sc.pose(min(s.duration_s-1/s.fps,s.preview_time_s))[:2]
-                    try:sc.detail.prefetch([cw],status)
-                    except Exception:pass
-                im,meta=sc.frame(min(s.duration_s-1/s.fps,s.preview_time_s),overview=s.preview_mode=='overview',view=view)
+                from .traffic_presentation import TrafficViewUnavailable
+                try:
+                    if s.preview_mode!='overview' and getattr(sc,'detail',None) is not None:
+                        cw=(np.asarray(view[0],float),float(view[1])) if view else sc.pose(min(s.duration_s-1/s.fps,s.preview_time_s))[:2]
+                        try:sc.detail.prefetch([cw],status)
+                        except Exception:pass
+                    im,meta=sc.frame(min(s.duration_s-1/s.fps,s.preview_time_s),overview=s.preview_mode=='overview',view=view)
+                except TrafficViewUnavailable as exc:
+                    # A ausência de alvo não pode impedir publicar editor e diagnóstico.
+                    # A configuração da câmera e as restrições continuam inalteradas.
+                    im,meta=sc.frame(min(s.duration_s-1/s.fps,s.preview_time_s),overview=True)
+                    meta['traffic_camera_fallback']=str(exc)
+                    end_message='Prévia técnica pronta; tráfego pendente — abra Diagnosticar veículos'
+                    sc.report['warnings'].append('Prévia técnica em vista geral: '+str(exc))
+                    from .traffic_presentation import preflight
+                    sc.report['traffic_presentation']=preflight(sc)
             tmp=d/'preview.tmp.png';Image.fromarray(im).save(tmp);store.replace(tmp,d/'preview.png')
             store.write_json(d/'preview.json',meta);store.write_json(d/'analysis.json',sc.report);store.write_json(d/'editor.json',sc.editor_data())
             from .webmap import write_vectors

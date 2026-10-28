@@ -34,7 +34,7 @@ def load(d,key):
     if not re.fullmatch('[a-f0-9]{32}',key):raise ValueError('Proposta inválida.')
     p=folder(d)/(key+'.json')
     if p.is_symlink() or p.stat().st_size>8*1024*1024:raise ValueError('Arquivo de proposta inválido.')
-    data=json.loads(p.read_text())
+    data=json.loads(p.read_text(encoding='utf-8-sig'))
     if data['project']!=Path(d).name:raise Conflict('Proposta de outro projeto.')
     return data
 
@@ -46,7 +46,7 @@ def preview(d,request,status=lambda *a:None,cancel=lambda:False):
     d=Path(d);initial=signature(d)
     if request['signature']!=initial:raise Conflict('O projeto mudou. Refaça o diagnóstico.')
     require_current(d,'editor')
-    doc=json.loads((d/'editor.json').read_text());segment=next((s for s in doc['segments'] if s['id']==request['segment']),None)
+    doc=json.loads((d/'editor.json').read_text(encoding='utf-8-sig'));segment=next((s for s in doc['segments'] if s['id']==request['segment']),None)
     if not segment:raise ValueError('Segmento ausente no resultado atual.')
     if segment['disabled'] or segment['length_m']<read_config(d).get('min_route_segment_m',50):raise ValueError('Desligamento manual ou rota independente curta preservados.')
     if segment['technical_status']=='ok':raise ValueError('O trecho já está validado; não há correção a aplicar.')
@@ -72,7 +72,7 @@ def preview(d,request,status=lambda *a:None,cancel=lambda:False):
             if f.is_symlink() or any(p.is_symlink() for p in f.parents if p!=d and d in p.parents):raise ValueError('Fonte externa por link recusada.')
             if cancel():raise InterruptedError('Proposta cancelada; projeto preservado.')
             target=sandbox/f.relative_to(d);target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(f,target)
-        (sandbox/'config.json').write_text(settings.model_dump_json())
+        (sandbox/'config.json').write_text(settings.model_dump_json(),encoding='utf-8')
         def step(p,message):
             if cancel():raise InterruptedError('Proposta cancelada; projeto preservado.')
             status(.2+.65*p,message)
@@ -130,7 +130,7 @@ def outcome(d,key):
     from .artifacts import require_current
     plan=load(d,key)
     if plan.get('applied_revision')!=revision(read_config(d)):raise Conflict('Há alterações posteriores; resultado da proposta não pode ser atribuído a esta revisão.')
-    require_current(d,'editor');doc=json.loads((Path(d)/'editor.json').read_text())
+    require_current(d,'editor');doc=json.loads((Path(d)/'editor.json').read_text(encoding='utf-8-sig'))
     rows=[r for r in doc['segments'] if r.get('origin_key')==plan['origin_key']]
     resolved=bool(rows) and all(r['technical_status']=='ok' and r.get('technical_circulation',{}).get('enabled') for r in rows)
     return {'resolved':resolved,'state':'resolvida' if resolved else 'aplicada_com_pendencias','segments':[{'id':r['id'],'status':r['technical_status'],'message':r['technical_message']} for r in rows]}

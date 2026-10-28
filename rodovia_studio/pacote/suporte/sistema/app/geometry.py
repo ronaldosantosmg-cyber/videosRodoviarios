@@ -32,14 +32,18 @@ def walk(es, depth=0, parent_layer=None):
                 e=e.copy();e.dxf.layer=parent_layer
             yield e
 
-def read_kmz(path,crs):
+def read_kmz(path,crs,stats=None):
     if not path or not Path(path).exists(): return [],[]
     from .kmz_validation import placemarks
+    stats=stats if stats is not None else {};stats['ignored_geometries']=0
     tr=Transformer.from_crs(4326,crs,always_xy=True);lines=[];pois=[];total=0
     local=lambda element:element.tag.rsplit('}',1)[-1]
     for name,pm in placemarks(path):
         title=next((node.text or 'Referência KMZ' for node in pm if local(node)=='name'),'Referência KMZ')
-        for co in (node for node in pm.iter() if local(node)=='coordinates'):
+        # Polígonos e seus anéis não são eixos nem linhas de referência.
+        stats['ignored_geometries']+=sum(local(node)=='Polygon' for node in pm.iter())
+        geometries=[node for node in pm.iter() if local(node) in ('Point','LineString')]
+        for co in (co for geom in geometries for co in geom if local(co)=='coordinates'):
             values=(co.text or '').split();total+=len(values)
             if total>1000000:raise ValueError('KML excede um milhão de coordenadas. Divida o trecho.')
             try:rows=[tuple(map(float,v.split(',')[:2])) for v in values]
@@ -61,6 +65,8 @@ def convert(e,layer,role,units,entities,warnings,extra=None):
         if e.dxftype()=='POINT' and role in ASSET_ROLES:
             p=e.dxf.location;entities.append({'layer':layer,'role':role,'closed':False,'points':np.array([[p.x*units,p.y*units]]),'holes':[],**extra});return
         hatch=e.dxftype() in HATCH_TYPES
+        if hatch and role=='axis':
+            warnings.append('Hachura não usada como eixo: '+layer+'. Cadastre uma linha ou polilinha; o DXF foi preservado.');return
         paths=list(from_hatch(e)) if hatch else [make_path(e)]
         from .cad_curves import from_entity
         curve=from_entity(e,units) if not hatch else None
@@ -306,7 +312,9 @@ def analyze(directory,settings,preview=None,hatch_preview=None):
         'uses':[], 'line_count':0, 'poi_count':0, 'message':'KMZ/KML não carregado.'
     }
     try:
-        kml_lines,kml_pois=read_kmz(kmz if kmz.exists() else None,crs)
+        kmz_read={}
+        kml_lines,kml_pois=read_kmz(kmz if kmz.exists() else None,crs,kmz_read)
+        if kmz_read.get('ignored_geometries'):warnings.append(f"KMZ: {kmz_read['ignored_geometries']} polígono(s) preservado(s) na fonte, sem uso como eixo/linha. Selecione uma LineString ou o eixo CAD para circulação.")
         if kmz.exists():
             kmz_status.update(read_ok=True,line_count=len(kml_lines),poi_count=len(kml_pois),message='KMZ/KML lido e validado.')
             if kml_lines: kmz_status['uses'].append('referencia_geometrica')
@@ -331,7 +339,10 @@ def analyze(directory,settings,preview=None,hatch_preview=None):
             warnings.append('Eixo de referência obtido de alinhamento selecionado; tráfego usa somente as rotas explicitamente habilitadas.')
     if not axes:
         kmz_status['required']=True
-        raise ValueError('Nenhum eixo encontrado. Associe uma camada ao papel eixo ou envie KMZ com linha.')
+        configured=', '.join(settings.layers.get('axis',[])[:8]) or 'nenhuma'
+        candidates=list(dict.fromkeys(eff_layer(e,split,doc) for e in ents if e.dxftype() not in HATCH_TYPES+tuple(NO_GEOMETRY) and guess(eff_layer(e,split,doc))=='axis')) if dxf.exists() else []
+        hint=', '.join(candidates[:8]) or 'nenhuma pelo nome; selecione uma linha no desenho'
+        raise ValueError('Nenhum eixo encontrado. Em Projeto → Camadas, associe uma camada com linha ao papel Eixo, ou escolha explicitamente um alinhamento. Camadas cadastradas: '+configured+'. Candidatas: '+hint+'. Hachuras e polígonos KMZ não autorizam circulação.')
     axes.sort(key=lambda e:LineString(e['points']).length,reverse=True);axis=axes[0]['points'].copy()
     ca=getattr(settings,'custom_axis',None)
     if ca is not None and ca.enabled and len(ca.points)>=2:

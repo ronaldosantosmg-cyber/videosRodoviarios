@@ -24,7 +24,7 @@ def needs_direction_review(axes,settings):
 def native_paths(axes, settings, allowed, tolerance=.25):
     if not math.isfinite(tolerance) or not 0<=tolerance<=.25:
         raise ValueError('Tolerância de junção inválida.')
-    rows=[];invalid=0;removed_nodes=0;ignored_sources=0;pending_directions=0
+    rows=[];invalid=0;removed_nodes=0;ignored_sources=0;pending_directions=0;manually_disabled=0
     legacy=needs_direction_review(axes,settings)
     replaced={r.source_axis_fingerprint for r in getattr(settings,'route_alignments',[]) if r.source_axis_fingerprint}
     bound={o.target_key for name in ('flow_overrides','flow_cuts','flow_recoveries') for o in getattr(settings,name,[]) if getattr(o,'target_key','')}
@@ -35,7 +35,7 @@ def native_paths(axes, settings, allowed, tolerance=.25):
         key='axis:'+fingerprint
         if legacy and key not in settings.route_directions:pending_directions+=1;continue
         direction=settings.route_directions.get(key,'auto')
-        if direction=='off':continue
+        if direction=='off':manually_disabled+=1;continue
         if axis.get('reference_only') and direction not in ('forward','reverse'):ignored_sources+=1;continue
         if axis.get('role') not in (None,'axis'):ignored_sources+=1;continue
         layer=str(axis.get('layer',''))
@@ -54,7 +54,7 @@ def native_paths(axes, settings, allowed, tolerance=.25):
             removed_nodes+=len(p)-len(cleaned);p=cleaned
         rows.append(dict(points=p.copy(),identity=identity,protected=bool(bound.intersection(keys)),ids=[i],fingerprints=[fingerprint],layer=str(axis.get('layer','')),
                          level=level,direction=direction))
-    if not rows:return [],dict(joined=0,invalid=invalid,max_gap_m=0.,removed_nodes=removed_nodes,ignored_sources=ignored_sources,pending_directions=pending_directions)
+    if not rows:return [],dict(joined=0,invalid=invalid,max_gap_m=0.,removed_nodes=removed_nodes,ignored_sources=ignored_sources,pending_directions=pending_directions,manually_disabled=manually_disabled)
     endpoints=np.array([p for row in rows for p in row['points'][[0,-1]]])
     outward=np.array([v for row in rows for v in
                       (row['points'][0]-row['points'][1],row['points'][-1]-row['points'][-2])])
@@ -99,4 +99,4 @@ def native_paths(axes, settings, allowed, tolerance=.25):
         out.append(dict(points=np.vstack(parts),identity_points=np.vstack(identities),halfwidth=3.5,source=('Eixo KMZ · ' if base['layer']=='KMZ' else 'Eixo DXF · ')+','.join(str(v) for v in sorted(ids)),
                         source_id='axis:'+('|'.join(sorted(fingerprints))),level=base['level'],native_id=','.join(map(str,sorted(ids))),
                         native_axis=True,native_direction=base['direction'],native_joined=len(ids)-1))
-    return out,dict(joined=joined,invalid=invalid,max_gap_m=round(max_gap,6),removed_nodes=removed_nodes,ignored_sources=ignored_sources,pending_directions=pending_directions)
+    return out,dict(joined=joined,invalid=invalid,max_gap_m=round(max_gap,6),removed_nodes=removed_nodes,ignored_sources=ignored_sources,pending_directions=pending_directions,manually_disabled=manually_disabled)

@@ -1,0 +1,245 @@
+{
+  "scope": "DXF TH53 anteriormente fornecido; mapeamento explícito pelo perfil padrão, sem configuração salva do usuário e sem validação de CRS. Não reproduz exatamente o projeto do log.",
+  "source_sha256": "7936e09e195212a85a894dbc48f5ad337f0cbe4f3195225e6f8137297e3e4538",
+  "source_unchanged": true,
+  "seconds": 49.28,
+  "layers": {
+    "axis": [
+      "F-HZ-EIXO",
+      "000-HGT-F1-HZ-EIXO",
+      "C-EC-ESTACAS-EIXO",
+      "EIXO_OESTE",
+      "EIXO_LESTE",
+      "EIXO_DESCOMISIONADO"
+    ],
+    "edge_line": [
+      "F-HZ-BORDO",
+      "GE_HZ-BORDO",
+      "25DO_XREF_BORDOS_DPL_2_281-282_EXE$0$GE_HZ-BORDO",
+      "BR381_F1_AC04_EXE_BORDOS$0$GE_HZ-BORDO",
+      "BR381_F1_AC04_EXE_BORDOS$0$F-HZ-FAIXA",
+      "25DO_XREF__BORDOS_DPL_3_282-283_EXE$0$GE_HZ-BORDO",
+      "sinC-SH_LBO(0.15)-branca $ Termoplástico (a) $ RAMO 3100 (PISTA OESTE)",
+      "sinC-SH_LBO(0.15)-branca $ Termoplástico (a) $ RAMO 3200 (PISTA LESTE)",
+      "sinC-SH_LBO(0.15)-branca $ Termoplástico (a) $ RAMO 1100 (PISTA OESTE)",
+      "sinC-SH_LBO(0.15)-branca $ Termoplástico (a) $ RAMO 1200 (PISTA LESTE)",
+      "sinC-SH_LBO(0.15)-branca $ Termoplástico (a) $ RAMO 2200 (PISTA LESTE)",
+      "sinC-SH_LBO(0.15)-branca $ Termoplástico (a) $ RAMO 2100 (PISTA OESTE)",
+      "sinC-SH_LBO(0.15)-branca $ Termoplástico (a) $ RAMO 4100 (PISTA OESTE)",
+      "sinC-SH_LBO(0.15)-branca $ Termoplástico (a) $ RAMO 4200 - ENTRADA",
+      "sinC-SH_LBO(0.15)-branca $ Termoplástico (a) $ RAMO 5100 (PISTA OESTE)",
+      "sinC-SH_LBO(0.15)-branca $ Termoplástico (a) $ RAMO 5200 (PISTA LESTE)",
+      "sinC-SH_LBO(0.15)-branca $ Termoplástico (a) $ RAMO 6100 (PISTA OESTE)",
+      "sinC-SH_LBO(0.15)-branca $ Termoplástico (a) $ RAMO 6200 (PISTA LESTE)",
+      "sinC-SH_LBO(0.15)-branca $ Termoplástico (a) $ RAMO 100 (PISTA OESTE)",
+      "sinC-SH_LBO(0.15)-branca $ Termoplástico (a) $ RAMO 200 (PISTA LESTE)",
+      "000-HGT-F1-HZ-BORDO"
+    ],
+    "shoulder": [
+      "F-HZ-ACOSTAMENTO",
+      "GE_HZ-ACOSTAMENTO",
+      "25DO_XREF_HACHURAS_DPL_2_281-282_EXE$1$GE_HZ-HACOSTAMENTOPROJ",
+      "BR381_F1_AC18_EXE_XREF_HACHURA$0$BR381_F1_AC18_EXE_XREF_HACHURA$0$GE_HZ-HACOSTAMENTOPROJ",
+      "25DO_XREF_BORDOS_DPL_2_281-282_EXE$0$GE_HZ-ACOSTAMENTO",
+      "BR381_F1_AC04_EXE_BORDOS$0$GE_HZ-ACOSTAMENTO",
+      "25DO_XREF__BORDOS_DPL_3_282-283_EXE$0$GE_HZ-ACOSTAMENTO",
+      "F-HZ-HATCH (acostamento)",
+      "GEO-HZ-ACOSTAMENTO"
+    ],
+    "earthwork": [
+      "F-HZ-OFFSET (aterro)",
+      "F-HZ-OFFSET (corte)",
+      "TP_HZ-GABIÃO",
+      "25DO_XREF_OFFSETS_DPL_1_280-280_EXE$0$F-HZ-DRENAGEM",
+      "25DO_XREF_OFFSETS_DPL_1_280-280_EXE$0$GE_HZ-HATERRO",
+      "25DO_XREF_OFFSETS_DPL_1_280-280_EXE$0$GE_HZ-HCORTE",
+      "25DO_XREF_OFFSETS_DPL_1_280-280_EXE$0$GE_HZ-OFFATERRO",
+      "25DO_XREF_OFFSETS_DPL_1_280-280_EXE$0$GE_HZ-OFFCORTE",
+      "25DO_XREF_OFFSETS_DPL_1_280-280_EXE$0$GE_HZ-TALUDES",
+      "25DO_XREF_TERRAPLENOS_GEOTECNIA_2_281-282_EXE$0$C3D_Corridor",
+      "25DO_XREF_TERRAPLENOS_GEOTECNIA_2_281-282_EXE$0$GE_HZ-HCORTE",
+      "25DO_XREF_TERRAPLENOS_GEOTECNIA_2_281-282_EXE$0$GE_HZ-OFFCORTE",
+      "BR381_F1_AC18_EXE_XREF_OFFSET$0$C3D_Corridor",
+      "BR381_F1_AC18_EXE_XREF_OFFSET$0$GE_HZ-HATERRO",
+      "BR381_F1_AC18_EXE_XREF_OFFSET$0$GE_HZ-HCORTE",
+      "BR381_F1_AC18_EXE_XREF_OFFSET$0$GE_HZ-OFFATERRO",
+      "BR381_F1_AC18_EXE_XREF_OFFSET$0$GE_HZ-OFFCORTE",
+      "BR381_F1_AC18_EXE_XREF_OFFSET$0$CN_HZ-CONTMUROGABIAO",
+      "25DO_XREF_TERRAPLENO GEOTECNIA_DPL_5_285-287_EXE$0$C3D_Corridor",
+      "25DO_XREF_TERRAPLENO GEOTECNIA_DPL_5_285-287_EXE$0$F-HZ-DRENAGEM",
+      "25DO_XREF_TERRAPLENO GEOTECNIA_DPL_5_285-287_EXE$0$GE_HZ-HATERRO",
+      "25DO_XREF_TERRAPLENO GEOTECNIA_DPL_5_285-287_EXE$0$GE_HZ-HCORTE",
+      "25DO_XREF_TERRAPLENO GEOTECNIA_DPL_5_285-287_EXE$0$GE_HZ-OFFATERRO",
+      "25DO_XREF_TERRAPLENO GEOTECNIA_DPL_5_285-287_EXE$0$GE_HZ-OFFCORTE",
+      "BR381_F1_AC04_EXE_OFFSETS$0$C3D_Corridor",
+      "BR381_F1_AC04_EXE_OFFSETS$0$GE_HZ-HATERRO",
+      "BR381_F1_AC04_EXE_OFFSETS$0$GE_HZ-HCORTE",
+      "BR381_F1_AC04_EXE_OFFSETS$0$GE_HZ-OFFCORTE",
+      "BR381_F1_AC07_EXE_OFFSETS$0$GE_HZ-HATERRO",
+      "BR381_F1_AC07_EXE_OFFSETS$0$GE_HZ-HCORTE",
+      "BR381_F1_AC07_EXE_OFFSETS$0$GE_HZ-OFFATERRO",
+      "BR381_F1_AC07_EXE_OFFSETS$0$GE_HZ-OFFCORTE",
+      "BR381_F1_AC07_EXE_OFFSETS$0$GE_HZ-TALUDES",
+      "25DO_XREF_OFFSETS_DPL_6_288-289_EXE$0$F-HZ-DRENAGEM",
+      "25DO_XREF_OFFSETS_DPL_6_288-289_EXE$0$GE_HZ-HATERRO",
+      "25DO_XREF_OFFSETS_DPL_6_288-289_EXE$0$GE_HZ-HCORTE",
+      "25DO_XREF_OFFSETS_DPL_6_288-289_EXE$0$GE_HZ-OFFCORTE",
+      "25DO_XREF_OFFSETS_DPL_6_288-289_EXE$0$GE_HZ-TALUDES",
+      "25DO_XREF_OFFSETS_DPL_6_288-289_EXE$0$CN_HZ-CONTMUROGABIAO",
+      "25DO_XREF_TERRAPLENOS_DPL_6_288-289_EXE$0$F-HZ-DRENAGEM",
+      "25DO_XREF_TERRAPLENOS_DPL_6_288-289_EXE$0$GE_HZ-HCORTE",
+      "25DO_XREF_TERRAPLENOS_DPL_6_288-289_EXE$0$GE_HZ-OFFCORTE",
+      "25DO_XREF_TERRAPLENOS_DPL_6_288-289_EXE$0$GE_HZ-TALUDES",
+      "CN_VT-CONTMUROGABIAO",
+      "CN_HZ-CONTMUROGABIAO",
+      "CIN-DPL-OFFSET CORTE"
+    ],
+    "barrier": [
+      "TP_HZ-DEFENSAMET",
+      "TP_HZ-BARREIRAFISICA",
+      "sinC-OC_DEFENSA MALEÁVEL SIMPLES $ RAMO 3100 (PISTA OESTE)",
+      "sinC-OC_DEFENSA TRIPLA ONDA SIMPLES $ RAMO 3200 (PISTA LESTE)",
+      "sinC-OC_DEFENSA TRIPLA ONDA SIMPLES $ RAMO 3100 (PISTA OESTE)",
+      "sinC-OC_DEFENSA MALEÁVEL SIMPLES $ RAMO 3200 (PISTA LESTE)",
+      "sinC-OC_DEFENSA TRIPLA ONDA SIMPLES $ RAMO 1100 (PISTA OESTE)",
+      "sinC-OC_DEFENSA A RETIRAR $ RAMO 1200 (PISTA LESTE)",
+      "sinC-OC_DEFENSA TRIPLA ONDA SIMPLES $ RAMO 1200 (PISTA LESTE)",
+      "sinC-OC_DEFENSA MALEÁVEL SIMPLES $ RAMO 2100 (PISTA OESTE)",
+      "sinC-OC_DEFENSA MALEÁVEL SIMPLES $ RAMO 2200 (PISTA LESTE)",
+      "sinC-OC_DEFENSA TRIPLA ONDA SIMPLES $ RAMO 2200 (PISTA LESTE)",
+      "sinC-OC_DEFENSA MALEÁVEL SIMPLES $ RAMO 4200 - ENTRADA",
+      "sinC-OC_DEFENSA TRIPLA ONDA SIMPLES $ RAMO 4200 - ENTRADA",
+      "sinC-OC_DEFENSA MALEÁVEL SIMPLES $ RAMO 5200 (PISTA LESTE)",
+      "sinC-OC_DEFENSA MALEÁVEL SIMPLES $ RAMO 6200 (PISTA LESTE)",
+      "BARREIRA"
+    ],
+    "pavement": [
+      "F-HZ-HATCH (pista)",
+      "HATCH_PAV_NOVO",
+      "GEO-HZ-HATCH (pista)"
+    ],
+    "cut": [
+      "F-HZ-BANQUETA (corte)",
+      "F-HZ-CORTE ROCHA",
+      "GE_HZ-HCORTE",
+      "GE_HZ-OFFCORTE",
+      "C-EC-ESTACAS-ESTRUTURA-CORTE-003",
+      "F-HZ-JUNTA (corte)"
+    ],
+    "gas": [
+      "000-HGT-TUBO-GASMIG-NATURAL",
+      "MANCHA_GASMIG"
+    ],
+    "median": [
+      "F-HZ-HATCH (canteiro)"
+    ],
+    "domain": [
+      "FAIXA DE DOMINIO",
+      "faixa_dominio_nova381"
+    ],
+    "oae": [
+      "OAE"
+    ],
+    "existing_pavement": [
+      "PAVIMENTO EXISTENTE",
+      "HATCH_PAV_EXITENTE"
+    ],
+    "fill": [
+      "GE_HZ-HATERRO",
+      "GE_HZ-OFFATERRO",
+      "F-HZ-JUNTA (aterro)"
+    ],
+    "anchored_wall": [
+      "BR381_F1_AC04_EXE_OFFSETS$0$CN_HZ-CONTCORTINAATIRANTADA",
+      "G-CONCRETO-PROJETADO"
+    ],
+    "electric": [
+      "sinC-OC_TERMINAL ABSORVEDOR DE ENERGIA DUPLO $ RAMO 3100 (PISTA OESTE)",
+      "sinC-OC_TERMINAL ABSORVEDOR DE ENERGIA $ RAMO 3200 (PISTA LESTE)",
+      "sinC-OC_TERMINAL ABSORVEDOR DE ENERGIA $ RAMO 3100 (PISTA OESTE)",
+      "sinC-OC_TERMINAL ABSORVEDOR DE ENERGIA $ RAMO 1100 (PISTA OESTE)",
+      "000-HGT-LINHA DE TRANSMISSÃO",
+      "sinC-OC_TERMINAL ABSORVEDOR DE ENERGIA DUPLO $ RAMO 1200 (PISTA LESTE)",
+      "sinC-OC_TERMINAL ABSORVEDOR DE ENERGIA $ RAMO 1200 (PISTA LESTE)",
+      "sinC-OC_TERMINAL ABSORVEDOR DE ENERGIA $ RAMO 2100 (PISTA OESTE)",
+      "sinC-OC_TERMINAL ABSORVEDOR DE ENERGIA $ RAMO 2200 (PISTA LESTE)",
+      "sinC-OC_TERMINAL ABSORVEDOR DE ENERGIA $ RAMO 4100 (PISTA OESTE)"
+    ],
+    "sign_v": [
+      "sinC_placa",
+      "sinC_placa-PontoSup",
+      "sinC_DimenPlacaPRO"
+    ],
+    "vegetation": [
+      "REGIÃO DE VEGETAÇÃO"
+    ],
+    "erosion": [
+      "EROSÃO",
+      "CONTORNO DA EROSÃO"
+    ],
+    "radar": [
+      "RADAR_SAR"
+    ],
+    "water": [
+      "PS_HZ-HIDROSSEMEADURA"
+    ]
+  },
+  "registration": {
+    "policy": "explicit_axis_required",
+    "native_authorized": 30,
+    "native_pending_directions": 0,
+    "native_disabled": 0,
+    "ignored_unregistered": 0,
+    "manual_axes": 0,
+    "registered_alignments": 0
+  },
+  "itineraries": 7,
+  "vehicles": 46,
+  "sampled_active": [
+    5,
+    4,
+    5
+  ],
+  "states": {
+    "problem": 10,
+    "ok": 4,
+    "adjustment": 3
+  },
+  "causes": {
+    "Bloqueio localizado: corpo do veículo fora do pavimento reconhecido.": 8,
+    "Trajetória recusada pela análise de frente/traseira, esterçamento ou continuidade.": 2,
+    "Fluxo presente nos itinerários calculados. Afastamento ajustado automaticamente para acomodar o veículo dentro da pista.": 1,
+    "Fluxo presente nos itinerários calculados.": 3,
+    "Circulação disponível para: car. Classes recusadas: truck. Abra Testar circulação para localizar a causa por veículo.": 1,
+    "Circulação disponível para: car. Classes recusadas: bus, truck. Abra Testar circulação para localizar a causa por veículo.": 1,
+    "Há circulação validada, mas parte das ligações foi recusada; localize e revise os trechos excluídos.": 1
+  },
+  "geometry_roles": {
+    "edge_line": 192,
+    "gas": 9,
+    "cut": 8078,
+    "shoulder": 239,
+    "barrier": 45,
+    "fill": 695,
+    "pavement": 168,
+    "axis": 31,
+    "median": 2,
+    "domain": 4,
+    "oae": 5,
+    "existing_pavement": 10,
+    "anchored_wall": 2,
+    "electric": 19,
+    "radar": 6,
+    "erosion": 6,
+    "vegetation": 1,
+    "water": 20,
+    "sign_v": 2
+  },
+  "pavement_area_m2": 173630.5,
+  "allowed_area_m2": 168456.1,
+  "warnings": [
+    "18 mini-rota(s) automática(s) excluída(s) antes da rede (original; limite 50 m). Crie a ligação manualmente se necessária.",
+    "26 segmentos sem itinerário seguro completo; confira os eixos/conexões na prévia. Esses segmentos não recebem veículos isolados.",
+    "12 tentativa(s) de ligação recusada(s) por geometria ou sentido incompatível. Consulte o diagnóstico de circulação."
+  ]
+}

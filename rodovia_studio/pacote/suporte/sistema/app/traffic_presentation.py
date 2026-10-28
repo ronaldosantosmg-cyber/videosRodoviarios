@@ -4,6 +4,41 @@ from collections import Counter
 from . import visual
 
 
+class TrafficViewUnavailable(ValueError):
+    """A câmera não tem alvo; a prévia técnica ainda pode mostrar o projeto."""
+
+
+def operation_notice(settings):
+    """Marca somente as opções de ensaio realmente ativas."""
+    get=lambda name,default:settings.get(name,default) if isinstance(settings,dict) else getattr(settings,name,default)
+    if get('traffic_classic',False):return 'ENSAIO CLASSICO: somente canteiros'
+    reasons=[]
+    if get('heavy_shoulder_overtake',False):reasons.append('ultrapassagem pelo acostamento habilitada')
+    if not get('traffic_respect_signals',True):reasons.append('respeito aos semaforos desativado')
+    if not get('traffic_prevent_collisions',True):reasons.append('verificacao de colisoes desativada')
+    return 'ENSAIO: '+'; '.join(reasons) if reasons else ''
+
+
+def route_problem(scene):
+    """Explica a ausência de itinerários sem alterar cadastro ou restrições."""
+    network=scene.network
+    registration=getattr(network,'source_registration',{})
+    native=getattr(network,'native_axis_report',{})
+    if native.get('pending_directions'):
+        cause='Há sentidos antigos ou de fontes alteradas aguardando conferência.'
+        action='Abra Tráfego → Sentidos e nós, confira os eixos e confirme seus sentidos. Desligamentos manuais são preservados.'
+    elif native.get('manually_disabled'):
+        cause='Há eixos explicitamente desligados; eles não foram reativados.'
+        action='Abra Tráfego → Sentidos e nós e confira Sem circulação. Só habilite os eixos desejados, mantendo as demais restrições.'
+    elif not any(registration.get(k,0) for k in ('native_authorized','manual_axes','registered_alignments')):
+        cause='Nenhum eixo foi autorizado para circulação.'
+        action='Em Escolher eixo e configurar faixas, cadastre a camada como Eixo ou selecione uma linha com sentido explícito. Hachuras não geram eixos.'
+    else:
+        cause='Os eixos cadastrados não produziram itinerários utilizáveis.'
+        action='Abra Corrigir problemas dos fluxos e localize a causa por trecho: faixa desligada, limite mínimo, superfície, curva ou obstáculo físico. Confira também a seção típica.'
+    return cause+' '+action
+
+
 def visible(scene,t,cam,width,progress):
     stats={'time_s':round(float(t),3),'width_m':round(float(width),3),'enabled':bool(scene.s.traffic),'active':0,'drawn':0,'outside_view':0,'outside_revealed_section':0,'body_outside_allowed':0,'subpixel':0,'reveal_pending':float(getattr(scene,'reveal_opacity',1))<=.9}
     items=[]
@@ -26,7 +61,7 @@ def visible(scene,t,cam,width,progress):
 def focus_pose(scene,t):
     """Segue um veículo real persistente; caso contrário, enquadra uma via válida."""
     if not scene.s.traffic:raise ValueError('O modo Tráfego exige Incluir veículos ativado.')
-    if not scene.network.paths:raise ValueError('Não há itinerário válido para enquadrar veículos. Abra Diagnosticar veículos e corrija o eixo/seção; não remova as proteções.')
+    if not scene.network.paths:raise TrafficViewUnavailable('Não há itinerário válido para enquadrar veículos. '+route_problem(scene))
     width=float(np.clip(scene.s.view_width_m,80,750))
     if not hasattr(scene,'_traffic_camera_plan'):
         end=max(0.,scene.s.duration_s-1/scene.s.fps)
@@ -36,7 +71,7 @@ def focus_pose(scene,t):
         else:
             samples=[*first.values(),*last.values(),*scene.traffic_iter(scene.s.duration_s/2)]
             counts=Counter(int(v[3][0]) for v in samples)
-            if not counts:raise ValueError('Nenhum veículo ativo no intervalo amostrado. Confira demanda, restrições e o diagnóstico de circulação; nada foi liberado artificialmente.')
+            if not counts:raise TrafficViewUnavailable('Nenhum veículo ativo no intervalo amostrado. Confira demanda, restrições e o diagnóstico de circulação; nada foi liberado artificialmente.')
             index=counts.most_common(1)[0][0];path=np.asarray(scene.network.paths[index]['p'])
             q=(path-path[0])@scene.R
             span=max(float(np.ptp(q[:,0])),float(np.ptp(q[:,1]))*scene.W/(scene.H*.65))
@@ -53,6 +88,8 @@ def focus_pose(scene,t):
 
 def preflight(scene):
     if not scene.s.traffic:return {'enabled':False,'status':'desativado','samples':[],'notice':'Veículos desativados na configuração.'}
+    if not scene.network.paths:
+        return {'enabled':True,'status':'sem_itinerarios','samples':[],'notice':route_problem(scene)}
     end=max(0.,scene.s.duration_s-1/scene.s.fps);samples=[]
     previous_opacity=getattr(scene,'reveal_opacity',1.)
     try:
@@ -60,7 +97,9 @@ def preflight(scene):
             scene.reveal_opacity=1.
             if not scene.s.traffic_route_only and not scene.s.traffic_classic and scene.s.duration_s<45 and scene.s.short_video_mode=='auto' and scene.s.camera_mode!='trafego':
                 f=float(np.clip(t/max(1,min(8,scene.s.duration_s*.55)),0,1));scene.reveal_opacity=f*f*(3-2*f)
-            cam,width,progress,*_=scene.pose(t)
+            try:cam,width,progress,*_=scene.pose(t)
+            except TrafficViewUnavailable as exc:
+                return {'enabled':True,'status':'sem_veiculos','samples':samples,'notice':str(exc)}
             if scene.s.traffic_route_only or scene.s.traffic_classic:progress=1.
             _,row=visible(scene,t,cam,width,progress);samples.append(row)
     finally:scene.reveal_opacity=previous_opacity
@@ -71,6 +110,16 @@ def preflight(scene):
     elif all(r['drawn']==r['subpixel'] for r in samples if r['drawn']):status,notice='escala_ampla','Os veículos existem, mas têm menos de dois pixels nesta escala. Use o enquadramento de tráfego.'
     else:status,notice='visivel','Há veículos compatíveis com o enquadramento nos instantes amostrados.'
     return {'enabled':True,'status':status,'notice':notice,'samples':samples,'scope':'Amostras antes da exportação; não é contagem de todos os quadros nem garantia de visibilidade permanente.'}
+
+
+def record_preflight(scene):
+    from . import store
+    from .dependencies import digest,revisions
+    from .project_state import revision
+    result=preflight(scene)
+    key=digest([revision(scene.s.model_dump()),revisions(scene.directory,scene.s)])
+    store.write_json(scene.directory/'traffic_export_check.json',{'revision':key,'presentation':result})
+    return result
 
 
 def project_status(directory):
@@ -84,16 +133,32 @@ def project_status(directory):
         p=d/name
         if states[kind]['state']!='ready' or not p.is_file() or p.is_symlink() or p.stat().st_size>64*1024*1024:return {}
         try:
-            value=json.loads(p.read_text());return value if isinstance(value,dict) else {}
+            value=json.loads(p.read_text(encoding='utf-8-sig'));return value if isinstance(value,dict) else {}
         except (OSError,ValueError):return {}
     editor=result('editor.json','editor');analysis=result('analysis.json','analysis');video=result('video.json','video');preview=result('preview.json','preview')
-    presentation=video.get('traffic_presentation') or {};visibility=preview.get('traffic_visibility') or analysis.get('traffic_visibility') or {}
+    presentation=video.get('traffic_presentation') or analysis.get('traffic_presentation') or {};visibility=preview.get('traffic_visibility') or analysis.get('traffic_visibility') or {}
+    # Uma exportação recusada também precisa deixar orientação consultável.
+    from .dependencies import digest,revisions
+    from .project_state import revision
+    check=d/'traffic_export_check.json'
+    if check.is_file() and not check.is_symlink() and check.stat().st_size<=1024*1024:
+        try:
+            checked=json.loads(check.read_text(encoding='utf-8-sig'))
+            if checked.get('revision')==digest([revision(config),revisions(d)]):presentation=checked.get('presentation') or presentation
+        except (OSError,ValueError):pass
     simulation=video.get('motion_audit') or analysis.get('traffic_simulation') or {}
     current=bool(editor);paths=editor.get('itineraries') if current else None
     notices=[]
+    if operation_notice(config):notices.append(operation_notice(config)+'. Essa marca identifica o modo de operação e não é causa de ausência de veículos.')
     if not config.get('traffic',True):notices.append('Incluir veículos está desativado. O botão de prévia de tráfego permite ativar a apresentação, sem reativar rotas desligadas manualmente.')
     if not current:notices.append('Atualize o diagnóstico das rotas para usar resultados desta revisão do projeto.')
     elif not paths:notices.append('Nenhum itinerário válido para circulação. Confira eixo, seção e as causas dos bloqueios; aumentar densidade não cria uma rota.')
+    registration=(analysis.get('traffic_network') or {}).get('source_registration') or {}
+    if current and not paths:
+        if registration.get('native_pending_directions'):notices.append('Há sentidos antigos aguardando conferência em Sentidos e nós.')
+        elif registration.get('native_disabled'):notices.append('Há eixos explicitamente desligados. Confira Sem circulação em Sentidos e nós; nenhum desligamento manual foi reativado.')
+        elif not any(registration.get(k,0) for k in ('native_authorized','manual_axes','registered_alignments')):
+            notices.append('Cadastre uma camada como Eixo ou selecione uma linha com sentido explícito em Escolher eixo e configurar faixas. Confira sentidos antigos em Sentidos e nós; nenhuma opção manual foi reativada.')
     if presentation.get('notice'):notices.append(presentation['notice'])
     elif visibility.get('subpixel',0):notices.append('Há veículos com menos de dois pixels neste enquadramento. Use a prévia de tráfego em detalhe.')
     if visibility.get('outside_view',0):notices.append('Parte dos veículos está fora da região enquadrada na prévia.')

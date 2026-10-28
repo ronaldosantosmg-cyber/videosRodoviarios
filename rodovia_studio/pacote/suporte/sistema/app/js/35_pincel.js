@@ -9,17 +9,17 @@ function startBrush(){if(!pid||!ready())return msg('Abra o editor de um projeto 
 function inPoly(pts,w){let ins=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const a=pts[i],b=pts[j];if(((a.y>w.y)!==(b.y>w.y))&&w.x<(b.x-a.x)*(w.y-a.y)/((b.y-a.y)||1e-12)+a.x)ins=!ins}return ins}
 // Áreas com textura sob o ponto têm prioridade (rotas, fluxos e outros objetos por cima não atrapalham o pincel).
 function brushHit(w){for(const key of ['texture_areas','pavement_areas']){const L=M[key]||[];for(let i=L.length-1;i>=0;i--)if(L[i].points&&L[i].points.length>2&&inPoly(L[i].points,w))return objOf({key,i})}return null}
-async function brushClick(w,e){if(!brush)brush={src:null,n:0};const [cx,cy]=W2C(w);let o=brushHit(w);if(!o){const h=hitObject({cx,cy});o=h?objOf({key:h.key,i:h.i}):null;if(o&&!['pavement_areas','texture_areas'].includes(o.key)&&o.shape!=='area')o=null}
- if(!brush.src){let s=brushFrom(o);if(!s){try{const r=await api(`/api/projects/${pid}/area?x=${w.x}&y=${w.y}`);s=brushFromDxf(r)}catch(err){}}
-  if(!s)return msg('Aqui não há área com textura. Clique numa área de pista, numa região de textura ou numa área do desenho.',true);brush.src=s;toolOptions();return msg(`Origem: “${s.name}”. Agora clique nas áreas de destino (Esc ou Enter encerra).`)}
+async function brushClick(w,e){if(!brush)brush={src:null,n:0};const active=brush,project=pid,context=projectSession.context,model=M,request=(brush.request||0)+1;active.request=request;const current=()=>active.request===request&&brush===active&&project===pid&&context===projectSession.context&&model===M&&tool==='brush';const [cx,cy]=W2C(w);let o=brushHit(w);if(!o){const h=hitObject({cx,cy});o=h?objOf({key:h.key,i:h.i}):null;if(o&&!['pavement_areas','texture_areas'].includes(o.key)&&o.shape!=='area')o=null}
+ if(!brush.src){let s=brushFrom(o);if(!s){try{const r=await api(`/api/projects/${pid}/area?x=${w.x}&y=${w.y}`);if(!current())return;s=brushFromDxf(r)}catch(err){if(!current())return}}
+  if(!current())return;if(!s)return msg('Aqui não há área com textura. Clique numa área de pista, numa região de textura ou numa área do desenho.',true);brush.src=s;toolOptions();return msg(`Origem: “${s.name}”. Agora clique nas áreas de destino (Esc ou Enter encerra).`)}
  const s=brush.src;
  if(o&&(o.key==='pavement_areas'||o.key==='texture_areas')){checkpoint();
   if(o.key==='pavement_areas'){if(s.mode==='pav'){o.o.kind=s.kind;o.o.material=s.material}o.o.texture=s.texture?{...s.texture}:null}
   else{if(s.mode==='tex')o.o.surface=s.surface;o.o.texture=s.texture?{...s.texture}:null}
   brush.n++;changed(`Pincel: textura aplicada a “${o.o.name}” (${brush.n}). Continue clicando; Esc encerra.`);toolOptions();return}
  if(o)return msg(`“${o.label}” não tem textura. Clique numa área de pista, região de textura ou área do desenho.`,true);
- let r;try{r=await api(`/api/projects/${pid}/area?x=${w.x}&y=${w.y}`)}catch(err){return msg(err.status===404?'O ponto não está dentro de uma área fechada. Clique no interior da hachura ou desenhe uma área de pista; linhas abertas não recebem textura.':err.message,true)}
- checkpoint();
+ let r;try{r=await api(`/api/projects/${pid}/area?x=${w.x}&y=${w.y}`)}catch(err){if(!current())return;return msg(err.status===404?'O ponto não está dentro de uma área fechada. Clique no interior da hachura ou desenhe uma área de pista; linhas abertas não recebem textura.':err.message,true)}
+ if(!current())return;checkpoint();
  if(s.mode==='pav'){const n=M.pavement_areas.length+1;M.pavement_areas.push({id:uid(),name:`${PAV_LABEL[s.kind]||'Área'} ${n} (${r.layer})`.slice(0,80),kind:s.kind,points:r.points.map(P_),source:'picked',material:s.material,enabled:true,texture:s.texture?{...s.texture}:null})}
  else{const n=M.texture_areas.length+1;M.texture_areas.push({id:uid(),name:`${SURF_NAME[s.surface]||s.surface} ${n} (${r.layer})`.slice(0,80),surface:s.surface,points:r.points.map(P_),texture:s.texture?{...s.texture}:null,enabled:true})}
  brush.n++;changed(`Pincel: área do desenho (camada ${r.layer}) recebeu a textura (${brush.n}). O DXF não muda. Esc encerra.`);toolOptions()}

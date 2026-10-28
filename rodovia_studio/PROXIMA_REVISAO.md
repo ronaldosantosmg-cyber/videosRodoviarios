@@ -27,3 +27,7 @@ Exigência reforçada do usuário: rodapé em uma linha, sem aumentar altura nem
 ### Vista, prévia e sessões — continuação
 
 Organizados controles existentes em grupos, com opções avançadas recolhidas. Corrigida visibilidade de sessões/navegação no popup, descarte das preferências reais e respostas antigas de sessões após troca de contexto. Mantida barra inferior em uma linha. Evidências consolidadas em evidencias/formularios-etapa2; etapa sem ZIP, exportação MP4 ou homologação Windows.
+
+### Logs de fluxo e imagem combinada
+
+Corrigidos UTF-8 da assistência no Windows, ciclo de falha de prévia sem alvo, recusa explícita de exportação sem itinerários e respostas obsoletas do pincel. Aviso ENSAIO passa a avisos/metadados, sem faixa no vídeo. Imagem combinada pode usar local válida se o mapa web falhar. Ajustado reconhecimento de hachuras de pista; ensaio no DXF disponível passou a 7 itinerários, mantendo trechos recusados. Ver evidencias/correcao-log-fluxos para escopo e limites; não é pacote liberado.

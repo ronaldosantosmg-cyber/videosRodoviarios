@@ -188,7 +188,7 @@ class TrafficNetwork:
         from .native_axes import native_paths
         native,self.native_axis_report=native_paths(axes,settings,self.allowed)
         if not native and not any(p.enabled for p in settings.traffic_paths) and not any(r.enabled for r in settings.route_alignments):self.warnings.append('Nenhum eixo autorizado para tráfego: cadastre a camada como Eixo ou selecione uma linha como rota com sentido explícito. Sugestão pelo nome não autoriza circulação. O pavimento sozinho não cria fluxos.')
-        self.source_registration={'policy':'explicit_axis_required','native_authorized':len(native),'ignored_unregistered':self.native_axis_report['ignored_sources'],'manual_axes':sum(p.enabled for p in settings.traffic_paths),'registered_alignments':sum(r.enabled for r in settings.route_alignments)}
+        self.source_registration={'policy':'explicit_axis_required','native_authorized':len(native),'native_pending_directions':self.native_axis_report.get('pending_directions',0),'native_disabled':self.native_axis_report.get('manually_disabled',0),'ignored_unregistered':self.native_axis_report['ignored_sources'],'manual_axes':sum(p.enabled for p in settings.traffic_paths),'registered_alignments':sum(r.enabled for r in settings.route_alignments)}
         if self.native_axis_report.get('pending_directions'):self.warnings.append('Sentidos antigos vinculados a índices precisam de conferência em Sentidos e nós. Fontes não conferidas permanecem sem circulação; nenhuma decisão foi transferida para outro eixo.')
         raw=native
         for r in settings.traffic_paths:

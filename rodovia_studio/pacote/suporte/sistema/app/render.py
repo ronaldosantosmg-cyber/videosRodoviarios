@@ -1003,10 +1003,10 @@ class Scene:
         if self.s.duration_s<45 and self.s.short_video_mode=='auto' and self.s.camera_mode!='trafego' and not self.s.traffic_route_only and not self.s.traffic_classic and not overview and view is None:
             f=float(np.clip(t/max(1,min(8,self.s.duration_s*.55)),0,1));self.reveal_opacity=f*f*(3-2*f)
         self._t=t;self._night=visual.night_factor(self.s,t);self._night_items=[]
-        cam,width,progress,poi,scene=self.pose(t)
-        if self.s.traffic_route_only or self.s.traffic_classic:progress=1.;self.reveal_opacity=1.
-        if overview:cam=self.center;width=self.overview;progress=1;poi=None;scene='preview'
         if view is not None:cam=np.asarray(view[0],float);width=float(view[1]);progress=1;poi=None;scene='preview'
+        elif overview:cam=self.center;width=self.overview;progress=1;poi=None;scene='preview'
+        else:cam,width,progress,poi,scene=self.pose(t)
+        if self.s.traffic_route_only or self.s.traffic_classic:progress=1.;self.reveal_opacity=1.
         key=scene if scene.startswith('detalhe') and getattr(self,'_matte',None) is None else None
         if key and key in self.static:im=self.static[key].copy()
         else:
@@ -1160,9 +1160,8 @@ class Scene:
             if 0<x<self.W and header<y<self.H-footer:
                 pts=np.array([[x0,header],[x0,header+int(18*sc)],[x,y]],np.int32)
                 cv2.polylines(im,[pts],False,(10,28,43),max(2,round(5*sc)),cv2.LINE_AA);cv2.polylines(im,[pts],False,(134,220,233),max(1,round(2*sc)),cv2.LINE_AA)
-        if self.s.traffic_classic or self.s.heavy_shoulder_overtake or not self.s.traffic_prevent_collisions or not self.s.traffic_respect_signals:
-            cv2.rectangle(im,(0,self.H-30),(self.W,self.H),(110,35,20),-1)
-            cv2.putText(im,'ENSAIO CLASSICO: somente canteiros' if self.s.traffic_classic else 'ENSAIO: ultrapassagem pelo acostamento ou controles desativados',(12,self.H-9),cv2.FONT_HERSHEY_SIMPLEX,.5,(255,255,255),1,cv2.LINE_AA)
+        from .traffic_presentation import operation_notice
+        self.report['traffic_operation_notice']=operation_notice(self.s)
         self.report['traffic_visibility']=self._vehicle_visibility
         return im,{'traffic_visibility':self._vehicle_visibility,'camera':cam.tolist(),'width_m':width,'screen_width':self.W,'screen_height':self.H,'right':self.right.tolist(),'up':self.up.tolist()}
 
@@ -1187,8 +1186,12 @@ def render(directory,s,status=lambda *a:None,cancel=lambda:False):
             if scene.detail.offline:scene.report['warnings'].append('Imagem detalhada indisponível (sem internet e sem cache): o vídeo usa o mosaico base; texturas do projeto seguem em alta resolução.')
         except Exception as e:scene.report['warnings'].append('Imagem detalhada não pré-carregada: '+str(e)[:120])
     if s.traffic:scene.traffic(status)
-    from .traffic_presentation import preflight as traffic_preflight
-    scene.report['traffic_presentation']=traffic_preflight(scene)
+    from .traffic_presentation import record_preflight
+    scene.report['traffic_presentation']=record_preflight(scene)
+    if scene.report['traffic_presentation']['status']=='sem_itinerarios':
+        raise ValueError('Vídeo não gerado: veículos estão ativados, mas não há itinerário válido. '+scene.report['traffic_presentation']['notice'])
+    if scene.report['traffic_presentation']['status']=='sem_veiculos' and s.camera_mode=='trafego':
+        raise ValueError('Vídeo não gerado: a câmera de tráfego não tem veículos ativos. '+scene.report['traffic_presentation']['notice'])
     if scene.report['traffic_presentation']['status'] not in ('visivel','desativado'):scene.report['warnings'].append(scene.report['traffic_presentation']['notice'])
     status(.25,'Testando aceleração NVIDIA / NVENC')
     encoding=select_encoder(ff,OW,OH,s.fps,s.encoder,s.cpu_preset,quality=getattr(s,'video_quality','padrao'))
@@ -1277,6 +1280,7 @@ def render(directory,s,status=lambda *a:None,cancel=lambda:False):
     meta={'frames':frames,'fps':s.fps,'duration_s':frames/s.fps,'width':OW,'height':OH,'video_quality':getattr(s,'video_quality','padrao'),'superamostragem':1.5 if ssaa else 1,'codec':'H.264 High','encoder':encoding['encoder'],'encoder_reason':encoding['reason'],'quality':encoding['quality'],'pix_fmt':'yuv420p','geometric_length_m':scene.length,'reference_length_m':s.reference_length_m,'geometry_cache_hit':scene.geometry_cache_hit,'visual_quality':s.visual_quality,'render_profile':s.render_profile,'workers':workers,'workers_reason':why,'camera':'cabin' if cabin else 'aerial','cabin_reaches_path_end':bool(cabin.reaches_end) if cabin else None,'preparation_seconds':round(prepared,3),'total_seconds':round(time.monotonic()-start,3),'validation':check,'motion_audit':scene.report.get('traffic_simulation'),'network_safety':{'rejected_paths':len(getattr(scene.network,'rejected_paths',[])),'rejected_connections':dict(getattr(scene.network,'rejected_connectors',{}))}}
     ped_control=scene._sim.pedestrians if getattr(scene,'_sim',None) is not None else getattr(scene,'_ped_control',None)
     meta['traffic_presentation']=scene.report.get('traffic_presentation')
+    meta['traffic_operation_notice']=scene.report.get('traffic_operation_notice','')
     meta['pedestrian_audit']=ped_control.report() if ped_control else None
     meta['rail_smoke']=bool(s.rail_smoke)
     if getattr(scene,'_sim',None) is not None:meta['motion_audit']['body_samples']=scene._sim.vehicle_body_state(min(s.duration_s/2,1.5))[:10]
