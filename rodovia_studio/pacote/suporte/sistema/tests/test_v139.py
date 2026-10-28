@@ -54,7 +54,7 @@ def zig_net(m):
     from app.traffic import TrafficNetwork
     axis=np.array([[0.,0.],[400.,0.]]);ds=np.array([0.,400.])
     A=np.array([[0.,0.],[180.,0.]]);Z=np.array([[183.,0.],[193.,6.],[203.,0.]]);B=np.array([[206.,0.],[400.,0.]])
-    s=Settings(derive_traffic_paths=False,hydrography=False,min_route_segment_m=m,median_crossing='free',route_directions={'0':'forward','1':'forward','2':'forward'})
+    s=Settings(derive_traffic_paths=False,hydrography=False,min_route_segment_m=m,median_crossing='free',route_directions={'axis:'+__import__('app.native_axes',fromlist=['axis_fingerprint']).axis_fingerprint(p):'forward' for p in (A,Z,B)})
     return TrafficNetwork([box(0,-9,400,11)],[],[{'points':A},{'points':Z},{'points':B}],axis,ds,s)
 
 def desvio(n):

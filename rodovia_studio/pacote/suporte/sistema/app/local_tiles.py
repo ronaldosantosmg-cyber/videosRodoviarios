@@ -194,8 +194,9 @@ def collar_mask(reader,limit=2048):
     for r0 in range(0,h,strip):
         a=reader.read(k,r0,min(h,r0+strip),0,w)
         if a is None:return None
-        if a.ndim==3 and a.shape[2] in (2,4):return None   # imagem com alfa própria: não precisa
-        rows.append(nd_exact(a)[::st,::st])
+        nd=nd_exact(a)
+        if a.ndim==3 and a.shape[2] in (2,4):nd|=a[:,:,-1]==0
+        rows.append(nd[::st,::st])
     nd=np.concatenate(rows,0).astype(np.uint8)
     n,lab=cv2.connectedComponents(nd,connectivity=4)
     edge=np.unique(np.concatenate([lab[0],lab[-1],lab[:,0],lab[:,-1]]))
@@ -265,7 +266,7 @@ class Source:
     def collar(self):
         if self._collar is False:
             # Calculada uma vez por imagem e guardada ao lado (os processos paralelos reaproveitam).
-            st=self.path.stat();cache=self.path.with_name(f'.{self.path.name}.borda_{st.st_size}_{st.st_mtime_ns}.npz')
+            st=self.path.stat();cache=self.path.with_name(f'.{self.path.name}.borda_v2_{st.st_size}_{st.st_mtime_ns}.npz')
             try:
                 z=np.load(cache);self._collar=(z['m'],tuple(float(v) for v in z['s']));return self._collar
             except Exception:pass
@@ -313,7 +314,7 @@ class LocalMosaic:
         for s in self.sources:
             st=s.path.stat();h.update(f'{s.path.name}|{st.st_size}|{st.st_mtime_ns}|{s.gt}|{s.crs.to_string()}'.encode())
             if s.adjusted:h.update(repr(s.adj).encode())
-        h.update(json.dumps([getattr(li,'brightness',0),getattr(li,'contrast',0),getattr(li,'saturation',0),getattr(li,'nodata','borda'),'1.17']).encode())
+        h.update(json.dumps([getattr(li,'brightness',0),getattr(li,'contrast',0),getattr(li,'saturation',0),getattr(li,'nodata','borda'),'borda-alpha-v2']).encode())
         self.key=h.hexdigest()[:16]
         self.bbox=[s.bounds(self.target) for s in self.sources]
     def __getstate__(self):
@@ -356,22 +357,22 @@ class LocalMosaic:
             if win is None:continue
             rc0=max(0,c0);rr0=max(0,r0)
             raw=win;win=to_rgb8(win)
-            if win.shape[2]==3:
-                alpha=np.full(win.shape[:2],255,np.uint8)
-                mode=self.li_nodata   # a opção “Bordas pretas/brancas” vale para todas as imagens do mosaico
-                if mode=='auto':
-                    nd=(win.max(2)<=3)|(win.min(2)>=253)   # anterior (até a 1.38): quase preto/quase branco
+            alpha=win[:,:,3].copy() if win.shape[2]==4 else np.full(win.shape[:2],255,np.uint8)
+            mode=self.li_nodata
+            if mode=='auto':
+                nd=(win[:,:,:3].max(2)<=3)|(win[:,:,:3].min(2)>=253)
+                alpha[nd]=0
+            elif mode=='borda':
+                nd=nd_exact(raw)
+                cm=s.collar
+                if cm is not None:
+                    m,(fx,fy)=cm
+                    ci=np.clip(((np.arange(win.shape[1])+rc0+.5)*f*fx).astype(int),0,m.shape[1]-1)
+                    ri=np.clip(((np.arange(win.shape[0])+rr0+.5)*f*fy).astype(int),0,m.shape[0]-1)
+                    nd&=m[np.ix_(ri,ci)].astype(bool)
                     alpha[nd]=0
-                elif mode=='borda':
-                    nd=nd_exact(raw)
-                    cm=s.collar
-                    if cm is not None:
-                        m,(fx,fy)=cm
-                        ci=np.clip(((np.arange(win.shape[1])+rc0+.5)*f*fx).astype(int),0,m.shape[1]-1)
-                        ri=np.clip(((np.arange(win.shape[0])+rr0+.5)*f*fy).astype(int),0,m.shape[0]-1)
-                        nd&=m[np.ix_(ri,ci)].astype(bool)
-                    alpha[nd]=0
-                win=np.dstack([win,alpha])
+                # Sem máscara confiável, preservar imagem e alfa originais.
+            win=np.dstack([win[:,:,:3],alpha])
             # Pixel do nível: centro do pixel em (c-0.5).
             mx=(c-rc0-.5).astype(np.float32);my=(r-rr0-.5).astype(np.float32)
             smooth=step/f>1.6
