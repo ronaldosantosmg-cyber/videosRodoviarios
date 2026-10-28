@@ -21,6 +21,7 @@ SYSTEM=PACKAGE/'suporte/sistema'
 EVIDENCE=ROOT/'evidencias'/json.loads((PACKAGE/'manifest.json').read_text())['version']
 TESTS=[
  'tests/test_release_gate_resume.py',
+ 'tests/test_tracking_reconnect.py',
  'tests/test_log_flow_recovery.py','tests/test_log_flow_ui.py','tests/test_mixed_imagery_traffic.py',
  'tests/test_dialog_drafts.py','tests/test_contextual_toolbar_status.py','tests/test_view_preview_sessions.py',
  'tests/test_image_border_alpha.py',

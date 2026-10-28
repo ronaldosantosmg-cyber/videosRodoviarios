@@ -134,4 +134,4 @@ comando(['VIDEO','GERAR'],()=>gerarVideo(),'Gera um novo vídeo (fica guardado e
 
 montarDock();montarRodape();aplicarAreaMax();
 // Ao concluir um vídeo, a lista de vídeos gerados abre sozinha (assistir, baixar, abrir a pasta).
-estender('poll',anterior=>async function(jid){const r=await anterior(jid);try{const j=await api('/api/jobs/'+jid);if(j.kind==='render'&&j.state==='done'&&pid)await openVideos()}catch{}return r},'vídeo pronto: abre a lista de vídeos gerados');
+estender('poll',anterior=>async function(jid){const r=await anterior(jid);try{const j=r;if(j.kind==='render'&&j.state==='done'&&pid)await openVideos()}catch{}return r},'vídeo pronto: abre a lista de vídeos gerados');

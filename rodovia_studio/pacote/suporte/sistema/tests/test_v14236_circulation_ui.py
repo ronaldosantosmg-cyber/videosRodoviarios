@@ -47,10 +47,8 @@ def test_short_check_has_preview_and_rejects_stale_report_without_overwriting_co
 
 def test_poll_connection_loss_offers_resume_without_duplicate_calculation(gl_page,live):
     p=gl_page
-    result=p.evaluate('''async()=>{const previous=api;let reads=0;api=async(url,opt)=>{if(url==='/api/jobs/test-tracking'){reads++;throw Error('Conexão perdida no ensaio')}return previous(url,opt)};try{await poll('test-tracking')}catch{}finally{api=previous}return {reads,task,visible:!$('rsResumeTracking').hidden}}''')
-    assert result==dict(reads=1,task='test-tracking',visible=True)
-    result=p.evaluate('''async()=>{const previous=api;let posts=0;api=async(url,opt)=>{if(opt?.method==='POST')posts++;if(url==='/api/jobs/test-tracking')return {id:'test-tracking',state:'done',project:'outro',kind:'analyze',message:'Concluído'};return previous(url,opt)};try{await poll('test-tracking');return {posts,task}}finally{api=previous}}''')
-    assert result==dict(posts=0,task='')
+    result=p.evaluate('''async()=>{const previous=api;let reads=0,posts=0;api=async(url,opt)=>{if(opt?.method==='POST')posts++;if(url==='/api/jobs/test-tracking'){reads++;if(reads===1)throw Error('Conexão perdida no ensaio');return {id:'test-tracking',state:'done',project:'outro',kind:'analyze',message:'Concluído'}}return previous(url,opt)};try{const finished=await poll('test-tracking');return {reads,posts,task,state:finished.state,visible:!$('rsResumeTracking').hidden}}finally{api=previous}}''')
+    assert result==dict(reads=2,posts=0,task='',state='done',visible=False)
 
 
 def test_alignment_result_is_discarded_after_context_changes(gl_page):

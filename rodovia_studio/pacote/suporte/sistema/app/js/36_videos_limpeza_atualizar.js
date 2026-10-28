@@ -48,7 +48,7 @@ comando(['LIMPAR','LIMPEZA'],()=>guard(openCleanup)(),'Limpar memória: apaga re
 comando(['ATUALIZAR'],()=>guard(openUpdate)(),'Procura e aplica a atualização mais nova');
 comando(['VERSAOANTERIOR','ROLLBACK'],()=>guard(openUpdate)(),'Abre Atualização para restabelecer a versão anterior');
 // Ao concluir um vídeo, a mensagem lembra que ele foi guardado e oferece a lista.
-estender('poll',anterior=>async function(jid){const r=await anterior(jid);try{const j=await api('/api/jobs/'+jid);if(j.kind==='render'&&j.state==='done'&&/guardado em/.test(j.message||''))msg(j.message+' — Arquivo › Vídeos gerados para ver todos.')}catch{}return r},'vídeos: aviso do arquivo guardado');
+estender('poll',anterior=>async function(jid){const r=await anterior(jid);try{const j=r;if(j.kind==='render'&&j.state==='done'&&/guardado em/.test(j.message||''))msg(j.message+' — Arquivo › Vídeos gerados para ver todos.')}catch{}return r},'vídeos: aviso do arquivo guardado');
 
 // O iniciador aguarda esta promessa antes de encerrar a janela e o servidor.
 window.rodoviaPrepararAtualizacao=async function(){

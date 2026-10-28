@@ -36,3 +36,8 @@ Corrigidos UTF-8 da assistência no Windows, ciclo de falha de prévia sem alvo,
 ### Entrega 1.42.37 concluída
 
 ZIP novo gerado após aprovação de 961 casos, zero falhas/erros/ignorados, compilação C# e splash. Atualização e rollback do arquivo final conferidos em instalação isolada com preservação de dados. Evidências em evidencias/1.42.37/LEIA_ME.md e entrega-conferida/. As tentativas bloqueadas anteriores permanecem como histórico. Pendências: homologação Windows/WebView2/8 GB, carga prolongada, benchmarks comparáveis e configuração real do projeto do usuário; não inclui pesos de IA 3B. Nota estimada 7,8/10.
+
+
+### Correção dirigida do acompanhamento — após 1.42.37
+
+Reconexão de leitura sem reenviar o cálculo, espera na fila sem limite arbitrário de dois minutos, Retomar visível no rodapé e eliminação de consultas finais redundantes. A fila aguarda a aplicação do resultado. 18 testes dirigidos aprovados, incluindo perda de conexão no servidor real e confirmação de POST único. Evidências em evidencias/acompanhamento-reconexao/. Sem novo ZIP nem nova aprovação integral; pacote histórico 1.42.37 preservado.

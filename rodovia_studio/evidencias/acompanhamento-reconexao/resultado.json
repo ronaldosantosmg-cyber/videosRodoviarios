@@ -1,0 +1,24 @@
+{
+  "scope": "Correção dirigida após 1.42.37; sem aprovação de nova entrega",
+  "pytest": {
+    "tests": 18,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "source_sha256": {
+    "07_tarefas_intervencoes.js": "d20aca1a0bc870f794657212e23ea6703ad1509cea939c119acd0c309ecb3724",
+    "36_videos_limpeza_atualizar.js": "687926275473a09772bd9e08af985fc6b03dca5ff162590543fc5d949a4d9d3e",
+    "38_area_trabalho.js": "218df118d37f5089c7b887ce2a7b0fd0277682f4f6c0dfa4b66ae348b0a43da2",
+    "75_operacao_consolidada.js": "cb6e241ded8985f8339ad3a15cf2a6823916fd44c18e13f48bcdb4931d053e33",
+    "87_circulacao_simples.js": "c859f7682155fd77ac2fac853ce56e2f7fd84f6312f4154b624f2ac725dcfd84"
+  },
+  "checks": [
+    "Chromium com interface real",
+    "Queda de conexão injetada na consulta de status de uma tarefa real; somente um POST analyze",
+    "Reconexão automática e manual; cancelamento; troca de projeto; fila acima de dois minutos; carregamento de resultados",
+    "Sintaxe dos cinco arquivos JavaScript conferida com Node"
+  ],
+  "windows_native": false,
+  "new_package_generated": false
+}

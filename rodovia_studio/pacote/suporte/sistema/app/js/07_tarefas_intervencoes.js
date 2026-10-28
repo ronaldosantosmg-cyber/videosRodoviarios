@@ -16,7 +16,31 @@ $('addPoi').onclick=guard(async()=>{if(!$('poiTitle').value.trim()||!$('poiX').v
 
 /* ---------- Tarefas ---------- */
 let lastPolled='',taskRequestPending=false;
-async function poll(jid){task=jid;lastPolled=jid;localStorage.setItem('rodovia_job',jid);$('cancel').disabled=false;for(;;){let j;try{j=await api('/api/jobs/'+jid,{timeoutMs:15000})}catch(e){window.dispatchEvent(new CustomEvent('rodovia:tracking-lost',{detail:{id:jid,message:e.message}}));throw Error('Acompanhamento interrompido. A tarefa pode continuar no servidor. Use Retomar acompanhamento; não repita o cálculo.')}window.dispatchEvent(new CustomEvent('rodovia:tracking-resumed',{detail:{id:jid}}));window.dispatchEvent(new CustomEvent('rodovia:job',{detail:j}));msg(j.message,j.state==='failed');if(['done','failed','cancelled','interrupted'].includes(j.state)){task='';localStorage.removeItem('rodovia_job');$('cancel').disabled=true;if(j.state==='done'&&j.project===pid){const syncConfig=j.kind==='convert_imagery';const keep=j.kind==='preview'&&$('preview_mode').value==='custom'?null:true;if(!syncConfig&&savePending&&j.project===pid&&!window.RodoviaPanels?.opened){clearTimeout(saveTimer);try{await save()}catch(e){}}await load(j.project,{resultsOnly:true,syncConfig});if(j.kind==='render'||j.kind==='reference'){$('download').href='/api/projects/'+pid+'/video.mp4';$('download').hidden=false;$('video').src=$('download').href+'?v='+Date.now();$('video').hidden=false;msg(projectSession.artifacts.video?.state==='stale'?'Vídeo concluído com uma configuração anterior. Gere novamente para incluir as alterações atuais.':(j.kind==='reference'?'Referência exportada sem alterações.':('Novo vídeo concluído · '+(lastRender?.encoder||'H.264')+(lastRender?.total_seconds?' · '+tempo(lastRender.total_seconds)+' de processamento':''))))}}return j}await new Promise(r=>setTimeout(r,1200))}}
+// Uma consulta por tarefa; perder a conexão não encerra nem repete o cálculo.
+const trackingPolls=new Map();
+function trackingWait(state,ms){return new Promise(resolve=>{let timer;const wake=()=>{clearTimeout(timer);if(state.wake===wake)state.wake=null;resolve()};state.wake=wake;timer=setTimeout(wake,ms)})}
+function poll(jid){
+ const existing=trackingPolls.get(jid);if(existing){existing.wake?.();return existing.promise}
+ if(trackingPolls.size)return Promise.reject(Error('Já há uma tarefa sendo acompanhada. Aguarde ou cancele-a antes de acompanhar outra.'));
+ const state={wake:null,promise:null};
+ state.promise=trackJob(jid,state).finally(()=>{state.wake?.();if(trackingPolls.get(jid)===state)trackingPolls.delete(jid)});
+ trackingPolls.set(jid,state);return state.promise;
+}
+window.addEventListener('online',()=>{for(const state of trackingPolls.values())state.wake?.()});
+async function trackJob(jid,state){
+ task=jid;lastPolled=jid;localStorage.setItem('rodovia_job',jid);$('cancel').disabled=false;let failures=0,disconnected=false;
+ for(;;){let j;try{
+  j=await api('/api/jobs/'+jid,{timeoutMs:15000});
+  if(!j||!['queued','running','cancel_requested','done','failed','cancelled','interrupted'].includes(j.state)||(j.id&&j.id!==jid)){const error=Error('Resposta de acompanhamento inválida.');error.status=502;throw error}
+ }catch(e){
+  if(!disconnected){disconnected=true;window.dispatchEvent(new CustomEvent('rodovia:tracking-lost',{detail:{id:jid,message:e.message}}))}
+  const status=Number(e.status)||0;
+  if(status>=400&&status<500&&![408,429].includes(status))throw Error('Não foi possível consultar a tarefa ('+status+'). O cálculo não será repetido. Confira o servidor e use Retomar acompanhamento.');
+  failures++;msg('Reconectando ao acompanhamento · tentativa '+failures+'. A tarefa pode continuar no servidor; nenhum cálculo foi reenviado.');
+  await trackingWait(state,Math.min(15000,1000*2**Math.min(failures-1,4)));continue;
+ }
+ failures=0;disconnected=false;window.dispatchEvent(new CustomEvent('rodovia:tracking-resumed',{detail:{id:jid}}));
+ window.dispatchEvent(new CustomEvent('rodovia:job',{detail:j}));msg(j.message,j.state==='failed');if(['done','failed','cancelled','interrupted'].includes(j.state)){if(task===jid){task='';$('cancel').disabled=true}if(localStorage.getItem('rodovia_job')===jid)localStorage.removeItem('rodovia_job');if(j.state==='done'&&j.project===pid){const syncConfig=j.kind==='convert_imagery';const keep=j.kind==='preview'&&$('preview_mode').value==='custom'?null:true;if(!syncConfig&&savePending&&j.project===pid&&!window.RodoviaPanels?.opened){clearTimeout(saveTimer);try{await save()}catch(e){}}await load(j.project,{resultsOnly:true,syncConfig});if(j.kind==='render'||j.kind==='reference'){$('download').href='/api/projects/'+pid+'/video.mp4';$('download').hidden=false;$('video').src=$('download').href+'?v='+Date.now();$('video').hidden=false;msg(projectSession.artifacts.video?.state==='stale'?'Vídeo concluído com uma configuração anterior. Gere novamente para incluir as alterações atuais.':(j.kind==='reference'?'Referência exportada sem alterações.':('Novo vídeo concluído · '+(lastRender?.encoder||'H.264')+(lastRender?.total_seconds?' · '+tempo(lastRender.total_seconds)+' de processamento':''))))}}return j}await trackingWait(state,1200)}}
 async function start(kind,payload,options={}){if(fileMutationPending){if(!options.automatic)msg('Conclua o envio de arquivos antes de iniciar o cálculo.');return false;}requireProject();const deferred=()=>options.automatic&&!!document.querySelector('dialog[open]');if(deferred())return false;if(taskRequestPending||task){msg('Há um processamento em andamento. Aguarde a conclusão ou cancele-o.');return false}taskRequestPending=true;try{const project=pid;clearTimeout(saveTimer);await save();if(pid!==project)throw Error('O projeto mudou. Inicie a tarefa novamente.');if(deferred()||options.policyAuto&&window.RodoviaPanels?.opened)return false;if(kind==='render'||kind==='reference'){$('download').hidden=true;$('video').hidden=true}const r=await api('/api/projects/'+pid+'/'+kind,payload?json('POST',payload):{method:'POST'});announce({t:'job',id:r.id});const finished=await poll(r.id);if(finished.state==='failed')throw Error(finished.message||'O processamento falhou.');if(finished.state!=='done')return false;return finished}finally{taskRequestPending=false}}
 $('new').onclick=guard(async()=>{const r=await api('/api/projects',json('POST',{name:'Novo trecho'}));await list();await load(r.id);msg('Projeto criado. Envie os arquivos.')});
 $('projects').onchange=guard(async()=>{if($('projects').value){await load($('projects').value);announce({t:'project'})}});

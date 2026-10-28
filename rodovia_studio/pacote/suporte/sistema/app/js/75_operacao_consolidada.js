@@ -5,8 +5,8 @@ const oldStart=start;
 function queueState(){const waiting=pending.length+(running?.phase==='waiting'?1:0);if($('pcQueue'))$('pcQueue').textContent=waiting?waiting+' na fila':'';if($('rsClearQueue'))$('rsClearQueue').hidden=!waiting;window.dispatchEvent(new CustomEvent('rodovia:update-state'))}
 async function drain(){if(draining)return;draining=true;try{while(pending.length){const row=pending.shift();running=row;row.phase='waiting';queueState();try{
  if(row.project!==pid||row.context!==projectSession.context){row.resolve(false);continue}
- const deadline=Date.now()+120000;
- while(!row.cancelled&&(task||taskRequestPending||fileMutationPending)){if(pid!==row.project||projectSession.context!==row.context)break;if(Date.now()>deadline)throw Error('A operação atual continua. Solicite a atualização novamente após concluir ou cancelar.');await new Promise(r=>setTimeout(r,150))}
+ // Tarefas longas e reconexão não são falhas da fila. Limpar fila continua disponível.
+ while(!row.cancelled&&(task||taskRequestPending||fileMutationPending||trackingPolls.size)){if(pid!==row.project||projectSession.context!==row.context)break;await new Promise(r=>setTimeout(r,150))}
  if(row.cancelled||row.project!==pid||row.context!==projectSession.context){row.resolve(false);continue}
  row.phase='running';queueState();row.resolve(await oldStart(row.kind,row.payload,row.options));
  }catch(error){row.reject(error)}finally{requests.delete(row.key);running=null;queueState()}}}finally{draining=false}}
