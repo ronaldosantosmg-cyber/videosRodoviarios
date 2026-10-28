@@ -1,0 +1,65 @@
+{
+  "decoded": {
+    "codec": "h264",
+    "pix_fmt": "yuv420p",
+    "width": 1280,
+    "height": 720,
+    "fps": 24.0,
+    "frames_decoded": 72,
+    "frames_expected": 72,
+    "decode_errors": "",
+    "faststart": true,
+    "ok": true,
+    "problems": []
+  },
+  "presentation": {
+    "enabled": true,
+    "status": "visivel",
+    "notice": "H\u00e1 ve\u00edculos compat\u00edveis com o enquadramento nos instantes amostrados.",
+    "samples": [
+      {
+        "time_s": 0.0,
+        "width_m": 350.0,
+        "enabled": true,
+        "active": 1,
+        "drawn": 1,
+        "outside_view": 0,
+        "outside_revealed_section": 0,
+        "body_outside_allowed": 0,
+        "subpixel": 0,
+        "reveal_pending": false
+      },
+      {
+        "time_s": 1.5,
+        "width_m": 350.0,
+        "enabled": true,
+        "active": 1,
+        "drawn": 1,
+        "outside_view": 0,
+        "outside_revealed_section": 0,
+        "body_outside_allowed": 0,
+        "subpixel": 0,
+        "reveal_pending": false
+      },
+      {
+        "time_s": 2.958,
+        "width_m": 350.0,
+        "enabled": true,
+        "active": 1,
+        "drawn": 1,
+        "outside_view": 0,
+        "outside_revealed_section": 0,
+        "body_outside_allowed": 0,
+        "subpixel": 0,
+        "reveal_pending": false
+      }
+    ],
+    "scope": "Amostras antes da exporta\u00e7\u00e3o; n\u00e3o \u00e9 contagem de todos os quadros nem garantia de visibilidade permanente."
+  },
+  "motion_audit": {
+    "vehicles": 5,
+    "rear_collisions": 0,
+    "side_collisions": 0
+  },
+  "workers": 1
+}

@@ -1,0 +1,2378 @@
+No broken requirements found.
+bringing up nodes...
+bringing up nodes...
+
+........................................................................ [  7%]
+........................................F..F..................F......... [ 15%]
+......................F.............................F................... [ 22%]
+........................F......F........................................ [ 30%]
+................F..................F.......F.F.......................... [ 37%]
+..........................F............................................. [ 45%]
+....F.F.................F........F...................................... [ 52%]
+..FF.FFFFFFFFFFFF..............F............FFFFFFFFFF....F.........F... [ 60%]
+.....FFF......E...........F......F....FF.F.FFF.FF.......F....FF..F....F. [ 67%]
+...F........F...................FFF..........F...F.........F
+==================================== ERRORS ====================================
+_________ ERROR at setup of test_failed_3d_refresh_keeps_existing_view _________
+[gw2] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+live = ('http://127.0.0.1:44245', 'ffffffffffffffffffffffffffffffff', PosixPath('/tmp/pytest-of-agent/pytest-385/popen-gw2/webgl_real0'))
+
+    @pytest.fixture
+    def gl_page(live):
+        with sync_playwright() as p:
+            b=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-dev-shm-usage'])
+            page=b.new_page(viewport={'width':1440,'height':900},accept_downloads=True);errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
+            page.route('**/*',lambda route:route.continue_() if route.request.url.startswith(live[0]+'/') else route.abort())
+            # Prontidão pelos módulos reais, sem depender de silêncio das consultas de estado.
+            page.goto(live[0],wait_until='domcontentloaded',timeout=60000);page.wait_for_function('!!window.Rodovia3D && !!window.RodoviaNewProject',timeout=60000)
+>           page.evaluate('(pid)=>load(pid)',live[1]);page.wait_for_timeout(300);page.wait_for_function('!task',timeout=60000)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_v1425_live_3d.py:35: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:8562: in evaluate
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_page.py:464: in evaluate
+    return await self._main_frame.evaluate(expression, arg)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:320: in evaluate
+    await self._channel.send(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f1cddbdfd10>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f1cde59b060>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.Error: Page.evaluate: Error: Acompanhamento interrompido. A tarefa pode continuar no servidor. Use Retomar acompanhamento; não repita o cálculo.
+E               at poll (http://127.0.0.1:44245/js/07_tarefas_intervencoes.js:19:297)
+E               at async http://127.0.0.1:44245/js/36_videos_limpeza_atualizar.js:51:55
+E               at async http://127.0.0.1:44245/js/38_area_trabalho.js:112:77
+E               at async http://127.0.0.1:44245/js/38_area_trabalho.js:137:55
+E               at async start (http://127.0.0.1:44245/js/07_tarefas_intervencoes.js:20:872)
+E               at async http://127.0.0.1:44245/js/27_comandos_limpos.js:26:65
+E               at async start (http://127.0.0.1:44245/js/71_orientacao_calculos.js:9:73)
+E               at async drain (http://127.0.0.1:44245/js/75_operacao_consolidada.js:11:47)
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: Error
+------------------------------ Captured log setup ------------------------------
+ERROR    asyncio:base_events.py:1833 Exception in callback SyncBase._sync.<locals>.<lambda>(<Task cancell...twork.py:500>>) at /workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_sync_base.py:111
+handle: <Handle SyncBase._sync.<locals>.<lambda>(<Task cancell...twork.py:500>>) at /workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_sync_base.py:111>
+Traceback (most recent call last):
+  File "/workspace/videosRodoviarios/rodovia_studio/pacote/suporte/sistema/tests/test_v1425_live_3d.py", line 35, in gl_page
+    page.evaluate('(pid)=>load(pid)',live[1]);page.wait_for_timeout(300);page.wait_for_function('!task',timeout=60000)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py", line 8562, in evaluate
+    self._sync(
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ^^^^^^^^^^^^^
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_page.py", line 464, in evaluate
+    return await self._main_frame.evaluate(expression, arg)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py", line 320, in evaluate
+    await self._channel.send(
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py", line 69, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py", line 559, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+playwright._impl._errors.Error: Page.evaluate: Error: Acompanhamento interrompido. A tarefa pode continuar no servidor. Use Retomar acompanhamento; não repita o cálculo.
+    at poll (http://127.0.0.1:44245/js/07_tarefas_intervencoes.js:19:297)
+    at async http://127.0.0.1:44245/js/36_videos_limpeza_atualizar.js:51:55
+    at async http://127.0.0.1:44245/js/38_area_trabalho.js:112:77
+    at async http://127.0.0.1:44245/js/38_area_trabalho.js:137:55
+    at async start (http://127.0.0.1:44245/js/07_tarefas_intervencoes.js:20:872)
+    at async http://127.0.0.1:44245/js/27_comandos_limpos.js:26:65
+    at async start (http://127.0.0.1:44245/js/71_orientacao_calculos.js:9:73)
+    at async drain (http://127.0.0.1:44245/js/75_operacao_consolidada.js:11:47)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/events.py", line 88, in _run
+    self._context.run(self._callback, *self._args)
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 111, in <lambda>
+    task.add_done_callback(lambda _: g_self.switch())
+                                     ^^^^^^^^^^^^^^^
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_helper.py", line 449, in _handler
+    self.handler(route, route.request)  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_impl_to_api_mapping.py", line 123, in wrapper_func
+    return handler(
+           ^^^^^^^^
+  File "/workspace/videosRodoviarios/rodovia_studio/pacote/suporte/sistema/tests/test_v1425_live_3d.py", line 32, in <lambda>
+    page.route('**/*',lambda route:route.continue_() if route.request.url.startswith(live[0]+'/') else route.abort())
+                                   ^^^^^^^^^^^^^^^^^
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py", line 980, in continue_
+    self._sync(
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ^^^^^^^^^^^^^
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_network.py", line 513, in continue_
+    return await self._handle_route(_inner)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_network.py", line 459, in _handle_route
+    await callback()
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_network.py", line 511, in _inner
+    await self._inner_continue(False)
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_network.py", line 517, in _inner_continue
+    await self._race_with_page_close(
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_network.py", line 553, in _race_with_page_close
+    await asyncio.wait(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/tasks.py", line 464, in wait
+    return await _wait(fs, timeout, return_when, loop)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/tasks.py", line 550, in _wait
+    await waiter
+asyncio.exceptions.CancelledError
+ERROR    asyncio:base_events.py:1833 Exception in callback Connection.dispatch.<locals>._done_callback(<Task cancell..._page.py:283>>) at /workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:466
+handle: <Handle Connection.dispatch.<locals>._done_callback(<Task cancell..._page.py:283>>) at /workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:466>
+Traceback (most recent call last):
+  File "/workspace/videosRodoviarios/rodovia_studio/pacote/suporte/sistema/tests/test_v1425_live_3d.py", line 35, in gl_page
+    page.evaluate('(pid)=>load(pid)',live[1]);page.wait_for_timeout(300);page.wait_for_function('!task',timeout=60000)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py", line 8562, in evaluate
+    self._sync(
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ^^^^^^^^^^^^^
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_page.py", line 464, in evaluate
+    return await self._main_frame.evaluate(expression, arg)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py", line 320, in evaluate
+    await self._channel.send(
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py", line 69, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py", line 559, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+playwright._impl._errors.Error: Page.evaluate: Error: Acompanhamento interrompido. A tarefa pode continuar no servidor. Use Retomar acompanhamento; não repita o cálculo.
+    at poll (http://127.0.0.1:44245/js/07_tarefas_intervencoes.js:19:297)
+    at async http://127.0.0.1:44245/js/36_videos_limpeza_atualizar.js:51:55
+    at async http://127.0.0.1:44245/js/38_area_trabalho.js:112:77
+    at async http://127.0.0.1:44245/js/38_area_trabalho.js:137:55
+    at async start (http://127.0.0.1:44245/js/07_tarefas_intervencoes.js:20:872)
+    at async http://127.0.0.1:44245/js/27_comandos_limpos.js:26:65
+    at async start (http://127.0.0.1:44245/js/71_orientacao_calculos.js:9:73)
+    at async drain (http://127.0.0.1:44245/js/75_operacao_consolidada.js:11:47)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/events.py", line 88, in _run
+    self._context.run(self._callback, *self._args)
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py", line 467, in _done_callback
+    exc = future.exception()
+          ^^^^^^^^^^^^^^^^^^
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_page.py", line 297, in _on_route
+    handled = await route_handler.handle(route)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_helper.py", line 422, in handle
+    return await self._handle_internal(route)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_helper.py", line 458, in _handle_internal
+    await handler_finished_future
+asyncio.exceptions.CancelledError
+=================================== FAILURES ===================================
+____________ test_presentation_does_not_invalidate_editor[changes2] ____________
+[gw0] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-385/popen-gw0/test_presentation_does_not_inv2')
+changes = {'texture_style': 'realistic'}
+
+    @pytest.mark.parametrize('changes',[dict(role_colors={'pavement':'#334455'}),dict(natural_materials_only=True),dict(texture_style='realistic')])
+    def test_presentation_does_not_invalidate_editor(tmp_path,changes):
+        d,s=project(tmp_path);a=revisions(d,s);b=revisions(d,s.model_copy(update=changes))
+>       assert a['editor']==b['editor'] and a['traffic']==b['traffic'] and a['preview']!=b['preview']
+E       AssertionError: assert ('39be5fb7de62...c5323b02a4e60' == '39be5fb7de62...c5323b02a4e60'
+E         
+E         Skipping 53 identical leading characters in diff, use -v to show
+E           323b02a4e60 and '77335a15262d...e1dd33a8d2705' == '77335a15262d...e1dd33a8d2705'
+E         
+E         Skipping 53 identical leading characters in diff, use -v to show
+E           dd33a8d2705 and 'b45d2bbcf123ceafb2a5e7b048404ae30e3adede22a9700a40b56f5688190dde' != 'b45d2bbcf123ceafb2a5e7b048404ae30e3adede22a9700a40b56f5688190dde')
+
+tests/test_v14221_simplification.py:37: AssertionError
+_______ test_five_tabs_eight_menus_and_no_duplicate_visible_tool_catalog _______
+[gw0] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='about:blank'>
+
+    def test_five_tabs_eight_menus_and_no_duplicate_visible_tool_catalog(page):
+        assert page.locator('#rsToolTabs [role=tab]').all_text_contents()==['Projeto','Editar','Tráfego','Cena','Vídeo']
+        assert page.locator('#menuBar [data-rs-menu]').all_text_contents()==['Arquivo','Editar','Projeto','Tráfego','Cena','Vídeo','Exibir','Ajuda']
+        assert page.get_by_role('tab',name='Todas',exact=True).count()==0
+        values=page.locator('#rsToolRibbon [data-rs-tool]').evaluate_all('(buttons)=>buttons.map(b=>b.dataset.rsTool)')
+>       assert len(values)==len(set(values))
+E       AssertionError: assert 68 == 61
+E        +  where 68 = len(['pan', 'pair', 'align', 'cabin', 'move', 'insertcontrol', ...])
+E        +  and   61 = len({'access', 'advzone', 'align', 'anchor', 'arrowrot', 'block', ...})
+E        +    where {'access', 'advzone', 'align', 'anchor', 'arrowrot', 'block', ...} = set(['pan', 'pair', 'align', 'cabin', 'move', 'insertcontrol', ...])
+
+tests/test_v14221_simplification.py:63: AssertionError
+_____ test_worker_invalid_config_is_logged_and_does_not_leave_task_running _____
+[gw2] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-385/popen-gw2/test_worker_invalid_config_is_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f1cef725f70>
+
+    def test_worker_invalid_config_is_logged_and_does_not_leave_task_running(tmp_path,monkeypatch):
+        from app import worker
+        (tmp_path/'config.json').write_text('{ inválido');updates=[]
+        monkeypatch.setattr(worker.store,'job',lambda j:{'project':'p','kind':'render'})
+        monkeypatch.setattr(worker.store,'directory',lambda p:tmp_path)
+        monkeypatch.setattr(worker.store,'update',lambda jid,**k:updates.append(k))
+>       assert worker.run('badconfig')==1
+               ^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_v1424_resilience.py:52: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+app/worker.py:227: in run
+    with Heartbeat(store.directory(store.job(jid)['project']),jid):return _run_job(jid)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app/process_supervision.py:30: in __init__
+    def __init__(self,directory,jid):self.path=heartbeat_path(directory,jid);self.stop=threading.Event()
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/tmp/pytest-of-agent/pytest-385/popen-gw2/test_worker_invalid_config_is_0')
+jid = 'badconfig'
+
+    def heartbeat_path(directory,jid):
+>       if not re.fullmatch('[0-9a-f]{32}',jid):raise ValueError('Tarefa inválida.')
+                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: Tarefa inválida.
+
+app/process_supervision.py:22: ValueError
+_______ test_transport_does_not_stop_for_a_railway_below_a_declared_oae ________
+[gw2] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+    def test_transport_does_not_stop_for_a_railway_below_a_declared_oae():
+        from app.traffic import TrafficNetwork
+        from app.transport import Transport
+        axis=np.array([[-100.,0.],[100.,0.]])
+        s=Settings(derive_traffic_paths=False,signage_detail='basic',railways=[dict(id='rail',points=[dict(x=0,y=-100),dict(x=0,y=100)])])
+        network=TrafficNetwork([box(-110,-10,110,10)],[],[dict(points=axis)],axis,np.array([0.,200.]),s)
+>       assert Transport(s,network).report()['crossings']>0
+E       assert 0 > 0
+
+tests/test_v14210_engineering_assets.py:55: AssertionError
+_____ test_repair_center_has_three_primary_actions_and_collapsed_advanced ______
+[gw1] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='about:blank'>
+
+    def test_repair_center_has_three_primary_actions_and_collapsed_advanced(page):
+        seed(page);page.evaluate("()=>{pid='repair';editor.segments[0].technical_status='problem';editor.segments[0].technical_message='Defeito de teste';editor.section_continuity=[{name:'Eixo',gaps:[{start_m:100,end_m:120}]}]}")
+        page.get_by_role('tab',name='Tráfego',exact=True).click();page.get_by_role('button',name='Corrigir problemas',exact=True).click()
+        row=page.locator('[data-flow-repair]').first
+>       for name in ['Localizar','Tentar correção automática','Editar manualmente']:assert row.get_by_role('button',name=name,exact=True).is_visible()
+                                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       assert False
+E        +  where False = is_visible()
+E        +    where is_visible = <Locator frame=<Frame name= url='about:blank'> selector='[data-flow-repair] >> nth=0 >> internal:role=button[name="Localizar"s]'>.is_visible
+E        +      where <Locator frame=<Frame name= url='about:blank'> selector='[data-flow-repair] >> nth=0 >> internal:role=button[name="Localizar"s]'> = get_by_role('button', name='Localizar', exact=True)
+E        +        where get_by_role = <Locator frame=<Frame name= url='about:blank'> selector='[data-flow-repair] >> nth=0'>.get_by_role
+
+tests/test_v14222_reliability.py:157: AssertionError
+____ test_source_binding_can_be_undone_and_does_not_suppress_another_level _____
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+    def test_source_binding_can_be_undone_and_does_not_suppress_another_level():
+        assert axis_fingerprint(AXIS,'EIXO',0)!=axis_fingerprint(AXIS,'EIXO',1)
+        s=Settings(route_alignments=[route()]);assert network(s).native_axis_report['joined']==0
+        assert len(network(s).raw_info)==2
+        # Remover a derivação elimina a associação, sem alterar route_directions.
+        s.route_alignments=[]
+        from app.native_axes import native_paths
+        native,_=native_paths([dict(points=AXIS,layer='EIXO',role='axis')],s,box(-20,-20,620,20))
+>       assert len(native)==1 and s.route_directions=={}
+E       assert (0 == 1)
+E        +  where 0 = len([])
+
+tests/test_v14220_sections_materials.py:82: AssertionError
+________ test_manual_disabled_flow_has_no_automatic_reactivation_action ________
+[gw1] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='about:blank'>
+
+    def test_manual_disabled_flow_has_no_automatic_reactivation_action(page):
+        seed(page);page.evaluate("()=>{pid='repair';editor.segments[0].disabled=true;editor.segments[0].technical_status='problem'}")
+>       page.evaluate('RodoviaFlowRepair.open()')
+
+tests/test_v14222_reliability.py:206: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:8562: in evaluate
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_page.py:464: in evaluate
+    return await self._main_frame.evaluate(expression, arg)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:320: in evaluate
+    await self._channel.send(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f90a4809c70>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f9083f7a700>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.Error: Page.evaluate: TypeError: Cannot read properties of undefined (reading 'filter')
+E               at read (<anonymous>:20:31)
+E               at async Object.execution [as open] (<anonymous>:32:2)
+E               at async <anonymous>:316:30
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: Error
+__ test_network_reconstructs_only_requested_axis_and_respects_manual_disable ___
+[gw0] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+    def test_network_reconstructs_only_requested_axis_and_respects_manual_disable():
+        from app.models import Settings
+        from app.traffic import TrafficNetwork
+        axis=np.array([[0.,0.],[150.,0.],[150.,150.]])
+        def build(disabled=False):
+            s=Settings(derive_traffic_paths=False,hydrography=False,signage_detail='basic',vehicle_paths='anterior',
+                       min_route_segment_m=50,flow_recoveries=[dict(id='repair',x=100,y=0,reconstruct=True)],
+                       flow_overrides=[dict(x=100,y=0,action='disable')] if disabled else [])
+            return TrafficNetwork([box(-15,-15,165,165)],[],[dict(points=axis)],axis,np.array([0,150,300]),s)
+        n=build()
+>       assert n.paths and max(p['length'] for p in n.paths)>290
+E       assert ([])
+E        +  where [] = <app.traffic.TrafficNetwork object at 0x7fa1b73db710>.paths
+
+tests/test_v14219_reconstruction_curves_semantics.py:61: AssertionError
+_________ test_reconstruct_action_is_available_in_visual_repair_dialog _________
+[gw0] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='about:blank'>
+
+    def test_reconstruct_action_is_available_in_visual_repair_dialog(page):
+        from test_v1422_layout import seed
+        from visual_harness import screenshot
+        seed(page);page.evaluate("()=>{pid='repair';editor.segments[0].technical_status='problem';}")
+        page.get_by_role('tab',name='Tráfego',exact=True).click()
+        page.get_by_role('button',name='Corrigir problemas',exact=True).click()
+>       page.locator('.rsFlowRepairAdvanced').first.locator('summary').click()
+
+tests/test_v14219_reconstruction_curves_semantics.py:168: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:15637: in click
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:162: in click
+    return await self._frame._click(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:566: in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7fa1b74ed250>
+cb = <function Channel.send.<locals>.<lambda> at 0x7fa1b73187c0>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for locator(".rsFlowRepairAdvanced").first.locator("summary")
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+___________ test_all_engineering_materials_render_to_real_mp4_and_3d ___________
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-385/popen-gw3/test_all_engineering_materials0')
+
+    def test_all_engineering_materials_render_to_real_mp4_and_3d(tmp_path):
+        import ezdxf,cv2
+        from test_v1425_scene3d import project
+        from app.render import render
+        from app.encoding import validate_mp4,ffmpeg_exe
+        from app.scene3d import build
+        d,s=project(tmp_path)
+        doc=ezdxf.readfile(d/'input.dxf');m=doc.modelspace()
+        for i,name in enumerate(['PAVIMENTO_EXISTENTE','ACOSTAMENTO_EXISTENTE','ACOSTAMENTO_PROJETADO','CANTEIRO','CORTE','ATERRO','OAE']):
+            doc.layers.new(name);y=7800030+i*18;h=m.add_hatch(dxfattribs={'layer':name});h.paths.add_polyline_path([(500040,y),(500460,y),(500460,y+12),(500040,y+12)],is_closed=True)
+        doc.saveas(d/'input.dxf')
+        s=Settings.model_validate({**s.model_dump(),'render_workers':1,'texture_style':'artistico','earthwork_look':'natural','detail_textures':True,
+           'oae_marks':[dict(id='bridge',start=dict(x=500170,y=7800000),end=dict(x=500270,y=7800000))],
+           'railways':[dict(id='rail',points=[dict(x=500050,y=7799970),dict(x=500450,y=7799970)],min_wagons=5,max_wagons=5)]})
+        r=route(True);p=np.array([[500050.,7800000.],[500450.,7800000.]])
+        r['points']=[dict(x=x,y=y) for x,y in p];r['cross_sections'][0]['end_m']=400;r['source_axis_fingerprint']=axis_fingerprint(p,'EIXO')
+        s.route_alignments=[RouteAlignment.model_validate(r)]
+        (d/'config.json').write_text(s.model_dump_json())
+        video=render(d,s);result=validate_mp4(ffmpeg_exe(),video,72,1280,720,24);assert result['ok']
+>       data=build(d,s);assert any(mesh.get('asset_material')=='concrete' for mesh in data['meshes'])
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       assert False
+E        +  where False = any(<generator object test_all_engineering_materials_render_to_real_mp4_and_3d.<locals>.<genexpr> at 0x7f0326f05ff0>)
+
+tests/test_v14220_sections_materials.py:142: AssertionError
+_ test_natural_presentation_invalidates_surface_cache_without_removing_saved_hatch _
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-385/popen-gw3/test_natural_presentation_inva0')
+
+    def test_natural_presentation_invalidates_surface_cache_without_removing_saved_hatch(tmp_path):
+        from test_v1425_scene3d import project
+        from app.render import Scene
+        d,s=project(tmp_path,traffic=False)
+        s=Settings.model_validate({**s.model_dump(),'imagery_pixels':2048,'pavement_styles':{'pavement':dict(pattern='diagonal')}})
+        first=Scene(d,s);before=first.overlay.copy();del first
+        natural=s.model_copy(update=dict(natural_materials_only=True))
+        second=Scene(d,natural)
+>       assert not second.geometry_cache_hit and not np.array_equal(before,second.overlay)
+E       assert (not False and not True)
+E        +  where False = <app.render.Scene object at 0x7f03254ea360>.geometry_cache_hit
+E        +  and   True = <function array_equal at 0x7f03821b11b0>(array([[[0, 0, 0, 0],\n        [0, 0, 0, 0],\n        [0, 0, 0, 0],\n        ...,\n        [0, 0, 0, 0],\n        [0, 0, 0,...],\n        ...,\n        [0, 0, 0, 0],\n        [0, 0, 0, 0],\n        [0, 0, 0, 0]]], shape=(2048, 2048, 4), dtype=uint8), array([[[0, 0, 0, 0],\n        [0, 0, 0, 0],\n        [0, 0, 0, 0],\n        ...,\n        [0, 0, 0, 0],\n        [0, 0, 0,...],\n        ...,\n        [0, 0, 0, 0],\n        [0, 0, 0, 0],\n        [0, 0, 0, 0]]], shape=(2048, 2048, 4), dtype=uint8))
+E        +    where <function array_equal at 0x7f03821b11b0> = np.array_equal
+E        +    and   array([[[0, 0, 0, 0],\n        [0, 0, 0, 0],\n        [0, 0, 0, 0],\n        ...,\n        [0, 0, 0, 0],\n        [0, 0, 0,...],\n        ...,\n        [0, 0, 0, 0],\n        [0, 0, 0, 0],\n        [0, 0, 0, 0]]], shape=(2048, 2048, 4), dtype=uint8) = <app.render.Scene object at 0x7f03254ea360>.overlay
+
+tests/test_v14220_sections_materials.py:166: AssertionError
+_____ test_new_project_has_padding_and_all_tools_stay_inside_viewport[768] _____
+[gw1] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='about:blank'>, width = 768
+
+    @pytest.mark.parametrize('width',[768,1024,1366])
+    def test_new_project_has_padding_and_all_tools_stay_inside_viewport(page,width):
+        page.set_viewport_size({'width':width,'height':900});page.evaluate('RodoviaNewProject.open()')
+        r=page.locator('#rsNewProject').bounding_box();field=page.locator('#rsNewName').bounding_box()
+        assert field['x']-r['x']>=14 and r['x']+r['width']-(field['x']+field['width'])>=14
+        screenshot(page,'14217_novo_projeto_'+str(width));page.locator('#rsNewCancel').click()
+        result=page.evaluate("()=>{const p=$('rsToolPanel0'),r=p.getBoundingClientRect();return {width:p.scrollWidth,client:p.clientWidth,edge:r.right,viewport:innerWidth}}")
+        assert result['width']<=result['client']+1 and result['edge']<=result['viewport']
+>       page.locator('#rsToolPanel0 [data-rs-tool=flowcut]').scroll_into_view_if_needed()
+
+tests/test_v14217_usability.py:28: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:17556: in scroll_into_view_if_needed
+    self._sync(self._impl_obj.scroll_into_view_if_needed(timeout=timeout))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:581: in scroll_into_view_if_needed
+    return await self._with_element(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:113: in _with_element
+    handle = await self.element_handle(timeout=timeout)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:319: in element_handle
+    handle = await self._frame.wait_for_selector(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:369: in wait_for_selector
+    await self._channel.send(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f9083cca420>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f90a27d56c0>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.scroll_into_view_if_needed: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for locator("#rsToolPanel0 [data-rs-tool=flowcut]")
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+____ test_new_project_has_padding_and_all_tools_stay_inside_viewport[1024] _____
+[gw1] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='about:blank'>, width = 1024
+
+    @pytest.mark.parametrize('width',[768,1024,1366])
+    def test_new_project_has_padding_and_all_tools_stay_inside_viewport(page,width):
+        page.set_viewport_size({'width':width,'height':900});page.evaluate('RodoviaNewProject.open()')
+        r=page.locator('#rsNewProject').bounding_box();field=page.locator('#rsNewName').bounding_box()
+        assert field['x']-r['x']>=14 and r['x']+r['width']-(field['x']+field['width'])>=14
+        screenshot(page,'14217_novo_projeto_'+str(width));page.locator('#rsNewCancel').click()
+        result=page.evaluate("()=>{const p=$('rsToolPanel0'),r=p.getBoundingClientRect();return {width:p.scrollWidth,client:p.clientWidth,edge:r.right,viewport:innerWidth}}")
+        assert result['width']<=result['client']+1 and result['edge']<=result['viewport']
+>       page.locator('#rsToolPanel0 [data-rs-tool=flowcut]').scroll_into_view_if_needed()
+
+tests/test_v14217_usability.py:28: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:17556: in scroll_into_view_if_needed
+    self._sync(self._impl_obj.scroll_into_view_if_needed(timeout=timeout))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:581: in scroll_into_view_if_needed
+    return await self._with_element(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:113: in _with_element
+    handle = await self.element_handle(timeout=timeout)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:319: in element_handle
+    handle = await self._frame.wait_for_selector(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:369: in wait_for_selector
+    await self._channel.send(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f9083cc8bf0>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f9083e4a8e0>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.scroll_into_view_if_needed: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for locator("#rsToolPanel0 [data-rs-tool=flowcut]")
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+____ test_new_project_has_padding_and_all_tools_stay_inside_viewport[1366] _____
+[gw1] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='about:blank'>, width = 1366
+
+    @pytest.mark.parametrize('width',[768,1024,1366])
+    def test_new_project_has_padding_and_all_tools_stay_inside_viewport(page,width):
+        page.set_viewport_size({'width':width,'height':900});page.evaluate('RodoviaNewProject.open()')
+        r=page.locator('#rsNewProject').bounding_box();field=page.locator('#rsNewName').bounding_box()
+        assert field['x']-r['x']>=14 and r['x']+r['width']-(field['x']+field['width'])>=14
+        screenshot(page,'14217_novo_projeto_'+str(width));page.locator('#rsNewCancel').click()
+        result=page.evaluate("()=>{const p=$('rsToolPanel0'),r=p.getBoundingClientRect();return {width:p.scrollWidth,client:p.clientWidth,edge:r.right,viewport:innerWidth}}")
+        assert result['width']<=result['client']+1 and result['edge']<=result['viewport']
+>       page.locator('#rsToolPanel0 [data-rs-tool=flowcut]').scroll_into_view_if_needed()
+
+tests/test_v14217_usability.py:28: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:17556: in scroll_into_view_if_needed
+    self._sync(self._impl_obj.scroll_into_view_if_needed(timeout=timeout))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:581: in scroll_into_view_if_needed
+    return await self._with_element(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:113: in _with_element
+    handle = await self.element_handle(timeout=timeout)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:319: in element_handle
+    handle = await self._frame.wait_for_selector(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:369: in wait_for_selector
+    await self._channel.send(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f9083e98d10>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f9083e48ea0>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.scroll_into_view_if_needed: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for locator("#rsToolPanel0 [data-rs-tool=flowcut]")
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+__ test_network_only_recovers_when_explicitly_requested_and_respects_disable ___
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+    def test_network_only_recovers_when_explicitly_requested_and_respects_disable():
+        axis=np.array([[0.,0.],[150.,0.],[150.,150.]])
+        kwargs=dict(derive_traffic_paths=False,hydrography=False,signage_detail='basic',vehicle_paths='anterior',min_route_segment_m=50)
+        def network(overrides):
+            s=Settings(**kwargs,flow_overrides=[o for o in overrides if o['action']!='recover'],flow_recoveries=[{k:v for k,v in o.items() if k!='action'} for o in overrides if o['action']=='recover'])
+            return TrafficNetwork([box(-10,-10,160,160)],[],[{'points':axis}],axis,np.array([0.,150.,300.]),s)
+        base=network([])
+        recovered=network([dict(x=100,y=0,action='recover')])
+        assert not base.paths
+>       assert recovered.paths and recovered.recovered_paths
+E       assert ([])
+E        +  where [] = <app.traffic.TrafficNetwork object at 0x7f03254731d0>.paths
+
+tests/test_v14210_flow_recovery.py:48: AssertionError
+__ test_guidance_does_not_open_a_modal_during_processing_and_escapes_messages __
+[gw1] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='about:blank'>
+
+    def test_guidance_does_not_open_a_modal_during_processing_and_escapes_messages(page):
+        seed(page);page.evaluate("()=>{pid='p';window._guideApi=api}")
+        # A resposta da API é substituída na camada HTTP offline; interface real preservada.
+        page.evaluate("()=>{window.fetch=async()=>({ok:true,status:200,json:async()=>({title:'Como corrigir este cálculo',causes:['Conferir entrada'],steps:['Corrigir o campo','Recalcular'],point:[30,0],message:'<img src=x onerror=alert(1)>',project:'p'}),headers:new Headers()})}")
+        page.evaluate("RodoviaCalculationGuide.advise('analyze','erro',[30,0])")
+        assert page.locator('dialog[open]').count()==0
+>       page.locator('#rsCalculationGuide').click()
+
+tests/test_v14217_usability.py:39: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:15637: in click
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:162: in click
+    return await self._frame._click(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:566: in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f9083ccb920>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f90a02a7060>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for locator("#rsCalculationGuide")
+E               - locator resolved to <button type="button" class="rsAuxAction on" id="rsCalculationGuide" aria-label="Orientação: corrigir cálculo…" title="Ver causas possíveis e passos de correção do último cálculo.">…</button>
+E             - attempting click action
+E               2 × waiting for element to be visible, enabled and stable
+E                 - element is not visible
+E               - retrying click action
+E               - waiting 20ms
+E               2 × waiting for element to be visible, enabled and stable
+E                 - element is not visible
+E               - retrying click action
+E                 - waiting 100ms
+E               47 × waiting for element to be visible, enabled and stable
+E                  - element is not visible
+E                - retrying click action
+E                  - waiting 500ms
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+________________ test_visual_01_logo_persistente_em_tema_e_foco ________________
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+pagefx = (<Page url='about:blank'>, ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 ... 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".'])
+
+    def test_visual_01_logo_persistente_em_tema_e_foco(pagefx):
+        page,errors=pagefx;logo=page.locator('.dev img[alt="GeoRas Consultoria"]');assert logo.is_visible()
+        page.evaluate("if(typeof aplicarTema==='function')aplicarTema('escuro',false)");page.keyboard.press('F11');page.wait_for_timeout(80)
+        assert logo.is_visible();page.keyboard.press('F11');page.evaluate("if(typeof aplicarTema==='function')aplicarTema('claro',false)")
+>       screenshot(page,'1409_01_logo_tema_foco');clean(page,errors)
+                                                  ^^^^^^^^^^^^^^^^^^
+
+tests/test_v1409_visual.py:27: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+page = <Page url='about:blank'>
+errors = ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+    def clean(page,errors):
+>       assert page.locator('.canvasWrap').is_visible();assert not errors,errors
+                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+E       assert not ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+tests/test_v1409_visual.py:21: AssertionError
+_________________ test_visual_02_matriz_responsiva_sem_overlay _________________
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+pagefx = (<Page url='about:blank'>, ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 ... 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".'])
+
+    def test_visual_02_matriz_responsiva_sem_overlay(pagefx):
+        page,errors=pagefx
+        for w,h in [(1920,1080),(1600,900),(1366,768),(1280,720),(1024,768)]:
+            page.set_viewport_size({'width':w,'height':h});page.wait_for_timeout(60)
+            page.evaluate("pnAbrir(pnItens[0].id);recolherDock(false)");page.wait_for_timeout(60)
+            c=rect(page,'.canvasWrap');r=rect(page,'.editorSide');assert overlap(c,r)<1,(w,h,c,r)
+            assert c['width']>=480 and c['height']>=280,(w,h,c)
+            page.evaluate("pnAbrir(null);recolherDock(true)")
+>       screenshot(page,'1409_02_responsivo');clean(page,errors)
+                                              ^^^^^^^^^^^^^^^^^^
+
+tests/test_v1409_visual.py:37: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+page = <Page url='about:blank'>
+errors = ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+    def clean(page,errors):
+>       assert page.locator('.canvasWrap').is_visible();assert not errors,errors
+                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+E       assert not ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+tests/test_v1409_visual.py:21: AssertionError
+_____________ test_visual_03_atalhos_repetidos_nao_quebram_layout ______________
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+pagefx = (<Page url='about:blank'>, ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 ... 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".'])
+
+    def test_visual_03_atalhos_repetidos_nao_quebram_layout(pagefx):
+        page,errors=pagefx;page.set_viewport_size({'width':1366,'height':768});page.evaluate("pnAbrir(null);recolherDock(true)")
+        for _ in range(12):
+            page.keyboard.press('Control+Space');page.keyboard.press('Control+Space');page.keyboard.press('Control+B');page.keyboard.press('Control+B');page.keyboard.press('Control+Alt+B');page.keyboard.press('Control+Alt+B')
+        c=rect(page,'.canvasWrap');assert c['width']>600 and c['height']>300
+>       screenshot(page,'1409_03_atalhos_stress');clean(page,errors)
+                                                  ^^^^^^^^^^^^^^^^^^
+
+tests/test_v1409_visual.py:44: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+page = <Page url='about:blank'>
+errors = ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+    def clean(page,errors):
+>       assert page.locator('.canvasWrap').is_visible();assert not errors,errors
+                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+E       assert not ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+tests/test_v1409_visual.py:21: AssertionError
+______________ test_visual_04_regeneracao_100x_preserva_viewport _______________
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+pagefx = (<Page url='about:blank'>, ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 ... 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".'])
+
+    def test_visual_04_regeneracao_100x_preserva_viewport(pagefx):
+        page,errors=pagefx
+        r=page.evaluate("""()=>{view.s=4.125;view.ox=121.75;view.oy=-63.5;const a={...view};for(let i=0;i<100;i++)regenScreen();return {a,b:{...view}}}""")
+>       assert r['a']==r['b'];screenshot(page,'1409_04_regen_100x');clean(page,errors)
+                                                                    ^^^^^^^^^^^^^^^^^^
+
+tests/test_v1409_visual.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+page = <Page url='about:blank'>
+errors = ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+    def clean(page,errors):
+>       assert page.locator('.canvasWrap').is_visible();assert not errors,errors
+                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+E       assert not ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+tests/test_v1409_visual.py:21: AssertionError
+__________________ test_visual_05_selecao_sobreposta_e_ciclo ___________________
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+pagefx = (<Page url='about:blank'>, ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 ... 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".'])
+
+    def test_visual_05_selecao_sobreposta_e_ciclo(pagefx):
+        page,errors=pagefx
+        n=page.evaluate("""()=>{const om=meta,ob=baseImage,ov={...view},os=M.signs;try{meta={width_m:1000,screen_width:1000,screen_height:1000,camera:[0,0],right:[1,0],up:[0,1]};baseImage={width:1000,height:1000};view={s:1,ox:0,oy:0};const p={x:0,y:0},c=W2C(p);M.signs=[{point:p,name:'A'},{point:{...p},name:'B'},{point:{...p},name:'C'}];return hitObjects({cx:c[0],cy:c[1]}).length}finally{meta=om;baseImage=ob;view=ov;M.signs=os}}""")
+>       assert n>=3;screenshot(page,'1409_05_sobreposicao');clean(page,errors)
+                                                            ^^^^^^^^^^^^^^^^^^
+
+tests/test_v1409_visual.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+page = <Page url='about:blank'>
+errors = ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+    def clean(page,errors):
+>       assert page.locator('.canvasWrap').is_visible();assert not errors,errors
+                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+E       assert not ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+tests/test_v1409_visual.py:21: AssertionError
+_____________________ test_visual_06_kmz_todos_os_estados ______________________
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+pagefx = (<Page url='about:blank'>, ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 ... 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".'])
+
+    def test_visual_06_kmz_todos_os_estados(pagefx):
+        page,errors=pagefx
+        cases=[
+          ({'present':True,'read_ok':True,'used':True,'required':True,'uses':['eixo_fallback']},'KMZ NECESSÁRIO'),
+          ({'present':True,'read_ok':True,'used':True,'required':False,'uses':['georreferenciamento','pois']},'KMZ em uso'),
+          ({'present':True,'read_ok':True,'used':False,'required':False,'uses':[]},'KMZ validado como referência')]
+        for st,needle in cases:
+            page.evaluate("([st])=>{analysis={kmz_status:st};filesUi({dxf:{name:'modelo.dxf',bytes:5000,sent:'agora'},kmz:{name:'referencia.kmz',bytes:6000,sent:'agora'}})}",[st])
+            assert needle in page.inner_text('#fileState')
+>       screenshot(page,'1409_06_kmz_estados');clean(page,errors)
+                                               ^^^^^^^^^^^^^^^^^^
+
+tests/test_v1409_visual.py:65: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+page = <Page url='about:blank'>
+errors = ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+    def clean(page,errors):
+>       assert page.locator('.canvasWrap').is_visible();assert not errors,errors
+                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+E       assert not ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+tests/test_v1409_visual.py:21: AssertionError
+____________________ test_visual_07_ordem_imagem_explicita _____________________
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+pagefx = (<Page url='about:blank'>, ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 ... 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".'])
+
+    def test_visual_07_ordem_imagem_explicita(pagefx):
+        page,errors=pagefx
+        page.evaluate("""async()=>{eval("pid='11111111111111111111111111111111'");cfg={local_imagery:{image:'a.tif',name:'A',detail:true,editor:true,brightness:0,contrast:0,saturation:0,nodata:'borda'}};const info={gdal:true,pixel_m:.1,max_zoom:21,count:3,editor:true,sources:[0,1,2].map(i=>({index:i,name:'Orto '+(i+1),file:i+'.tif',size:[8000,6000],pixel_m:.1,crs:'EPSG:31983',bounds:[0,0,100,100],adjust:{shift_x:0,shift_y:0,rotation_deg:0,scale:1}}))};api=async u=>String(u).includes('/local/info')?info:{};await localUi()}""")
+        txt=page.inner_text('#imgList');assert all(x in txt for x in ('Topo','▲','▼','Fundo','Orto 1','Orto 2','Orto 3'))
+>       screenshot(page,'1409_07_ordem_imagem');clean(page,errors)
+                                                ^^^^^^^^^^^^^^^^^^
+
+tests/test_v1409_visual.py:71: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+page = <Page url='about:blank'>
+errors = ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+    def clean(page,errors):
+>       assert page.locator('.canvasWrap').is_visible();assert not errors,errors
+                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+E       assert not ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+tests/test_v1409_visual.py:21: AssertionError
+_____________ test_visual_08_rota_expoe_politica_de_ultrapassagem ______________
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+pagefx = (<Page url='about:blank'>, ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 ... 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".'])
+
+    def test_visual_08_rota_expoe_politica_de_ultrapassagem(pagefx):
+        page,errors=pagefx
+        ok=page.evaluate("""()=>{M.route_alignments=[{id:'r1',name:'Rota 01',points:[{x:0,y:0},{x:500,y:0}],lane_change:'marked',lane_change_sections:[{start_m:100,end_m:250,mode:'allow'}]}];sel={key:'route_alignments',i:0};showProps();return document.querySelector('#propPanel')?.innerText||''}""")
+        assert 'Ultrapassagem e mudança de faixa' in ok and 'Somente em trechos permitidos' in ok and 'Trecho permitido' in ok
+>       screenshot(page,'1409_08_rota_politica');clean(page,errors)
+                                                 ^^^^^^^^^^^^^^^^^^
+
+tests/test_v1409_visual.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+page = <Page url='about:blank'>
+errors = ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+    def clean(page,errors):
+>       assert page.locator('.canvasWrap').is_visible();assert not errors,errors
+                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+E       assert not ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+tests/test_v1409_visual.py:21: AssertionError
+___________ test_visual_09_erro_controlado_seguido_de_comando_valido ___________
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+pagefx = (<Page url='about:blank'>, ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 ... 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".'])
+
+    def test_visual_09_erro_controlado_seguido_de_comando_valido(pagefx):
+        page,errors=pagefx;page.evaluate("runCommand('INEXISTENTE_1409');runCommand('SNAP')")
+>       assert page.locator('#snapOn').is_checked();screenshot(page,'1409_09_erro_recuperacao');clean(page,errors)
+                                                                                                ^^^^^^^^^^^^^^^^^^
+
+tests/test_v1409_visual.py:81: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+page = <Page url='about:blank'>
+errors = ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+    def clean(page,errors):
+>       assert page.locator('.canvasWrap').is_visible();assert not errors,errors
+                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+E       assert not ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+tests/test_v1409_visual.py:21: AssertionError
+___ test_real_api_calculation_error_produces_guidance_without_blocking_motor ___
+[gw1] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+gl_page = <Page url='http://127.0.0.1:37419/'>
+
+    def test_real_api_calculation_error_produces_guidance_without_blocking_motor(gl_page):
+        p=gl_page
+        p.evaluate("async()=>{try{await api('/api/alignment/fit',json('POST',{mode:'inexistente',pairs:[]}))}catch{}}")
+        p.wait_for_function("$('rsCalculationGuide').textContent.includes('corrigir')",timeout=10000)
+        assert p.locator('dialog[open]').count()==0
+>       p.locator('#rsCalculationGuide').click()
+
+tests/test_v14217_usability.py:81: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:15637: in click
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:162: in click
+    return await self._frame._click(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:566: in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f90a618ad80>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f90a293cae0>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for locator("#rsCalculationGuide")
+E               - locator resolved to <button type="button" class="rsAuxAction on" id="rsCalculationGuide" aria-label="Orientação: corrigir cálculo…" title="Ver causas possíveis e passos de correção do último cálculo.">…</button>
+E             - attempting click action
+E               2 × waiting for element to be visible, enabled and stable
+E                 - element is not visible
+E               - retrying click action
+E               - waiting 20ms
+E               2 × waiting for element to be visible, enabled and stable
+E                 - element is not visible
+E               - retrying click action
+E                 - waiting 100ms
+E               48 × waiting for element to be visible, enabled and stable
+E                  - element is not visible
+E                - retrying click action
+E                  - waiting 500ms
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+_________________ test_visual_10_100_ciclos_paineis_sem_deriva _________________
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+pagefx = (<Page url='about:blank'>, ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 ... 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".'])
+
+    def test_visual_10_100_ciclos_paineis_sem_deriva(pagefx):
+        page,errors=pagefx;page.set_viewport_size({'width':1600,'height':900});page.evaluate("pnAbrir(null);recolherDock(true)");start=rect(page,'.canvasWrap')
+        for _ in range(100):page.evaluate("pnAbrir(pnItens[0].id);pnAbrir(null);recolherDock(false);recolherDock(true)")
+        end=rect(page,'.canvasWrap');assert abs(end['x']-start['x'])<2 and abs(end['width']-start['width'])<3
+>       screenshot(page,'1409_10_100_ciclos');clean(page,errors)
+                                              ^^^^^^^^^^^^^^^^^^
+
+tests/test_v1409_visual.py:87: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+page = <Page url='about:blank'>
+errors = ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+    def clean(page,errors):
+>       assert page.locator('.canvasWrap').is_visible();assert not errors,errors
+                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+E       assert not ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+tests/test_v1409_visual.py:21: AssertionError
+_______________ test_visual_11_sem_overflow_horizontal_essencial _______________
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+pagefx = (<Page url='about:blank'>, ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 ... 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".'])
+
+    def test_visual_11_sem_overflow_horizontal_essencial(pagefx):
+        page,errors=pagefx
+        for w,h in [(1366,768),(1280,720),(1024,768)]:
+            page.set_viewport_size({'width':w,'height':h});page.wait_for_timeout(40)
+            m=page.evaluate("({sw:document.documentElement.scrollWidth,cw:document.documentElement.clientWidth})")
+            assert m['sw']<=m['cw']+2,(w,m)
+>       screenshot(page,'1409_11_sem_overflow');clean(page,errors)
+                                                ^^^^^^^^^^^^^^^^^^
+
+tests/test_v1409_visual.py:95: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+page = <Page url='about:blank'>
+errors = ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+    def clean(page,errors):
+>       assert page.locator('.canvasWrap').is_visible();assert not errors,errors
+                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+E       assert not ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+tests/test_v1409_visual.py:21: AssertionError
+____________ test_calculation_guide_is_visible_next_to_flow_repair _____________
+[gw1] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='about:blank'>
+
+    def test_calculation_guide_is_visible_next_to_flow_repair(page):
+        page.set_viewport_size({'width':1024,'height':900})
+        assert page.evaluate("$('rsRepairFlows').nextElementSibling.id==='rsCalculationGuide'")
+        r=page.locator('#rsCalculationGuide').bounding_box()
+>       assert r['x']>=0 and r['x']+r['width']<=1024
+               ^^^^^^
+E       TypeError: 'NoneType' object is not subscriptable
+
+tests/test_v14217_usability.py:91: TypeError
+___________________ test_visual_12_logo_nao_some_apos_stress ___________________
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+pagefx = (<Page url='about:blank'>, ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 ... 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".'])
+
+    def test_visual_12_logo_nao_some_apos_stress(pagefx):
+        page,errors=pagefx
+        for _ in range(20):page.keyboard.press('F11');page.keyboard.press('F11')
+        assert page.locator('.dev img[alt="GeoRas Consultoria"]').is_visible()
+>       screenshot(page,'1409_12_logo_stress');clean(page,errors)
+                                               ^^^^^^^^^^^^^^^^^^
+
+tests/test_v1409_visual.py:101: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+page = <Page url='about:blank'>
+errors = ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+    def clean(page,errors):
+>       assert page.locator('.canvasWrap').is_visible();assert not errors,errors
+                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+E       assert not ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+tests/test_v1409_visual.py:21: AssertionError
+__________________ test_model_menu_cascades_and_selects_tool ___________________
+[gw1] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='about:blank'>
+
+    def test_model_menu_cascades_and_selects_tool(page):
+>       page.get_by_role('menuitem',name='Modelar',exact=True).click()
+
+tests/test_v142_visual.py:41: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:15637: in click
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:162: in click
+    return await self._frame._click(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:566: in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f9083f53a10>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f90a2693600>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for get_by_role("menuitem", name="Modelar", exact=True)
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+________ test_analysis_reuses_valid_results_after_a_presentation_change ________
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+project = PosixPath('/tmp/pytest-of-agent/pytest-385/popen-gw3/test_analysis_reuses_valid_res0/projeto')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f03276dc860>
+
+    def test_analysis_reuses_valid_results_after_a_presentation_change(project,monkeypatch):
+        from app import worker
+        from app.execlog import JobLog
+        d=project;s=Settings.model_validate(ps.read_config(d));ticket=artifacts.begin(d,'previous','analyze',s)
+        for name in ('analysis.json','editor.json','vectors.json'):store.write_json(d/name,{'result':'preservado'})
+        artifacts.finish(d,ticket);ps.save_config(d,{**s.model_dump(),'texture_style':'realistic'})
+        before={p.name:p.stat().st_mtime_ns for p in d.glob('*.json') if p.name!='config.json'}
+        monkeypatch.setattr(store,'directory',lambda _:d)
+        monkeypatch.setattr(store,'job',lambda _:{'project':'p','kind':'analyze','state':'running'})
+        outcomes=[];monkeypatch.setattr(store,'update',lambda *a,**kw:outcomes.append(kw))
+        monkeypatch.setattr(worker,'analyze',lambda *a,**kw:pytest.fail('Não deve recalcular a geometria para alterar textura.'))
+>       assert worker.run('reuse')==0
+               ^^^^^^^^^^^^^^^^^^^
+
+tests/test_v1427_state.py:113: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+app/worker.py:227: in run
+    with Heartbeat(store.directory(store.job(jid)['project']),jid):return _run_job(jid)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app/process_supervision.py:30: in __init__
+    def __init__(self,directory,jid):self.path=heartbeat_path(directory,jid);self.stop=threading.Event()
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/tmp/pytest-of-agent/pytest-385/popen-gw3/test_analysis_reuses_valid_res0/projeto')
+jid = 'reuse'
+
+    def heartbeat_path(directory,jid):
+>       if not re.fullmatch('[0-9a-f]{32}',jid):raise ValueError('Tarefa inválida.')
+                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: Tarefa inválida.
+
+app/process_supervision.py:22: ValueError
+________ test_minor_dxf_axis_is_used_instead_of_only_the_main_skeleton _________
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+    def test_minor_dxf_axis_is_used_instead_of_only_the_main_skeleton():
+        minor=np.array([[100.,30.],[300.,30.]])
+        n=network([dict(points=AXIS),dict(points=minor)],derive_traffic_paths=True)
+>       assert any(r.get('native_id')=='1' and np.allclose(r['points'][:,1],30) for r in n.raw_info)
+E       assert False
+E        +  where False = any(<generator object test_minor_dxf_axis_is_used_instead_of_only_the_main_skeleton.<locals>.<genexpr> at 0x7f03276f9380>)
+
+tests/test_v14213_continuity.py:20: AssertionError
+__________ test_short_contact_piece_does_not_break_a_long_native_axis __________
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+    def test_short_contact_piece_does_not_break_a_long_native_axis():
+        axes=[dict(points=AXIS),dict(points=np.array([[250.,0.],[250.,150.]])),dict(points=np.array([[275.,0.],[275.,150.]]))]
+        n=network(axes)
+>       assert any(e['native_id']=='0' and e['length']<50 for e in n.edges)
+E       assert False
+E        +  where False = any(<generator object test_short_contact_piece_does_not_break_a_long_native_axis.<locals>.<genexpr> at 0x7f0326f6c1e0>)
+
+tests/test_v14213_continuity.py:27: AssertionError
+____ test_short_fragments_join_only_in_derived_geometry_and_preserve_source ____
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+    def test_short_fragments_join_only_in_derived_geometry_and_preserve_source():
+        axes=[dict(layer='EIXO',points=np.array([[100.+i*30,30.],[130.+i*30,30.]])) for i in range(3)]
+        before=[a['points'].copy() for a in axes];n=network([dict(points=AXIS)]+axes)
+>       assert n.native_axis_report['joined']==2
+E       assert 0 == 2
+
+tests/test_v14213_continuity.py:37: AssertionError
+__________ test_border_paint_does_not_interrupt_but_real_obstacles_do __________
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+    def test_border_paint_does_not_interrupt_but_real_obstacles_do():
+        border=np.array([[300.,-15.],[300.,15.]])
+        a=network([dict(points=AXIS)]);b=network([dict(points=AXIS)],borders=[border])
+>       assert len(a.paths)==len(b.paths)>0
+E       assert 0 > 0
+E        +  where 0 = len([])
+E        +    where [] = <app.traffic.TrafficNetwork object at 0x7f03276dfa10>.paths
+
+tests/test_v14213_continuity.py:45: AssertionError
+__ test_join_rejects_real_gap_ambiguity_incompatible_layer_and_disabled_axis ___
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+    def test_join_rejects_real_gap_ambiguity_incompatible_layer_and_disabled_axis():
+        s=Settings();surface=box(-10,-10,200,10)
+        def row(a,b,layer='EIXO A'):return dict(points=np.array([[a,0.],[b,0.]]),layer=layer)
+        rows,report=native_paths([row(0,60),row(60.1,120)],s,surface)
+>       assert len(rows)==1 and report['joined']==1 and abs(report['max_gap_m']-.1)<1e-6
+E       assert (0 == 1)
+E        +  where 0 = len([])
+
+tests/test_v14213_continuity.py:58: AssertionError
+________________ test_old_main_axis_disable_keeps_its_identity _________________
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+    def test_old_main_axis_disable_keeps_its_identity():
+        p,_=sample(AXIS,3);coordinates=np.round(p,3).astype('<f8')
+        key=hashlib.sha256(b'eixo principal DXF|0'+min(coordinates.tobytes(),coordinates[::-1].tobytes())).hexdigest()
+        n=network([dict(points=AXIS)],flow_overrides=[dict(id='old',x=300,y=0,target_key=key,action='disable')])
+>       assert n.raw_info and all(r['disabled'] for r in n.raw_info)
+E       assert ([])
+E        +  where [] = <app.traffic.TrafficNetwork object at 0x7f0324face60>.raw_info
+
+tests/test_v14213_continuity.py:71: AssertionError
+_ test_external_axis_excess_is_trimmed_without_creating_portals_at_internal_gaps _
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+    def test_external_axis_excess_is_trimmed_without_creating_portals_at_internal_gaps():
+        n=network([dict(points=AXIS)],roads=[box(40,-10,560,10)])
+>       assert n.paths and max(p['length'] for p in n.paths)>510
+E       assert ([])
+E        +  where [] = <app.traffic.TrafficNetwork object at 0x7f03257e0b00>.paths
+
+tests/test_v14213_continuity.py:77: AssertionError
+_______ test_nearly_coincident_contacts_do_not_delete_one_meter_of_axis ________
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+    def test_nearly_coincident_contacts_do_not_delete_one_meter_of_axis():
+        axes=[dict(points=AXIS)]+[dict(points=np.array([[x,0.],[x,150.]])) for x in (250.,251.)]
+        n=network(axes)
+>       assert any(np.ptp(p['p'][:,0])>590 and np.ptp(p['p'][:,1])<.01 for p in n.paths)
+E       assert False
+E        +  where False = any(<generator object test_nearly_coincident_contacts_do_not_delete_one_meter_of_axis.<locals>.<genexpr> at 0x7f03274ac2e0>)
+
+tests/test_v14213_continuity.py:86: AssertionError
+_______ test_sparse_dxf_vertices_do_not_leave_a_duplicate_skeleton_flow ________
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+    def test_sparse_dxf_vertices_do_not_leave_a_duplicate_skeleton_flow():
+        n=network([dict(points=AXIS)],derive_traffic_paths=True,roads=[box(-10,-6,610,6)])
+>       assert n.paths and all(raw.get('native_axis') for raw in n.raw_info)
+E       assert ([])
+E        +  where [] = <app.traffic.TrafficNetwork object at 0x7f03257e10d0>.paths
+
+tests/test_v14213_continuity.py:91: AssertionError
+________________________ test_menu_keyboard_and_escape _________________________
+[gw1] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='about:blank'>
+
+    def test_menu_keyboard_and_escape(page):
+        b=page.get_by_role('menuitem',name='Modelar',exact=True)
+>       b.focus();page.keyboard.press('ArrowDown');page.keyboard.press('ArrowRight')
+        ^^^^^^^^^
+
+tests/test_v142_visual.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:16811: in focus
+    self._sync(self._impl_obj.focus(timeout=timeout))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:399: in focus
+    return await self._frame.focus(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:700: in focus
+    await self._channel.send("focus", self._timeout, locals_to_params(locals()))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f90a2b3d400>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f90a2668720>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.focus: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for get_by_role("menuitem", name="Modelar", exact=True)
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+___ test_render_confirmation_consumes_automatic_refresh_without_a_second_job ___
+[gw2] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+gl_page = <Page url='http://127.0.0.1:44245/'>
+
+    def test_render_confirmation_consumes_automatic_refresh_without_a_second_job(gl_page):
+        p=gl_page;p.evaluate("async()=>{$('render_workers').value='1';await save();RodoviaUpdatePolicy.setMode('automatic');RodoviaMaterialsHub.open()}")
+        p.locator('#pavement_material').select_option('rigido' if p.locator('#pavement_material').input_value()!='rigido' else 'flexivel')
+        posts=[];p.on('request',lambda r:posts.append(r.url.rsplit('/',1)[-1]) if r.method=='POST' and r.url.rsplit('/',1)[-1] in ('refresh','render') else None)
+        p.evaluate("window.renderFinished=null;window.renderError=null;void start('render').then(r=>window.renderFinished=r).catch(e=>window.renderError=e.message)")
+        p.locator('#rsPanelDecision [data-choice=save]').click()
+>       p.wait_for_function('renderFinished||renderError',timeout=90000)
+
+tests/test_v14223_update_policy.py:168: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:11595: in wait_for_function
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_page.py:1110: in wait_for_function
+    return await self._main_frame.wait_for_function(**locals_to_params(locals()))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:878: in wait_for_function
+    await self._channel.send("waitForFunction", self._timeout, params)
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f1cc743e5d0>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f1cde578720>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 90000ms exceeded.
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+___ test_online_ui_contract_reply_reaches_review_and_confirmed_engine_apply ____
+[gw0] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+gl_page = <Page url='http://127.0.0.1:46841/'>
+live = ('http://127.0.0.1:46841', 'ffffffffffffffffffffffffffffffff', PosixPath('/tmp/pytest-of-agent/pytest-385/popen-gw0/webgl_real2'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa1b74eedb0>
+
+    def test_online_ui_contract_reply_reaches_review_and_confirmed_engine_apply(gl_page,live,monkeypatch):
+        p=gl_page;d=live[2]/live[1];seen=[];secret='sk-test-CHAVE-SIMULADA-12345678'
+        def provider(url,body=None,token=None,**kwargs):
+            seen.append((url,body))
+            assert token==secret
+            assert body['response_format']['type']=='json_schema'
+            assert body['response_format']['json_schema']['schema']['additionalProperties'] is False
+            return {'choices':[{'message':{'content':json.dumps({'summary':'Conferir material desta camada.','steps':['Confira a amostra antes de aplicar.'],'action':'textures','layers':[{'layer':'PAVIMENTO','role':'pavement','material':'concrete'}]})}}]}
+        monkeypatch.setattr(S,'_http',provider)
+        p.evaluate("RodoviaSmallAI.open('textures')")
+        dialog=p.get_by_role('dialog',name='IA de apoio e mini prompts')
+        dialog.get_by_role('button',name='Conectar API online',exact=True).click()
+        config=p.get_by_role('dialog',name='Conectar API online')
+        assert config.get_by_role('link',name='Obter chave no provedor').get_attribute('href')=='https://platform.openai.com/api-keys'
+        config.get_by_label('Chave da API',exact=True).fill(secret)
+        config.get_by_role('button',name='Usar conexão nesta sessão').click();config.wait_for(state='detached')
+        assert dialog.get_by_label('Provedor IA').input_value()=='online'
+        dialog.get_by_label('Camadas para consultar').fill('PAVIMENTO')
+        dialog.get_by_role('button',name='Preparar mini prompt').click()
+        dialog.get_by_role('button',name='Consultar IA',exact=True).wait_for(state='visible')
+        p.wait_for_function("[...document.querySelectorAll('.rsSmallAI button')].some(b=>b.textContent==='Consultar IA'&&!b.disabled)")
+        before=read_config(d)
+        dialog.get_by_role('button',name='Consultar IA',exact=True).click()
+        p.wait_for_function("document.querySelector('.rsSmallAI').textContent.includes('marque a autorização')")
+        assert not seen
+        dialog.get_by_role('checkbox').check();dialog.get_by_role('button',name='Consultar IA',exact=True).click()
+        dialog.get_by_role('button',name='Revisar nas ferramentas do motor').wait_for()
+        assert len(seen)==1 and read_config(d)==before
+        screenshot(p,'14228_api_resposta_estruturada_revisavel')
+        dialog.get_by_role('button',name='Revisar nas ferramentas do motor').click()
+>       p.locator('#rsIAStudio').wait_for();assert p.locator('#rsIAStudio [data-ia-layer="PAVIMENTO"]').is_visible()
+                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       assert False
+E        +  where False = is_visible()
+E        +    where is_visible = <Locator frame=<Frame name= url='http://127.0.0.1:46841/'> selector='#rsIAStudio [data-ia-layer="PAVIMENTO"]'>.is_visible
+E        +      where <Locator frame=<Frame name= url='http://127.0.0.1:46841/'> selector='#rsIAStudio [data-ia-layer="PAVIMENTO"]'> = locator('#rsIAStudio [data-ia-layer="PAVIMENTO"]')
+E        +        where locator = <Page url='http://127.0.0.1:46841/'>.locator
+
+tests/test_v14228_hatch_online.py:97: AssertionError
+_____ test_3d_rebuild_preserves_camera_light_time_and_technical_visibility _____
+[gw2] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='http://127.0.0.1:44245/'>
+
+    def open3d(page):
+        if page.get_by_role('tab',name='Cena',exact=True).count():page.get_by_role('tab',name='Cena',exact=True).click()
+        page.locator('[data-rs3d=view3d]').click()
+>       try:page.wait_for_function('Rodovia3D.stats().ready',timeout=45000)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_v1425_live_3d.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:11595: in wait_for_function
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_page.py:1110: in wait_for_function
+    return await self._main_frame.wait_for_function(**locals_to_params(locals()))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:878: in wait_for_function
+    await self._channel.send("waitForFunction", self._timeout, params)
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f1cddfc3ef0>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f1cdc49c220>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 45000ms exceeded.
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+gl_page = <Page url='http://127.0.0.1:44245/'>
+
+    def test_3d_rebuild_preserves_camera_light_time_and_technical_visibility(gl_page):
+>       p=gl_page;open3d(p)
+                  ^^^^^^^^^
+
+tests/test_v14223_update_policy.py:175: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+page = <Page url='http://127.0.0.1:44245/'>
+
+    def open3d(page):
+        if page.get_by_role('tab',name='Cena',exact=True).count():page.get_by_role('tab',name='Cena',exact=True).click()
+        page.locator('[data-rs3d=view3d]').click()
+        try:page.wait_for_function('Rodovia3D.stats().ready',timeout=45000)
+>       except Exception as exc:raise AssertionError(page.locator('#rs3dState').inner_text()+' | '+page.locator('#message').inner_text()) from exc
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Preparando a vista 3D… | Simulando tráfego: 0 s de 3 s
+
+tests/test_v1425_live_3d.py:44: AssertionError
+__________ test_cancelled_refresh_keeps_previous_preview_and_sources ___________
+[gw2] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-385/popen-gw2/test_cancelled_refresh_keeps_p0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f1cdc45e9f0>
+
+    def test_cancelled_refresh_keeps_previous_preview_and_sources(tmp_path,monkeypatch):
+        from app import store,worker
+        root=tmp_path/'data';root.mkdir();monkeypatch.setattr(store,'ROOT',root);monkeypatch.setattr(store,'DB',root/'studio.sqlite3');store.init()
+        identity='a'*32;d=root/identity;d.mkdir();d,s=project(d)
+        original=(d/'input.dxf').read_bytes();(d/'preview.png').write_bytes(b'previous-preview')
+        with store.connect() as c:
+            c.execute('INSERT INTO projects(id,name) VALUES(?,?)',(identity,s.name))
+            c.execute('INSERT INTO jobs(id,project,kind,state,message) VALUES(?,?,?,?,?)',('cancel-test',identity,'refresh','cancel_requested','Cancelar'))
+>       assert worker.run('cancel-test')==0 and store.job('cancel-test')['state']=='cancelled'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_v14223_update_policy.py:190: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+app/worker.py:227: in run
+    with Heartbeat(store.directory(store.job(jid)['project']),jid):return _run_job(jid)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app/process_supervision.py:30: in __init__
+    def __init__(self,directory,jid):self.path=heartbeat_path(directory,jid);self.stop=threading.Event()
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/tmp/pytest-of-agent/pytest-385/popen-gw2/test_cancelled_refresh_keeps_p0/data/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+jid = 'cancel-test'
+
+    def heartbeat_path(directory,jid):
+>       if not re.fullmatch('[0-9a-f]{32}',jid):raise ValueError('Tarefa inválida.')
+                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: Tarefa inválida.
+
+app/process_supervision.py:22: ValueError
+________________ test_logo_permanece_em_layouts_e_modo_projeto _________________
+[gw0] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+visual_page_1407 = (<Page url='about:blank'>, ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 ... 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".'])
+
+    def test_logo_permanece_em_layouts_e_modo_projeto(visual_page_1407):
+        page,errors=visual_page_1407
+        logo=page.locator('.dev img[alt="GeoRas Consultoria"]')
+        assert logo.is_visible()
+        b0=logo.bounding_box();assert b0 and b0['width']>=30 and b0['height']>=18
+        page.evaluate("pnAbrir(pnItens[0].id);recolherDock(false)")
+        page.keyboard.press('F11');page.wait_for_timeout(120)
+        assert logo.is_visible(), 'O modo Projeto não pode remover o logo da aplicação.'
+        screenshot(page,'1407_01_logo_modo_projeto')
+>       assert not errors,errors
+E       AssertionError: ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+E       assert not ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+tests/test_v1407_visual.py:33: AssertionError
+__________ test_ordem_visual_de_imagens_exibe_topo_subir_descer_fundo __________
+[gw0] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+visual_page_1407 = (<Page url='about:blank'>, ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 ... 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".'])
+
+    def test_ordem_visual_de_imagens_exibe_topo_subir_descer_fundo(visual_page_1407):
+        page,errors=visual_page_1407
+        page.evaluate("""async()=>{
+          window.__oldApi=window.api;
+          eval("pid='11111111111111111111111111111111'");
+          cfg={local_imagery:{image:'a.tif',name:'Orto A',detail:true,editor:true,brightness:0,contrast:0,saturation:0,nodata:'borda'}};
+          const info={gdal:true,pixel_m:.12,max_zoom:21,count:2,editor:true,sources:[
+            {index:0,name:'Orto A',file:'a.tif',size:[8000,6000],pixel_m:.12,crs:'EPSG:31983',bounds:[0,0,100,100],adjust:{shift_x:0,shift_y:0,rotation_deg:0,scale:1}},
+            {index:1,name:'Orto B',file:'b.tif',size:[7000,5000],pixel_m:.15,crs:'EPSG:31983',bounds:[0,0,100,100],adjust:{shift_x:0,shift_y:0,rotation_deg:0,scale:1}}
+          ]};
+          api=async u=>String(u).includes('/local/info')?info:{};
+          await localUi();
+        }""")
+        txt=page.inner_text('#imgList')
+        assert all(x in txt for x in ('Topo','▲','▼','Fundo','Orto A','Orto B'))
+        assert page.locator('#imgList [data-imgtop="1"]').is_enabled()
+        assert page.locator('#imgList [data-imgbottom="0"]').is_enabled()
+        screenshot(page,'1407_02_ordem_visual_imagens')
+>       assert not errors,errors
+E       AssertionError: ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+E       assert not ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+tests/test_v1407_visual.py:53: AssertionError
+_____________________ test_regeneracao_nao_altera_viewport _____________________
+[gw0] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+visual_page_1407 = (<Page url='about:blank'>, ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 ... 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".'])
+
+    def test_regeneracao_nao_altera_viewport(visual_page_1407):
+        page,errors=visual_page_1407
+        result=page.evaluate("""()=>{
+          view.s=3.25;view.ox=137.5;view.oy=-42.75;
+          const a={...view};
+          for(let i=0;i<50;i++)regenScreen();
+          return {a,b:{...view}};
+        }""")
+        assert result['a']==result['b']
+        screenshot(page,'1407_03_regeneracao_estavel')
+>       assert not errors,errors
+E       AssertionError: ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+E       assert not ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+tests/test_v1407_visual.py:65: AssertionError
+_________________ test_paineis_nao_sobrepoem_viewport_em_1024 __________________
+[gw0] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+visual_page_1407 = (<Page url='about:blank'>, ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 ... 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".'])
+
+    def test_paineis_nao_sobrepoem_viewport_em_1024(visual_page_1407):
+        page,errors=visual_page_1407
+        page.set_viewport_size({'width':1024,'height':768});page.wait_for_timeout(120)
+        page.evaluate("pnAbrir(pnItens[0].id);recolherDock(false)");page.wait_for_timeout(140)
+        canvas=rect(page,'.canvasWrap');right=rect(page,'.editorSide')
+        assert overlap(canvas,right)<1
+        assert canvas['width']>500 and canvas['height']>300
+        assert not page.evaluate("document.body.classList.contains('pnAberto')"), 'Ao abrir o painel direito em 1024 px, o esquerdo deve fechar para preservar o desenho.'
+        screenshot(page,'1407_04_1024_paineis_sem_overlay')
+>       assert not errors,errors
+E       AssertionError: ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+E       assert not ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+tests/test_v1407_visual.py:76: AssertionError
+__________________ test_comando_invalido_nao_trava_interface ___________________
+[gw0] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+visual_page_1407 = (<Page url='about:blank'>, ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 ... 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".'])
+
+    def test_comando_invalido_nao_trava_interface(visual_page_1407):
+        page,errors=visual_page_1407
+        page.evaluate("runCommand('COMANDO_QUE_NAO_EXISTE_1407')")
+        page.wait_for_timeout(50)
+        assert page.locator('.canvasWrap').is_visible()
+        assert page.locator('#menuBar').is_visible()
+        # O sistema deve continuar aceitando um comando válido depois do erro controlado.
+        page.evaluate("runCommand('SNAP')")
+        assert page.locator('#snapOn').is_checked()
+        screenshot(page,'1407_05_erro_controlado')
+>       assert not errors,errors
+E       AssertionError: ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+E       assert not ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+tests/test_v1407_visual.py:88: AssertionError
+_____________ test_hit_test_em_pixels_encontra_objetos_sobrepostos _____________
+[gw0] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+visual_page_1407 = (<Page url='about:blank'>, ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 ... 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".'])
+
+    def test_hit_test_em_pixels_encontra_objetos_sobrepostos(visual_page_1407):
+        page,errors=visual_page_1407
+        count=page.evaluate("""()=>{
+          const oldMeta=meta,oldBase=baseImage,oldMode=baseMode,oldSigns=M.signs,oldView={...view};
+          try{
+            meta={width_m:1000,screen_width:1000,screen_height:1000,camera:[0,0],right:[1,0],up:[0,1]};
+            baseImage={width:1000,height:1000};baseMode='preview';view={s:1,ox:0,oy:0};
+            const p={x:0,y:0},c=W2C(p);
+            M.signs=[{point:p,name:'A'},{point:{...p},name:'B'}];
+            return hitObjects({cx:c[0],cy:c[1]}).length;
+          } finally { meta=oldMeta;baseImage=oldBase;baseMode=oldMode;M.signs=oldSigns;view=oldView; }
+        }""")
+        assert count>=2
+        screenshot(page,'1407_06_selecao_sobreposta')
+>       assert not errors,errors
+E       AssertionError: ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+E       assert not ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+tests/test_v1407_visual.py:104: AssertionError
+___________ test_stress_visual_50_ciclos_sem_deriva_ou_console_error ___________
+[gw0] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+visual_page_1407 = (<Page url='about:blank'>, ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 ... 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".'])
+
+    def test_stress_visual_50_ciclos_sem_deriva_ou_console_error(visual_page_1407):
+        page,errors=visual_page_1407
+        start=rect(page,'.canvasWrap')
+        for _ in range(50):
+            page.evaluate("pnAbrir(pnItens[0].id);pnAbrir(null);recolherDock(false);recolherDock(true);regenScreen()")
+        end=rect(page,'.canvasWrap')
+        assert abs(end['x']-start['x'])<2 and abs(end['y']-start['y'])<2
+        assert abs(end['width']-start['width'])<3 and abs(end['height']-start['height'])<3
+        screenshot(page,'1407_07_stress_50_ciclos')
+>       assert not errors,errors
+E       AssertionError: ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+E       assert not ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+tests/test_v1407_visual.py:115: AssertionError
+__________ test_out_of_order_open_does_not_replace_the_latest_project __________
+[gw1] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+gl_page = <Page url='http://127.0.0.1:40259/'>
+live = ('http://127.0.0.1:40259', 'ffffffffffffffffffffffffffffffff', PosixPath('/tmp/pytest-of-agent/pytest-385/popen-gw1/webgl_real4'))
+
+    def test_out_of_order_open_does_not_replace_the_latest_project(gl_page,live):
+        p=gl_page;data=p.request.get(live[0]+'/api/projects/'+live[1]).json();routes={};a='a'*32;b='b'*32
+        def payload(key):return {**data,'id':key,'config':{**data['config'],'name':key},'analysis':None,'preview':None,'editor_ready':False}
+        def intercept(r):
+            key=r.request.url.rsplit('/',1)[-1]
+            if key in routes:r.fulfill(json=payload(key))
+            else:routes[key]=r
+        for key in (a,b):p.route('**/api/projects/'+key,intercept)
+        p.evaluate('(id)=>{window.openFirst=load(id)}',a);p.wait_for_timeout(100)
+        p.evaluate('(id)=>{window.openSecond=load(id)}',b);p.wait_for_timeout(100)
+        def payload(key):return {**data,'id':key,'config':{**data['config'],'name':key},'analysis':None,'preview':None,'editor_ready':False}
+>       routes[b].fulfill(json=payload(b));p.evaluate('()=>openSecond')
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_v1427_state_ui.py:55: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:8562: in evaluate
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_page.py:464: in evaluate
+    return await self._main_frame.evaluate(expression, arg)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:320: in evaluate
+    await self._channel.send(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f90a18e4830>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f90a02a4a40>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.Error: Page.evaluate: Error: Pasta do projeto ausente ou inválida. Localize a pasta original; não foi criado um projeto vazio.
+E               at api (http://127.0.0.1:40259/js/00_nucleo.js:42:154)
+E               at async api (http://127.0.0.1:40259/js/71_orientacao_calculos.js:10:48)
+E               at async http://127.0.0.1:40259/js/01_estado_configuracao.js:42:26
+E               at async save (http://127.0.0.1:40259/js/01_estado_configuracao.js:60:13)
+E               at async start (http://127.0.0.1:40259/js/07_tarefas_intervencoes.js:20:480)
+E               at async http://127.0.0.1:40259/js/27_comandos_limpos.js:26:65
+E               at async start (http://127.0.0.1:40259/js/71_orientacao_calculos.js:9:73)
+E               at async drain (http://127.0.0.1:40259/js/75_operacao_consolidada.js:11:47)
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: Error
+---------------------------- Captured log teardown -----------------------------
+ERROR    asyncio:base_events.py:1833 Exception in callback Connection.dispatch.<locals>._done_callback(<Task cancell..._page.py:283>>) at /workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:466
+handle: <Handle Connection.dispatch.<locals>._done_callback(<Task cancell..._page.py:283>>) at /workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:466>
+Traceback (most recent call last):
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/events.py", line 88, in _run
+    self._context.run(self._callback, *self._args)
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py", line 467, in _done_callback
+    exc = future.exception()
+          ^^^^^^^^^^^^^^^^^^
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_page.py", line 297, in _on_route
+    handled = await route_handler.handle(route)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_helper.py", line 422, in handle
+    return await self._handle_internal(route)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_helper.py", line 464, in _handle_internal
+    return await handled_future
+           ^^^^^^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+____________________ test_shell_comando_modo_projeto_e_1366 ____________________
+[gw0] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+visual_page_1407 = (<Page url='about:blank'>, ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 ... 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".'])
+
+    def test_shell_comando_modo_projeto_e_1366(visual_page_1407):
+        page,errors=visual_page_1407
+        page.set_viewport_size({'width':1366,'height':768});page.wait_for_timeout(100)
+        before=rect(page,'.canvasWrap')
+        page.keyboard.press('Control+Space');page.wait_for_timeout(80)
+        assert page.locator('#dwCommandDrawer').is_visible()
+        after=rect(page,'.canvasWrap');drawer=rect(page,'#dwCommandDrawer')
+        assert after['height']<before['height'] and overlap(after,drawer)<1
+        page.keyboard.press('Control+Space')
+        normal=rect(page,'.canvasWrap');page.keyboard.press('F11');page.wait_for_timeout(100)
+        focus=rect(page,'.canvasWrap')
+        assert focus['width']>=normal['width'] and page.locator('.dev img[alt="GeoRas Consultoria"]').is_visible()
+        page.keyboard.press('F11')
+        metrics=page.evaluate("({sw:document.documentElement.scrollWidth,cw:document.documentElement.clientWidth})")
+        assert metrics['sw']<=metrics['cw']+2
+        screenshot(page,'1407_08_shell_comando_foco_1366')
+>       assert not errors,errors
+E       AssertionError: ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+E       assert not ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+tests/test_v1407_visual.py:133: AssertionError
+__________ test_alvos_interativos_essenciais_nao_ficam_microscopicos ___________
+[gw0] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+visual_page_1407 = (<Page url='about:blank'>, ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 ... 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".'])
+
+    def test_alvos_interativos_essenciais_nao_ficam_microscopicos(visual_page_1407):
+        page,errors=visual_page_1407
+        vals=page.evaluate("""()=>[...document.querySelectorAll('button:not([hidden]), .mb:not([hidden])')].filter(e=>{const s=getComputedStyle(e);return s.display!=='none'&&s.visibility!=='hidden'}).map(e=>{const r=e.getBoundingClientRect();return {t:(e.innerText||e.title||'').trim(),w:r.width,h:r.height}})""")
+        bad=[v for v in vals if v['w']>0 and v['h']>0 and (v['w']<22 or v['h']<22)]
+        assert len(bad)<=3,bad[:10]
+        screenshot(page,'1407_09_alvos_interativos')
+>       assert not errors,errors
+E       AssertionError: ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+E       assert not ['console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".', 'console: E...3 0 0 0-6".', 'console: Error: <path> attribute d: Unexpected end of attribute. Expected number, "… 6 0 3 3 0 0 0-6".']
+
+tests/test_v1407_visual.py:141: AssertionError
+_________________ test_diagnostics_do_not_modify_video_frames __________________
+[gw0] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+drawing = PosixPath('/tmp/pytest-of-agent/pytest-385/popen-gw0/test_diagnostics_do_not_modify0')
+
+    def test_diagnostics_do_not_modify_video_frames(drawing):
+        from app.render import Scene
+        from test_workflow import settings
+        scene=Scene(drawing,settings())
+        a,_=scene.frame(1.)
+        data=scene.editor_data()
+>       assert data['segments'] and all('technical_status' in s for s in data['segments'])
+E       assert ([])
+
+tests/test_v142_diagnostics.py:22: AssertionError
+_______________ test_quick_actions_execute_and_properties_toggle _______________
+[gw0] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='about:blank'>
+
+    def test_quick_actions_execute_and_properties_toggle(page):
+>       page.locator('#rsToolPanel0 [data-rs-tool="route"]').click()
+
+tests/test_v1422_layout.py:23: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:15637: in click
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:162: in click
+    return await self._frame._click(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:566: in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7fa1b7365a00>
+cb = <function Channel.send.<locals>.<lambda> at 0x7fa1b752a660>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for locator("#rsToolPanel0 [data-rs-tool=\"route\"]")
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+___ test_axis_selection_hides_short_routes_and_refreshes_when_limit_changes ____
+[gw2] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='about:blank'>
+
+    def test_axis_selection_hides_short_routes_and_refreshes_when_limit_changes(page):
+        page.evaluate("()=>{analysis={routes:[{id:'0',length_m:19,layer:'MINI'},{id:'1',length_m:50,layer:'EIXO'},{id:'2',length_m:120,layer:'EIXO'}],layers:[],warnings:[],geometric_length_m:600};cfg.min_route_segment_m=50;showLayers()}")
+        assert page.locator('#routes [data-route="0"]').count()==0
+>       assert page.locator('#routes [data-route="1"]').count()==1
+E       assert 0 == 1
+E        +  where 0 = count()
+E        +    where count = <Locator frame=<Frame name= url='about:blank'> selector='#routes [data-route="1"]'>.count
+E        +      where <Locator frame=<Frame name= url='about:blank'> selector='#routes [data-route="1"]'> = locator('#routes [data-route="1"]')
+E        +        where locator = <Page url='about:blank'>.locator
+
+tests/test_v14214_panels_ui.py:25: AssertionError
+____________ test_all_flows_are_drawn_above_surfaces_with_contrast _____________
+[gw0] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='about:blank'>
+
+    def test_all_flows_are_drawn_above_surfaces_with_contrast(page):
+        seed(page)
+>       page.locator('#rsToolPanel0 [data-rs-command="EDITARFLUXOS"]').click()
+
+tests/test_v1422_layout.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:15637: in click
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:162: in click
+    return await self._frame._click(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:566: in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7fa1b68371a0>
+cb = <function Channel.send.<locals>.<lambda> at 0x7fa1b752bf60>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for locator("#rsToolPanel0 [data-rs-command=\"EDITARFLUXOS\"]")
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+__________________ test_flow_click_has_priority_over_surface ___________________
+[gw0] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='about:blank'>
+
+    def test_flow_click_has_priority_over_surface(page):
+        seed(page)
+>       page.locator('#rsToolPanel0 [data-rs-command="EDITARFLUXOS"]').click()
+
+tests/test_v1422_layout.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:15637: in click
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:162: in click
+    return await self._frame._click(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:566: in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7fa1b7366ab0>
+cb = <function Channel.send.<locals>.<lambda> at 0x7fa1b7739800>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for locator("#rsToolPanel0 [data-rs-command=\"EDITARFLUXOS\"]")
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+________ test_expert_guide_teaches_surface_fix_and_can_locate_the_point ________
+[gw2] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='about:blank'>
+
+    def test_expert_guide_teaches_surface_fix_and_can_locate_the_point(page):
+        from test_v14213_continuity_ui import present
+        from test_v14213_continuity import network,AXIS
+        from shapely.geometry import box
+        n=network([dict(points=AXIS)],obstacles=[box(290,-20,310,220)])
+>       segments=present(page,n);target=next(s for s in segments if s['technical_points'])
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       StopIteration
+
+tests/test_v14214_panels_ui.py:62: StopIteration
+_____ test_limit_uses_exact_length_and_preserves_hidden_direction_choices ______
+[gw2] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='about:blank'>
+
+    def test_limit_uses_exact_length_and_preserves_hidden_direction_choices(page):
+        page.evaluate("()=>{analysis={routes:[{id:'a',length_m:50,length_exact_m:49.999,layer:'EIXO'},{id:'b',length_m:120,length_exact_m:120,layer:'EIXO'}],layers:[],warnings:[],geometric_length_m:600};cfg.min_route_segment_m=50;showLayers()}")
+        assert page.locator('#routes [data-route=a]').count()==0
+>       page.evaluate("document.querySelector('#routes [data-route=b]').value='off'")
+
+tests/test_v14214_panels_ui.py:82: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:8562: in evaluate
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_page.py:464: in evaluate
+    return await self._main_frame.evaluate(expression, arg)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:320: in evaluate
+    await self._channel.send(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f1cde145eb0>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f1cc7f7a2a0>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.Error: Page.evaluate: TypeError: Cannot set properties of null (setting 'value')
+E               at eval (eval at evaluate (:290:30), <anonymous>:1:55)
+E               at eval (<anonymous>)
+E               at UtilityScript.evaluate (<anonymous>:290:30)
+E               at UtilityScript.<anonymous> (<anonymous>:1:44)
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: Error
+_____ test_pavement_skeleton_is_not_a_source_even_with_legacy_flag_enabled _____
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f032c1a6ed0>
+
+    def test_pavement_skeleton_is_not_a_source_even_with_legacy_flag_enabled(monkeypatch):
+        from app import traffic
+        def forbidden(*args,**kwargs):raise AssertionError('Não pode inventar eixos do pavimento.')
+        monkeypatch.setattr(traffic,'skeleton_paths',forbidden)
+        n=network([dict(layer='EIXO LESTE',role='axis',points=AXIS)],derive_traffic_paths=True)
+>       assert n.paths and all(r.get('native_axis') for r in n.raw_info)
+E       assert ([])
+E        +  where [] = <app.traffic.TrafficNetwork object at 0x7f032efa0f80>.paths
+
+tests/test_v14218_axis_policy.py:14: AssertionError
+_________ test_unassigned_border_and_kmz_reference_do_not_become_axes __________
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+    def test_unassigned_border_and_kmz_reference_do_not_become_axes():
+        s=Settings();surface=box(-10,-10,610,10)
+        assert not native_paths([dict(layer='BORDO',points=AXIS)],s,surface)[0]
+        assert not native_paths([dict(layer='KMZ',role='axis',reference_only=True,points=AXIS)],s,surface)[0]
+>       assert native_paths([dict(layer='Qualquer',role='axis',points=AXIS)],s,surface)[0]
+E       assert []
+
+tests/test_v14218_axis_policy.py:22: AssertionError
+__ test_start_end_direction_changes_only_the_known_interval_and_keeps_source ___
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+    def test_start_end_direction_changes_only_the_known_interval_and_keeps_source():
+        mark=DirectionMark(id='sentido',start=dict(x=400,y=0),end=dict(x=200,y=0));before=AXIS.copy()
+        n=network([dict(layer='EIXO',role='axis',points=AXIS)],direction_marks=[mark])
+        interior=[r for r in n.raw_info if r.get('direction_mark_id')=='sentido']
+>       assert interior and all(not r['forward'] and not r['both'] for r in interior)
+E       assert ([])
+
+tests/test_v14218_axis_policy.py:30: AssertionError
+____ test_automatic_job_does_not_close_a_panel_opened_while_save_is_pending ____
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+gl_page = <Page url='http://127.0.0.1:57735/'>
+
+    def test_automatic_job_does_not_close_a_panel_opened_while_save_is_pending(gl_page):
+        p=gl_page
+>       result=p.evaluate('''async()=>{
+          const original=save;let release;save=()=>new Promise(r=>release=r);
+          try{
+            const pending=start('analyze',undefined,{automatic:true});
+            psOpenHub('video');const opened=RodoviaPanels.opened;
+            release();const completed=await pending;
+            return {completed,opened,after:RodoviaPanels.opened,pending:taskRequestPending};
+          }finally{save=original}
+        }''')
+
+tests/test_v14212_ui.py:10: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:8562: in evaluate
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_page.py:464: in evaluate
+    return await self._main_frame.evaluate(expression, arg)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:320: in evaluate
+    await self._channel.send(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f0326f607a0>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f0325671580>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.Error: Page.evaluate: TypeError: release is not a function
+E               at eval (eval at evaluate (:290:30), <anonymous>:6:9)
+E               at UtilityScript.evaluate (<anonymous>:297:18)
+E               at UtilityScript.<anonymous> (<anonymous>:1:44)
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: Error
+____ test_cut_icon_removes_the_interval_from_circulation_and_keeps_the_dxf _____
+[gw1] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+gl_page = <Page url='http://127.0.0.1:37047/'>
+live = ('http://127.0.0.1:37047', 'ffffffffffffffffffffffffffffffff', PosixPath('/tmp/pytest-of-agent/pytest-385/popen-gw1/webgl_real5'))
+
+    def test_cut_icon_removes_the_interval_from_circulation_and_keeps_the_dxf(gl_page,live):
+        import hashlib
+        p=gl_page;d=live[2]/live[1];before=hashlib.sha256((d/'input.dxf').read_bytes()).hexdigest()
+        p.evaluate("start('analyze')");p.wait_for_function('!task && !taskRequestPending && !!editor',timeout=60000)
+>       p.locator('#rsToolPanel0 [data-rs-tool=flowcut]').click()
+
+tests/test_v14210_flow_edit_ui.py:12: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:15637: in click
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:162: in click
+    return await self._frame._click(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:566: in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f90a2a2a540>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f90a29cdb20>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for locator("#rsToolPanel0 [data-rs-tool=flowcut]")
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+_ test_image_tool_only_appears_after_local_image_and_runs_real_background_job __
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+gl_page = <Page url='http://127.0.0.1:57735/'>
+live = ('http://127.0.0.1:57735', 'ffffffffffffffffffffffffffffffff', PosixPath('/tmp/pytest-of-agent/pytest-385/popen-gw3/webgl_real2'))
+
+    def test_image_tool_only_appears_after_local_image_and_runs_real_background_job(gl_page,live):
+        p=gl_page
+        assert not p.locator('#rsToolPanel0 [data-rs-command=IMAGEMCONTORNOS]').is_visible()
+>       upload_image(p,live);p.locator('#rsToolPanel0 [data-rs-command=IMAGEMCONTORNOS]').click();p.wait_for_selector('#rsImageContext')
+        ^^^^^^^^^^^^^^^^^^^^
+
+tests/test_v14212_ui.py:35: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_v14212_ui.py:29: in upload_image
+    page.evaluate('RodoviaImageContext.refresh()');page.wait_for_selector('#rsToolPanel0 [data-rs-command=IMAGEMCONTORNOS]',state='visible')
+                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:8213: in wait_for_selector
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_page.py:419: in wait_for_selector
+    return await self._main_frame.wait_for_selector(**locals_to_params(locals()))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:369: in wait_for_selector
+    await self._channel.send(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f03276fe1e0>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f0326f37e20>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for locator("#rsToolPanel0 [data-rs-command=IMAGEMCONTORNOS]") to be visible
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+=============================== warnings summary ===============================
+../../../../../.venvs/rodovia-studio/lib/python3.12/site-packages/fastapi/testclient.py:1
+../../../../../.venvs/rodovia-studio/lib/python3.12/site-packages/fastapi/testclient.py:1
+../../../../../.venvs/rodovia-studio/lib/python3.12/site-packages/fastapi/testclient.py:1
+../../../../../.venvs/rodovia-studio/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+rodovia_studio/pacote/suporte/sistema/tests/test_v14223_update_policy.py::test_failed_3d_refresh_keeps_existing_view
+  /workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/_pytest/threadexception.py:58: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-8 (dispatcher)
+  
+  Traceback (most recent call last):
+    File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/threading.py", line 1075, in _bootstrap_inner
+      self.run()
+    File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/threading.py", line 1012, in run
+      self._target(*self._args, **self._kwargs)
+    File "/workspace/videosRodoviarios/rodovia_studio/pacote/suporte/sistema/app/server.py", line 47, in dispatcher
+      state=store.job(j['id'])['state']
+            ^^^^^^^^^^^^^^^^^^
+    File "/workspace/videosRodoviarios/rodovia_studio/pacote/suporte/sistema/app/store.py", line 74, in job
+      if not r:raise FileNotFoundError('Tarefa não encontrada.')
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  FileNotFoundError: Tarefa não encontrada.
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================= slowest 15 durations =============================
+220.71s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v14220_sections_materials.py::test_artistic_preset_preserves_geometries_and_sets_natural_materials
+113.27s call     rodovia_studio/pacote/suporte/sistema/tests/test_v1426_import_capacity.py::test_demand_3500_builds_queue_against_1900_without_forcing_3500_discharge
+105.97s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v1427_state_ui.py::test_edit_during_save_remains_dirty_then_queued_save_wins
+102.86s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v14220_sections_materials.py::test_density_box_remains_editable_and_typing_activates_density
+98.37s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14223_update_policy.py::test_render_confirmation_consumes_automatic_refresh_without_a_second_job
+97.60s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v14228_vehicle_presentation.py::test_real_browser_vehicle_diagnostic_can_generate_focused_preview
+97.56s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v14221_simplification.py::test_repeated_request_shares_one_real_job
+96.67s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v14228_hatch_online.py::test_wrong_provider_reply_is_refused_without_applying
+93.99s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v14223_update_policy.py::test_render_confirmation_consumes_automatic_refresh_without_a_second_job
+92.79s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14223_update_policy.py::test_video_refreshes_model_and_publishes_current_editor_and_vectors
+92.55s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v14221_simplification.py::test_materials_window_uses_original_controls_and_saves_to_motor
+90.98s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v14220_sections_materials.py::test_axis_chooser_builds_section_from_real_dxf_and_shows_lane_controls
+90.92s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14229_shoulder_probe.py::test_actual_simulation_keeps_clearance_replays_probe_and_preserves_controls
+90.27s call     rodovia_studio/pacote/suporte/sistema/tests/test_v1426_import_capacity.py::test_shared_itineraries_do_not_multiply_per_lane_demand
+89.31s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v14223_update_policy.py::test_3d_rebuild_preserves_camera_light_time_and_technical_visibility
+=========================== short test summary info ============================
+FAILED tests/test_v14221_simplification.py::test_presentation_does_not_invalidate_editor[changes2]
+FAILED tests/test_v14221_simplification.py::test_five_tabs_eight_menus_and_no_duplicate_visible_tool_catalog
+FAILED tests/test_v1424_resilience.py::test_worker_invalid_config_is_logged_and_does_not_leave_task_running
+FAILED tests/test_v14210_engineering_assets.py::test_transport_does_not_stop_for_a_railway_below_a_declared_oae
+FAILED tests/test_v14222_reliability.py::test_repair_center_has_three_primary_actions_and_collapsed_advanced
+FAILED tests/test_v14220_sections_materials.py::test_source_binding_can_be_undone_and_does_not_suppress_another_level
+FAILED tests/test_v14222_reliability.py::test_manual_disabled_flow_has_no_automatic_reactivation_action
+FAILED tests/test_v14219_reconstruction_curves_semantics.py::test_network_reconstructs_only_requested_axis_and_respects_manual_disable
+FAILED tests/test_v14219_reconstruction_curves_semantics.py::test_reconstruct_action_is_available_in_visual_repair_dialog
+FAILED tests/test_v14220_sections_materials.py::test_all_engineering_materials_render_to_real_mp4_and_3d
+FAILED tests/test_v14220_sections_materials.py::test_natural_presentation_invalidates_surface_cache_without_removing_saved_hatch
+FAILED tests/test_v14217_usability.py::test_new_project_has_padding_and_all_tools_stay_inside_viewport[768]
+FAILED tests/test_v14217_usability.py::test_new_project_has_padding_and_all_tools_stay_inside_viewport[1024]
+FAILED tests/test_v14217_usability.py::test_new_project_has_padding_and_all_tools_stay_inside_viewport[1366]
+FAILED tests/test_v14210_flow_recovery.py::test_network_only_recovers_when_explicitly_requested_and_respects_disable
+FAILED tests/test_v14217_usability.py::test_guidance_does_not_open_a_modal_during_processing_and_escapes_messages
+FAILED tests/test_v1409_visual.py::test_visual_01_logo_persistente_em_tema_e_foco
+FAILED tests/test_v1409_visual.py::test_visual_02_matriz_responsiva_sem_overlay
+FAILED tests/test_v1409_visual.py::test_visual_03_atalhos_repetidos_nao_quebram_layout
+FAILED tests/test_v1409_visual.py::test_visual_04_regeneracao_100x_preserva_viewport
+FAILED tests/test_v1409_visual.py::test_visual_05_selecao_sobreposta_e_ciclo
+FAILED tests/test_v1409_visual.py::test_visual_06_kmz_todos_os_estados - Asse...
+FAILED tests/test_v1409_visual.py::test_visual_07_ordem_imagem_explicita - As...
+FAILED tests/test_v1409_visual.py::test_visual_08_rota_expoe_politica_de_ultrapassagem
+FAILED tests/test_v1409_visual.py::test_visual_09_erro_controlado_seguido_de_comando_valido
+FAILED tests/test_v14217_usability.py::test_real_api_calculation_error_produces_guidance_without_blocking_motor
+FAILED tests/test_v1409_visual.py::test_visual_10_100_ciclos_paineis_sem_deriva
+FAILED tests/test_v1409_visual.py::test_visual_11_sem_overflow_horizontal_essencial
+FAILED tests/test_v14217_usability.py::test_calculation_guide_is_visible_next_to_flow_repair
+FAILED tests/test_v1409_visual.py::test_visual_12_logo_nao_some_apos_stress
+FAILED tests/test_v142_visual.py::test_model_menu_cascades_and_selects_tool
+FAILED tests/test_v1427_state.py::test_analysis_reuses_valid_results_after_a_presentation_change
+FAILED tests/test_v14213_continuity.py::test_minor_dxf_axis_is_used_instead_of_only_the_main_skeleton
+FAILED tests/test_v14213_continuity.py::test_short_contact_piece_does_not_break_a_long_native_axis
+FAILED tests/test_v14213_continuity.py::test_short_fragments_join_only_in_derived_geometry_and_preserve_source
+FAILED tests/test_v14213_continuity.py::test_border_paint_does_not_interrupt_but_real_obstacles_do
+FAILED tests/test_v14213_continuity.py::test_join_rejects_real_gap_ambiguity_incompatible_layer_and_disabled_axis
+FAILED tests/test_v14213_continuity.py::test_old_main_axis_disable_keeps_its_identity
+FAILED tests/test_v14213_continuity.py::test_external_axis_excess_is_trimmed_without_creating_portals_at_internal_gaps
+FAILED tests/test_v14213_continuity.py::test_nearly_coincident_contacts_do_not_delete_one_meter_of_axis
+FAILED tests/test_v14213_continuity.py::test_sparse_dxf_vertices_do_not_leave_a_duplicate_skeleton_flow
+FAILED tests/test_v142_visual.py::test_menu_keyboard_and_escape - playwright....
+FAILED tests/test_v14223_update_policy.py::test_render_confirmation_consumes_automatic_refresh_without_a_second_job
+FAILED tests/test_v14228_hatch_online.py::test_online_ui_contract_reply_reaches_review_and_confirmed_engine_apply
+FAILED tests/test_v14223_update_policy.py::test_3d_rebuild_preserves_camera_light_time_and_technical_visibility
+FAILED tests/test_v14223_update_policy.py::test_cancelled_refresh_keeps_previous_preview_and_sources
+FAILED tests/test_v1407_visual.py::test_logo_permanece_em_layouts_e_modo_projeto
+FAILED tests/test_v1407_visual.py::test_ordem_visual_de_imagens_exibe_topo_subir_descer_fundo
+FAILED tests/test_v1407_visual.py::test_regeneracao_nao_altera_viewport - Ass...
+FAILED tests/test_v1407_visual.py::test_paineis_nao_sobrepoem_viewport_em_1024
+FAILED tests/test_v1407_visual.py::test_comando_invalido_nao_trava_interface
+FAILED tests/test_v1407_visual.py::test_hit_test_em_pixels_encontra_objetos_sobrepostos
+FAILED tests/test_v1407_visual.py::test_stress_visual_50_ciclos_sem_deriva_ou_console_error
+FAILED tests/test_v1427_state_ui.py::test_out_of_order_open_does_not_replace_the_latest_project
+FAILED tests/test_v1407_visual.py::test_shell_comando_modo_projeto_e_1366 - A...
+FAILED tests/test_v1407_visual.py::test_alvos_interativos_essenciais_nao_ficam_microscopicos
+FAILED tests/test_v142_diagnostics.py::test_diagnostics_do_not_modify_video_frames
+FAILED tests/test_v1422_layout.py::test_quick_actions_execute_and_properties_toggle
+FAILED tests/test_v14214_panels_ui.py::test_axis_selection_hides_short_routes_and_refreshes_when_limit_changes
+FAILED tests/test_v1422_layout.py::test_all_flows_are_drawn_above_surfaces_with_contrast
+FAILED tests/test_v1422_layout.py::test_flow_click_has_priority_over_surface
+FAILED tests/test_v14214_panels_ui.py::test_expert_guide_teaches_surface_fix_and_can_locate_the_point
+FAILED tests/test_v14214_panels_ui.py::test_limit_uses_exact_length_and_preserves_hidden_direction_choices
+FAILED tests/test_v14218_axis_policy.py::test_pavement_skeleton_is_not_a_source_even_with_legacy_flag_enabled
+FAILED tests/test_v14218_axis_policy.py::test_unassigned_border_and_kmz_reference_do_not_become_axes
+FAILED tests/test_v14218_axis_policy.py::test_start_end_direction_changes_only_the_known_interval_and_keeps_source
+FAILED tests/test_v14212_ui.py::test_automatic_job_does_not_close_a_panel_opened_while_save_is_pending
+FAILED tests/test_v14210_flow_edit_ui.py::test_cut_icon_removes_the_interval_from_circulation_and_keeps_the_dxf
+FAILED tests/test_v14212_ui.py::test_image_tool_only_appears_after_local_image_and_runs_real_background_job
+ERROR tests/test_v14223_update_policy.py::test_failed_3d_refresh_keeps_existing_view
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! KeyboardInterrupt !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/threading.py:359: KeyboardInterrupt
+(to show a full traceback on KeyboardInterrupt use --full-trace)
+69 failed, 638 passed, 5 warnings, 1 error in 2435.57s (0:40:35)

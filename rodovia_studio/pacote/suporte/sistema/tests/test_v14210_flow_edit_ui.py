@@ -1,3 +1,4 @@
+from ui_release_helpers import ribbon_control
 import json
 from test_v1425_live_3d import live,gl_page
 from test_v1426_transport_visual import click_world
@@ -9,7 +10,7 @@ def test_cut_icon_removes_the_interval_from_circulation_and_keeps_the_dxf(gl_pag
     import hashlib
     p=gl_page;d=live[2]/live[1];before=hashlib.sha256((d/'input.dxf').read_bytes()).hexdigest()
     p.evaluate("start('analyze')");p.wait_for_function('!task && !taskRequestPending && !!editor',timeout=60000)
-    p.locator('#rsToolPanel0 [data-rs-tool=flowcut]').click()
+    ribbon_control(p,'flowcut','tool').click()
     click_world(p,500200,7800000);p.wait_for_function("draft?.type==='flowcut'")
     click_world(p,500260,7800000)
     p.wait_for_function('M.flow_cuts.length===1 && !task && !taskRequestPending && editor?.segments.length===2',timeout=60000)
@@ -26,7 +27,7 @@ def test_join_icon_creates_one_valid_flow_and_preserves_undo(gl_page,live):
     assert p.request.put(url+'/config',data=cfg).ok
     p.evaluate('(id)=>load(id)',live[1]);p.evaluate("start('analyze')")
     p.wait_for_function('!task && !taskRequestPending && editor?.segments.length===2',timeout=60000)
-    p.locator('#rsToolPanel0 [data-rs-tool=flowjoin]').click()
+    ribbon_control(p,'flowjoin','tool').click()
     click_world(p,500100,7800000);p.wait_for_function("draft?.type==='flowjoin'")
     click_world(p,500350,7800000)
     p.wait_for_function('M.route_alignments.length===1 && !task && !taskRequestPending',timeout=60000)
@@ -48,7 +49,7 @@ def test_flow_arrows_reverse_correctly_and_show_both_directions(gl_page):
 
 def test_railway_can_be_created_by_selecting_a_route_then_choosing_model(gl_page):
     p=gl_page;p.evaluate("start('analyze')");p.wait_for_function('!task && !taskRequestPending && !!editor',timeout=60000)
-    p.locator('#rsToolPanel0 [data-rs-tool=railway]').click()
+    ribbon_control(p,'railway','tool').click()
     p.locator('#rsRailMode').select_option('fluxo')
     click_world(p,500250,7800000);p.wait_for_selector('#rsTransportDialog')
     assert p.locator('[data-transport-field=model]').is_visible()

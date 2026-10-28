@@ -50,8 +50,8 @@ def test_transport_does_not_stop_for_a_railway_below_a_declared_oae():
     from app.traffic import TrafficNetwork
     from app.transport import Transport
     axis=np.array([[-100.,0.],[100.,0.]])
-    s=Settings(derive_traffic_paths=False,signage_detail='basic',railways=[dict(id='rail',points=[dict(x=0,y=-100),dict(x=0,y=100)])])
-    network=TrafficNetwork([box(-110,-10,110,10)],[],[dict(points=axis)],axis,np.array([0.,200.]),s)
+    s=Settings(layers={'axis':['EIXO']},derive_traffic_paths=False,signage_detail='basic',railways=[dict(id='rail',points=[dict(x=0,y=-100),dict(x=0,y=100)])])
+    network=TrafficNetwork([box(-110,-10,110,10)],[],[dict(points=axis,layer='EIXO',role='axis')],axis,np.array([0.,200.]),s)
     assert Transport(s,network).report()['crossings']>0
     s=Settings.model_validate(dict(s.model_dump(),oae_marks=[dict(start=dict(x=-30,y=0),end=dict(x=30,y=0),width_m=14,level_m=6)]))
     assert Transport(s,network).report()['crossings']==0

@@ -19,8 +19,8 @@ def test_unassigned_border_and_kmz_reference_do_not_become_axes():
     s=Settings();surface=box(-10,-10,610,10)
     assert not native_paths([dict(layer='BORDO',points=AXIS)],s,surface)[0]
     assert not native_paths([dict(layer='KMZ',role='axis',reference_only=True,points=AXIS)],s,surface)[0]
-    assert native_paths([dict(layer='Qualquer',role='axis',points=AXIS)],s,surface)[0]
-    assert native_paths([dict(layer='KMZ',role='axis',reference_only=True,points=AXIS)],Settings(route_directions={'0':'forward'}),surface)[0]
+    assert native_paths([dict(layer='Qualquer',role='axis',points=AXIS)],Settings(layers={'axis':['Qualquer']}),surface)[0]
+    assert native_paths([dict(layer='KMZ',role='axis',reference_only=True,points=AXIS)],Settings(route_directions={'axis:'+__import__('app.native_axes',fromlist=['axis_fingerprint']).axis_fingerprint(AXIS,'KMZ'):'forward'}),surface)[0]
 
 
 def test_start_end_direction_changes_only_the_known_interval_and_keeps_source():

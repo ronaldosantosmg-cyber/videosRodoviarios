@@ -14,7 +14,7 @@ def test_export_decodes_all_frames_and_has_front_rear_audit(tmp_path):
     m.add_lwpolyline([(500050,7800000),(500450,7800000)],dxfattribs={'layer':'EIXO'})
     h=m.add_hatch(dxfattribs={'layer':'PAVIMENTO'});h.paths.add_polyline_path([(500000,7799980),(500500,7799980),(500500,7800020),(500000,7800020)],is_closed=True)
     doc.saveas(tmp_path/'input.dxf')
-    s=Settings(width=1280,fps=24,duration_s=3,imagery='neutral',coordinates_confirmed=True,hydrography=False,render_workers=1)
+    s=Settings(layers={'axis':['EIXO'],'pavement':['PAVIMENTO']},width=1280,fps=24,duration_s=3,imagery='neutral',coordinates_confirmed=True,hydrography=False,render_workers=1)
     output=render(tmp_path,s);cap=cv2.VideoCapture(str(output));assert cap.isOpened()
     assert int(cap.get(cv2.CAP_PROP_FPS))==24 and int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))==1280
     frames=[]

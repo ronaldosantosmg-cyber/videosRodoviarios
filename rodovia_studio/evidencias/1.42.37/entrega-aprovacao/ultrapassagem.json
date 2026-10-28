@@ -1,0 +1,28 @@
+{
+  "time_s": 64.0,
+  "probe": {
+    "enabled": true,
+    "overtake_requested": true,
+    "overtake_scope": "Ensaio opcional; o próprio pesado passa à direita e retorna. Somente com reserva entre veículos ativa, espaço integral e sem faixa cadastrada à direita. Não autoriza circulação normativa pelo acostamento.",
+    "maximum_beyond_pavement_m": 1.0,
+    "counts": {
+      "ultrapassagens_aceitas": 2
+    },
+    "maneuvers": 2,
+    "curve_profiles": 0,
+    "scope": "Sondagem local de pesados com corpo rígido conservador e reserva espacial; não é certificação de veículo articulado nem autorização normativa de uso do acostamento."
+  },
+  "visibility": {
+    "time_s": 64.0,
+    "width_m": 100.0,
+    "enabled": true,
+    "active": 2,
+    "drawn": 2,
+    "outside_view": 0,
+    "outside_revealed_section": 0,
+    "body_outside_allowed": 0,
+    "subpixel": 0,
+    "reveal_pending": false
+  },
+  "scope": "Chegadas e velocidades distintas controladas somente no ensaio; quadro do renderizador real."
+}

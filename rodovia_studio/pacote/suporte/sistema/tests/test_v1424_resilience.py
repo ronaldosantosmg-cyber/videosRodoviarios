@@ -49,7 +49,7 @@ def test_worker_invalid_config_is_logged_and_does_not_leave_task_running(tmp_pat
     monkeypatch.setattr(worker.store,'job',lambda j:{'project':'p','kind':'render'})
     monkeypatch.setattr(worker.store,'directory',lambda p:tmp_path)
     monkeypatch.setattr(worker.store,'update',lambda jid,**k:updates.append(k))
-    assert worker.run('badconfig')==1
+    assert worker.run('b'*32)==1
     assert updates[-1]['state']=='failed'
     assert execlog.read(tmp_path,'erros')[-1]['evento']=='falha_tarefa'
 

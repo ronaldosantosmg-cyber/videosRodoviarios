@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="25" time="39.177" timestamp="2026-10-28T14:44:33.695684+00:00" hostname="23b78f9c05ea"><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14213_continuity" name="test_minor_dxf_axis_is_used_instead_of_only_the_main_skeleton" time="0.128" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14210_flow_recovery" name="test_valid_axis_is_kept_without_geometric_changes" time="0.017" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14210_flow_recovery" name="test_local_sharp_corner_is_excluded_without_a_shortcut" time="0.310" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14213_continuity" name="test_short_contact_piece_does_not_break_a_long_native_axis" time="0.308" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14210_flow_recovery" name="test_self_crossing_is_removed_without_joining_the_remaining_pieces" time="0.836" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14213_continuity" name="test_short_fragments_join_only_in_derived_geometry_and_preserve_source" time="0.162" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14213_continuity" name="test_border_paint_does_not_interrupt_but_real_obstacles_do" time="0.541" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14210_flow_recovery" name="test_invalid_geometry_remains_blocked[points0]" time="0.003" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14210_flow_recovery" name="test_invalid_geometry_remains_blocked[points1]" time="0.004" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14210_flow_recovery" name="test_invalid_geometry_remains_blocked[points2]" time="0.006" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14210_flow_recovery" name="test_network_only_recovers_when_explicitly_requested_and_respects_disable" time="0.834" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14213_continuity" name="test_join_rejects_real_gap_ambiguity_incompatible_layer_and_disabled_axis" time="0.007" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14213_continuity" name="test_old_main_axis_disable_keeps_its_identity" time="0.023" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14213_continuity" name="test_external_axis_excess_is_trimmed_without_creating_portals_at_internal_gaps" time="0.304" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14213_continuity" name="test_nearly_coincident_contacts_do_not_delete_one_meter_of_axis" time="0.324" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14213_continuity" name="test_sparse_dxf_vertices_do_not_leave_a_duplicate_skeleton_flow" time="0.114" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14213_continuity" name="test_partial_overlap_connector_requires_explicit_selection" time="0.187" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14210_flow_recovery" name="test_recovery_configuration_can_be_read_by_the_previous_release" time="0.154" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14210_flow_recovery" name="test_recovery_rechecks_vehicle_body_and_never_creates_short_remnants" time="0.074" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_workflow" name="test_video_encoder" time="18.703" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14210_flow_recovery" name="test_recovery_keeps_a_manual_route_direction_and_disables_no_other_route" time="0.047" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14210_flow_recovery" name="test_recovery_cannot_enable_traffic_without_a_valid_pavement" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14210_flow_recovery" name="test_a_small_defect_is_smoothed_before_removing_valid_route_length" time="0.031" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14210_flow_recovery" name="test_changing_only_the_manual_axis_name_keeps_its_recovery_identity" time="0.068" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14221_simplification" name="test_five_tabs_eight_menus_and_no_duplicate_visible_tool_catalog" time="6.758"><failure message="playwright._impl._errors.Error: Locator.get_attribute: Error: strict mode violation: locator(&quot;[data-activity=\&quot;Tráfego\&quot;] .rsAdvancedTools&quot;) resolved to 2 elements:&#10;    1) &lt;details class=&quot;rsAdvancedTools rsInlineExpansion&quot;&gt;…&lt;/details&gt; aka get_by_text(&quot;Mais ferramentasSelecionar e&quot;)&#10;    2) &lt;details class=&quot;rsAdvancedTools rsInlineExpansion&quot;&gt;…&lt;/details&gt; aka get_by_text(&quot;Mais opçõesRegras dos&quot;)&#10;&#10;Call log:&#10;  - waiting for locator(&quot;[data-activity=\&quot;Tráfego\&quot;] .rsAdvancedTools&quot;)">page = &lt;Page url='about:blank'&gt;
+
+    def test_five_tabs_eight_menus_and_no_duplicate_visible_tool_catalog(page):
+        assert page.locator('#rsToolTabs [role=tab]').all_text_contents()==['Projeto','Editar','Tráfego','Cena','Vídeo']
+        assert page.locator('#menuBar [data-rs-menu]').all_text_contents()==['Arquivo','Editar','Projeto','Tráfego','Cena','Vídeo','Exibir','Ajuda']
+        assert page.get_by_role('tab',name='Todas',exact=True).count()==0
+        values=page.locator('#rsToolRibbon [data-activity] [data-rs-tool]:visible').evaluate_all('(buttons)=&gt;buttons.map(b=&gt;b.dataset.rsTool)')
+        assert len(values)==len(set(values))
+        page.get_by_role('tab',name='Tráfego',exact=True).click()
+        assert page.get_by_role('button',name='Configurar faixas',exact=True).is_visible()
+&gt;       assert page.locator('[data-activity="Tráfego"] .rsAdvancedTools').get_attribute('open') is None
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_v14221_simplification.py:66: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:16979: in get_attribute
+    self._sync(self._impl_obj.get_attribute(name=name, timeout=timeout))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:444: in get_attribute
+    return await self._frame.get_attribute(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:726: in get_attribute
+    return await self._channel.send(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;playwright._impl._connection.Connection object at 0x7f6ca1422c00&gt;
+cb = &lt;function Channel.send.&lt;locals&gt;.&lt;lambda&gt; at 0x7f6c9e88b7e0&gt;
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -&gt; Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+&gt;           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.Error: Locator.get_attribute: Error: strict mode violation: locator("[data-activity=\"Tráfego\"] .rsAdvancedTools") resolved to 2 elements:
+E               1) &lt;details class="rsAdvancedTools rsInlineExpansion"&gt;…&lt;/details&gt; aka get_by_text("Mais ferramentasSelecionar e")
+E               2) &lt;details class="rsAdvancedTools rsInlineExpansion"&gt;…&lt;/details&gt; aka get_by_text("Mais opçõesRegras dos")
+E           
+E           Call log:
+E             - waiting for locator("[data-activity=\"Tráfego\"] .rsAdvancedTools")
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: Error</failure></testcase></testsuite></testsuites>

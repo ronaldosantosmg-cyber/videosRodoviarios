@@ -53,10 +53,10 @@ def test_network_reconstructs_only_requested_axis_and_respects_manual_disable():
     from app.traffic import TrafficNetwork
     axis=np.array([[0.,0.],[150.,0.],[150.,150.]])
     def build(disabled=False):
-        s=Settings(derive_traffic_paths=False,hydrography=False,signage_detail='basic',vehicle_paths='anterior',
+        s=Settings(layers={'axis':['EIXO']},derive_traffic_paths=False,hydrography=False,signage_detail='basic',vehicle_paths='anterior',
                    min_route_segment_m=50,flow_recoveries=[dict(id='repair',x=100,y=0,reconstruct=True)],
                    flow_overrides=[dict(x=100,y=0,action='disable')] if disabled else [])
-        return TrafficNetwork([box(-15,-15,165,165)],[],[dict(points=axis)],axis,np.array([0,150,300]),s)
+        return TrafficNetwork([box(-15,-15,165,165)],[],[dict(points=axis,layer='EIXO',role='axis')],axis,np.array([0,150,300]),s)
     n=build()
     assert n.paths and max(p['length'] for p in n.paths)>290
     assert any(r.get('status')=='reconstructed' for raw in n.raw_info for r in raw['recovery_reports'])
@@ -164,7 +164,7 @@ def test_reconstruct_action_is_available_in_visual_repair_dialog(page):
     from visual_harness import screenshot
     seed(page);page.evaluate("()=>{pid='repair';editor.segments[0].technical_status='problem';}")
     page.get_by_role('tab',name='Tráfego',exact=True).click()
-    page.get_by_role('button',name='Corrigir problemas',exact=True).click()
+    page.evaluate('RodoviaFlowRepair.advanced()')
     page.locator('.rsFlowRepairAdvanced').first.locator('summary').click()
     assert page.get_by_role('button',name='Reconstruir ligação contínua').first.is_visible()
     assert '8 m' in page.get_by_role('dialog',name='Corrigir fluxos').inner_text()

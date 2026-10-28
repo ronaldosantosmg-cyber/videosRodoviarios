@@ -73,7 +73,7 @@ def test_section_surface_keeps_real_barriers_and_manual_disable():
 
 def test_source_binding_can_be_undone_and_does_not_suppress_another_level():
     assert axis_fingerprint(AXIS,'EIXO',0)!=axis_fingerprint(AXIS,'EIXO',1)
-    s=Settings(route_alignments=[route()]);assert network(s).native_axis_report['joined']==0
+    s=Settings(layers={'axis':['EIXO']},route_alignments=[route()]);assert network(s).native_axis_report['joined']==0
     assert len(network(s).raw_info)==2
     # Remover a derivação elimina a associação, sem alterar route_directions.
     s.route_alignments=[]
@@ -129,7 +129,7 @@ def test_all_engineering_materials_render_to_real_mp4_and_3d(tmp_path):
     d,s=project(tmp_path)
     doc=ezdxf.readfile(d/'input.dxf');m=doc.modelspace()
     for i,name in enumerate(['PAVIMENTO_EXISTENTE','ACOSTAMENTO_EXISTENTE','ACOSTAMENTO_PROJETADO','CANTEIRO','CORTE','ATERRO','OAE']):
-        doc.layers.new(name);y=7800030+i*18;h=m.add_hatch(dxfattribs={'layer':name});h.paths.add_polyline_path([(500040,y),(500460,y),(500460,y+12),(500040,y+12)],is_closed=True)
+        doc.layers.new(name);s.layers.setdefault(__import__('app.geometry',fromlist=['guess']).guess(name),[]).append(name);y=7800030+i*18;h=m.add_hatch(dxfattribs={'layer':name});h.paths.add_polyline_path([(500040,y),(500460,y),(500460,y+12),(500040,y+12)],is_closed=True)
     doc.saveas(d/'input.dxf')
     s=Settings.model_validate({**s.model_dump(),'render_workers':1,'texture_style':'artistico','earthwork_look':'natural','detail_textures':True,
        'oae_marks':[dict(id='bridge',start=dict(x=500170,y=7800000),end=dict(x=500270,y=7800000))],
@@ -159,11 +159,11 @@ def test_natural_presentation_invalidates_surface_cache_without_removing_saved_h
     from test_v1425_scene3d import project
     from app.render import Scene
     d,s=project(tmp_path,traffic=False)
-    s=Settings.model_validate({**s.model_dump(),'imagery_pixels':2048,'pavement_styles':{'pavement':dict(pattern='diagonal')}})
-    first=Scene(d,s);before=first.overlay.copy();del first
+    s=Settings.model_validate({**s.model_dump(),'imagery_pixels':2048,'pavement_styles':{'pavement':dict(pattern='diagonal')},'texture_style':'artistico'})
+    first=Scene(d,s);before=first.frame(1.5,overview=True)[0];del first
     natural=s.model_copy(update=dict(natural_materials_only=True))
     second=Scene(d,natural)
-    assert not second.geometry_cache_hit and not np.array_equal(before,second.overlay)
+    assert not second.geometry_cache_hit and not np.array_equal(before,second.frame(1.5,overview=True)[0])
     assert natural.pavement_styles['pavement'].pattern=='diagonal'
     del second
     third=Scene(d,natural);assert third.geometry_cache_hit

@@ -152,7 +152,7 @@ def test_same_dxf_layer_can_keep_different_3d_materials(tmp_path,monkeypatch):
 
 def test_repair_center_has_three_primary_actions_and_collapsed_advanced(page):
     seed(page);page.evaluate("()=>{pid='repair';editor.segments[0].technical_status='problem';editor.segments[0].technical_message='Defeito de teste';editor.section_continuity=[{name:'Eixo',gaps:[{start_m:100,end_m:120}]}]}")
-    page.get_by_role('tab',name='Tráfego',exact=True).click();page.get_by_role('button',name='Corrigir problemas',exact=True).click()
+    page.get_by_role('tab',name='Tráfego',exact=True).click();page.evaluate('RodoviaFlowRepair.advanced()')
     row=page.locator('[data-flow-repair]').first
     for name in ['Localizar','Tentar correção automática','Editar manualmente']:assert row.get_by_role('button',name=name,exact=True).is_visible()
     assert row.get_by_role('button',name='Recortar início/fim',exact=True).is_hidden()
@@ -203,7 +203,7 @@ def test_custom_profile_can_be_selected_and_saved(gl_page,live):
 
 def test_manual_disabled_flow_has_no_automatic_reactivation_action(page):
     seed(page);page.evaluate("()=>{pid='repair';editor.segments[0].disabled=true;editor.segments[0].technical_status='problem'}")
-    page.evaluate('RodoviaFlowRepair.open()')
+    page.evaluate('RodoviaFlowRepair.advanced()')
     assert page.locator('[data-flow-repair]').first.get_by_role('button',name='Tentar correção automática',exact=True).is_disabled()
 
 

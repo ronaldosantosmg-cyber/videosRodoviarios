@@ -1,3 +1,4 @@
+from ui_release_helpers import ribbon_control
 from test_v142_visual import page
 from test_v1425_live_3d import live,gl_page
 from test_v1422_layout import seed
@@ -17,7 +18,7 @@ def test_active_sidebar_follows_each_panel_and_second_click_closes(page):
 def test_flow_selection_opens_properties_after_other_object_selection(page):
     seed(page)
     page.evaluate("sel={key:'pavement_areas',i:0};selSet=[sel];showProps();recolherDock(true)")
-    page.locator('#rsToolPanel0 [data-rs-command=EDITARFLUXOS]').click()
+    ribbon_control(page,'EDITARFLUXOS','command').click()
     assert page.evaluate('sel===null && selSet.length===0 && RodoviaFlowStudy.isEditing()')
     point=page.evaluate('W2C({x:0,y:0})');box=page.locator('#canvas').bounding_box()
     assert 0<=point[0]<box['width'] and 0<=point[1]<box['height']
@@ -39,32 +40,30 @@ def test_more_button_toggles_and_moves_the_highlight(page):
 
 
 def test_groups_keep_related_commands_together_and_distinguish_icons(page):
-    groups=page.evaluate("()=>Object.fromEntries([...document.querySelectorAll('#rsToolPanel0 [data-rs-group]')].map(g=>[g.dataset.rsGroup,[...g.querySelectorAll('button')].map(b=>b.dataset.rsCommand||b.dataset.rsTool||b.dataset.rs3d)]))")
+    groups=page.evaluate("()=>Object.fromEntries([...document.querySelectorAll('#rsToolRibbon [data-rs-group]')].map(g=>[g.dataset.rsGroup,[...g.querySelectorAll('button')].map(b=>b.dataset.rsCommand||b.dataset.rsTool||b.dataset.rs3d)]))")
     assert {'MOVER','GIRAR','COPIAR','move','insertcontrol'}<=set(groups['Edição'])
     assert {'DIST','CALCULARFLUXOS','inspect'}<=set(groups['Cálculos'])
     assert {'EDITARFLUXOS','flowadd','flowoff','route'}<=set(groups['Fluxos de tráfego'])
-    assert 'view3d' in groups['Navegação']
+    assert page.locator('[data-activity="Cena"] > [data-rs3d=view3d]').count()==1
+    assert page.locator('#rsQuickNavigation [data-rs-tool=pan]').count()==1
     for left,right in [('tool:move','cmd:MOVER'),('tool:chain','tool:align'),('tool:oae','tool:gantry'),('tool:access','tool:route'),('cmd:EDITARFLUXOS','tool:flowadd'),('cmd:DIST','tool:chain')]:
         def icon(key):
             kind,name=key.split(':');attribute='rs-tool' if kind=='tool' else 'rs-command'
-            return page.locator(f'#rsToolPanel0 [data-{attribute}="{name}"] svg').inner_html()
+            return page.locator(f'#rsToolRibbon [data-{attribute}="{name}"] svg').first.inner_html()
         assert icon(left)!=icon(right),(left,right)
-    duplicates=page.evaluate("()=>{const seen=new Map(),duplicates=[];for(const b of document.querySelectorAll('#rsToolPanel0 button')){const key=b.dataset.rsTool||b.dataset.rsCommand||b.dataset.rs3d,shape=b.querySelector('svg')?.innerHTML;if(!shape)continue;if(seen.has(shape))duplicates.push([seen.get(shape),key]);seen.set(shape,key)}return duplicates}")
+    duplicates=page.evaluate("()=>{const seen=new Map(),duplicates=[];for(const b of document.querySelectorAll('#rsToolRibbon [data-rs-group] button')){const key=b.dataset.rsTool||b.dataset.rsCommand||b.dataset.rs3d,shape=b.querySelector('svg')?.innerHTML;if(!shape)continue;if(seen.has(shape))duplicates.push([seen.get(shape),key]);seen.set(shape,key)}return duplicates}")
     assert not duplicates,duplicates
     screenshot(page,'1428_03_grupos_e_icones')
-    page.get_by_role('tab',name='Ferrovia e semáforos',exact=True).click()
-    page.locator('[role=tabpanel]:visible [data-rs-tool=railway]').click()
+    ribbon_control(page,'railway').click()
     assert page.evaluate('tool')=='railway'
-    page.get_by_role('tab',name='Cálculos',exact=True).click()
-    page.locator('[role=tabpanel]:visible [data-rs-command=DIST]').click()
+    ribbon_control(page,'DIST','command').click()
     assert page.evaluate('!!cadCmd')
     screenshot(page,'1428_04_calculos_medicao')
 
 
 
 def test_calculation_button_runs_the_real_analysis_without_generating_video(gl_page,live):
-    p=gl_page;previous=p.evaluate('lastPolled');p.get_by_role('tab',name='Cálculos',exact=True).click()
-    p.locator('[role=tabpanel]:visible [data-rs-command=CALCULARFLUXOS]').click()
+    p=gl_page;previous=p.evaluate('lastPolled');ribbon_control(p,'CALCULARFLUXOS','command').click()
     p.wait_for_function('(previous)=>!!lastPolled&&lastPolled!==previous',arg=previous,timeout=10000);p.wait_for_function('!task && !!editor && editor.segments.length>0',timeout=60000)
     job=p.request.get(live[0]+'/api/jobs/'+p.evaluate('lastPolled')).json()
     assert job['kind']=='analyze' and job['state']=='done'

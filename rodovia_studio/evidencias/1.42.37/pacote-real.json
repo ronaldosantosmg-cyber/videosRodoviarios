@@ -1,0 +1,18 @@
+{
+  "package": "RodoviaStudio_1_42_37_atualizacao.zip",
+  "sha256": "17801b1a59076d37c0bd956ce3de8dd73439cf02b98fe330a1d2d7cd4bd9adc6",
+  "apply_version": "1.42.37",
+  "rollback_version": "1.42.36",
+  "preserved_files": [
+    "projetos/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/config.json",
+    "projetos/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/input.kmz",
+    "projetos/_base_imagens/cache/foto.tif",
+    "videos/video-anterior.mp4"
+  ],
+  "index_restored": true,
+  "zip_archived": true,
+  "platform": "Linux; ensaio isolado, não Windows nativo",
+  "data_scope": "Fixtures de preservação de bytes; MP4s reais foram conferidos nos testes de renderização.",
+  "controlled_shutdown": "Protocolo do servidor verificado separadamente por test_v142_runtime",
+  "native_windows": false
+}

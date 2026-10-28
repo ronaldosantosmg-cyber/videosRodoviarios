@@ -55,7 +55,7 @@ def test_engine_diagnostics_reach_live_editor_and_update(drawing):
                 # O salvamento pode ter iniciado o recálculo automático; o comando
                 # manual então retorna false corretamente, sem criar outra tarefa.
                 page.wait_for_function('!task && !taskRequestPending && !!editor',timeout=60000)
-                assert page.evaluate("editor.segments.some(s=>s.disabled&&flowStudyColor(s)==='#ef4444')")
+                assert page.evaluate("editor.segments.some(s=>s.disabled&&flowStudyColor(s)==='#94a3b8')")
                 screenshot(page,'142_12_motor_editor_fluxo_problema')
                 assert not errors,errors
                 browser.close()

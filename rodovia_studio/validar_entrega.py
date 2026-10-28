@@ -12,12 +12,15 @@ import sys
 import tempfile
 import xml.etree.ElementTree as ET
 import zipfile
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+from validacao_incremental import product_digest,test_hashes,plan as resume_plan,merge as merge_reports
 
 ROOT=Path(__file__).resolve().parent
 PACKAGE=ROOT/'pacote'
 SYSTEM=PACKAGE/'suporte/sistema'
 EVIDENCE=ROOT/'evidencias'/json.loads((PACKAGE/'manifest.json').read_text())['version']
 TESTS=[
+ 'tests/test_release_gate_resume.py',
  'tests/test_log_flow_recovery.py','tests/test_log_flow_ui.py','tests/test_mixed_imagery_traffic.py',
  'tests/test_dialog_drafts.py','tests/test_contextual_toolbar_status.py','tests/test_view_preview_sessions.py',
  'tests/test_image_border_alpha.py',
@@ -112,12 +115,15 @@ def native_checks(env,log):
         from PIL import Image
         # A arte original é preservada; Mono exige um ICO BMP alinhado em 32 px.
         Image.open(SYSTEM/'rodovia.ico').convert('RGB').save(tmp/'logo.ico',format='ICO',sizes=[(32,32)],bitmap_format='bmp')
-        run([mono,tmp/'SplashValidation.exe',tmp/'logo.ico',EVIDENCE],env,log)
+        run([mono,tmp/'SplashValidation.exe',tmp/'logo.ico',EVIDENCE,json.loads((PACKAGE/'manifest.json').read_text())['version']],env,log)
 
 
 def main():
     global EVIDENCE
-    parser=argparse.ArgumentParser();parser.add_argument('--gerar',action='store_true');parser.add_argument('--rapido',action='store_true',help='Diagnóstico curto; não autoriza gerar pacote.');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--workers',type=int,default=1,choices=range(1,5),help='Processos de teste isolados, com os mesmos testes obrigatórios.');parser.add_argument('--retomar',default='',help='Retoma relatório anterior do mesmo produto; repete módulos alterados, dependentes e falhas.');parser.add_argument('--evidencias',default='',help='Subpasta desta tentativa; preserva relatórios anteriores.');parser.add_argument('--gerar',action='store_true');parser.add_argument('--rapido',action='store_true',help='Diagnóstico curto; não autoriza gerar pacote.');args=parser.parse_args()
+    if args.evidencias:
+        if not args.evidencias.replace('-','').replace('_','').isalnum():parser.error('Nome de pasta de evidências inválido.')
+        EVIDENCE=EVIDENCE/args.evidencias
     if args.rapido and args.gerar:parser.error('--rapido não pode gerar pacote; execute a validação completa.')
     selected=TESTS
     if args.rapido:
@@ -127,7 +133,11 @@ def main():
     env=dict(os.environ,PYTHONPYCACHEPREFIX=str(ROOT.parent.parent/'.cache/pycache'),XDG_CACHE_HOME=str(ROOT.parent.parent/'.cache'),VISUAL_ARTIFACTS=str(EVIDENCE),RODOVIA_DATA=tempfile.mkdtemp(prefix='rodovia_gate_data_'))
     for name in ['projetos','videos','dados']:
         if (PACKAGE/name).exists():raise RuntimeError(f'Dados locais não devem integrar a entrega: {name}')
-    initial=digest();report=EVIDENCE/'pytest-resultados.xml';report.unlink(missing_ok=True)
+    initial=digest();report=EVIDENCE/'pytest-resultados.xml'
+    if args.retomar and Path(args.retomar).resolve()==EVIDENCE.resolve():raise RuntimeError('Use outra subpasta para preservar a execução de origem.')
+    report.unlink(missing_ok=True)
+    origin={'product_sha256':product_digest(PACKAGE),'package_sha256':initial,'tests':test_hashes(SYSTEM),'selected':selected}
+    (EVIDENCE/'origem.json').write_text(json.dumps(origin,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     with (EVIDENCE/'validacao.log').open('w',encoding='utf-8') as log:
         run([sys.executable,'-m','pip','check'],env,log)
         run([sys.executable,'-m','compileall','-q','app','tests','atualizador.py','run.py'],env,log)
@@ -135,7 +145,24 @@ def main():
         if not node:raise RuntimeError('Node é necessário para validar JavaScript.')
         for f in sorted((SYSTEM/'app/js').glob('*.js'))+sorted((SYSTEM/'app/webgl').glob('*.mjs'))+sorted((SYSTEM/'app/vendor/three').rglob('*.js')):run([node,'--check',f],env,log)
         # Coleta todas as regressões numa execução; qualquer falha continua bloqueando o ZIP.
-        run([sys.executable,'-m','pytest','-q','-p','no:cacheprovider',*selected,f'--junitxml={report}'],env,log)
+        parallel=['-n',str(args.workers),'--dist','loadfile'] if args.workers>1 else []
+        state=resume_plan(PACKAGE,SYSTEM,selected,args.retomar,env,log) if args.retomar else None
+        if state:
+            inherited={}
+            for artifact in Path(args.retomar).iterdir():
+                if artifact.is_file() and artifact.suffix in {'.png','.json'} and artifact.name not in {'origem.json','resultado.json','retomada.json','evidencias_reutilizadas.json'}:
+                    shutil.copy2(artifact,EVIDENCE/artifact.name)
+                    inherited[artifact.name]=hashlib.sha256(artifact.read_bytes()).hexdigest()
+            (EVIDENCE/'evidencias_reutilizadas.json').write_text(json.dumps({'origin':state['origin'],'product_sha256':state['product_sha256'],'files':inherited,'scope':'Artefatos do mesmo produto; testes repetidos substituem suas saídas. A aprovação depende do relatório final, não da presença de imagens.'},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+        arguments=state['arguments'] if state else selected
+        fresh=EVIDENCE/'pytest-reexecutados.xml' if state else report
+        if arguments:
+            result=subprocess.run([sys.executable,'-m','pytest','-v','-p','no:cacheprovider',*parallel,'--durations=15',*arguments,f'--junitxml={fresh}'],cwd=SYSTEM,env=env,stdout=log,stderr=subprocess.STDOUT);log.flush()
+            if not fresh.exists():raise RuntimeError('Testes não produziram relatório; pacote bloqueado.')
+        if state:
+            merge_reports(state,fresh if arguments else None,report)
+            if arguments and result.returncode:raise RuntimeError('Execução de testes incompleta; pacote bloqueado.')
+        if not state and result.returncode:raise RuntimeError('Há falhas na suíte completa; consulte o relatório. Nenhum ZIP gerado.')
         suites=ET.parse(report).getroot().findall('.//testsuite')
         counts={k:sum(int(s.attrib.get(k,0)) for s in suites) for k in ['tests','failures','errors','skipped']}
         if not counts['tests'] or any(counts[k] for k in ['failures','errors','skipped']):raise RuntimeError('Há falhas, erros, testes ausentes ou ignorados. Pacote bloqueado.')
@@ -160,8 +187,12 @@ def main():
             elif f.name.startswith(('ATUALIZACAO_','AUDITORIA_')):f.unlink()
             else:f.replace(docs/f.name)
         evidence=stage/('suporte/documentacao/validacao_'+metadata['version'].replace('.','_'));evidence.mkdir(parents=True)
-        for name in ['14212_07_imagem_sem_dxf.png','14212_01_contornos_sugeridos_grupos.png','14212_02_contornos_persistentes.png','14212_03_secoes_assimetricas.png','14212_04_janela_salvar_descartar.png','14212_05_mascaras_texturas_2d.png','14212_06_edificacoes_3d_pisca_alerta.png','14211_01_icones_barra_tecnica.png','14211_02_pacote_32_simbolos.png','14211_03_catalogo_com_simbolos.png','14210_04_texturas_interferencias.png','14210_05_catalogo_nomes_materiais.png','14210_06_semaforo_braco_farol_noturno_3d.png','14210_07_corte_de_intervalo_por_icone.png','14210_08_juncao_validada_por_icone.png','14210_09_ferrovia_por_rota_selecionada.png','14210_01_recuperar_fluxo_principal.png','14210_02_fluxo_recuperado_recalculado.png','14210_03_eixo_com_falha_recuperado.png','1429_01_novo_projeto_reaberto.png','1429_02_imagem_convertida_mista.png','1429_03_calculo_configuracao_confirmada.png','1429_tratamento_erros_rota.png','1428_08_ortofoto_local_real.png','1428_05_marcacoes_popup_1024.png','1428_06_popup_descartar.png','1428_07_imagem_apresentacao.png','1428_03_grupos_e_icones.png','1428_04_calculos_medicao.png','1428_01_barra_lateral.png','1428_02_fluxo_selecionado.png','1427_06_video_de_revisao_anterior.png','1427_01_gravacao_serializada.png','1427_02_conflito_preserva_edicao.png','1427_03_resultados_preservam_historico.png','1427_04_abertura_fora_de_ordem.png','1427_05_historico_recuperacao.png','1426_07_link_onda_verde.png','1426_01_semaforo_tres_tempos.png','1426_02_ferrovia_propriedades.png','1426_03_ferrovia_semaforos_webgl.png','1426_04_cabine_controle.png','1426_05_fluxos_zoom_diagnostico.png','1426_06_demanda_sobressaturacao.png','1426_video_0.png','1426_video_1.5.png','1426_video_2.9.png','1426_video_metadados.json','1425_01_webgl_trafego_real.png','1425_02_captura_e_diagnostico.png','1425_03_contexto_recuperado.png','1425_04_novo_projeto_identificado.png','1425_05_video_3d_conferido.png','1424_06_zoom_dpi_1.png','1424_06_zoom_dpi_2.png','1424_05_limite_fluxos.png','1424_04_barra_completa_139.png','1424_01_comandos_139_visiveis.png','1424_02_comando_e_opcoes.png','1424_03_faixa_1024.png','1424_03_faixa_1366.png','1424_03_faixa_1920.png','1423_01_ferramentas_139_restauradas.png','1423_02_pan_zoom_redesenhar.png','1423_03_modificar.png','1423_04_inserir_controle_desfazer.png','1423_05_controle_calibracao.png','1423_video_quadro_0.png','1423_video_quadro_36.png','1423_video_quadro_71.png','1423_video_metadados.json','pytest-resultados.xml','resultado.json','validacao.log','142_03_modelar_cascata.png','1422_01_acesso_rapido_rodape.png','1422_03_fluxos_sobre_superficies.png','1422_05_selecao_fluxo_prioritaria.png','142_11_motor_editor_real.png','142_12_motor_editor_fluxo_problema.png','splash_142_1_a.png','splash_142_1_b.png']:
+        for name in ['14212_07_imagem_sem_dxf.png','14212_01_contornos_sugeridos_grupos.png','14212_02_contornos_persistentes.png','14212_03_secoes_assimetricas.png','14212_04_janela_salvar_descartar.png','14212_05_mascaras_texturas_2d.png','14212_06_edificacoes_3d_pisca_alerta.png','14211_01_icones_barra_tecnica.png','14211_02_pacote_32_simbolos.png','14211_03_catalogo_com_simbolos.png','14210_04_texturas_interferencias.png','14210_05_catalogo_nomes_materiais.png','14210_06_semaforo_braco_farol_noturno_3d.png','14210_07_corte_de_intervalo_por_icone.png','14210_08_juncao_validada_por_icone.png','14210_09_ferrovia_por_rota_selecionada.png','14210_01_recuperar_fluxo_principal.png','14210_02_fluxo_recuperado_recalculado.png','14210_03_eixo_com_falha_recuperado.png','1429_01_novo_projeto_reaberto.png','1429_02_imagem_convertida_mista.png','1429_03_calculo_configuracao_confirmada.png','1429_tratamento_erros_rota.png','1428_08_ortofoto_local_real.png','1428_05_marcacoes_popup_1024.png','1428_06_popup_descartar.png','1428_07_imagem_apresentacao.png','1428_03_grupos_e_icones.png','1428_04_calculos_medicao.png','1428_01_barra_lateral.png','1428_02_fluxo_selecionado.png','1427_06_video_de_revisao_anterior.png','1427_01_gravacao_serializada.png','1427_02_conflito_preserva_edicao.png','1427_03_resultados_preservam_historico.png','1427_04_abertura_fora_de_ordem.png','1427_05_historico_recuperacao.png','1426_07_link_onda_verde.png','1426_01_semaforo_tres_tempos.png','1426_02_ferrovia_propriedades.png','1426_03_ferrovia_semaforos_webgl.png','1426_04_cabine_controle.png','1426_05_fluxos_zoom_diagnostico.png','1426_06_demanda_sobressaturacao.png','1426_video_0.png','1426_video_1.5.png','1426_video_2.9.png','1426_video_metadados.json','1425_01_webgl_trafego_real.png','1425_02_captura_e_diagnostico.png','1425_03_contexto_recuperado.png','1425_04_novo_projeto_identificado.png','1425_05_video_3d_conferido.png','1424_06_zoom_dpi_1.png','1424_06_zoom_dpi_2.png','1424_05_limite_fluxos.png','1424_04_barra_completa_139.png','1424_01_comandos_139_visiveis.png','1424_02_comando_e_opcoes.png','1424_03_faixa_1024.png','1424_03_faixa_1366.png','1424_03_faixa_1920.png','1423_01_ferramentas_139_restauradas.png','1423_02_pan_zoom_redesenhar.png','1423_03_modificar.png','1423_04_inserir_controle_desfazer.png','1423_05_controle_calibracao.png','1423_video_quadro_0.png','1423_video_quadro_36.png','1423_video_quadro_71.png','1423_video_metadados.json','imagem_mista_veiculos_True.png','imagem_mista_veiculos_False.png','imagem_mista_video_True.json','imagem_mista_video_False.json','vista_previa_sessoes_760.png','diagnostico_veiculos_sentidos.png','pytest-resultados.xml','resultado.json','validacao.log','142_03_modelar_cascata.png','1422_01_acesso_rapido_rodape.png','1422_03_fluxos_sobre_superficies.png','1422_05_selecao_fluxo_prioritaria.png','142_11_motor_editor_real.png','142_12_motor_editor_fluxo_problema.png','splash_142_1_a.png','splash_142_1_b.png']:
             shutil.copy2(EVIDENCE/name,evidence/name)
+        for name in ['origem.json','retomada.json','evidencias_reutilizadas.json','pytest-reexecutados.xml']:
+            if (EVIDENCE/name).is_file():shutil.copy2(EVIDENCE/name,evidence/name)
+        if state:
+            for name,target in [('origem.json','origem-anterior.json'),('pytest-resultados.xml','pytest-origem.xml')]:shutil.copy2(Path(args.retomar)/name,evidence/target)
         manifest=json.loads((stage/'manifest.json').read_text())
         manifest['files']={f.relative_to(stage).as_posix():hashlib.sha256(f.read_bytes()).hexdigest() for f in sorted(stage.rglob('*')) if f.is_file() and f!=stage/'manifest.json'}
         (stage/'manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')

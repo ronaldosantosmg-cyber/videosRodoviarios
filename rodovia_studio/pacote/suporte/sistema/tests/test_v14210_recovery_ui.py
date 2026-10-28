@@ -70,6 +70,6 @@ def test_two_simultaneous_requests_start_only_one_calculation(gl_page):
     p=gl_page
     p.wait_for_function('!task && !taskRequestPending',timeout=60000)
     results=p.evaluate("""async()=>{window.analysisRequests=0;const previous=api;api=async function(url,opt){if(url.endsWith('/analyze')&&opt?.method==='POST')analysisRequests++;return previous(url,opt)};try{return await Promise.all([start('analyze'),start('analyze')])}finally{api=previous}}""")
-    assert False in results
+    assert results[0]['id']==results[1]['id'] # Pedidos equivalentes compartilham a mesma promessa/tarefa.
     assert p.evaluate('analysisRequests')==1
     assert p.evaluate('!taskRequestPending && !task')

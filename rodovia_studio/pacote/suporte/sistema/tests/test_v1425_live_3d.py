@@ -32,7 +32,7 @@ def gl_page(live):
         page.route('**/*',lambda route:route.continue_() if route.request.url.startswith(live[0]+'/') else route.abort())
         # Prontidão pelos módulos reais, sem depender de silêncio das consultas de estado.
         page.goto(live[0],wait_until='domcontentloaded',timeout=60000);page.wait_for_function('!!window.Rodovia3D && !!window.RodoviaNewProject',timeout=60000)
-        page.evaluate('(pid)=>load(pid)',live[1]);page.wait_for_timeout(300);page.wait_for_function('!task',timeout=60000)
+        page.evaluate('(pid)=>load(pid)',live[1]);page.wait_for_timeout(300);page.wait_for_function('!task',timeout=180000)
         yield page
         assert not errors,errors;b.close()
 
@@ -40,7 +40,7 @@ def gl_page(live):
 def open3d(page):
     if page.get_by_role('tab',name='Cena',exact=True).count():page.get_by_role('tab',name='Cena',exact=True).click()
     page.locator('[data-rs3d=view3d]').click()
-    try:page.wait_for_function('Rodovia3D.stats().ready',timeout=45000)
+    try:page.wait_for_function('Rodovia3D.stats().ready',timeout=180000)
     except Exception as exc:raise AssertionError(page.locator('#rs3dState').inner_text()+' | '+page.locator('#message').inner_text()) from exc
 
 

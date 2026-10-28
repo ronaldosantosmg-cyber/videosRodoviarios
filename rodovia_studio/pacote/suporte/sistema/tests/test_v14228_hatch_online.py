@@ -94,7 +94,7 @@ def test_online_ui_contract_reply_reaches_review_and_confirmed_engine_apply(gl_p
     assert len(seen)==1 and read_config(d)==before
     screenshot(p,'14228_api_resposta_estruturada_revisavel')
     dialog.get_by_role('button',name='Revisar nas ferramentas do motor').click()
-    p.locator('#rsIAStudio').wait_for();assert p.locator('#rsIAStudio [data-ia-layer="PAVIMENTO"]').is_visible()
+    p.locator('#rsIAStudio').wait_for();p.locator('#rsIAStudio [data-ia-layer="PAVIMENTO"]').wait_for(state='visible')
     assert read_config(d)==before
     p.locator('#rsIAStudio [data-ia-layer="PAVIMENTO"] input[type=checkbox]').check()
     p.get_by_role('button',name='Aplicar textura',exact=True).click()

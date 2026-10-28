@@ -1,0 +1,17 @@
+{
+  "reused_tests": 933,
+  "executed_tests": 28,
+  "total": 961,
+  "product_sha256": "b5698e7330ea3a695701a16115368fba8ae7cc46acaf4acc2d7a00742a3441b8",
+  "origin": "/workspace/videosRodoviarios/rodovia_studio/evidencias/1.42.37/entrega-aprovacao",
+  "changed_test_modules": [
+    "nomes_indefinidos.py",
+    "test_v131.py",
+    "test_v14210_assets_visual.py",
+    "test_v14211_infrarail_icons.py",
+    "test_v14218_live_agents.py",
+    "test_v1428_menu_flow.py",
+    "test_v1428_panels.py",
+    "test_v1429_layers_ui.py"
+  ]
+}

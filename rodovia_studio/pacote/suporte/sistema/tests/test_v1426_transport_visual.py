@@ -1,3 +1,4 @@
+from ui_release_helpers import ribbon_control
 import json,os
 import pytest
 from pathlib import Path
@@ -23,15 +24,15 @@ def click_world(page,x,y,button='left'):
 
 def test_controls_are_saved_from_dialog_with_undo_and_context(gl_page):
     p=gl_page
-    p.locator('#rsToolPanel0 [data-rs-tool=railway]').hover();assert 'Ferrovia' in p.locator('#rsToolHelp').inner_text()
-    p.locator('#rsToolPanel0 [data-rs-tool=railway]').click();assert p.evaluate('tool')=='railway'
+    ribbon_control(p,'railway').hover();assert 'Ferrovia' in p.locator('#rsToolHelp').inner_text()
+    ribbon_control(p,'railway').click();assert p.evaluate('tool')=='railway'
     click_world(p,500250,7799920);click_world(p,500250,7800080);p.keyboard.press('Enter');p.wait_for_selector('#rsTransportDialog')
     p.locator('[data-transport-field=tracks]').select_option('2');p.locator('[data-transport-field=direction]').select_option('both')
     p.locator('#rsTransportDialog button[type=submit]').click();p.wait_for_selector('#rsTransportDialog',state='detached')
     assert p.evaluate('M.railways.length')==1 and p.evaluate('M.railways[0].tracks')==2
     p.evaluate('undo()');assert p.evaluate('M.railways.length')==0
     p.evaluate('redo()');assert p.evaluate('M.railways.length')==1
-    p.locator('#rsToolPanel0 [data-rs-tool=traffic_signal]').click();click_world(p,500150,7800000);p.wait_for_selector('#rsTransportDialog')
+    ribbon_control(p,'traffic_signal').click();click_world(p,500150,7800000);p.wait_for_selector('#rsTransportDialog')
     p.locator('[data-transport-field=phases]').select_option('3');p.locator('[data-transport-field=phases]').dispatch_event('input')
     assert '19 s' in p.locator('#rsTransportTiming').inner_text()
     screenshot(p,'1426_01_semaforo_tres_tempos')
@@ -39,7 +40,7 @@ def test_controls_are_saved_from_dialog_with_undo_and_context(gl_page):
     p.evaluate('save()');assert p.evaluate('cfg.traffic_signals[0].phases')==3
     click_world(p,500250,7800000,button='right');p.get_by_role('menuitem',name='Propriedades de Ferrovia 1',exact=True).click();assert p.locator('[data-transport-field=direction]').input_value()=='both'
     screenshot(p,'1426_02_ferrovia_propriedades');p.locator('#rsTransportDialog [data-cancel]').click()
-    p.locator('#rsToolPanel0 [data-rs-tool=railway]').click();p.locator('#rsRailMode').select_option('linha');click_world(p,500200,7800000);p.wait_for_selector('#rsTransportDialog')
+    ribbon_control(p,'railway').click();p.locator('#rsRailMode').select_option('linha');click_world(p,500200,7800000);p.wait_for_selector('#rsTransportDialog')
     before=p.evaluate('M.railways.length');p.locator('#rsTransportDialog button[type=submit]').click();p.wait_for_selector('#rsTransportDialog',state='detached')
     assert p.evaluate('M.railways.length')==before+1 and p.evaluate('M.railways.at(-1).points[0].x')==pytest.approx(500050,abs=.01)
     p.evaluate('async()=>{undo();await save()}')
@@ -107,13 +108,13 @@ def test_cabin_keeps_front_rear_clearance_behind_long_trucks(tmp_path):
 def test_link_tool_connects_signals_and_context_edits_link(gl_page):
     p=gl_page
     p.evaluate("async()=>{M.traffic_signals=[{id:'A',name:'A',point:{x:500100,y:7800010},heading_deg:0,phases:2,lanes_a:2,lanes_b:2,lane_width_m:3.5,offset_s:0,enabled:true,level:0},{id:'B',name:'B',point:{x:500400,y:7800010},heading_deg:0,phases:2,lanes_a:2,lanes_b:2,lane_width_m:3.5,offset_s:0,enabled:true,level:0}];M.signal_links=[];draw();await save()}")
-    p.locator('#rsToolPanel0 [data-rs-tool=signal_link]').click();click_world(p,500100,7800010);click_world(p,500400,7800010)
+    ribbon_control(p,'signal_link').click();click_world(p,500100,7800010);click_world(p,500400,7800010)
     p.wait_for_selector('#rsTransportDialog');p.locator('[data-transport-field=speed_kmh]').fill('36');p.locator('#rsTransportDialog button[type=submit]').click();p.wait_for_selector('#rsTransportDialog',state='detached')
     assert p.evaluate('M.signal_links[0].source')=='A' and p.evaluate('M.signal_links[0].target')=='B'
     p.evaluate("setTool('pan')");click_world(p,500280,7800010,button='right');p.get_by_role('menuitem',name='Propriedades do link de onda verde',exact=True).click()
     assert p.locator('[data-transport-field=speed_kmh]').input_value()=='36'
     screenshot(p,'1426_07_link_onda_verde');p.locator('#rsTransportDialog [data-cancel]').click()
-    p.locator('#rsToolPanel0 [data-rs-tool=signal_link]').click();click_world(p,500100,7800010)
-    p.locator('#rsToolPanel0 [data-rs-tool=pan]').click();p.locator('#rsToolPanel0 [data-rs-tool=signal_link]').click();click_world(p,500400,7800010)
+    ribbon_control(p,'signal_link').click();click_world(p,500100,7800010)
+    ribbon_control(p,'pan').click();ribbon_control(p,'signal_link').click();click_world(p,500400,7800010)
     assert p.locator('#rsTransportDialog').count()==0
     p.keyboard.press('Escape')

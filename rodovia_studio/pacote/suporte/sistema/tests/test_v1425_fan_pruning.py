@@ -9,8 +9,8 @@ def test_converging_and_diverging_mini_routes_are_removed_before_network():
     axis=np.array([[0.,0.],[500.,0.]])
     spokes=[np.array([[250.,0.],[250.+dx,dy]]) for dx,dy in [(10,4),(-12,8),(8,-15),(-10,-10),(0,19)]]
     originals=[p.copy() for p in spokes]
-    s=Settings(derive_traffic_paths=False,hydrography=False,min_route_segment_m=50)
-    n=TrafficNetwork([box(-30,-50,530,50)],[],[{'points':axis}]+[{'points':p} for p in spokes],axis,np.array([0.,500.]),s)
+    s=Settings(layers={'axis':['EIXO']},derive_traffic_paths=False,hydrography=False,min_route_segment_m=50)
+    n=TrafficNetwork([box(-30,-50,530,50)],[],[dict(points=p,layer='EIXO',role='axis') for p in [axis]+spokes],axis,np.array([0.,500.]),s)
     assert len(n.auto_pruned)>=5
     assert all(np.sum(np.linalg.norm(np.diff(r['points'],axis=0),axis=1))>=50 for r in n.raw_info)
     assert all(e['length']>=50 for e in n.edges)
@@ -36,8 +36,8 @@ def test_contact_splits_keep_long_native_axis_without_independent_short_routes()
     # As fontes são longas; o trecho de 25 m só aparece depois dos encontros.
     axes=[{'points':axis},{'points':np.array([[250.,0.],[250.,150.]])},
           {'points':np.array([[275.,0.],[275.,150.]])}]
-    s=Settings(derive_traffic_paths=False,hydrography=False,min_route_segment_m=50)
-    n=TrafficNetwork([box(-30,-180,630,180)],[],axes,axis,np.array([0.,600.]),s)
+    s=Settings(layers={'axis':['EIXO']},derive_traffic_paths=False,hydrography=False,min_route_segment_m=50)
+    n=TrafficNetwork([box(-30,-180,630,180)],[],[dict(a,layer='EIXO',role='axis') for a in axes],axis,np.array([0.,600.]),s)
     assert any(e['length']<50 and e.get('native_axis') for e in n.edges)
     assert all(n.origin_info[e['origin']][0]>=50 for e in n.edges)
     assert all(p['length']>=50 for p in n.paths)

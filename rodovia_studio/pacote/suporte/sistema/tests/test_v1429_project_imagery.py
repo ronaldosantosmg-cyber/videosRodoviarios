@@ -46,7 +46,7 @@ def test_cached_conversion_reference_survives_ui_save_mixed_mode_and_reload(gl_p
     assert p.evaluate('cfg.local_imagery.image')=='imagem_convertido.tif'
     assert p.evaluate('projectSession.revision')==p.request.get(url).json()['config_revision']
     p.get_by_role('tab',name='Projeto',exact=True).click()
-    p.locator('#rsTechnicalOptions').locator('..').evaluate('(el)=>el.open=true')
+    p.locator('[data-activity="Projeto"] details').evaluate_all('(items)=>items.forEach(d=>d.open=true)')
     p.locator('#rsPresentationBase').select_option('mixed')
     p.evaluate('save()')
     p.reload(wait_until='networkidle')

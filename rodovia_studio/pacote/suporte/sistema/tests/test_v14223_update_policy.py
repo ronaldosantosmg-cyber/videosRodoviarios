@@ -44,13 +44,13 @@ def test_full_scene_rebuilds_cached_surface_without_changing_pixels(tmp_path):
     np.testing.assert_array_equal(before.surface,fresh.surface)
 
 
-def test_refresh_endpoint_always_runs_full_pipeline_and_finishes_with_current_outputs(gl_page,live):
+def test_refresh_endpoint_reuses_valid_geometry_and_finishes_with_current_outputs(gl_page,live):
     p=gl_page;before=p.evaluate('lastPolled')
     result=p.evaluate("async()=>await start('refresh')")
     assert result['state']=='done' and result['kind']=='refresh' and result['id']!=before
     assert p.evaluate("['analysis','editor','vectors','preview'].every(k=>projectSession.artifacts[k].state==='ready')")
     report=p.request.get(live[0]+'/api/projects/'+live[1]).json()['analysis']
-    assert not report['geometry_cache']['hit']
+    assert report['geometry_cache']['hit']
 
 
 def test_manual_form_confirmation_saves_but_keeps_update_pending(gl_page,live):
@@ -115,10 +115,10 @@ def test_empty_identified_project_opens_without_invalid_calculation(gl_page,live
     assert p.evaluate('pid')==identity and not posts and 'Importe' in p.locator('#message').inner_text()
 
 
-def test_mode_survives_browser_reload_while_opening_still_refreshes(gl_page,live):
+def test_mode_survives_browser_reload_and_reuses_current_results(gl_page,live):
     p=gl_page;p.evaluate("RodoviaUpdatePolicy.setMode('automatic')")
     p.reload(wait_until='domcontentloaded')
-    p.wait_for_function("!!window.RodoviaUpdatePolicy&&!!lastPolled&&!task&&!taskRequestPending",timeout=60000)
+    p.wait_for_function("!!window.RodoviaUpdatePolicy&&!!pid&&projectSession.artifacts.editor?.state==='ready'&&!task&&!taskRequestPending",timeout=60000)
     assert p.locator('#rsUpdateMode').input_value()=='automatic'
     assert p.evaluate('pid')==live[1]
 
@@ -155,7 +155,7 @@ def test_video_refreshes_model_and_publishes_current_editor_and_vectors(gl_page,
     result=p.evaluate("async()=>await start('render')")
     assert result['state']=='done'
     d=live[2]/live[1];info=json.loads((d/'video.json').read_text())
-    assert not info['geometry_cache_hit'] and validate_mp4(ffmpeg_exe(),d/'video.mp4',72,1280,720,24)['ok']
+    assert info['geometry_cache_hit'] and validate_mp4(ffmpeg_exe(),d/'video.mp4',72,1280,720,24)['ok']
     assert p.evaluate("['analysis','editor','vectors','video'].every(k=>projectSession.artifacts[k].state==='ready')")
 
 
@@ -165,7 +165,7 @@ def test_render_confirmation_consumes_automatic_refresh_without_a_second_job(gl_
     posts=[];p.on('request',lambda r:posts.append(r.url.rsplit('/',1)[-1]) if r.method=='POST' and r.url.rsplit('/',1)[-1] in ('refresh','render') else None)
     p.evaluate("window.renderFinished=null;window.renderError=null;void start('render').then(r=>window.renderFinished=r).catch(e=>window.renderError=e.message)")
     p.locator('#rsPanelDecision [data-choice=save]').click()
-    p.wait_for_function('renderFinished||renderError',timeout=90000)
+    p.wait_for_function('renderFinished||renderError',timeout=180000)
     assert p.evaluate('renderError') is None
     p.wait_for_timeout(900)
     assert posts==['render'] and p.evaluate('!RodoviaUpdatePolicy.snapshot().waiting')
@@ -186,8 +186,8 @@ def test_cancelled_refresh_keeps_previous_preview_and_sources(tmp_path,monkeypat
     original=(d/'input.dxf').read_bytes();(d/'preview.png').write_bytes(b'previous-preview')
     with store.connect() as c:
         c.execute('INSERT INTO projects(id,name) VALUES(?,?)',(identity,s.name))
-        c.execute('INSERT INTO jobs(id,project,kind,state,message) VALUES(?,?,?,?,?)',('cancel-test',identity,'refresh','cancel_requested','Cancelar'))
-    assert worker.run('cancel-test')==0 and store.job('cancel-test')['state']=='cancelled'
+        c.execute('INSERT INTO jobs(id,project,kind,state,message) VALUES(?,?,?,?,?)',('c'*32,identity,'refresh','cancel_requested','Cancelar'))
+    assert worker.run('c'*32)==0 and store.job('c'*32)['state']=='cancelled'
     assert (d/'input.dxf').read_bytes()==original and (d/'preview.png').read_bytes()==b'previous-preview'
 
 

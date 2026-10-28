@@ -51,7 +51,7 @@ def test_repair_is_visible_and_cut_is_reachable_without_properties_hunt(page):
 
 
 def test_real_network_fits_one_way_dxf_axis_on_narrow_surface():
-    n=network([dict(points=AXIS)],roads=[box(-10,-2,610,2)],route_directions={'axis:'+__import__('app.native_axes',fromlist=['axis_fingerprint']).axis_fingerprint(AXIS):'forward'})
+    n=network([dict(points=AXIS)],roads=[box(-10,-2,610,2)],route_directions={'axis:'+__import__('app.native_axes',fromlist=['axis_fingerprint']).axis_fingerprint(AXIS,'EIXO'):'forward'})
     assert n.paths and any(r.get('lateral_fits') for r in n.raw_info)
     assert max(p['length'] for p in n.paths)>590
     from app.vehicle_motion import analyze_motion

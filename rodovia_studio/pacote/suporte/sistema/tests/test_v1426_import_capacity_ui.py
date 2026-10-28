@@ -6,14 +6,14 @@ from visual_harness import screenshot
 
 
 def test_saves_3500_capacity_and_higher_demand_through_real_api(gl_page):
-    p=gl_page;p.locator('[data-pshub=video]').click();p.get_by_text('Tráfego: simulação, engarrafamento e canteiro',exact=True).click();p.locator('#traffic_capacity_vphpl').fill('3500');p.locator('#traffic_demand_vphpl').fill('5000');p.locator('#traffic_demand_vphpl').dispatch_event('input');p.locator('#rsPanelSave').click();p.wait_for_function('!RodoviaPanels.opened',timeout=15000);p.locator('[data-pshub=video]').click()
+    p=gl_page;p.locator('[data-pshub=video]').click();p.get_by_role('tab',name='Veículos e fluxo',exact=True).click();p.locator('#traffic_capacity_vphpl').fill('3500');p.locator('#traffic_demand_vphpl').fill('5000');p.locator('#traffic_demand_vphpl').dispatch_event('input');p.locator('#rsPanelSave').click();p.wait_for_function('!RodoviaPanels.opened',timeout=15000);p.locator('[data-pshub=video]').click()
     assert p.evaluate('cfg.traffic_capacity_vphpl')==3500 and p.evaluate('cfg.traffic_demand_vphpl')==5000
     assert 'sobressaturação' in p.locator('#rsTrafficStudy').inner_text()
     screenshot(p,'1426_06_demanda_sobressaturacao')
     # A seção pode voltar recolhida após salvar e reabrir o painel de vídeo.
     # Abra-a pela interface antes de testar a recusa de zero.
     if not p.locator('#traffic_capacity_vphpl').is_visible():
-        p.get_by_text('Tráfego: simulação, engarrafamento e canteiro',exact=True).click()
+        p.get_by_role('tab',name='Veículos e fluxo',exact=True).click()
     p.locator('#traffic_capacity_vphpl').fill('0')
     result=p.evaluate('()=>{try{collect();return ""}catch(e){return e.message}}');assert 'maior que zero' in result
 

@@ -31,3 +31,8 @@ Organizados controles existentes em grupos, com opções avançadas recolhidas. 
 ### Logs de fluxo e imagem combinada
 
 Corrigidos UTF-8 da assistência no Windows, ciclo de falha de prévia sem alvo, recusa explícita de exportação sem itinerários e respostas obsoletas do pincel. Aviso ENSAIO passa a avisos/metadados, sem faixa no vídeo. Imagem combinada pode usar local válida se o mapa web falhar. Ajustado reconhecimento de hachuras de pista; ensaio no DXF disponível passou a 7 itinerários, mantendo trechos recusados. Ver evidencias/correcao-log-fluxos para escopo e limites; não é pacote liberado.
+
+
+### Entrega 1.42.37 concluída
+
+ZIP novo gerado após aprovação de 961 casos, zero falhas/erros/ignorados, compilação C# e splash. Atualização e rollback do arquivo final conferidos em instalação isolada com preservação de dados. Evidências em evidencias/1.42.37/LEIA_ME.md e entrega-conferida/. As tentativas bloqueadas anteriores permanecem como histórico. Pendências: homologação Windows/WebView2/8 GB, carga prolongada, benchmarks comparáveis e configuração real do projeto do usuário; não inclui pesos de IA 3B. Nota estimada 7,8/10.

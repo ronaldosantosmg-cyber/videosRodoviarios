@@ -49,8 +49,8 @@ def test_out_of_order_open_does_not_replace_the_latest_project(gl_page,live):
         if key in routes:r.fulfill(json=payload(key))
         else:routes[key]=r
     for key in (a,b):p.route('**/api/projects/'+key,intercept)
-    p.evaluate('(id)=>{window.openFirst=load(id)}',a);p.wait_for_timeout(100)
-    p.evaluate('(id)=>{window.openSecond=load(id)}',b);p.wait_for_timeout(100)
+    p.evaluate('(id)=>{window.openFirst=load(id,{resultsOnly:true})}',a);p.wait_for_timeout(100)
+    p.evaluate('(id)=>{window.openSecond=load(id,{resultsOnly:true})}',b);p.wait_for_timeout(100)
     def payload(key):return {**data,'id':key,'config':{**data['config'],'name':key},'analysis':None,'preview':None,'editor_ready':False}
     routes[b].fulfill(json=payload(b));p.evaluate('()=>openSecond')
     routes[a].fulfill(json=payload(a));p.evaluate('()=>openFirst')

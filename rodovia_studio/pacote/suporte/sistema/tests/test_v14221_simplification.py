@@ -31,7 +31,7 @@ def test_density_changes_real_vehicle_simulation_without_collisions():
     assert totals[1]>totals[0]>0
 
 
-@pytest.mark.parametrize('changes',[dict(role_colors={'pavement':'#334455'}),dict(natural_materials_only=True),dict(texture_style='realistic')])
+@pytest.mark.parametrize('changes',[dict(role_colors={'pavement':'#334455'}),dict(natural_materials_only=True),dict(texture_style='artistico')])
 def test_presentation_does_not_invalidate_editor(tmp_path,changes):
     d,s=project(tmp_path);a=revisions(d,s);b=revisions(d,s.model_copy(update=changes))
     assert a['editor']==b['editor'] and a['traffic']==b['traffic'] and a['preview']!=b['preview']
@@ -59,11 +59,11 @@ def test_five_tabs_eight_menus_and_no_duplicate_visible_tool_catalog(page):
     assert page.locator('#rsToolTabs [role=tab]').all_text_contents()==['Projeto','Editar','Tráfego','Cena','Vídeo']
     assert page.locator('#menuBar [data-rs-menu]').all_text_contents()==['Arquivo','Editar','Projeto','Tráfego','Cena','Vídeo','Exibir','Ajuda']
     assert page.get_by_role('tab',name='Todas',exact=True).count()==0
-    values=page.locator('#rsToolRibbon [data-rs-tool]').evaluate_all('(buttons)=>buttons.map(b=>b.dataset.rsTool)')
+    values=page.locator('#rsToolRibbon [data-activity] [data-rs-tool]:visible').evaluate_all('(buttons)=>buttons.map(b=>b.dataset.rsTool)')
     assert len(values)==len(set(values))
     page.get_by_role('tab',name='Tráfego',exact=True).click()
     assert page.get_by_role('button',name='Configurar faixas',exact=True).is_visible()
-    assert page.locator('[data-activity="Tráfego"] .rsAdvancedTools').get_attribute('open') is None
+    assert page.locator('[data-activity="Tráfego"] .rsAdvancedTools').evaluate_all('(items)=>items.length>0&&items.every(d=>!d.open)')
     screenshot(page,'14221_cinco_abas')
 
 

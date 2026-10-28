@@ -21,7 +21,10 @@ def test_supplied_sprite_is_intact_and_contains_only_local_passive_graphics():
 
 def test_technical_icons_render_and_keep_their_actual_commands_and_helpers(page):
     for tool,symbol in [('flowcut','delete-segment'),('flowjoin','merge-segments'),('railway','catenary-rail'),('traffic_signal','cantilever-signal'),('oae','oae-viaduct')]:
-        button=page.locator(f'#rsToolPanel0 [data-rs-tool="{tool}"]')
+        button=page.locator(f'#rsToolRibbon [data-activity] [data-rs-tool="{tool}"]').first
+        activity=button.evaluate('(b)=>b.closest("[data-activity]").dataset.activity')
+        page.get_by_role('tab',name=activity,exact=True).click()
+        page.locator('[data-activity="'+activity+'"] details').evaluate_all('(items)=>items.forEach(d=>d.open=true)')
         assert button.count()==1
         assert button.locator('use').get_attribute('href')=='#infrarail-'+symbol
         assert button.get_attribute('aria-label')
@@ -32,7 +35,7 @@ def test_technical_icons_render_and_keep_their_actual_commands_and_helpers(page)
         button.click();assert page.evaluate('tool')==tool
         page.evaluate("setTool('pan')")
     # Comandos sem equivalente continuam usando seus ícones existentes.
-    assert page.locator('#rsToolPanel0 [data-rs-tool=pan] svg path').count()>0
+    assert page.locator('#rsQuickNavigation [data-rs-tool=pan] svg path').count()>0
     screenshot(page,'14211_01_icones_barra_tecnica')
 
 

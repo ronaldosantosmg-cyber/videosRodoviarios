@@ -16,7 +16,9 @@ def drawing(tmp_path):
  h=m.add_hatch(dxfattribs={'layer':'CANTEIRO'});h.paths.add_polyline_path([(500000,7799999),(500300,7799999),(500300,7800001),(500000,7800001)],is_closed=True)
  for y in [-25,25]:m.add_lwpolyline([(499990,7800000+y),(500310,7800000+y)],dxfattribs={'layer':'FAIXA_DOMINIO'})
  m.add_arc((500150,7800000),35,0,180,dxfattribs={'layer':'OFFSET-CORTE'});d.saveas(tmp_path/'input.dxf');return tmp_path
-def settings(**kw):return Settings(width=1280,duration_s=3,imagery='neutral',coordinates_confirmed=True,hydrography=False,**kw)
+def settings(**kw):
+ kw.setdefault('layers',{'axis':['EIXO'],'pavement':['PAVIMENTO'],'median':['CANTEIRO'],'domain':['FAIXA_DOMINIO'],'cut':['OFFSET-CORTE']})
+ return Settings(width=1280,duration_s=3,imagery='neutral',coordinates_confirmed=True,hydrography=False,**kw)
 def wait(c,jid,timeout=90):
  end=time.monotonic()+timeout
  while time.monotonic()<end:
@@ -36,7 +38,7 @@ def test_kmz_crs(tmp_path):
  _,_,ds,_,r=analyze(tmp_path,settings());assert ds[-1]>100;assert r['kmz_pois'][0]['title']=='OAE'
  with pytest.raises(ValueError):analyze(tmp_path,settings(crs='EPSG:4326'))
 def test_video_encoder(drawing):
- p=render(drawing,settings());cap=cv2.VideoCapture(str(p));assert cap.isOpened();assert int(cap.get(cv2.CAP_PROP_FRAME_COUNT))==90;assert cap.get(cv2.CAP_PROP_FPS)==30;assert cap.get(cv2.CAP_PROP_FRAME_WIDTH)==1280
+ p=render(drawing,settings(traffic=False));cap=cv2.VideoCapture(str(p));assert cap.isOpened();assert int(cap.get(cv2.CAP_PROP_FRAME_COUNT))==90;assert cap.get(cv2.CAP_PROP_FPS)==30;assert cap.get(cv2.CAP_PROP_FRAME_WIDTH)==1280
  ok,first=cap.read();assert ok;cap.set(cv2.CAP_PROP_POS_FRAMES,89);ok,last=cap.read();assert ok;assert not np.array_equal(first,last);cap.release()
 def test_api_complete(drawing):
  with TestClient(app) as c:
@@ -51,7 +53,7 @@ def test_api_complete(drawing):
   job=c.post(f'/api/projects/{pid}/preview').json();j=wait(c,job['id']);assert j['state']=='done',j
   assert c.get(f'/api/projects/{pid}/preview.png').status_code==200
   assert c.post(f'/api/projects/{pid}/render').status_code==422
-  conf=c.get(f'/api/projects/{pid}').json()['config'];conf['coordinates_confirmed']=True;assert c.put(f'/api/projects/{pid}/config',json=conf).status_code==200
+  conf=c.get(f'/api/projects/{pid}').json()['config'];conf['coordinates_confirmed']=True;conf['traffic']=False;assert c.put(f'/api/projects/{pid}/config',json=conf).status_code==200
   job=c.post(f'/api/projects/{pid}/render').json();j=wait(c,job['id']);assert j['state']=='done',j
   data=c.get(f'/api/projects/{pid}/video.mp4').content;assert data[4:8]==b'ftyp'
   job=c.post(f'/api/projects/{pid}/preview').json();c.post('/api/jobs/'+job['id']+'/cancel');j=wait(c,job['id']);assert j['state'] in ['cancelled','done'],j

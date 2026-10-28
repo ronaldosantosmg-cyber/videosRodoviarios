@@ -1,3 +1,4 @@
+from ui_release_helpers import ribbon_control
 import io,json
 import numpy as np
 import tifffile
@@ -11,8 +12,8 @@ def test_automatic_job_does_not_close_a_panel_opened_while_save_is_pending(gl_pa
       const original=save;let release;save=()=>new Promise(r=>release=r);
       try{
         const pending=start('analyze',undefined,{automatic:true});
-        psOpenHub('video');const opened=RodoviaPanels.opened;
-        release();const completed=await pending;
+        await new Promise(r=>setTimeout(r,0));psOpenHub('video');const opened=RodoviaPanels.opened;
+        if(release)release();const completed=await pending;
         return {completed,opened,after:RodoviaPanels.opened,pending:taskRequestPending};
       }finally{save=original}
     }''')
@@ -26,13 +27,13 @@ def upload_image(page,live):
     tifffile.imwrite(data,pixels,photometric='rgb',extratags=[(33550,'d',3,(4.,4.,0.),False),(33922,'d',6,(0.,0.,0.,499738.,7800512.,0.),False),(34735,'H',len(keys),keys,False)])
     response=page.request.post(live[0]+'/api/projects/'+live[1]+'/imagery',multipart={'files':{'name':'aerea.tif','mimeType':'image/tiff','buffer':data.getvalue()},'mode':'replace'})
     assert response.ok,response.text();page.evaluate('(id)=>load(id)',live[1]);page.wait_for_function('!task && !taskRequestPending',timeout=60000)
-    page.evaluate('RodoviaImageContext.refresh()');page.wait_for_selector('#rsToolPanel0 [data-rs-command=IMAGEMCONTORNOS]',state='visible')
+    page.evaluate('RodoviaImageContext.refresh()');ribbon_control(page,'IMAGEMCONTORNOS','command').wait_for(state='visible')
 
 
 def test_image_tool_only_appears_after_local_image_and_runs_real_background_job(gl_page,live):
     p=gl_page
-    assert not p.locator('#rsToolPanel0 [data-rs-command=IMAGEMCONTORNOS]').is_visible()
-    upload_image(p,live);p.locator('#rsToolPanel0 [data-rs-command=IMAGEMCONTORNOS]').click();p.wait_for_selector('#rsImageContext')
+    assert not ribbon_control(p,'IMAGEMCONTORNOS','command').is_visible()
+    upload_image(p,live);ribbon_control(p,'IMAGEMCONTORNOS','command').click();p.wait_for_selector('#rsImageContext')
     p.locator('#rsImageContext [name=pixels]').select_option('512')
     p.locator('#rsImageContext [data-analyze]').click()
     p.wait_for_selector('#rsImageContext[open] [data-feature]',timeout=60000)
@@ -66,7 +67,7 @@ def test_sections_dialog_applies_asymmetric_bands_to_the_actual_engine(gl_page,l
     p.locator('#rsRoadSections [data-right] select').nth(2).select_option('acostamento');p.locator('#rsRoadSections [data-right] input[type=number]').nth(2).fill('2.5')
     p.locator('#rsRoadSections [data-add-section]').click();screenshot(p,'14212_03_secoes_assimetricas')
     p.locator('#rsRoadSections footer [data-calculate]').click();p.wait_for_selector('#rsRoadSections',state='detached',timeout=15000)
-    try:p.wait_for_function('!task && !taskRequestPending && !!editor',timeout=60000)
+    try:p.wait_for_function('!task && !taskRequestPending && editor?.segments.some(s=>s.route==="section-route")',timeout=90000)
     except Exception:raise AssertionError(str(p.evaluate('({task,taskRequestPending,message:document.getElementById("message").textContent,editor:!!editor})'))+' | '+(live[2]/live[1]/'analysis.json').read_text()[-3500:])
     config=p.request.get(live[0]+'/api/projects/'+live[1]).json()['config'];section=config['route_alignments'][0]['cross_sections'][0]
     assert len(section['left'])==1 and len(section['right'])==3 and section['right'][2]['kind']=='acostamento'
@@ -116,7 +117,7 @@ def test_image_only_project_can_analyze_and_show_its_georeferenced_capture(gl_pa
     p=gl_page;response=p.request.post(live[0]+'/api/projects',data=Settings(name='Somente imagem',imagery='local').model_dump());assert response.status==201,response.text()
     pid=response.json()['id'];other=(live[0],pid,live[2]);upload_image(p,other)
     assert p.locator('[data-rs-tool=imagesample]').count()==0
-    p.locator('#rsToolPanel0 [data-rs-command=IMAGEMCONTORNOS]').click();p.wait_for_selector('#rsImageContext')
+    ribbon_control(p,'IMAGEMCONTORNOS','command').click();p.wait_for_selector('#rsImageContext')
     p.locator('#rsImageContext [name=pixels]').select_option('512');p.locator('#rsImageContext [data-analyze]').click()
     p.wait_for_selector('#rsImageContext[open] [data-feature]',timeout=60000)
     assert p.evaluate('ready() && meta.context_capture && !geo')

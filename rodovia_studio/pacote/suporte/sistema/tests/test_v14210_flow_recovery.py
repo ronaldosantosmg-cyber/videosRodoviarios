@@ -38,10 +38,10 @@ def test_invalid_geometry_remains_blocked(points):
 
 def test_network_only_recovers_when_explicitly_requested_and_respects_disable():
     axis=np.array([[0.,0.],[150.,0.],[150.,150.]])
-    kwargs=dict(derive_traffic_paths=False,hydrography=False,signage_detail='basic',vehicle_paths='anterior',min_route_segment_m=50)
+    kwargs=dict(layers={'axis':['EIXO']},derive_traffic_paths=False,hydrography=False,signage_detail='basic',vehicle_paths='anterior',min_route_segment_m=50)
     def network(overrides):
         s=Settings(**kwargs,flow_overrides=[o for o in overrides if o['action']!='recover'],flow_recoveries=[{k:v for k,v in o.items() if k!='action'} for o in overrides if o['action']=='recover'])
-        return TrafficNetwork([box(-10,-10,160,160)],[],[{'points':axis}],axis,np.array([0.,150.,300.]),s)
+        return TrafficNetwork([box(-10,-10,160,160)],[],[{'points':axis,'layer':'EIXO','role':'axis'}],axis,np.array([0.,150.,300.]),s)
     base=network([])
     recovered=network([dict(x=100,y=0,action='recover')])
     assert not base.paths
@@ -80,7 +80,7 @@ def test_recovery_rechecks_vehicle_body_and_never_creates_short_remnants():
 def test_recovery_keeps_a_manual_route_direction_and_disables_no_other_route():
     axis=np.array([[0.,0.],[300.,0.]])
     route=dict(id='main',name='Qualquer eixo',points=[dict(x=0,y=0),dict(x=300,y=0)],type='unico')
-    s=Settings(derive_traffic_paths=False,route_alignments=[route],flow_recoveries=[dict(x=100,y=0)],signage_detail='basic',min_route_segment_m=50)
+    s=Settings(layers={'axis':['EIXO']},derive_traffic_paths=False,route_alignments=[route],flow_recoveries=[dict(x=100,y=0)],signage_detail='basic',min_route_segment_m=50)
     n=TrafficNetwork([box(-10,-10,310,10)],[],[],axis,np.array([0.,300.]),s)
     assert n.paths
     assert all(p['p'][-1,0]>p['p'][0,0] for p in n.paths)
@@ -104,7 +104,7 @@ def test_a_small_defect_is_smoothed_before_removing_valid_route_length():
 
 def test_changing_only_the_manual_axis_name_keeps_its_recovery_identity():
     axis=np.array([[0.,0.],[300.,0.]])
-    cfg=Settings(derive_traffic_paths=False,signage_detail='basic',traffic_paths=[dict(id='stable-axis',name='Antes',points=[dict(x=0,y=0),dict(x=300,y=0)],kind='main',direction='growing')])
+    cfg=Settings(layers={'axis':['EIXO']},derive_traffic_paths=False,signage_detail='basic',traffic_paths=[dict(id='stable-axis',name='Antes',points=[dict(x=0,y=0),dict(x=300,y=0)],kind='main',direction='growing')])
     def network():return TrafficNetwork([box(-10,-10,310,10)],[],[],axis,np.array([0.,300.]),cfg)
     key=network().raw_info[0]['origin_key'];cfg.traffic_paths[0].name='Depois'
     assert network().raw_info[0]['origin_key']==key

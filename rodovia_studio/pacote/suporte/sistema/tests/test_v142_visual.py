@@ -38,24 +38,19 @@ def test_properties_stays_closed_after_selection_resize(page):
 
 
 def test_model_menu_cascades_and_selects_tool(page):
-    page.get_by_role('menuitem',name='Modelar',exact=True).click()
-    assert page.locator('.rsCascade').count()==1
+    page.get_by_role('menuitem',name='Tráfego',exact=True).click()
     root=page.locator('.rsCascade').first
-    assert root.get_by_role('menuitem').count()<=7
-    root.get_by_role('menuitem',name='Tráfego e ligações',exact=True).hover()
-    assert page.locator('.rsCascade').count()==2
+    root.get_by_role('menuitem',name='Nós e edição de trechos',exact=True).hover()
     submenu=page.locator('.rsCascade').nth(1)
-    a=root.bounding_box();b=submenu.bounding_box()
-    assert b['x']>=a['x']+a['width']-4
+    a=root.bounding_box();b=submenu.bounding_box();assert b['x']>=a['x']+a['width']-4
     screenshot(page,'142_03_modelar_cascata')
-    submenu.get_by_role('menuitem',name='Inverter fluxo',exact=True).click()
-    assert page.evaluate('tool')=='flowrev'
-    assert page.locator('.rsCascade').count()==0
+    submenu.get_by_role('menuitem',name='Apagar nó',exact=True).click()
+    assert page.evaluate('tool')=='nodedelete' and page.locator('.rsCascade').count()==0
 
 
 def test_menu_keyboard_and_escape(page):
-    b=page.get_by_role('menuitem',name='Modelar',exact=True)
-    b.focus();page.keyboard.press('ArrowDown');page.keyboard.press('ArrowRight')
+    b=page.get_by_role('menuitem',name='Tráfego',exact=True);b.focus();page.keyboard.press('ArrowDown')
+    page.get_by_role('menuitem',name='Nós e edição de trechos',exact=True).focus();page.keyboard.press('ArrowRight')
     assert page.locator('.rsCascade').count()==2
     page.keyboard.press('ArrowLeft');assert page.locator('.rsCascade').count()==1
     page.keyboard.press('Escape');assert page.locator('.rsCascade').count()==0

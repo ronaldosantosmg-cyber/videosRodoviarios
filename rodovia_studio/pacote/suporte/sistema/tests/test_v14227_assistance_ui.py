@@ -131,7 +131,7 @@ def test_video_density_save_and_discard_reach_actual_motor(gl_page,live):
     p.evaluate("psOpenHub('video')")
     p.locator('#rsPanelPopup').get_by_role('tab',name='Veículos e fluxo',exact=True).click()
     p.locator('#traffic_density').fill('5.2');p.locator('#rsPanelCancel').click()
-    p.get_by_role('button',name='Descartar alterações',exact=True).click();p.wait_for_function('!RodoviaPanels.opened')
+    p.locator('#rsPanelDecision').get_by_role('button',name='Descartar alterações',exact=True).click();p.wait_for_function('!RodoviaPanels.opened')
     assert read_config(d)['traffic_density']==3.4
 
 

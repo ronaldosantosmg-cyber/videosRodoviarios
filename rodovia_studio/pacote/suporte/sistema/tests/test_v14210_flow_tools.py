@@ -12,8 +12,8 @@ def test_explicit_cut_removes_only_the_interval_and_keeps_source_array():
     assert report[0]['status']=='applied' and report[0]['excluded_m']==60
     assert len(pieces)==2 and pieces[0]['points'][-1,0]==120 and pieces[1]['points'][0,0]==180
     np.testing.assert_array_equal(copy,points)
-    s=Settings(derive_traffic_paths=False,flow_cuts=cuts,signage_detail='basic')
-    n=TrafficNetwork([box(-10,-10,310,10)],[],[dict(points=points)],points,np.array([0.,300.]),s)
+    s=Settings(layers={'axis':['EIXO']},derive_traffic_paths=False,flow_cuts=cuts,signage_detail='basic')
+    n=TrafficNetwork([box(-10,-10,310,10)],[],[dict(points=points,layer='EIXO',role='axis')],points,np.array([0.,300.]),s)
     assert n.paths and not any(p['p'][:,0].min()<120 and p['p'][:,0].max()>180 for p in n.paths)
 
 
@@ -37,8 +37,8 @@ def test_cut_with_an_unknown_geometry_identity_does_not_modify_a_parallel_axis()
 
 def test_cutting_out_a_manual_disable_anchor_never_reenables_the_remaining_axis():
     points=np.array([[0.,0.],[300.,0.]])
-    s=Settings(derive_traffic_paths=False,signage_detail='basic',flow_overrides=[dict(id='disabled-before-cut',x=150,y=0,action='disable')],flow_cuts=[dict(start=dict(x=120,y=0),end=dict(x=180,y=0))])
-    n=TrafficNetwork([box(-10,-10,310,10)],[],[dict(points=points)],points,np.array([0.,300.]),s)
+    s=Settings(layers={'axis':['EIXO']},derive_traffic_paths=False,signage_detail='basic',flow_overrides=[dict(id='disabled-before-cut',x=150,y=0,action='disable')],flow_cuts=[dict(start=dict(x=120,y=0),end=dict(x=180,y=0))])
+    n=TrafficNetwork([box(-10,-10,310,10)],[],[dict(points=points,layer='EIXO',role='axis')],points,np.array([0.,300.]),s)
     assert not n.paths
     assert n.raw_info and all(row['disabled'] for row in n.raw_info)
     assert all('disabled-before-cut' in row['override_ids'] for row in n.raw_info)

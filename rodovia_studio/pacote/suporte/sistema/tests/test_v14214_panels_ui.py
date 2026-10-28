@@ -20,7 +20,7 @@ def test_modified_properties_closes_after_decision_and_stays_closed(gl_page,answ
 
 
 def test_axis_selection_hides_short_routes_and_refreshes_when_limit_changes(page):
-    page.evaluate("()=>{analysis={routes:[{id:'0',length_m:19,layer:'MINI'},{id:'1',length_m:50,layer:'EIXO'},{id:'2',length_m:120,layer:'EIXO'}],layers:[],warnings:[],geometric_length_m:600};cfg.min_route_segment_m=50;showLayers()}")
+    page.evaluate("()=>{analysis={routes:[{id:'0',direction_key:'0',length_m:19,layer:'MINI'},{id:'1',direction_key:'1',length_m:50,layer:'EIXO'},{id:'2',direction_key:'2',length_m:120,layer:'EIXO'}],layers:[],warnings:[],geometric_length_m:600};cfg.min_route_segment_m=50;$('min_route_segment_m').value='50';showLayers()}")
     assert page.locator('#routes [data-route="0"]').count()==0
     assert page.locator('#routes [data-route="1"]').count()==1
     page.get_by_role('tab',name='Projeto',exact=True).click()
@@ -77,7 +77,7 @@ def test_expert_guide_teaches_surface_fix_and_can_locate_the_point(page):
 
 
 def test_limit_uses_exact_length_and_preserves_hidden_direction_choices(page):
-    page.evaluate("()=>{analysis={routes:[{id:'a',length_m:50,length_exact_m:49.999,layer:'EIXO'},{id:'b',length_m:120,length_exact_m:120,layer:'EIXO'}],layers:[],warnings:[],geometric_length_m:600};cfg.min_route_segment_m=50;showLayers()}")
+    page.evaluate("()=>{analysis={routes:[{id:'a',direction_key:'a',length_m:50,length_exact_m:49.999,layer:'EIXO'},{id:'b',direction_key:'b',length_m:120,length_exact_m:120,layer:'EIXO'}],layers:[],warnings:[],geometric_length_m:600};cfg.min_route_segment_m=50;$('min_route_segment_m').value='50';showLayers()}")
     assert page.locator('#routes [data-route=a]').count()==0
     page.evaluate("document.querySelector('#routes [data-route=b]').value='off'")
     page.get_by_role('tab',name='Projeto',exact=True).click()

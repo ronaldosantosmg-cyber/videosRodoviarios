@@ -8,7 +8,9 @@ from app.render import Scene
 
 def publish(d,s):
  scene=Scene.light(d,s);doc=scene.editor_data();store.write_json(d/'editor.json',doc)
- for name in ('analysis.json','vectors.json'):store.write_json(d/name,{})
+ store.write_json(d/'analysis.json',scene.report)
+ from app.webmap import write_vectors
+ write_vectors(d,scene.items,scene.axis,s.crs)
  ticket=artifacts.begin(d,'test','analyze',s);artifacts.finish(d,ticket);return doc
 
 @pytest.fixture

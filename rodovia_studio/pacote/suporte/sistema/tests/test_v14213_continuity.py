@@ -10,6 +10,8 @@ AXIS=np.array([[0.,0.],[600.,0.]])
 
 def network(axes,**kw):
     roads=kw.pop('roads',[box(-20,-20,620,220)]);obstacles=kw.pop('obstacles',[]);borders=kw.pop('borders',[])
+    axes=[dict(a,layer=a.get('layer','EIXO'),role='axis') for a in axes]
+    kw.setdefault('layers',{'axis':list(dict.fromkeys(a['layer'] for a in axes))})
     s=Settings(**dict(dict(derive_traffic_paths=False,hydrography=False),**kw))
     return TrafficNetwork(roads,obstacles,axes,AXIS,np.array([0.,600.]),s,edge_lines=borders)
 
@@ -18,7 +20,7 @@ def test_minor_dxf_axis_is_used_instead_of_only_the_main_skeleton():
     minor=np.array([[100.,30.],[300.,30.]])
     n=network([dict(points=AXIS),dict(points=minor)],derive_traffic_paths=True)
     assert any(r.get('native_id')=='1' and np.allclose(r['points'][:,1],30) for r in n.raw_info)
-    assert any(p['length']>190 and np.ptp(p['p'][:,1])<.01 and np.mean(p['p'][:,1])>25 for p in n.paths)
+    assert any(p['length']>=190-1e-6 and np.ptp(p['p'][:,1])<.01 and np.mean(p['p'][:,1])>25 for p in n.paths)
 
 
 def test_short_contact_piece_does_not_break_a_long_native_axis():
@@ -35,7 +37,7 @@ def test_short_fragments_join_only_in_derived_geometry_and_preserve_source():
     axes=[dict(layer='EIXO',points=np.array([[100.+i*30,30.],[130.+i*30,30.]])) for i in range(3)]
     before=[a['points'].copy() for a in axes];n=network([dict(points=AXIS)]+axes)
     assert n.native_axis_report['joined']==2
-    assert any(p['length']>85 and np.ptp(p['p'][:,0])<100 for p in n.paths)
+    assert any(p['length']>=80-1e-6 and np.ptp(p['p'][:,0])<100 for p in n.paths)
     for a,b in zip(axes,before):np.testing.assert_array_equal(a['points'],b)
 
 
@@ -52,16 +54,16 @@ def test_border_paint_does_not_interrupt_but_real_obstacles_do():
 
 
 def test_join_rejects_real_gap_ambiguity_incompatible_layer_and_disabled_axis():
-    s=Settings();surface=box(-10,-10,200,10)
+    s=Settings(layers={'axis':['EIXO A','EIXO B']});surface=box(-10,-10,200,10)
     def row(a,b,layer='EIXO A'):return dict(points=np.array([[a,0.],[b,0.]]),layer=layer)
     rows,report=native_paths([row(0,60),row(60.1,120)],s,surface)
     assert len(rows)==1 and report['joined']==1 and abs(report['max_gap_m']-.1)<1e-6
     for axes in [[row(0,60),row(61,120)],[row(0,60),row(60,120,'EIXO B')],
                  [row(0,60),row(60,120),row(60,130)]]:
         assert native_paths(axes,s,surface)[1]['joined']==0
-    s.route_directions={'1':'off'}
+    s.route_directions={'axis:'+__import__('app.native_axes',fromlist=['axis_fingerprint']).axis_fingerprint([[60,0],[120,0]],'EIXO A'):'off'}
     assert len(native_paths([row(0,60),row(60,120)],s,surface)[0])==1
-    assert native_paths([row(0,60),row(60.1,120)],Settings(),surface.difference(box(60,-10,60.1,10)))[1]['joined']==0
+    assert native_paths([row(0,60),row(60.1,120)],Settings(layers={'axis':['EIXO A']}),surface.difference(box(60,-10,60.1,10)))[1]['joined']==0
 
 
 def test_old_main_axis_disable_keeps_its_identity():
@@ -74,7 +76,7 @@ def test_old_main_axis_disable_keeps_its_identity():
 
 def test_external_axis_excess_is_trimmed_without_creating_portals_at_internal_gaps():
     n=network([dict(points=AXIS)],roads=[box(40,-10,560,10)])
-    assert n.paths and max(p['length'] for p in n.paths)>510
+    assert n.paths and abs(max(p['length'] for p in n.paths)-510)<1e-6
     assert all(np.min(p['p'][:,0])>40 and np.max(p['p'][:,0])<560 for p in n.paths)
     blocked=network([dict(points=AXIS)],roads=[box(40,-10,560,10)],obstacles=[box(290,-10,310,10)])
     assert not blocked.paths

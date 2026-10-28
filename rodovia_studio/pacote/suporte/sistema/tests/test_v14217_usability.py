@@ -1,3 +1,5 @@
+from ui_release_helpers import show_calculation_guide
+from ui_release_helpers import ribbon_control
 import pytest
 from app.calculation_guidance import guidance
 from test_v142_visual import page
@@ -25,8 +27,8 @@ def test_new_project_has_padding_and_all_tools_stay_inside_viewport(page,width):
     screenshot(page,'14217_novo_projeto_'+str(width));page.locator('#rsNewCancel').click()
     result=page.evaluate("()=>{const p=$('rsToolPanel0'),r=p.getBoundingClientRect();return {width:p.scrollWidth,client:p.clientWidth,edge:r.right,viewport:innerWidth}}")
     assert result['width']<=result['client']+1 and result['edge']<=result['viewport']
-    page.locator('#rsToolPanel0 [data-rs-tool=flowcut]').scroll_into_view_if_needed()
-    assert page.locator('#rsToolPanel0 [data-rs-tool=flowcut]').is_visible()
+    ribbon_control(page,'flowcut','tool').scroll_into_view_if_needed()
+    assert ribbon_control(page,'flowcut','tool').is_visible()
     screenshot(page,'14217_faixa_grupos_'+str(width))
 
 
@@ -36,7 +38,7 @@ def test_guidance_does_not_open_a_modal_during_processing_and_escapes_messages(p
     page.evaluate("()=>{window.fetch=async()=>({ok:true,status:200,json:async()=>({title:'Como corrigir este cálculo',causes:['Conferir entrada'],steps:['Corrigir o campo','Recalcular'],point:[30,0],message:'<img src=x onerror=alert(1)>',project:'p'}),headers:new Headers()})}")
     page.evaluate("RodoviaCalculationGuide.advise('analyze','erro',[30,0])")
     assert page.locator('dialog[open]').count()==0
-    page.locator('#rsCalculationGuide').click()
+    show_calculation_guide(page);page.locator('#rsCalculationGuide').click()
     assert 'Conferir entrada' in page.get_by_role('dialog').inner_text()
     assert page.get_by_role('dialog').locator('img').count()==0
     page.get_by_role('button',name='Localizar ponto problemático',exact=True).click()
@@ -78,7 +80,7 @@ def test_real_api_calculation_error_produces_guidance_without_blocking_motor(gl_
     p.evaluate("async()=>{try{await api('/api/alignment/fit',json('POST',{mode:'inexistente',pairs:[]}))}catch{}}")
     p.wait_for_function("$('rsCalculationGuide').textContent.includes('corrigir')",timeout=10000)
     assert p.locator('dialog[open]').count()==0
-    p.locator('#rsCalculationGuide').click()
+    show_calculation_guide(p);p.locator('#rsCalculationGuide').click()
     assert 'Possíveis causas' in p.get_by_role('dialog').inner_text()
     screenshot(p,'14217_orientacao_calculo_real')
     p.get_by_role('button',name='Fechar',exact=True).click()
@@ -87,5 +89,5 @@ def test_real_api_calculation_error_produces_guidance_without_blocking_motor(gl_
 def test_calculation_guide_is_visible_next_to_flow_repair(page):
     page.set_viewport_size({'width':1024,'height':900})
     assert page.evaluate("$('rsRepairFlows').nextElementSibling.id==='rsCalculationGuide'")
-    r=page.locator('#rsCalculationGuide').bounding_box()
+    show_calculation_guide(page);r=page.locator('#rsCalculationGuide').bounding_box()
     assert r['x']>=0 and r['x']+r['width']<=1024

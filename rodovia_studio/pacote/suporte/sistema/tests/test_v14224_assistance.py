@@ -38,7 +38,7 @@ def test_applying_texture_keeps_implicit_axis_and_changes_real_material(sample):
     d,s=sample;r=report(sample);before=(d/'input.dxf').read_bytes()
     apply(d,body(r,'texture','PAVIMENTO','pavement','concrete'))
     config=read_config(d)
-    assert config['layers']['axis']==['EIXO','EIXO_HACHURA'] and config['layer_materials']['PAVIMENTO']=='concrete'
+    assert config['layers']['axis']==['EIXO'] and config['layer_materials']['PAVIMENTO']=='concrete'
     items,*_=analyze(d,Settings.model_validate(config))
     assert all(e['material']=='rigido' for e in items if e['role']=='pavement')
     assert (d/'input.dxf').read_bytes()==before and len(history(d))>=2

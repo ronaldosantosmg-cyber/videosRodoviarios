@@ -110,6 +110,6 @@ def test_analysis_reuses_valid_results_after_a_presentation_change(project,monke
     monkeypatch.setattr(store,'job',lambda _:{'project':'p','kind':'analyze','state':'running'})
     outcomes=[];monkeypatch.setattr(store,'update',lambda *a,**kw:outcomes.append(kw))
     monkeypatch.setattr(worker,'analyze',lambda *a,**kw:pytest.fail('Não deve recalcular a geometria para alterar textura.'))
-    assert worker.run('reuse')==0
+    assert worker.run('a'*32)==0
     assert any(o.get('state')=='done' for o in outcomes)
     assert all((d/n).stat().st_mtime_ns==stamp for n,stamp in before.items())

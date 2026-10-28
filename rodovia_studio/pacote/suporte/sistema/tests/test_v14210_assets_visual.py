@@ -18,10 +18,14 @@ def test_native_asset_layers_have_2d_textures_and_real_3d_geometry(tmp_path):
     for name,x in [('ARVORES',30),('EDIFICACAO',130),('EROSAO',270),('CORTINA ATIRANTADA',330),('OFFSET',400)]:
         h=model.add_hatch(dxfattribs={'layer':name});h.paths.add_polyline_path([(500000+x,7800045),(500030+x,7800045),(500030+x,7800070),(500000+x,7800070)],is_closed=True)
     doc.saveas(d/'input.dxf')
+    from app.geometry import guess
+    for name in ['GASMIG','ARVORES','EDIFICACAO','POSTES','REDE ELETRICA','FIBRA OPTICA','RADAR','TORRE','EROSAO','CORTINA ATIRANTADA','OFFSET','FERROVIA']:
+        s.layers.setdefault(guess(name),[]).append(name)
     scene=Scene(d,s);im,_=scene.frame(1,overview=True)
     q=scene.screen(np.array([[500040.,7800012.]]),scene.center,scene.overview)[0].astype(int)
     patch=im[max(0,q[1]-5):q[1]+6,max(0,q[0]-5):q[0]+6].astype(int)
     assert np.any((patch[:,:,0]>150)&(patch[:,:,1]>80)&(patch[:,:,2]<130))
+    (d/'config.json').write_text(s.model_dump_json(),encoding='utf-8')
     data=build(d,s)
     roles={m['role'] for m in data['meshes']}
     assert {'gas','vegetation','building','pole','electric','fiber','radar','tower','erosion','anchored_wall','earthwork','railway'}<=roles

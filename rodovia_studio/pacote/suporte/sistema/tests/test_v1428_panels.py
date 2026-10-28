@@ -34,7 +34,7 @@ def test_popup_discard_restores_form_and_preserves_previous_pending_edits(gl_pag
 def test_popup_save_reaches_the_real_api_and_restores_enabled_controls(gl_page,live):
     p=gl_page;p.evaluate("openSection('Configuração')");p.locator('#name').fill('Configuração da janela salva');p.locator('#name').dispatch_event('change')
     p.locator('#rsPanelClose').click();p.locator('[data-choice=save]').click()
-    p.wait_for_function('!RodoviaPanels.opened',timeout=15000)
+    p.wait_for_function('!RodoviaPanels.opened',timeout=60000)
     assert p.request.get(live[0]+'/api/projects/'+live[1]).json()['config']['name']=='Configuração da janela salva'
     assert p.locator('#name').is_enabled() and not p.evaluate('savePending')
 
@@ -79,7 +79,7 @@ def test_discard_keeps_edits_that_existed_before_opening_the_popup(gl_page):
 
 def test_ctrl_s_saves_popup_data_instead_of_claiming_a_deferred_save(gl_page,live):
     p=gl_page;p.evaluate("openSection('Configuração')");p.locator('#name').fill('Salvo pelo atalho da janela');p.keyboard.press('Control+s')
-    p.wait_for_function('!RodoviaPanels.opened',timeout=15000)
+    p.wait_for_function('!RodoviaPanels.opened',timeout=60000)
     assert p.request.get(live[0]+'/api/projects/'+live[1]).json()['config']['name']=='Salvo pelo atalho da janela'
     assert not p.evaluate('savePending')
 

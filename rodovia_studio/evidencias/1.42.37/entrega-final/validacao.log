@@ -1,0 +1,975 @@
+No broken requirements found.
+bringing up nodes...
+bringing up nodes...
+
+........................................................................ [  7%]
+........................................................................ [ 14%]
+........................................................................ [ 22%]
+........................................................................ [ 29%]
+........................................................................ [ 37%]
+........................................................................ [ 44%]
+........................................................................ [ 52%]
+..................................F..................................... [ 59%]
+........................................................................ [ 67%]
+.............................................................FF..F...... [ 74%]
+......................F....F............................................ [ 82%]
+...............F..F.....................F.F..F................F..FF..... [ 89%]
+...........F........F..F...F......................F........F.FF.F....... [ 97%]
+...........F...FFFF......                                                [100%]
+=================================== FAILURES ===================================
+__________ test_real_network_fits_one_way_dxf_axis_on_narrow_surface ___________
+[gw2] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+    def test_real_network_fits_one_way_dxf_axis_on_narrow_surface():
+        n=network([dict(points=AXIS)],roads=[box(-10,-2,610,2)],route_directions={'axis:'+__import__('app.native_axes',fromlist=['axis_fingerprint']).axis_fingerprint(AXIS):'forward'})
+>       assert n.paths and any(r.get('lateral_fits') for r in n.raw_info)
+E       assert ([])
+E        +  where [] = <app.traffic.TrafficNetwork object at 0x7fc7d5a7bad0>.paths
+
+tests/test_v14216_flow_repair.py:55: AssertionError
+__________ test_controls_are_saved_from_dialog_with_undo_and_context ___________
+[gw0] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+gl_page = <Page url='http://127.0.0.1:54523/'>
+
+    def test_controls_are_saved_from_dialog_with_undo_and_context(gl_page):
+        p=gl_page
+>       p.locator('#rsToolPanel0 [data-rs-tool=railway]').hover();assert 'Ferrovia' in p.locator('#rsToolHelp').inner_text()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_v1426_transport_visual.py:26: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:17041: in hover
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:460: in hover
+    return await self._frame.hover(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:741: in hover
+    await self._channel.send("hover", self._timeout, locals_to_params(locals()))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f126e12acf0>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f12346a0900>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.hover: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for locator("#rsToolPanel0 [data-rs-tool=railway]")
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+_ test_image_tool_only_appears_after_local_image_and_runs_real_background_job __
+[gw1] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+gl_page = <Page url='http://127.0.0.1:40401/'>
+live = ('http://127.0.0.1:40401', 'ffffffffffffffffffffffffffffffff', PosixPath('/tmp/pytest-of-agent/pytest-393/popen-gw1/webgl_real3'))
+
+    def test_image_tool_only_appears_after_local_image_and_runs_real_background_job(gl_page,live):
+        p=gl_page
+        assert not ribbon_control(p,'IMAGEMCONTORNOS','command').is_visible()
+>       upload_image(p,live);ribbon_control(p,'IMAGEMCONTORNOS','command').click();p.wait_for_selector('#rsImageContext')
+        ^^^^^^^^^^^^^^^^^^^^
+
+tests/test_v14212_ui.py:36: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_v14212_ui.py:30: in upload_image
+    page.evaluate('RodoviaImageContext.refresh()');ribbon_control(page,'IMAGEMCONTORNOS','command').wait_for(state='visible')
+                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:18080: in wait_for
+    self._sync(self._impl_obj.wait_for(timeout=timeout, state=state))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:710: in wait_for
+    await self._frame.wait_for_selector(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:369: in wait_for_selector
+    await self._channel.send(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f1041efa210>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f10419f8680>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.wait_for: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for locator("[data-activity=\"Projeto\"]").locator("[data-rs-command=\"IMAGEMCONTORNOS\"]").first to be visible
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+______ test_sections_dialog_applies_asymmetric_bands_to_the_actual_engine ______
+[gw1] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+gl_page = <Page url='http://127.0.0.1:40401/'>
+live = ('http://127.0.0.1:40401', 'ffffffffffffffffffffffffffffffff', PosixPath('/tmp/pytest-of-agent/pytest-393/popen-gw1/webgl_real3'))
+
+    def test_sections_dialog_applies_asymmetric_bands_to_the_actual_engine(gl_page,live):
+        p=gl_page;p.evaluate("async()=>{M.route_alignments=[{id:'section-route',name:'Eixo das seções',points:[{x:500050,y:7800000},{x:500450,y:7800000}],type:'simples',lanes:1,median_m:0,lane_width_m:3.5,taper_m:40,enabled:true,level:0,sections:[]}];changed();await save();RodoviaSections.open(0)}")
+        p.locator('#rsRoadSections [name=template]').select_option('simples3');p.locator('#rsRoadSections [name=rightCount]').select_option('3')
+        p.locator('#rsRoadSections [data-right] select').nth(2).select_option('acostamento');p.locator('#rsRoadSections [data-right] input[type=number]').nth(2).fill('2.5')
+        p.locator('#rsRoadSections [data-add-section]').click();screenshot(p,'14212_03_secoes_assimetricas')
+        p.locator('#rsRoadSections footer [data-calculate]').click();p.wait_for_selector('#rsRoadSections',state='detached',timeout=15000)
+        try:p.wait_for_function('!task && !taskRequestPending && !!editor',timeout=60000)
+        except Exception:raise AssertionError(str(p.evaluate('({task,taskRequestPending,message:document.getElementById("message").textContent,editor:!!editor})'))+' | '+(live[2]/live[1]/'analysis.json').read_text()[-3500:])
+        config=p.request.get(live[0]+'/api/projects/'+live[1]).json()['config'];section=config['route_alignments'][0]['cross_sections'][0]
+        assert len(section['left'])==1 and len(section['right'])==3 and section['right'][2]['kind']=='acostamento'
+>       assert len([s for s in p.evaluate('editor.segments') if s.get('route')=='section-route'])==3
+E       assert 0 == 3
+E        +  where 0 = len([])
+
+tests/test_v14212_ui.py:74: AssertionError
+____________ test_link_tool_connects_signals_and_context_edits_link ____________
+[gw0] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+gl_page = <Page url='http://127.0.0.1:54523/'>
+
+    def test_link_tool_connects_signals_and_context_edits_link(gl_page):
+        p=gl_page
+        p.evaluate("async()=>{M.traffic_signals=[{id:'A',name:'A',point:{x:500100,y:7800010},heading_deg:0,phases:2,lanes_a:2,lanes_b:2,lane_width_m:3.5,offset_s:0,enabled:true,level:0},{id:'B',name:'B',point:{x:500400,y:7800010},heading_deg:0,phases:2,lanes_a:2,lanes_b:2,lane_width_m:3.5,offset_s:0,enabled:true,level:0}];M.signal_links=[];draw();await save()}")
+>       p.locator('#rsToolPanel0 [data-rs-tool=signal_link]').click();click_world(p,500100,7800010);click_world(p,500400,7800010)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_v1426_transport_visual.py:110: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:15637: in click
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:162: in click
+    return await self._frame._click(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:566: in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f123572ce90>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f1234c8f7e0>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for locator("#rsToolPanel0 [data-rs-tool=signal_link]")
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+____ test_image_only_project_can_analyze_and_show_its_georeferenced_capture ____
+[gw1] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+gl_page = <Page url='http://127.0.0.1:40401/'>
+live = ('http://127.0.0.1:40401', 'ffffffffffffffffffffffffffffffff', PosixPath('/tmp/pytest-of-agent/pytest-393/popen-gw1/webgl_real3'))
+
+    def test_image_only_project_can_analyze_and_show_its_georeferenced_capture(gl_page,live):
+        from app.models import Settings
+        p=gl_page;response=p.request.post(live[0]+'/api/projects',data=Settings(name='Somente imagem',imagery='local').model_dump());assert response.status==201,response.text()
+>       pid=response.json()['id'];other=(live[0],pid,live[2]);upload_image(p,other)
+                                                              ^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_v14212_ui.py:118: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_v14212_ui.py:30: in upload_image
+    page.evaluate('RodoviaImageContext.refresh()');ribbon_control(page,'IMAGEMCONTORNOS','command').wait_for(state='visible')
+                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:18080: in wait_for
+    self._sync(self._impl_obj.wait_for(timeout=timeout, state=state))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:710: in wait_for
+    await self._frame.wait_for_selector(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:369: in wait_for_selector
+    await self._channel.send(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f1087731580>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f1041bc14e0>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.wait_for: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for locator("[data-activity=\"Projeto\"]").locator("[data-rs-command=\"IMAGEMCONTORNOS\"]").first to be visible
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+_____ test_converging_and_diverging_mini_routes_are_removed_before_network _____
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+    def test_converging_and_diverging_mini_routes_are_removed_before_network():
+        axis=np.array([[0.,0.],[500.,0.]])
+        spokes=[np.array([[250.,0.],[250.+dx,dy]]) for dx,dy in [(10,4),(-12,8),(8,-15),(-10,-10),(0,19)]]
+        originals=[p.copy() for p in spokes]
+        s=Settings(derive_traffic_paths=False,hydrography=False,min_route_segment_m=50)
+        n=TrafficNetwork([box(-30,-50,530,50)],[],[{'points':axis}]+[{'points':p} for p in spokes],axis,np.array([0.,500.]),s)
+>       assert len(n.auto_pruned)>=5
+E       assert 0 >= 5
+E        +  where 0 = len([])
+E        +    where [] = <app.traffic.TrafficNetwork object at 0x7f629dab1010>.auto_pruned
+
+tests/test_v1425_fan_pruning.py:14: AssertionError
+__ test_contact_splits_keep_long_native_axis_without_independent_short_routes __
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+    def test_contact_splits_keep_long_native_axis_without_independent_short_routes():
+        axis=np.array([[0.,0.],[600.,0.]])
+        # As fontes são longas; o trecho de 25 m só aparece depois dos encontros.
+        axes=[{'points':axis},{'points':np.array([[250.,0.],[250.,150.]])},
+              {'points':np.array([[275.,0.],[275.,150.]])}]
+        s=Settings(derive_traffic_paths=False,hydrography=False,min_route_segment_m=50)
+        n=TrafficNetwork([box(-30,-180,630,180)],[],axes,axis,np.array([0.,600.]),s)
+>       assert any(e['length']<50 and e.get('native_axis') for e in n.edges)
+E       assert False
+E        +  where False = any(<generator object test_contact_splits_keep_long_native_axis_without_independent_short_routes.<locals>.<genexpr> at 0x7f629c3d9630>)
+
+tests/test_v1425_fan_pruning.py:41: AssertionError
+______ test_flow_selection_opens_properties_after_other_object_selection _______
+[gw1] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='about:blank'>
+
+    def test_flow_selection_opens_properties_after_other_object_selection(page):
+        seed(page)
+        page.evaluate("sel={key:'pavement_areas',i:0};selSet=[sel];showProps();recolherDock(true)")
+>       page.locator('#rsToolPanel0 [data-rs-command=EDITARFLUXOS]').click()
+
+tests/test_v1428_menu_flow.py:20: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:15637: in click
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:162: in click
+    return await self._frame._click(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:566: in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f1087742180>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f105166a840>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for locator("#rsToolPanel0 [data-rs-command=EDITARFLUXOS]")
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+_______ test_groups_keep_related_commands_together_and_distinguish_icons _______
+[gw1] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='about:blank'>
+
+    def test_groups_keep_related_commands_together_and_distinguish_icons(page):
+        groups=page.evaluate("()=>Object.fromEntries([...document.querySelectorAll('#rsToolPanel0 [data-rs-group]')].map(g=>[g.dataset.rsGroup,[...g.querySelectorAll('button')].map(b=>b.dataset.rsCommand||b.dataset.rsTool||b.dataset.rs3d)]))")
+>       assert {'MOVER','GIRAR','COPIAR','move','insertcontrol'}<=set(groups['Edição'])
+                                                                      ^^^^^^^^^^^^^^^^
+E       KeyError: 'Edição'
+
+tests/test_v1428_menu_flow.py:43: KeyError
+________ test_native_asset_layers_have_2d_textures_and_real_3d_geometry ________
+[gw2] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-393/popen-gw2/test_native_asset_layers_have_0')
+
+    def test_native_asset_layers_have_2d_textures_and_real_3d_geometry(tmp_path):
+        d,s=project(tmp_path,traffic=False);doc=ezdxf.readfile(d/'input.dxf');model=doc.modelspace()
+        for name in ['GASMIG','ARVORES','EDIFICACAO','POSTES','REDE ELETRICA','FIBRA OPTICA','RADAR','TORRE','EROSAO','CORTINA ATIRANTADA','OFFSET','FERROVIA']:doc.layers.new(name)
+        for name,y in [('GASMIG',12),('REDE ELETRICA',40),('FIBRA OPTICA',-30),('FERROVIA',-45)]:model.add_lwpolyline([(500030,7800000+y),(500470,7800000+y)],dxfattribs={'layer':name})
+        for name,x in [('POSTES',80),('RADAR',200),('TORRE',390)]:model.add_point((500000+x,7800030),dxfattribs={'layer':name})
+        for name,x in [('ARVORES',30),('EDIFICACAO',130),('EROSAO',270),('CORTINA ATIRANTADA',330),('OFFSET',400)]:
+            h=model.add_hatch(dxfattribs={'layer':name});h.paths.add_polyline_path([(500000+x,7800045),(500030+x,7800045),(500030+x,7800070),(500000+x,7800070)],is_closed=True)
+        doc.saveas(d/'input.dxf')
+        scene=Scene(d,s);im,_=scene.frame(1,overview=True)
+        q=scene.screen(np.array([[500040.,7800012.]]),scene.center,scene.overview)[0].astype(int)
+        patch=im[max(0,q[1]-5):q[1]+6,max(0,q[0]-5):q[0]+6].astype(int)
+>       assert np.any((patch[:,:,0]>150)&(patch[:,:,1]>80)&(patch[:,:,2]<130))
+E       assert np.False_
+E        +  where np.False_ = <function any at 0x7fc8275a84f0>(((array([[67, 67, 67, 67, 65, 67, 69, 70, 70, 70, 69],\n       [70, 64, 67, 67, 67, 67, 69, 71, 70, 69, 72],\n       [67, ...70, 70, 66],\n       [66, 69, 70, 71, 69, 66, 68, 69, 68, 69, 70],\n       [67, 72, 69, 71, 71, 68, 70, 69, 70, 70, 72]]) > 150 & array([[74, 74, 73, 74, 72, 74, 76, 78, 77, 78, 77],\n       [77, 71, 74, 74, 73, 74, 76, 78, 77, 76, 80],\n       [74, ...77, 77, 73],\n       [73, 76, 77, 78, 76, 73, 75, 77, 75, 76, 77],\n       [74, 79, 76, 78, 78, 75, 77, 76, 77, 77, 79]]) > 80) & array([[76, 76, 75, 76, 74, 76, 78, 80, 79, 80, 79],\n       [79, 73, 76, 76, 75, 76, 78, 80, 79, 78, 82],\n       [76, ...79, 79, 75],\n       [74, 78, 79, 80, 78, 76, 77, 79, 78, 78, 79],\n       [76, 81, 78, 80, 80, 77, 79, 78, 79, 80, 81]]) < 130))
+E        +    where <function any at 0x7fc8275a84f0> = np.any
+
+tests/test_v14210_assets_visual.py:24: AssertionError
+___ test_calculation_button_runs_the_real_analysis_without_generating_video ____
+[gw1] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+gl_page = <Page url='http://127.0.0.1:56467/'>
+live = ('http://127.0.0.1:56467', 'ffffffffffffffffffffffffffffffff', PosixPath('/tmp/pytest-of-agent/pytest-393/popen-gw1/webgl_real5'))
+
+    def test_calculation_button_runs_the_real_analysis_without_generating_video(gl_page,live):
+>       p=gl_page;previous=p.evaluate('lastPolled');p.get_by_role('tab',name='Cálculos',exact=True).click()
+                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_v1428_menu_flow.py:66: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:15637: in click
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:162: in click
+    return await self._frame._click(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:566: in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f1050540260>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f1051638860>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for get_by_role("tab", name="Cálculos", exact=True)
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+_______ test_shared_people_and_bounded_smoke_are_rendered_by_real_webgl ________
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+gl_page = <Page url='http://127.0.0.1:60303/'>
+live = ('http://127.0.0.1:60303', 'ffffffffffffffffffffffffffffffff', PosixPath('/tmp/pytest-of-agent/pytest-393/popen-gw3/webgl_real1'))
+
+    def test_shared_people_and_bounded_smoke_are_rendered_by_real_webgl(gl_page,live):
+        p=gl_page;d,s,data=prepare(live);p.evaluate('(id)=>load(id)',live[1]);open3d(p)
+        p.evaluate('Rodovia3D.setTime(6)');stats=p.evaluate('Rodovia3D.stats()')
+>       assert stats['pedestrians']>0 and stats['activePedestrians']>0 and 0<stats['smokeParticles']<=240
+E       assert (0 > 0)
+
+tests/test_v14218_live_agents.py:23: AssertionError
+_____ test_actual_2d_frames_show_effect_and_are_reproducible_out_of_order ______
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-393/popen-gw3/test_actual_2d_frames_show_eff0')
+
+    def test_actual_2d_frames_show_effect_and_are_reproducible_out_of_order(tmp_path):
+        from test_v1425_scene3d import project
+        from app.transport_models import Railway
+        from app.models import PedPath
+        d,s=project(tmp_path,traffic=False)
+        s=s.model_copy(update=dict(width=1280,duration_s=12,view_width_m=700,pedestrian_paths=[PedPath(id='walk',points=[dict(x=500100,y=7800025),dict(x=500400,y=7800025)])],railways=[Railway(id='rail',points=[dict(x=500050,y=7799900),dict(x=500050,y=7800100)],start_s=0,speed_kmh=40,min_wagons=5,max_wagons=5)]))
+        store.write_json(d/'config.json',s.model_dump());scene=Scene(d,s);a=scene.frame(6)[0];scene.frame(2);b=scene.frame(6)[0]
+        np.testing.assert_array_equal(a,b)
+        from PIL import Image
+        import os
+        from pathlib import Path
+        target=Path(os.environ.get('VISUAL_ARTIFACTS',tmp_path));target.mkdir(parents=True,exist_ok=True)
+        Image.fromarray(a).save(target/'14218_agentes_2d.png')
+        scene.s.rail_smoke=False;without_smoke=scene.frame(6)[0]
+        assert np.any(a!=without_smoke)
+        scene.s.pedestrians=False;without_people=scene.frame(6)[0]
+>       assert np.any(without_smoke!=without_people)
+E       assert np.False_
+E        +  where np.False_ = <function any at 0x7f6301e30a70>(array([[[ 8, 22, 35],\n        [ 8, 22, 35],\n        [ 8, 22, 35],\n        ...,\n        [ 8, 22, 35],\n        [ 8, 22, ...5],\n        ...,\n        [ 8, 22, 35],\n        [ 8, 22, 35],\n        [ 8, 22, 35]]], shape=(720, 1280, 3), dtype=uint8) != array([[[ 8, 22, 35],\n        [ 8, 22, 35],\n        [ 8, 22, 35],\n        ...,\n        [ 8, 22, 35],\n        [ 8, 22, ...5],\n        ...,\n        [ 8, 22, 35],\n        [ 8, 22, 35],\n        [ 8, 22, 35]]], shape=(720, 1280, 3), dtype=uint8))
+E        +    where <function any at 0x7f6301e30a70> = np.any
+
+tests/test_v14218_live_agents.py:56: AssertionError
+____ test_technical_icons_render_and_keep_their_actual_commands_and_helpers ____
+[gw0] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='about:blank'>
+
+    def test_technical_icons_render_and_keep_their_actual_commands_and_helpers(page):
+        for tool,symbol in [('flowcut','delete-segment'),('flowjoin','merge-segments'),('railway','catenary-rail'),('traffic_signal','cantilever-signal'),('oae','oae-viaduct')]:
+            button=page.locator(f'#rsToolPanel0 [data-rs-tool="{tool}"]')
+>           assert button.count()==1
+E           assert 0 == 1
+E            +  where 0 = count()
+E            +    where count = <Locator frame=<Frame name= url='about:blank'> selector='#rsToolPanel0 [data-rs-tool="flowcut"]'>.count
+
+tests/test_v14211_infrarail_icons.py:25: AssertionError
+______ test_explicit_cut_removes_only_the_interval_and_keeps_source_array ______
+[gw1] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+    def test_explicit_cut_removes_only_the_interval_and_keeps_source_array():
+        points=np.array([[0.,0.],[300.,0.]]);copy=points.copy()
+        cuts=[FlowCut(start=dict(x=120,y=0),end=dict(x=180,y=0))]
+        pieces,report=cut_raw_paths([dict(points=points,origin=0)],cuts)
+        assert report[0]['status']=='applied' and report[0]['excluded_m']==60
+        assert len(pieces)==2 and pieces[0]['points'][-1,0]==120 and pieces[1]['points'][0,0]==180
+        np.testing.assert_array_equal(copy,points)
+        s=Settings(derive_traffic_paths=False,flow_cuts=cuts,signage_detail='basic')
+        n=TrafficNetwork([box(-10,-10,310,10)],[],[dict(points=points)],points,np.array([0.,300.]),s)
+>       assert n.paths and not any(p['p'][:,0].min()<120 and p['p'][:,0].max()>180 for p in n.paths)
+E       assert ([])
+E        +  where [] = <app.traffic.TrafficNetwork object at 0x7f1041c9d0a0>.paths
+
+tests/test_v14210_flow_tools.py:17: AssertionError
+_ test_cutting_out_a_manual_disable_anchor_never_reenables_the_remaining_axis __
+[gw1] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+    def test_cutting_out_a_manual_disable_anchor_never_reenables_the_remaining_axis():
+        points=np.array([[0.,0.],[300.,0.]])
+        s=Settings(derive_traffic_paths=False,signage_detail='basic',flow_overrides=[dict(id='disabled-before-cut',x=150,y=0,action='disable')],flow_cuts=[dict(start=dict(x=120,y=0),end=dict(x=180,y=0))])
+        n=TrafficNetwork([box(-10,-10,310,10)],[],[dict(points=points)],points,np.array([0.,300.]),s)
+        assert not n.paths
+>       assert n.raw_info and all(row['disabled'] for row in n.raw_info)
+E       assert ([])
+E        +  where [] = <app.traffic.TrafficNetwork object at 0x7f10408d78f0>.raw_info
+
+tests/test_v14210_flow_tools.py:43: AssertionError
+________ test_interval_arrow_automatically_changes_real_motor_direction ________
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+gl_page = <Page url='http://127.0.0.1:60303/'>
+live = ('http://127.0.0.1:60303', 'ffffffffffffffffffffffffffffffff', PosixPath('/tmp/pytest-of-agent/pytest-393/popen-gw3/webgl_real1'))
+
+    def test_interval_arrow_automatically_changes_real_motor_direction(gl_page,live):
+        p=gl_page
+        p.evaluate("()=>{checkpoint();M.direction_marks=[{id:'range',start:{x:500400,y:7800000},end:{x:500100,y:7800000}}];changed()}")
+>       p.wait_for_function("!task && !taskRequestPending && (editor?.segments||[]).some(s=>s.points.every(p=>p[0]>=500099.9&&p[0]<=500400.1)&&!s.forward)",timeout=60000)
+
+tests/test_v14218_live_agents.py:62: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:11595: in wait_for_function
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_page.py:1110: in wait_for_function
+    return await self._main_frame.wait_for_function(**locals_to_params(locals()))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:878: in wait_for_function
+    await self._channel.send("waitForFunction", self._timeout, params)
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f62e1c63f20>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f629e49c5e0>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 60000ms exceeded.
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+_________ test_saves_3500_capacity_and_higher_demand_through_real_api __________
+[gw0] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+gl_page = <Page url='http://127.0.0.1:48883/'>
+
+    def test_saves_3500_capacity_and_higher_demand_through_real_api(gl_page):
+>       p=gl_page;p.locator('[data-pshub=video]').click();p.get_by_text('Tráfego: simulação, engarrafamento e canteiro',exact=True).click();p.locator('#traffic_capacity_vphpl').fill('3500');p.locator('#traffic_demand_vphpl').fill('5000');p.locator('#traffic_demand_vphpl').dispatch_event('input');p.locator('#rsPanelSave').click();p.wait_for_function('!RodoviaPanels.opened',timeout=15000);p.locator('[data-pshub=video]').click()
+                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_v1426_import_capacity_ui.py:9: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:15637: in click
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:162: in click
+    return await self._frame._click(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:566: in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f1287c2a870>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f126e10a840>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for get_by_text("Tráfego: simulação, engarrafamento e canteiro", exact=True)
+E               - locator resolved to <summary>Tráfego: simulação, engarrafamento e canteiro</summary>
+E             - attempting click action
+E               2 × waiting for element to be visible, enabled and stable
+E                 - element is not visible
+E               - retrying click action
+E               - waiting 20ms
+E               2 × waiting for element to be visible, enabled and stable
+E                 - element is not visible
+E               - retrying click action
+E                 - waiting 100ms
+E               48 × waiting for element to be visible, enabled and stable
+E                  - element is not visible
+E                - retrying click action
+E                  - waiting 500ms
+E               - waiting for element to be visible, enabled and stable
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+______ test_limit_selector_options_persist_and_recalculate_automatically _______
+[gw2] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='about:blank'>
+
+    def test_limit_selector_options_persist_and_recalculate_automatically(page):
+        seed(page)
+        field=page.locator('#min_route_segment_m')
+>       assert field.is_visible()
+E       AssertionError: assert False
+E        +  where False = is_visible()
+E        +    where is_visible = <Locator frame=<Frame name= url='about:blank'> selector='#min_route_segment_m'>.is_visible
+
+tests/test_v1424_flow_limit_ui.py:8: AssertionError
+_________ test_short_geometry_is_kept_and_project_limit_is_reversible __________
+[gw2] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='about:blank'>
+
+    def test_short_geometry_is_kept_and_project_limit_is_reversible(page):
+        seed(page)
+>       page.locator('#min_route_segment_m').select_option('120')
+
+tests/test_v1424_flow_limit_ui.py:18: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:17636: in select_option
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:597: in select_option
+    return await self._frame.select_option(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:781: in select_option
+    return await self._channel.send("selectOption", self._timeout, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7fc7c55d1340>
+cb = <function Channel.send.<locals>.<lambda> at 0x7fc7c5645080>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.select_option: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for locator("#min_route_segment_m")
+E               - locator resolved to <select id="min_route_segment_m">…</select>
+E             - attempting select option action
+E               2 × waiting for element to be visible and enabled
+E                 - element is not visible
+E               - retrying select option action
+E               - waiting 20ms
+E               2 × waiting for element to be visible and enabled
+E                 - element is not visible
+E               - retrying select option action
+E                 - waiting 100ms
+E               51 × waiting for element to be visible and enabled
+E                  - element is not visible
+E                - retrying select option action
+E                  - waiting 500ms
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+__________ test_two_simultaneous_requests_start_only_one_calculation ___________
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+gl_page = <Page url='http://127.0.0.1:39381/'>
+
+    def test_two_simultaneous_requests_start_only_one_calculation(gl_page):
+        p=gl_page
+        p.wait_for_function('!task && !taskRequestPending',timeout=60000)
+        results=p.evaluate("""async()=>{window.analysisRequests=0;const previous=api;api=async function(url,opt){if(url.endsWith('/analyze')&&opt?.method==='POST')analysisRequests++;return previous(url,opt)};try{return await Promise.all([start('analyze'),start('analyze')])}finally{api=previous}}""")
+>       assert False in results
+E       AssertionError: assert False in [{'id': '46a5173760e941e79b1682bc05d6dfcf', 'project': 'ffffffffffffffffffffffffffffffff', 'kind': 'analyze', 'state':...173760e941e79b1682bc05d6dfcf', 'project': 'ffffffffffffffffffffffffffffffff', 'kind': 'analyze', 'state': 'done', ...}]
+
+tests/test_v14210_recovery_ui.py:73: AssertionError
+____________ test_missing_and_legacy_values_are_not_silently_zeroed ____________
+[gw2] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='about:blank'>
+
+    def test_missing_and_legacy_values_are_not_silently_zeroed(page):
+        page.evaluate('fill({})');assert page.evaluate('minFlowLength()')==50
+        page.evaluate('fill({min_route_segment_m:75})');assert page.evaluate('collect().min_route_segment_m')==75
+>       assert page.locator('#min_route_segment_m option[data-legacy]').inner_text()=='75 m (valor do projeto anterior)'
+E       AssertionError: assert '' == '75 m (valor ...eto anterior)'
+E         
+E         - 75 m (valor do projeto anterior)
+
+tests/test_v1424_flow_limit_ui.py:29: AssertionError
+___________ test_export_decodes_all_frames_and_has_front_rear_audit ____________
+[gw2] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-393/popen-gw2/test_export_decodes_all_frames0')
+
+    def test_export_decodes_all_frames_and_has_front_rear_audit(tmp_path):
+        doc=ezdxf.new();doc.layers.new('EIXO');doc.layers.new('PAVIMENTO');m=doc.modelspace()
+        m.add_lwpolyline([(500050,7800000),(500450,7800000)],dxfattribs={'layer':'EIXO'})
+        h=m.add_hatch(dxfattribs={'layer':'PAVIMENTO'});h.paths.add_polyline_path([(500000,7799980),(500500,7799980),(500500,7800020),(500000,7800020)],is_closed=True)
+        doc.saveas(tmp_path/'input.dxf')
+        s=Settings(width=1280,fps=24,duration_s=3,imagery='neutral',coordinates_confirmed=True,hydrography=False,render_workers=1)
+>       output=render(tmp_path,s);cap=cv2.VideoCapture(str(output));assert cap.isOpened()
+               ^^^^^^^^^^^^^^^^^^
+
+tests/test_v1423_video.py:18: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/tmp/pytest-of-agent/pytest-393/popen-gw2/test_export_decodes_all_frames0')
+s = Settings(alternating_zones=[], image_features=[], image_groups={}, image_context_source=None, railways=[], traffic_sig...min_gap_m=25, texture_style='artistico', natural_materials_only=False, earthwork_look='hatch', detail_resolution_m=0.2)
+status = <function <lambda> at 0x7fc7d91f4540>
+cancel = <function <lambda> at 0x7fc7d91f5ee0>
+
+    def render(directory,s,status=lambda *a:None,cancel=lambda:False):
+        directory=Path(directory)
+        if not s.coordinates_confirmed:raise ValueError('Confirme as coordenadas e o alinhamento na etapa de configuração.')
+        import time
+        # 1.32: qualidade máxima: o quadro é montado 1,5× maior e reduzido (superamostragem: bordas, textos e veículos sem serrilhado).
+        OW,OH=s.width,s.width*9//16
+        ssaa=getattr(s,'video_quality','padrao')=='maxima' and s.width<=2560 and not s.cabin.enabled
+        start=time.monotonic();scene=Scene(directory,s.model_copy(update={'width':s.width*3//2}) if ssaa else s,status);prepared=time.monotonic()-start
+        s=scene.s.model_copy(update={'width':OW}) if ssaa else scene.s   # 1.27: com avanço por velocidade, a duração é a calculada pela cena
+        cabin=None
+        if s.cabin.enabled:
+            from .cabin import CabinView
+            cabin=CabinView(scene)
+        out=directory/'video.partial.mp4';ff=ffmpeg_exe()
+        if getattr(scene,'detail',None) is not None and s.render_profile!='rapido':
+            try:
+                poses=[scene.pose(t)[:2] for t in np.arange(0,s.duration_s,.5)]
+                got=scene.detail.prefetch(poses,status,cancel=cancel)
+                if scene.detail.offline:scene.report['warnings'].append('Imagem detalhada indisponível (sem internet e sem cache): o vídeo usa o mosaico base; texturas do projeto seguem em alta resolução.')
+            except Exception as e:scene.report['warnings'].append('Imagem detalhada não pré-carregada: '+str(e)[:120])
+        if s.traffic:scene.traffic(status)
+        from .traffic_presentation import record_preflight
+        scene.report['traffic_presentation']=record_preflight(scene)
+        if scene.report['traffic_presentation']['status']=='sem_itinerarios':
+>           raise ValueError('Vídeo não gerado: veículos estão ativados, mas não há itinerário válido. '+scene.report['traffic_presentation']['notice'])
+E           ValueError: Vídeo não gerado: veículos estão ativados, mas não há itinerário válido. Nenhum eixo foi autorizado para circulação. Em Escolher eixo e configurar faixas, cadastre a camada como Eixo ou selecione uma linha com sentido explícito. Hachuras não geram eixos.
+
+app/render.py:1192: ValueError
+___ test_cached_conversion_reference_survives_ui_save_mixed_mode_and_reload ____
+[gw0] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+gl_page = <Page url='http://127.0.0.1:56693/'>
+live = ('http://127.0.0.1:56693', 'ffffffffffffffffffffffffffffffff', PosixPath('/tmp/pytest-of-agent/pytest-393/popen-gw0/webgl_real9'))
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-393/popen-gw0/test_cached_conversion_referen0')
+
+    def test_cached_conversion_reference_survives_ui_save_mixed_mode_and_reload(gl_page,live,tmp_path):
+        from app.imagery_cache import register
+        p=gl_page;url=live[0]+'/api/projects/'+live[1]
+        source=tmp_path/'imagem.ecw';source.write_bytes(b'fonte-de-teste-cache-1429')
+        converted=tmp_path/'convertida.tif'
+        pixels=np.full((128,128,3),(35,125,185),dtype=np.uint8)
+        keys=[1,1,0,3,1024,0,1,1,1025,0,1,1,3072,0,1,31983]
+        tifffile.imwrite(converted,pixels,photometric='rgb',extratags=[(33550,'d',3,(4.,4.,0.),False),(33922,'d',6,(0.,0.,0.,499226.,7801024.,0.),False),(34735,'H',len(keys),keys,False)])
+        entry=register(source,converted,extra={'format':'GeoTIFF'})
+        response=p.request.post(url+'/imagery',multipart={'files':{'name':source.name,'mimeType':'application/octet-stream','buffer':source.read_bytes()},'mode':'replace'})
+        assert response.ok,response.text()
+        # O upload altera a revisão no servidor; a interface real recarrega antes de converter.
+        p.evaluate('(id)=>load(id)',live[1])
+        p.evaluate("async()=>{await start('imagery/convert')}")
+        assert p.evaluate('cfg.local_imagery.image')=='imagem_convertido.tif'
+        assert p.evaluate('projectSession.revision')==p.request.get(url).json()['config_revision']
+        p.get_by_role('tab',name='Projeto',exact=True).click()
+        p.locator('#rsTechnicalOptions').locator('..').evaluate('(el)=>el.open=true')
+>       p.locator('#rsPresentationBase').select_option('mixed')
+
+tests/test_v1429_project_imagery.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:17636: in select_option
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_locator.py:597: in select_option
+    return await self._frame.select_option(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:781: in select_option
+    return await self._channel.send("selectOption", self._timeout, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f12369f4080>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f12275965c0>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.select_option: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for locator("#rsPresentationBase")
+E               - locator resolved to <select id="rsPresentationBase">…</select>
+E             - attempting select option action
+E               2 × waiting for element to be visible and enabled
+E                 - element is not visible
+E               - retrying select option action
+E               - waiting 20ms
+E               2 × waiting for element to be visible and enabled
+E                 - element is not visible
+E               - retrying select option action
+E                 - waiting 100ms
+E               51 × waiting for element to be visible and enabled
+E                  - element is not visible
+E                - retrying select option action
+E                  - waiting 500ms
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+_ test_real_scene_contains_shared_pedestrian_tracks_bridge_and_smoke_configuration _
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-393/popen-gw3/test_real_scene_contains_share0')
+
+    def test_real_scene_contains_shared_pedestrian_tracks_bridge_and_smoke_configuration(tmp_path):
+        d,s=project(tmp_path)
+        data=s.model_dump();data.update(duration_s=12,traffic_density=1,pedestrian_paths=[dict(id='walk',points=[dict(x=500100,y=7800025),dict(x=500400,y=7800025)],people_per_100m=5)],pois=[dict(id='bridge',title='Passarela',kind='passarela',x=500250,y=7800000,bridge_span_m=50)],railways=[dict(id='rail',points=[dict(x=500050,y=7799700),dict(x=500050,y=7800300)],start_s=0,speed_kmh=40,min_wagons=5,max_wagons=5)])
+        s=Settings.model_validate(data);store.write_json(d/'config.json',s.model_dump());scene=build(d,s)
+>       assert scene['pedestrians'] and scene['pedestrian_report']['admitted']>0 and scene['rail_smoke']
+E       assert ([])
+
+tests/test_v14218_scene_agents.py:13: AssertionError
+_____________ test_engine_diagnostics_reach_live_editor_and_update _____________
+[gw2] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+drawing = PosixPath('/tmp/pytest-of-agent/pytest-393/popen-gw2/test_engine_diagnostics_reach_0')
+
+    def test_engine_diagnostics_reach_live_editor_and_update(drawing):
+        import ezdxf
+        doc=ezdxf.new();doc.layers.new('EIXO');doc.layers.new('PAVIMENTO');m=doc.modelspace()
+        m.add_lwpolyline([(500050,7800000),(500450,7800000)],dxfattribs={'layer':'EIXO'})
+        h=m.add_hatch(dxfattribs={'layer':'PAVIMENTO'});h.paths.add_polyline_path([(500000,7799980),(500500,7799980),(500500,7800020),(500000,7800020)],is_closed=True)
+        doc.saveas(drawing/'input.dxf')
+        from app.server import app
+        with socket.socket() as s:s.bind(('127.0.0.1',0));port=s.getsockname()[1]
+        server=uvicorn.Server(uvicorn.Config(app,host='127.0.0.1',port=port,log_level='warning'))
+        th=threading.Thread(target=server.run,daemon=True);th.start()
+        base=f'http://127.0.0.1:{port}'
+        try:
+            with httpx.Client(base_url=base,trust_env=False,timeout=60) as client:
+                for _ in range(100):
+                    try:
+                        if client.get('/api/health').status_code==200:break
+                    except httpx.ConnectError:pass
+                    time.sleep(.1)
+                r=client.post('/api/projects',json=settings().model_dump());assert r.status_code==201,r.text
+                pid=r.json()['id']
+                r=client.post(f'/api/projects/{pid}/files',files={'file':('trecho.dxf',(drawing/'input.dxf').read_bytes())});assert r.status_code==200,r.text
+                job=client.post(f'/api/projects/{pid}/analyze').json();result=wait(client,job['id']);assert result['state']=='done',result
+                data=client.get(f'/api/projects/{pid}/editor.json').json()
+                assert data['segments'] and any(s['technical_status']=='ok' for s in data['segments'])
+                with sync_playwright() as p:
+                    browser=p.chromium.launch(executable_path=chromium_path(),args=['--no-sandbox','--disable-gpu'])
+                    page=browser.new_page(viewport={'width':1440,'height':900});errors=[]
+                    page.on('pageerror',lambda e:errors.append(str(e)))
+                    page.add_init_script(f"localStorage.setItem('rodovia_project','{pid}')")
+                    page.route('**/tiles/**',lambda r:r.fulfill(status=204,body=''))
+                    page.goto(base,wait_until='domcontentloaded')
+                    page.wait_for_function("typeof editor!=='undefined'&&editor?.segments?.length>0",timeout=20000)
+                    states=page.evaluate("editor.segments.map(s=>({status:s.technical_status,color:flowStudyColor(s)}))")
+                    assert any(s['color']=='#22c55e' for s in states)
+                    page.evaluate("selSeg=editor.segments.find(s=>s.technical_status==='ok');showSegProps();draw()")
+                    assert 'Fluxo presente nos itinerários calculados.' in page.inner_text('#propPanel')
+                    screenshot(page,'142_11_motor_editor_real')
+                    # Desativa o trecho e recalcula pelo fluxo real da aplicação.
+                    page.evaluate("async()=>{const s=selSeg;M.flow_overrides.push({id:'teste-fluxo',x:s.mid[0],y:s.mid[1],action:'disable',enabled:true});changed('Fluxo desativado para teste.')}")
+                    try:page.locator('#rsPanelSave').click(timeout=5000)
+                    except Exception:raise AssertionError(page.evaluate('()=>({popup:RodoviaPanels.opened,pending:RodoviaPanels.pending,disabled:document.querySelector("#rsPanelSave").disabled,open:document.querySelector("#rsPanelPopup").open,decision:!!document.querySelector("#rsPanelDecision"),message:document.querySelector("#message").textContent})'))
+                    page.wait_for_function('!RodoviaPanels.opened',timeout=15000)
+                    page.evaluate("async()=>{await start('analyze')}")
+                    # O salvamento pode ter iniciado o recálculo automático; o comando
+                    # manual então retorna false corretamente, sem criar outra tarefa.
+                    page.wait_for_function('!task && !taskRequestPending && !!editor',timeout=60000)
+>                   assert page.evaluate("editor.segments.some(s=>s.disabled&&flowStudyColor(s)==='#ef4444')")
+E                   assert False
+E                    +  where False = evaluate("editor.segments.some(s=>s.disabled&&flowStudyColor(s)==='#ef4444')")
+E                    +    where evaluate = <Page url='http://127.0.0.1:50277/'>.evaluate
+
+tests/test_v142_live_ui.py:58: AssertionError
+_______ test_layers_are_available_before_analysis_and_keep_named_mapping _______
+[gw3] linux -- Python 3.12.14 /workspace/.venvs/rodovia-studio/bin/python
+
+page = <Page url='about:blank'>
+
+    def test_layers_are_available_before_analysis_and_keep_named_mapping(page):
+        page.evaluate("""()=>{analysis=null;cfg.layers={axis:['EIXO']};sourceLayerCatalog={layers:[{name:'0',count:2},{name:'EIXO',count:4},{name:'PAVIMENTO',count:8}],warnings:[]};showLayers()}""")
+        assert page.evaluate("lmLayers().map(l=>l.name)")==['0','EIXO','PAVIMENTO']
+>       assert page.locator('#layers select').count()==3
+E       AssertionError: assert 0 == 3
+E        +  where 0 = count()
+E        +    where count = <Locator frame=<Frame name= url='about:blank'> selector='#layers select'>.count
+E        +      where <Locator frame=<Frame name= url='about:blank'> selector='#layers select'> = locator('#layers select')
+E        +        where locator = <Page url='about:blank'>.locator
+
+tests/test_v1429_layers_ui.py:7: AssertionError
+=============================== warnings summary ===============================
+../../../../../.venvs/rodovia-studio/lib/python3.12/site-packages/fastapi/testclient.py:1
+../../../../../.venvs/rodovia-studio/lib/python3.12/site-packages/fastapi/testclient.py:1
+../../../../../.venvs/rodovia-studio/lib/python3.12/site-packages/fastapi/testclient.py:1
+../../../../../.venvs/rodovia-studio/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================= slowest 15 durations =============================
+198.53s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14229_probe_visual.py::test_actual_heavy_probe_survives_render_and_mp4_with_indicators
+166.94s call     rodovia_studio/pacote/suporte/sistema/tests/test_v1425_live_3d.py::test_real_webgl_mp4_export_is_complete_and_archived
+144.27s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14212_presentation.py::test_turn_and_hazard_lamps_are_visible_in_2d_and_real_webgl
+117.85s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v14220_sections_materials.py::test_artistic_preset_preserves_geometries_and_sets_natural_materials
+104.30s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14212_traffic_safety.py::test_wide_trucks_observe_current_free_distance_and_use_both_directions[3.5]
+103.68s call     rodovia_studio/pacote/suporte/sistema/tests/test_v1426_transport_visual.py::test_real_3d_controls_tracks_and_lamps
+96.69s call     rodovia_studio/pacote/suporte/sistema/tests/test_v1426_import_capacity.py::test_demand_3500_builds_queue_against_1900_without_forcing_3500_discharge
+80.31s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14223_update_policy.py::test_3d_rebuild_preserves_camera_light_time_and_technical_visibility
+79.47s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14210_recovery_ui.py::test_problem_axis_recovers_vehicle_tracks_without_changing_the_dxf
+77.90s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14212_traffic_safety.py::test_pare_siga_never_reverses_while_tail_is_in_shared_corridor
+76.86s call     rodovia_studio/pacote/suporte/sistema/tests/test_v14230_fleet_video.py::test_long_30m_body_in_real_scene_3d_and_decoded_video
+74.83s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v14212_ui.py::test_failed_save_keeps_dialog_and_discard_restores_the_model
+73.23s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v14212_ui.py::test_coordinates_km_and_existing_section_edit_use_the_same_stations
+69.77s call     rodovia_studio/pacote/suporte/sistema/tests/test_v1428_panels.py::test_local_selection_generates_a_real_preview_and_preserves_the_geotiff
+69.74s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v1427_state_ui.py::test_open_does_not_discard_edits_made_while_waiting_for_the_project
+=========================== short test summary info ============================
+FAILED tests/test_v14216_flow_repair.py::test_real_network_fits_one_way_dxf_axis_on_narrow_surface
+FAILED tests/test_v1426_transport_visual.py::test_controls_are_saved_from_dialog_with_undo_and_context
+FAILED tests/test_v14212_ui.py::test_image_tool_only_appears_after_local_image_and_runs_real_background_job
+FAILED tests/test_v14212_ui.py::test_sections_dialog_applies_asymmetric_bands_to_the_actual_engine
+FAILED tests/test_v1426_transport_visual.py::test_link_tool_connects_signals_and_context_edits_link
+FAILED tests/test_v14212_ui.py::test_image_only_project_can_analyze_and_show_its_georeferenced_capture
+FAILED tests/test_v1425_fan_pruning.py::test_converging_and_diverging_mini_routes_are_removed_before_network
+FAILED tests/test_v1425_fan_pruning.py::test_contact_splits_keep_long_native_axis_without_independent_short_routes
+FAILED tests/test_v1428_menu_flow.py::test_flow_selection_opens_properties_after_other_object_selection
+FAILED tests/test_v1428_menu_flow.py::test_groups_keep_related_commands_together_and_distinguish_icons
+FAILED tests/test_v14210_assets_visual.py::test_native_asset_layers_have_2d_textures_and_real_3d_geometry
+FAILED tests/test_v1428_menu_flow.py::test_calculation_button_runs_the_real_analysis_without_generating_video
+FAILED tests/test_v14218_live_agents.py::test_shared_people_and_bounded_smoke_are_rendered_by_real_webgl
+FAILED tests/test_v14218_live_agents.py::test_actual_2d_frames_show_effect_and_are_reproducible_out_of_order
+FAILED tests/test_v14211_infrarail_icons.py::test_technical_icons_render_and_keep_their_actual_commands_and_helpers
+FAILED tests/test_v14210_flow_tools.py::test_explicit_cut_removes_only_the_interval_and_keeps_source_array
+FAILED tests/test_v14210_flow_tools.py::test_cutting_out_a_manual_disable_anchor_never_reenables_the_remaining_axis
+FAILED tests/test_v14218_live_agents.py::test_interval_arrow_automatically_changes_real_motor_direction
+FAILED tests/test_v1426_import_capacity_ui.py::test_saves_3500_capacity_and_higher_demand_through_real_api
+FAILED tests/test_v1424_flow_limit_ui.py::test_limit_selector_options_persist_and_recalculate_automatically
+FAILED tests/test_v1424_flow_limit_ui.py::test_short_geometry_is_kept_and_project_limit_is_reversible
+FAILED tests/test_v14210_recovery_ui.py::test_two_simultaneous_requests_start_only_one_calculation
+FAILED tests/test_v1424_flow_limit_ui.py::test_missing_and_legacy_values_are_not_silently_zeroed
+FAILED tests/test_v1423_video.py::test_export_decodes_all_frames_and_has_front_rear_audit
+FAILED tests/test_v1429_project_imagery.py::test_cached_conversion_reference_survives_ui_save_mixed_mode_and_reload
+FAILED tests/test_v14218_scene_agents.py::test_real_scene_contains_shared_pedestrian_tracks_bridge_and_smoke_configuration
+FAILED tests/test_v142_live_ui.py::test_engine_diagnostics_reach_live_editor_and_update
+FAILED tests/test_v1429_layers_ui.py::test_layers_are_available_before_analysis_and_keep_named_mapping
+28 failed, 933 passed, 4 warnings in 3311.92s (0:55:11)

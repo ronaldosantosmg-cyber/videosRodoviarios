@@ -1,0 +1,168 @@
+{
+  "decoded": {
+    "codec": "h264",
+    "pix_fmt": "yuv420p",
+    "width": 1280,
+    "height": 720,
+    "fps": 24.0,
+    "frames_decoded": 72,
+    "frames_expected": 72,
+    "decode_errors": "",
+    "faststart": true,
+    "ok": true,
+    "problems": []
+  },
+  "dimensions": {
+    "length_m": 30,
+    "width_m": 3
+  },
+  "simulation": {
+    "model": "microssimulacao",
+    "flow_balance": {
+      "entered": 17,
+      "exited": 12,
+      "active_end": 5,
+      "conserved": true,
+      "scope": "Contagem inclui o aquecimento; veículos derivados mantêm identidade."
+    },
+    "rerouted_at_nodes": 0,
+    "node_movements": [],
+    "distribution": {
+      "external_entries": [],
+      "effective_mode": "densidade",
+      "default_secondary_percent": 20,
+      "movements": [],
+      "entries": [
+        {
+          "entry": "('e', 0)",
+          "vehicles_h": 574.686,
+          "itineraries": [
+            {
+              "path": 0,
+              "percent": 100.0
+            }
+          ]
+        }
+      ],
+      "vdm": null,
+      "mode": "densidade",
+      "scope": "Percentuais de escolha dos itinerários disponíveis, não garantia de contagem em vídeo curto. VDM refere-se ao conjunto das entradas e à fração horária configurada; não certifica nível de serviço.",
+      "actual_spawned_by_path": [
+        17
+      ],
+      "count_scope": "Contagem inclui o aquecimento quando ativo."
+    },
+    "entry_inset_m": 5,
+    "route_only": false,
+    "collision_prevention": true,
+    "signals_respected": true,
+    "shoulder_probe": {
+      "enabled": true,
+      "overtake_requested": false,
+      "overtake_scope": "Ensaio opcional; o próprio pesado passa à direita e retorna. Somente com reserva entre veículos ativa, espaço integral e sem faixa cadastrada à direita. Não autoriza circulação normativa pelo acostamento.",
+      "maximum_beyond_pavement_m": 1.0,
+      "counts": {},
+      "maneuvers": 0,
+      "curve_profiles": 0,
+      "scope": "Sondagem local de pesados com corpo rígido conservador e reserva espacial; não é certificação de veículo articulado nem autorização normativa de uso do acostamento."
+    },
+    "lateral_clearance_m": 0.3,
+    "lateral_buffer_per_vehicle_m": 0.15,
+    "narrow_corridor_admission_holds": 0,
+    "minimum_following_gap_m": 2.0,
+    "polygon_safety_interventions": 0,
+    "alternating_traffic": {
+      "zones": 0,
+      "release_s": [],
+      "clearance": "até o último veículo desocupar; sem inversão forçada",
+      "phase_changes": 1
+    },
+    "pedestrians": {
+      "routes": 0,
+      "admitted": 0,
+      "arrived": 0,
+      "yield_steps": 0,
+      "waiting_steps": 0,
+      "rejected_paths": 0,
+      "maximum_agents": 80,
+      "vehicle_collisions": 0,
+      "people_collisions": 0,
+      "train_collisions": 0,
+      "history_samples": 0,
+      "history_bytes": 0,
+      "warnings": [],
+      "scope": "Agentes locais ilustrativos; sem calibração ou certificação normativa."
+    },
+    "vehicles": 17,
+    "rear_collisions": 0,
+    "side_collisions": 0,
+    "min_gap_m": 10.83,
+    "max_waiting_at_entries": 4,
+    "transport_controls": {
+      "coverage": [],
+      "warnings": [],
+      "ambiguous_railway_conflicts": 0,
+      "railways": 0,
+      "signals": 0,
+      "crossings": 0,
+      "stop_lines": 0,
+      "signal_offsets_s": {},
+      "scope": "Simulação ilustrativa com temporização informada pelo usuário; sem certificação de sinalização."
+    },
+    "control_stop_interventions": 0,
+    "rerouted": 0,
+    "blocks": 0,
+    "density": 4.0,
+    "lane_changes": 0,
+    "lane_change_blocked_rule": 0,
+    "lane_change_blocked_safety": 0,
+    "safety_interventions": 0,
+    "collision_free": true,
+    "demand_vph_per_lane": null,
+    "capacity_vph_per_lane": 1900,
+    "entry_demand_study": [],
+    "saturation_indicator": {
+      "status": "nível de serviço não determinado",
+      "demand_capacity_ratio": null,
+      "scope": "Estimativa com fatores de equivalência internos; não é classificação DNIT/HCM. Depende de tipo de via, velocidade, densidade, atrasos e método aplicável."
+    },
+    "motion_blocked_vehicles": 0,
+    "lane_change_blocked_geometry": 0,
+    "motion_profiles": {
+      "0:long30": {
+        "ok": true,
+        "reasons": [],
+        "message": "Trajetória cinemática válida.",
+        "max_steering_deg": 0.0,
+        "vehicle": "long30",
+        "samples": 741,
+        "critical_station_m": 0.0,
+        "critical_center_xy": [
+          500065.2,
+          7799998.35
+        ],
+        "front_xy": [
+          500080.2,
+          7799998.35
+        ],
+        "rear_xy": [
+          500050.2,
+          7799998.35
+        ]
+      }
+    },
+    "max_queue_by_lane": [
+      4
+    ],
+    "current_queue_by_lane": [
+      2
+    ],
+    "queue_vehicle_seconds_by_lane": [
+      141.6
+    ],
+    "queue_discharged_by_lane": [
+      17
+    ]
+  },
+  "scope": "Frota forçada no ensaio para conferir o envelope rígido de 30 m; não é articulação homologada."
+}

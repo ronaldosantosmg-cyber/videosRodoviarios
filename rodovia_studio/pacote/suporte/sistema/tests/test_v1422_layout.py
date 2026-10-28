@@ -1,3 +1,4 @@
+from ui_release_helpers import ribbon_control
 """1.42.2: barra rápida útil, informações no rodapé e rotas em primeiro plano."""
 import pytest
 from test_v142_visual import page
@@ -20,19 +21,19 @@ def test_information_is_below_canvas_and_quick_buttons_below_menu(page):
 
 
 def test_quick_actions_execute_and_properties_toggle(page):
-    page.locator('#rsToolPanel0 [data-rs-tool="route"]').click()
+    ribbon_control(page,'route','tool').click()
     assert page.evaluate('tool')=='route'
-    page.locator('#rsToolPanel0 [data-rs-tool="pan"]').click()
+    ribbon_control(page,'pan','tool').click()
     assert page.evaluate('tool')=='pan'
     page.locator('[data-pshub="props"]').click()
     assert not page.evaluate('dockState.recolhida')
     page.locator('[data-pshub="props"]').click()
     page.wait_for_timeout(200)
     assert page.evaluate('dockState.recolhida')
-    page.locator('#rsToolPanel0 [data-rs-command="EDITARFLUXOS"]').click()
-    assert page.locator('#rsToolPanel0 [data-rs-command="EDITARFLUXOS"]').get_attribute('aria-pressed')=='true'
-    page.locator('#rsToolPanel0 [data-rs-command="EDITARFLUXOS"]').click()
-    assert page.locator('#rsToolPanel0 [data-rs-command="EDITARFLUXOS"]').get_attribute('aria-pressed')=='false'
+    ribbon_control(page,'EDITARFLUXOS','command').click()
+    assert ribbon_control(page,'EDITARFLUXOS','command').get_attribute('aria-pressed')=='true'
+    ribbon_control(page,'EDITARFLUXOS','command').click()
+    assert ribbon_control(page,'EDITARFLUXOS','command').get_attribute('aria-pressed')=='false'
     screenshot(page,'1422_02_botoes_funcionais')
 
 
@@ -51,7 +52,7 @@ def seed(page):
 
 def test_all_flows_are_drawn_above_surfaces_with_contrast(page):
     seed(page)
-    page.locator('#rsToolPanel0 [data-rs-command="EDITARFLUXOS"]').click()
+    ribbon_control(page,'EDITARFLUXOS','command').click()
     colors=page.evaluate("""()=>{
       const original=ctx.stroke;const strokes=[];ctx.stroke=function(...a){strokes.push(this.strokeStyle);return original.apply(this,a)};
       try{draw()}finally{ctx.stroke=original}
@@ -74,7 +75,7 @@ def test_route_object_points_are_visible_in_foreground(page):
 
 def test_flow_click_has_priority_over_surface(page):
     seed(page)
-    page.locator('#rsToolPanel0 [data-rs-command="EDITARFLUXOS"]').click()
+    ribbon_control(page,'EDITARFLUXOS','command').click()
     point=page.evaluate("()=>{const [x,y]=W2C({x:0,y:0});const r=canvas.getBoundingClientRect();return {x:r.left+x*r.width/canvas.width,y:r.top+y*r.height/canvas.height}}")
     page.mouse.click(point['x'],point['y']);page.wait_for_timeout(150)
     assert page.evaluate('selSeg?.id')==0
