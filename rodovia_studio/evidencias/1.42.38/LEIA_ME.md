@@ -3,6 +3,8 @@
 Pacote novo: atualizacoes/RodoviaStudio_1_42_38_atualizacao.zip (11877570 bytes).
 SHA-256: `d655a7b174084a4c0a518ba08ffbcb363467342fa2f21fb1e7bab39b3c24c708`.
 
+[Baixar ZIP 1.42.38](https://raw.githubusercontent.com/ronaldosantosmg-cyber/videosRodoviarios/6eae54e35fa8a7b8897c307e9ca7c1b9d773672e/atualizacoes/RodoviaStudio_1_42_38_atualizacao.zip) — HTTPS conferido: HTTP 200, 11877570 bytes e SHA-256 integral igual ao pacote local. Registro em download-verificado.json.
+
 ## Correção entregue
 
 A falha na consulta de andamento deixava a tarefa ativa, encerrava o acompanhamento e fazia a fila emitir erros após dois minutos. Agora há reconexão de leitura da mesma tarefa, sem reenviar o cálculo. Retomar fica visível no rodapé compacto. A fila aguarda a aplicação do resultado recuperado; pedidos equivalentes continuam compartilhados. Duas consultas redundantes após a conclusão foram retiradas. Falhas reais continuam sendo informadas.
