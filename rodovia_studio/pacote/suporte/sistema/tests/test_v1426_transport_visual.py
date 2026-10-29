@@ -18,6 +18,8 @@ def controls(s,duration=40):
 
 
 def click_world(page,x,y,button='left'):
+    # A expansão do ribbon agenda resize no frame seguinte; calcular o clique depois.
+    page.evaluate('async()=>{await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))}')
     point=page.evaluate("p=>{const [x,y]=W2C(p),r=canvas.getBoundingClientRect();return {x:r.left+x*r.width/canvas.width,y:r.top+y*r.height/canvas.height}}",{'x':x,'y':y})
     page.mouse.click(point['x'],point['y'],button=button)
 

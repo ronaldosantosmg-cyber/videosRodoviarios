@@ -50,7 +50,7 @@ def test_border_paint_does_not_interrupt_but_real_obstacles_do():
     assert not any(np.min(p['p'][:,0])<295 and np.max(p['p'][:,0])>305 for p in blocked.paths)
     diagnostics=flow_diagnostics(blocked)
     assert any('corpo_fora_da_pista' in d['technical_reasons'] and d['technical_points'] for d in diagnostics)
-    assert any('Linhas de bordo não são barreiras' in d['technical_manual'] for d in diagnostics)
+    assert any('Contornos decorativos e bordos não são barreiras' in d['technical_manual'] for d in diagnostics)
 
 
 def test_join_rejects_real_gap_ambiguity_incompatible_layer_and_disabled_axis():

@@ -49,7 +49,10 @@ def test_failed_apply_keeps_draft_and_allows_retry(gl_page,live):
     assert p.locator('#rsPanelPopup').is_visible() and not p.locator('#rsPanelApply').is_disabled()
     assert p.locator('#traffic_density').input_value()=='2.4'
     assert p.request.get(live[0]+'/api/projects/'+live[1]).json()['config']['traffic_density']==before
-    p.unroute(pattern);p.locator('#rsPanelDiscard').click()
+    p.unroute(pattern);p.locator('#rsPanelApply').click();p.wait_for_function('!savePending&&!RodoviaPanels.pending')
+    assert p.request.get(live[0]+'/api/projects/'+live[1]).json()['config']['traffic_density']==2.4
+    p.locator('#traffic_density').fill(str(before));p.locator('#traffic_density').dispatch_event('change')
+    p.locator('#rsPanelApply').click();p.wait_for_function('!savePending&&!RodoviaPanels.pending');p.locator('#rsPanelClose').click()
 
 
 def test_model_invalid_input_does_not_call_save_or_leave_busy(gl_page):
@@ -72,7 +75,7 @@ def test_layer_list_is_alphabetical_without_mutating_catalog(gl_page):
 def test_materials_appear_locally_without_calculation_or_background_rebuild(gl_page):
     p=gl_page;settled(p)
     requests=[]
-    p.on('request',lambda r:requests.append(r.url) if r.method=='POST' and '/api/projects/' in r.url and '/jobs' in r.url else None)
+    p.on('request',lambda r:requests.append(r.url) if r.method=='POST' and '/api/projects/' in r.url and any(r.url.endswith('/'+kind) for kind in ('analyze','preview','refresh','render','scene3d','rebuild')) else None)
     original=p.evaluate("$('natural_materials_only').checked")
     try:
         p.evaluate("$('natural_materials_only').checked=false;RodoviaLayers.invalidate('technical');draw()")

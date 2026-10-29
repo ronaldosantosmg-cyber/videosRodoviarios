@@ -94,7 +94,12 @@ def test_reconnect_notice_keeps_one_footer_and_existing_view(page):
     assert page.evaluate("!!baseImage&&task==='notice'")
     assert 'Reconectando' in page.locator('#message').text_content()
     screenshot(page,'acompanhamento_reconectando')
-    page.evaluate("api=async(url,opt)=>url==='/api/jobs/notice'?{id:'notice',state:'done',project:'other',kind:'analyze',message:'Concluído'}:trackingPreviousApi(url,opt)")
+    # A resposta terminal só é liberada pelo clique real. A consulta automática
+    # não pode esconder o botão entre preparar a resposta e clicar sob carga.
+    page.evaluate("""()=>{window.trackingFinishAllowed=false;window.trackingFinishRelease=null;
+      api=async(url,opt)=>{if(url!=='/api/jobs/notice')return trackingPreviousApi(url,opt);if(!trackingFinishAllowed)await new Promise(r=>trackingFinishRelease=r);return {id:'notice',state:'done',project:'other',kind:'analyze',message:'Concluído'}};
+      $('rsResumeTracking').addEventListener('click',()=>{trackingFinishAllowed=true;trackingFinishRelease?.()},{once:true,capture:true});
+    }""")
     page.get_by_role('button',name='Retomar acompanhamento',exact=True).click()
     page.evaluate('async()=>{await trackingNoticeWork;api=trackingPreviousApi}')
 

@@ -1,0 +1,30 @@
+{
+  "package": "RodoviaStudio_2_01_atualizacao.zip",
+  "sha256": "17e2626bc3e9a77cb6b3d653f4733d8d5161d16703228ddb16d8d4e820421183",
+  "apply_version": "2.01",
+  "rollback_version": "1.42.38",
+  "preserved_files": [
+    "projetos/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/config.json",
+    "projetos/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/input.kmz",
+    "projetos/_base_imagens/cache/foto.tif",
+    "videos/video-anterior.mp4"
+  ],
+  "index_restored": true,
+  "all_previous_program_hashes_restored": true,
+  "zip_archived": true,
+  "updated_scripts": [
+    "01_estado_configuracao.js",
+    "02_vista_imagem_web.js",
+    "59_paineis_destacados.js",
+    "63_catalogo_materiais.js",
+    "64_janelas_modelagem.js",
+    "66_contexto_imagem.js",
+    "68_camadas_graficas.js",
+    "80_cad_compacto.js",
+    "88_interface_contextual.js"
+  ],
+  "platform": "Linux; ensaio isolado, não Windows nativo",
+  "data_scope": "Fixtures de preservação de bytes; MP4s reais foram conferidos nos testes de renderização.",
+  "controlled_shutdown": "Protocolo do servidor verificado separadamente por test_v142_runtime",
+  "native_windows": false
+}

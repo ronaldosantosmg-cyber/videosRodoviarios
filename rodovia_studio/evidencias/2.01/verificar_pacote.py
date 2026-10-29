@@ -13,7 +13,7 @@ with tempfile.TemporaryDirectory(prefix='rodovia_pacote_real_') as temporary:
     (installation/'projetos').mkdir()
     U.apply(previous/'pacote',installation,say=lambda *a:None,check_running=False)
     assert U.installed_version(installation)=='1.42.38'
-    program=installation/'sistema/programa';index=sha(program/'app/index.html')
+    program=installation/'sistema/programa';index=sha(program/'app/index.html');prior_hashes={f.relative_to(program).as_posix():sha(f) for f in program.rglob('*') if f.is_file()}
     data={'projetos/'+('a'*32)+'/config.json':'{"name":"Projeto preservado ç","schema_version":31}',
           'projetos/'+('a'*32)+'/input.kmz':'Fonte KMZ preservada',
           'projetos/_base_imagens/cache/foto.tif':'Cache GeoTIFF persistente preservado',
@@ -34,5 +34,6 @@ with tempfile.TemporaryDirectory(prefix='rodovia_pacote_real_') as temporary:
     U.restore_previous(installation,say=lambda *a:None,check_running=False)
     assert U.installed_version(installation)=='1.42.38' and sha(program/'app/index.html')==index
     assert all(sha(installation/name)==digest for name,digest in hashes.items())
-    output=dict(package=new.name,sha256=sha(new),apply_version='2.01',rollback_version='1.42.38',preserved_files=list(data),index_restored=True,zip_archived=True,updated_scripts=updated_scripts,platform='Linux; ensaio isolado, não Windows nativo',data_scope='Fixtures de preservação de bytes; MP4s reais foram conferidos nos testes de renderização.',controlled_shutdown='Protocolo do servidor verificado separadamente por test_v142_runtime',native_windows=False)
+    assert all(sha(program/name)==digest for name,digest in prior_hashes.items())
+    output=dict(package=new.name,sha256=sha(new),apply_version='2.01',rollback_version='1.42.38',preserved_files=list(data),index_restored=True,all_previous_program_hashes_restored=True,zip_archived=True,updated_scripts=updated_scripts,platform='Linux; ensaio isolado, não Windows nativo',data_scope='Fixtures de preservação de bytes; MP4s reais foram conferidos nos testes de renderização.',controlled_shutdown='Protocolo do servidor verificado separadamente por test_v142_runtime',native_windows=False)
     target=root/'rodovia_studio/evidencias/2.01/pacote-real.json';target.write_text(json.dumps(output,ensure_ascii=False,indent=2)+'\n',encoding='utf-8');print(json.dumps(output,ensure_ascii=False))

@@ -1,0 +1,23 @@
+{
+  "previous": "1.42.38",
+  "current": "2.01",
+  "changed": [
+    "pacote/manifest.json",
+    "pacote/suporte/sistema/VERSAO.json",
+    "pacote/suporte/sistema/app/estilo.css",
+    "pacote/suporte/sistema/app/flow_diagnostics.py",
+    "pacote/suporte/sistema/app/js/01_estado_configuracao.js",
+    "pacote/suporte/sistema/app/js/02_vista_imagem_web.js",
+    "pacote/suporte/sistema/app/js/59_paineis_destacados.js",
+    "pacote/suporte/sistema/app/js/63_catalogo_materiais.js",
+    "pacote/suporte/sistema/app/js/64_janelas_modelagem.js",
+    "pacote/suporte/sistema/app/js/66_contexto_imagem.js",
+    "pacote/suporte/sistema/app/js/68_camadas_graficas.js",
+    "pacote/suporte/sistema/app/js/80_cad_compacto.js",
+    "pacote/suporte/sistema/app/js/88_interface_contextual.js"
+  ],
+  "added": [],
+  "removed": [],
+  "zip_size_bytes": 12196927,
+  "sha256": "17e2626bc3e9a77cb6b3d653f4733d8d5161d16703228ddb16d8d4e820421183"
+}

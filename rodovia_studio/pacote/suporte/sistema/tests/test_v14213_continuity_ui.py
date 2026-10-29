@@ -42,6 +42,6 @@ def test_real_block_shows_reason_location_and_manual_surface_correction(page):
     page.evaluate('(id)=>{selSeg={id};showSegProps();draw()}',target['id'])
     text=page.locator('#propPanel').inner_text()
     assert 'corpo do veículo fora do pavimento reconhecido' in text
-    assert 'Linhas de bordo não são barreiras' in text
+    assert 'Contornos decorativos e bordos não são barreiras' in text
     assert target['technical_points']
     screenshot(page,'14213_02_bloqueio_localizado')
