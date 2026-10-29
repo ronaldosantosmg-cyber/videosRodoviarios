@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="4" skipped="0" tests="19" time="0.946" timestamp="2026-10-29T12:27:43.667528+00:00" hostname="23b78f9c05ea"><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_zip_paths_cannot_escape[../fora]" time="0.003" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_zip_paths_cannot_escape[/absoluto]" time="0.001" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_zip_paths_cannot_escape[C:/disco]" time="0.001" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_zip_paths_cannot_escape[pasta\\arquivo]" time="0.001" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_zip_paths_cannot_escape[a/../../b]" time="0.001" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_zip_paths_cannot_escape[bad\x00name]" time="0.001"><failure message="Failed: DID NOT RAISE ValueError">name = 'bad\x00name'
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-421/test_zip_paths_cannot_escape_b0')
+
+    @pytest.mark.parametrize('name',['../fora','/absoluto','C:/disco','pasta\\arquivo','a/../../b','bad\x00name'])
+    def test_zip_paths_cannot_escape(name,tmp_path):
+        z=tmp_path/'bad.zip'
+        with zipfile.ZipFile(z,'w') as f:f.writestr(name,b'x')
+&gt;       with pytest.raises(ValueError):I.unpack(z,tmp_path/'dest')
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+rodovia_studio/distribuicao/tests/test_instalacao.py:23: Failed</failure></testcase><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_zip_link_is_refused" time="0.001" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_manifest_and_payload_tamper_are_refused" time="0.074" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_cancel_does_not_touch_destination" time="0.056" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_existing_project_is_never_overwritten" time="0.043" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_clean_install_uses_real_app_updater_and_pinned_local_wheels" time="0.215"><failure message="ValueError: A pasta escolhida não é a do Rodovia Studio (não encontrei sistema\programa\app\server.py nem suporte\sistema\app\server.py).">bundle = (PosixPath('/tmp/pytest-of-agent/pytest-421/test_clean_install_uses_real_a0/pacote'), '75cb450e629e788de780c8c4248b20dfb5169d083d85f94738a660664a212671')
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-421/test_clean_install_uses_real_a0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7faa88295550&gt;
+
+    def test_clean_install_uses_real_app_updater_and_pinned_local_wheels(bundle,tmp_path,monkeypatch):
+        root,digest=bundle;monkeypatch.setattr(I,'os',SimpleNamespace(name='nt'));calls=[];monkeypatch.setattr(I,'run',lambda a,**k:calls.append(a))
+&gt;       dest=tmp_path/'pasta com espaço ç'/'novo';I.install(root,dest,digest)
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+rodovia_studio/distribuicao/tests/test_instalacao.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+rodovia_studio/distribuicao/instalar.py:104: in install
+    u.apply(extracted/'pacote',stage,say=lambda *a:None,check_running=False);shutil.rmtree(extracted)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/pytest-of-agent/pytest-421/test_clean_install_uses_real_a0/pasta com espaço ç/.rodovia-instalar-c_u0zf7i/_pacote/pacote/suporte/sistema/atualizador.py:466: in apply
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/tmp/pytest-of-agent/pytest-421/test_clean_install_uses_real_a0/pasta com espaço ç/.rodovia-instalar-c_u0zf7i')
+
+&gt;   ???
+E   ValueError: A pasta escolhida não é a do Rodovia Studio (não encontrei sistema\programa\app\server.py nem suporte\sistema\app\server.py).
+
+/tmp/pytest-of-agent/pytest-421/test_clean_install_uses_real_a0/pasta com espaço ç/.rodovia-instalar-c_u0zf7i/_pacote/pacote/suporte/sistema/atualizador.py:79: ValueError</failure></testcase><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_failed_preparation_or_final_probe_removes_only_new_install[False]" time="0.216"><failure message="ValueError: A pasta escolhida não é a do Rodovia Studio (não encontrei sistema\programa\app\server.py nem suporte\sistema\app\server.py).">bundle = (PosixPath('/tmp/pytest-of-agent/pytest-421/test_failed_preparation_or_fin0/pacote'), '26a06987acd907de88b5c539727855f0160bf79e101dde12407e25f6b2969eb7')
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-421/test_failed_preparation_or_fin0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7faa88296f60&gt;
+at_commit = False
+
+    @pytest.mark.parametrize('at_commit',[False,True])
+    def test_failed_preparation_or_final_probe_removes_only_new_install(bundle,tmp_path,monkeypatch,at_commit):
+        root,digest=bundle;monkeypatch.setattr(I,'os',SimpleNamespace(name='nt'));dest=tmp_path/'nova';other=tmp_path/'dados';other.write_text('preservar')
+        def fail(a,**k):
+            if dest.exists()==at_commit:raise RuntimeError('falha dirigida')
+        monkeypatch.setattr(I,'run',fail)
+&gt;       with pytest.raises(RuntimeError,match='falha dirigida'):I.install(root,dest,digest)
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+rodovia_studio/distribuicao/tests/test_instalacao.py:72: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+rodovia_studio/distribuicao/instalar.py:104: in install
+    u.apply(extracted/'pacote',stage,say=lambda *a:None,check_running=False);shutil.rmtree(extracted)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/pytest-of-agent/pytest-421/test_failed_preparation_or_fin0/.rodovia-instalar-ys0vln7v/_pacote/pacote/suporte/sistema/atualizador.py:466: in apply
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/tmp/pytest-of-agent/pytest-421/test_failed_preparation_or_fin0/.rodovia-instalar-ys0vln7v')
+
+&gt;   ???
+E   ValueError: A pasta escolhida não é a do Rodovia Studio (não encontrei sistema\programa\app\server.py nem suporte\sistema\app\server.py).
+
+/tmp/pytest-of-agent/pytest-421/test_failed_preparation_or_fin0/.rodovia-instalar-ys0vln7v/_pacote/pacote/suporte/sistema/atualizador.py:79: ValueError</failure></testcase><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_failed_preparation_or_final_probe_removes_only_new_install[True]" time="0.215"><failure message="ValueError: A pasta escolhida não é a do Rodovia Studio (não encontrei sistema\programa\app\server.py nem suporte\sistema\app\server.py).">bundle = (PosixPath('/tmp/pytest-of-agent/pytest-421/test_failed_preparation_or_fin1/pacote'), '26a06987acd907de88b5c539727855f0160bf79e101dde12407e25f6b2969eb7')
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-421/test_failed_preparation_or_fin1')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7faa880dc050&gt;
+at_commit = True
+
+    @pytest.mark.parametrize('at_commit',[False,True])
+    def test_failed_preparation_or_final_probe_removes_only_new_install(bundle,tmp_path,monkeypatch,at_commit):
+        root,digest=bundle;monkeypatch.setattr(I,'os',SimpleNamespace(name='nt'));dest=tmp_path/'nova';other=tmp_path/'dados';other.write_text('preservar')
+        def fail(a,**k):
+            if dest.exists()==at_commit:raise RuntimeError('falha dirigida')
+        monkeypatch.setattr(I,'run',fail)
+&gt;       with pytest.raises(RuntimeError,match='falha dirigida'):I.install(root,dest,digest)
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+rodovia_studio/distribuicao/tests/test_instalacao.py:72: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+rodovia_studio/distribuicao/instalar.py:104: in install
+    u.apply(extracted/'pacote',stage,say=lambda *a:None,check_running=False);shutil.rmtree(extracted)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/pytest-of-agent/pytest-421/test_failed_preparation_or_fin1/.rodovia-instalar-kxpy8098/_pacote/pacote/suporte/sistema/atualizador.py:466: in apply
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/tmp/pytest-of-agent/pytest-421/test_failed_preparation_or_fin1/.rodovia-instalar-kxpy8098')
+
+&gt;   ???
+E   ValueError: A pasta escolhida não é a do Rodovia Studio (não encontrei sistema\programa\app\server.py nem suporte\sistema\app\server.py).
+
+/tmp/pytest-of-agent/pytest-421/test_failed_preparation_or_fin1/.rodovia-instalar-kxpy8098/_pacote/pacote/suporte/sistema/atualizador.py:79: ValueError</failure></testcase><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_destination_parent_link_refused" time="0.001" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_download_refuses_unapproved_origin[http://files.pythonhosted.org/x]" time="0.001" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_download_refuses_unapproved_origin[https://evil.example/x]" time="0.001" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_download_refuses_unapproved_origin[https://127.0.0.1/x]" time="0.001" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_download_verifies_size_hash_and_reuses_only_matching_file" time="0.002" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_signature_flow_does_not_create_or_trust_certificate" time="0.000" /></testsuite></testsuites>

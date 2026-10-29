@@ -1,0 +1,45 @@
+RODOVIA STUDIO 2.02 — INSTALAÇÃO NOVA
+Fabricante: Ronaldo Santos
+
+1. Extraia todo o ZIP, mantendo os arquivos e a pasta payload juntos.
+2. Abra INSTALAR RODOVIA STUDIO.exe.
+3. Escolha uma pasta NOVA. A instalação existente e seus projetos não serão substituídos.
+4. Aguarde os downloads e a conferência de Python, bibliotecas e vídeo.
+5. Ao concluir, use Abrir pasta e execute Rodovia Studio.exe.
+
+Windows 10/11 x64, .NET Framework 4.8, conexão à internet na primeira instalação
+e pelo menos 3 GiB livres. O instalador não exige Python prévio ou administrador.
+Bibliotecas são baixadas do PyPI oficial com versão, tamanho e SHA-256 fixados.
+Python acompanha o pacote, obtido do pacote oficial python no NuGet.
+FFmpeg acompanha a biblioteca imageio-ffmpeg. Fontes, recursos de apresentação,
+WebGL/Three.js e configuração inicial acompanham o aplicativo.
+
+Edge/WebView2 do Windows é usado para a janela incorporada; se o Runtime WebView2
+não estiver disponível, o iniciador mantém o caminho de navegador existente.
+Não há instalação silenciosa de Runtime Microsoft, drivers ECW, conversores DWG
+proprietários, mapas online ou pesos de IA 3B. Esses recursos são condicionais e
+não são necessários para DXF, imagem compatível e vídeo do aplicativo.
+
+A distribuição inicial ainda NÃO possui assinatura Authenticode, pois Ronaldo
+Santos ainda não dispõe de certificado. Fabricante nos metadados não equivale
+à assinatura reconhecida pelo Windows. Windows/SmartScreen e a política da
+empresa podem exibir aviso ou impedir a execução. Solicite avaliação à TI;
+não desative o Defender, não crie exclusões e não importe certificado caseiro.
+O fluxo de compilação permite assinar com certificado válido do titular quando
+for adquirido. Mesmo uma assinatura válida não garante ausência de alertas.
+
+Cancelar interrompe downloads e preparação e remove somente a pasta temporária
+criada pela instalação. O destino só aparece como instalado após os testes de
+bibliotecas e codificação H.264. Logs ficam em %LOCALAPPDATA%\Ronaldo Santos\Logs.
+Falha antes de criar o destino remove somente o temporário. Se falhar a última
+verificação após criar o destino, a pasta fica preservada para diagnóstico,
+marcada como incompleta em sistema/distribuicao.json. Não apaga arquivos
+recebidos nela. Preserve o log e use uma pasta nova após resolver a causa.
+
+Projetos começam vazios. Para levar projetos antigos, use cópia de segurança e
+a importação/abertura do próprio aplicativo. Não apague a instalação anterior.
+Atualizações seguintes usam atualizacoes/ e o mecanismo de snapshot/rollback.
+
+A aplicação 2.02 tem regressão aprovada, mas este instalador foi compilado e
+conferido em Linux/Mono. A instalação nativa Windows/8 GB e a política corporativa
+precisam de homologação antes da distribuição pública em escala.

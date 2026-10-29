@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="19" time="16.569" timestamp="2026-10-29T12:28:44.527723+00:00" hostname="23b78f9c05ea"><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_zip_paths_cannot_escape[../fora]" time="0.003" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_zip_paths_cannot_escape[/absoluto]" time="0.001" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_zip_paths_cannot_escape[C:/disco]" time="0.001" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_zip_paths_cannot_escape[pasta\\arquivo]" time="0.001" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_zip_paths_cannot_escape[a/../../b]" time="0.001" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_zip_link_is_refused" time="0.001" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_manifest_and_payload_tamper_are_refused" time="0.153" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_cancel_does_not_touch_destination" time="0.091" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_existing_project_is_never_overwritten" time="0.088" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_clean_install_uses_real_app_updater_and_pinned_local_wheels" time="5.319"><failure message="rs_installer_updater.PackageError: Pacote recusado na verificação prévia:&#10;- Lista de arquivos diverge do manifesto de integridade.">bundle = (PosixPath('/tmp/pytest-of-agent/pytest-422/test_clean_install_uses_real_a0/pacote'), '02f70d14b04668c0d064969b2aca32a36d92e33567055f7aee13977d380f7ce7')
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-422/test_clean_install_uses_real_a0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7fb9c6dbcf20&gt;
+
+    def test_clean_install_uses_real_app_updater_and_pinned_local_wheels(bundle,tmp_path,monkeypatch):
+        root,digest=bundle;monkeypatch.setattr(I,'os',SimpleNamespace(name='nt'));calls=[];monkeypatch.setattr(I,'run',lambda a,**k:calls.append(a))
+&gt;       dest=tmp_path/'pasta com espaço ç'/'novo';I.install(root,dest,digest)
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+rodovia_studio/distribuicao/tests/test_instalacao.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+rodovia_studio/distribuicao/instalar.py:106: in install
+    u.validate_package(extracted/'pacote',say=lambda *a:None)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+pacote = PosixPath('/tmp/pytest-of-agent/pytest-422/test_clean_install_uses_real_a0/pasta com espaço ç/.rodovia-instalar-7oz8i36b/_pacote/pacote')
+say = &lt;function install.&lt;locals&gt;.&lt;lambda&gt; at 0x7fb9c6c53a60&gt;
+
+&gt;   ???
+E   rs_installer_updater.PackageError: Pacote recusado na verificação prévia:
+E   - Lista de arquivos diverge do manifesto de integridade.
+
+/tmp/pytest-of-agent/pytest-422/test_clean_install_uses_real_a0/pasta com espaço ç/.rodovia-instalar-7oz8i36b/_pacote/pacote/suporte/sistema/atualizador.py:461: PackageError</failure></testcase><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_failed_preparation_or_final_probe_removes_only_new_install[False]" time="4.908"><failure message="AssertionError: Regex pattern did not match.&#10;  Expected regex: 'falha dirigida'&#10;  Actual message: 'Pacote recusado na verificação prévia:\n- Lista de arquivos diverge do manifesto de integridade.'">bundle = (PosixPath('/tmp/pytest-of-agent/pytest-422/test_failed_preparation_or_fin0/pacote'), '907fe05fb3100e06169379d851e85639940f31e429f21c7f646f8fb60ab6a4d2')
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-422/test_failed_preparation_or_fin0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7fb9c6c0bfb0&gt;
+at_commit = False
+
+    @pytest.mark.parametrize('at_commit',[False,True])
+    def test_failed_preparation_or_final_probe_removes_only_new_install(bundle,tmp_path,monkeypatch,at_commit):
+        root,digest=bundle;monkeypatch.setattr(I,'os',SimpleNamespace(name='nt'));dest=tmp_path/'nova';other=tmp_path/'dados';other.write_text('preservar')
+        def fail(a,**k):
+            if dest.exists()==at_commit:raise RuntimeError('falha dirigida')
+        monkeypatch.setattr(I,'run',fail)
+&gt;       with pytest.raises(RuntimeError,match='falha dirigida'):I.install(root,dest,digest)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'falha dirigida'
+E         Actual message: 'Pacote recusado na verificação prévia:\n- Lista de arquivos diverge do manifesto de integridade.'
+
+rodovia_studio/distribuicao/tests/test_instalacao.py:72: AssertionError</failure></testcase><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_failed_preparation_or_final_probe_removes_only_new_install[True]" time="5.882"><failure message="AssertionError: Regex pattern did not match.&#10;  Expected regex: 'falha dirigida'&#10;  Actual message: 'Pacote recusado na verificação prévia:\n- Lista de arquivos diverge do manifesto de integridade.'">bundle = (PosixPath('/tmp/pytest-of-agent/pytest-422/test_failed_preparation_or_fin1/pacote'), '1bbba33dbc60aa53d1fea3447e82c3f15b98d458cf3985b520df37c9d2cd121a')
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-422/test_failed_preparation_or_fin1')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7fb9c6c15be0&gt;
+at_commit = True
+
+    @pytest.mark.parametrize('at_commit',[False,True])
+    def test_failed_preparation_or_final_probe_removes_only_new_install(bundle,tmp_path,monkeypatch,at_commit):
+        root,digest=bundle;monkeypatch.setattr(I,'os',SimpleNamespace(name='nt'));dest=tmp_path/'nova';other=tmp_path/'dados';other.write_text('preservar')
+        def fail(a,**k):
+            if dest.exists()==at_commit:raise RuntimeError('falha dirigida')
+        monkeypatch.setattr(I,'run',fail)
+&gt;       with pytest.raises(RuntimeError,match='falha dirigida'):I.install(root,dest,digest)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'falha dirigida'
+E         Actual message: 'Pacote recusado na verificação prévia:\n- Lista de arquivos diverge do manifesto de integridade.'
+
+rodovia_studio/distribuicao/tests/test_instalacao.py:72: AssertionError</failure></testcase><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_destination_parent_link_refused" time="0.002" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_download_refuses_unapproved_origin[http://files.pythonhosted.org/x]" time="0.001" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_download_refuses_unapproved_origin[https://evil.example/x]" time="0.001" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_download_refuses_unapproved_origin[https://127.0.0.1/x]" time="0.001" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_download_verifies_size_hash_and_reuses_only_matching_file" time="0.003" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_signature_flow_does_not_create_or_trust_certificate" time="0.001" /><testcase classname="rodovia_studio.distribuicao.tests.test_instalacao" name="test_null_path_is_refused_before_extraction" time="0.001" /></testsuite></testsuites>

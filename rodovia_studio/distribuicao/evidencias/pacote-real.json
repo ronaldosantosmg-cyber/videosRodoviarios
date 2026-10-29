@@ -1,0 +1,75 @@
+{
+  "zip_sha256": "9a5a1864758362c6f9a5285b88b6a6964dd33ea935fb846d2e74b6c45bdc90ff",
+  "manifest_hash_embedded_in_exe": true,
+  "all_payload_hashes_checked": true,
+  "embedded_application_bytes_unchanged": true,
+  "program_files_compared": 270,
+  "python_extracted": true,
+  "windows_wheels_staged": 36,
+  "path_with_spaces_and_accents": true,
+  "completion_state": true,
+  "subprocesses_recorded": [
+    [
+      "/tmp/rs_instalador_real_fpaku34n/.rodovia-instalar-zx9e36tx/sistema/programa/runtime/python.exe",
+      "-m",
+      "ensurepip",
+      "--default-pip"
+    ],
+    [
+      "/tmp/rs_instalador_real_fpaku34n/.rodovia-instalar-zx9e36tx/sistema/programa/runtime/python.exe",
+      "-m",
+      "pip",
+      "--isolated",
+      "install",
+      "--no-index",
+      "--find-links",
+      "/tmp/rs_instalador_real_fpaku34n/.rodovia-instalar-zx9e36tx/sistema/programa/pacotes",
+      "--only-binary=:all:",
+      "--require-hashes",
+      "--disable-pip-version-check",
+      "-r",
+      "/tmp/rs_instalador_real_fpaku34n/.rodovia-instalar-zx9e36tx/sistema/programa/pip-bootstrap.lock"
+    ],
+    [
+      "/tmp/rs_instalador_real_fpaku34n/.rodovia-instalar-zx9e36tx/sistema/programa/runtime/python.exe",
+      "-m",
+      "pip",
+      "--isolated",
+      "install",
+      "--no-index",
+      "--find-links",
+      "/tmp/rs_instalador_real_fpaku34n/.rodovia-instalar-zx9e36tx/sistema/programa/pacotes",
+      "--only-binary=:all:",
+      "--require-hashes",
+      "--disable-pip-version-check",
+      "-r",
+      "/tmp/rs_instalador_real_fpaku34n/.rodovia-instalar-zx9e36tx/sistema/programa/requirements-windows.lock"
+    ],
+    [
+      "/tmp/rs_instalador_real_fpaku34n/.rodovia-instalar-zx9e36tx/sistema/programa/runtime/python.exe",
+      "-m",
+      "pip",
+      "check"
+    ],
+    [
+      "/tmp/rs_instalador_real_fpaku34n/.rodovia-instalar-zx9e36tx/sistema/programa/runtime/python.exe",
+      "-c",
+      "import rasterio; assert rasterio.__gdal_version__"
+    ],
+    [
+      "/tmp/rs_instalador_real_fpaku34n/.rodovia-instalar-zx9e36tx/sistema/programa/runtime/python.exe",
+      "/tmp/rs_instalador_real_fpaku34n/.rodovia-instalar-zx9e36tx/sistema/programa/diagnostico.py"
+    ],
+    [
+      "/tmp/rs_instalador_real_fpaku34n/Instalação com espaços ç/sistema/programa/runtime/python.exe",
+      "-c",
+      "import rasterio; assert rasterio.__gdal_version__"
+    ],
+    [
+      "/tmp/rs_instalador_real_fpaku34n/Instalação com espaços ç/sistema/programa/runtime/python.exe",
+      "/tmp/rs_instalador_real_fpaku34n/Instalação com espaços ç/sistema/programa/diagnostico.py"
+    ]
+  ],
+  "windows_native_executed": false,
+  "scope": "Layout e integridade reais; pip, imports e FFmpeg Windows não foram executados neste Linux. Os scripts de instalação os executam no PC de destino antes da conclusão."
+}
