@@ -1,5 +1,5 @@
 {
-  "zip_sha256": "9a5a1864758362c6f9a5285b88b6a6964dd33ea935fb846d2e74b6c45bdc90ff",
+  "zip_sha256": "fcb35f6c487545fbc5000091e654ba5fe7319989c2d049fba4f54f0d0f29a56e",
   "manifest_hash_embedded_in_exe": true,
   "all_payload_hashes_checked": true,
   "embedded_application_bytes_unchanged": true,
@@ -10,64 +10,64 @@
   "completion_state": true,
   "subprocesses_recorded": [
     [
-      "/tmp/rs_instalador_real_fpaku34n/.rodovia-instalar-zx9e36tx/sistema/programa/runtime/python.exe",
+      "/tmp/rs_instalador_real_bu79wwye/.rodovia-instalar-gp8smwdy/sistema/programa/runtime/python.exe",
       "-m",
       "ensurepip",
       "--default-pip"
     ],
     [
-      "/tmp/rs_instalador_real_fpaku34n/.rodovia-instalar-zx9e36tx/sistema/programa/runtime/python.exe",
+      "/tmp/rs_instalador_real_bu79wwye/.rodovia-instalar-gp8smwdy/sistema/programa/runtime/python.exe",
       "-m",
       "pip",
       "--isolated",
       "install",
       "--no-index",
       "--find-links",
-      "/tmp/rs_instalador_real_fpaku34n/.rodovia-instalar-zx9e36tx/sistema/programa/pacotes",
+      "/tmp/rs_instalador_real_bu79wwye/.rodovia-instalar-gp8smwdy/sistema/programa/pacotes",
       "--only-binary=:all:",
       "--require-hashes",
       "--disable-pip-version-check",
       "-r",
-      "/tmp/rs_instalador_real_fpaku34n/.rodovia-instalar-zx9e36tx/sistema/programa/pip-bootstrap.lock"
+      "/tmp/rs_instalador_real_bu79wwye/.rodovia-instalar-gp8smwdy/sistema/programa/pip-bootstrap.lock"
     ],
     [
-      "/tmp/rs_instalador_real_fpaku34n/.rodovia-instalar-zx9e36tx/sistema/programa/runtime/python.exe",
+      "/tmp/rs_instalador_real_bu79wwye/.rodovia-instalar-gp8smwdy/sistema/programa/runtime/python.exe",
       "-m",
       "pip",
       "--isolated",
       "install",
       "--no-index",
       "--find-links",
-      "/tmp/rs_instalador_real_fpaku34n/.rodovia-instalar-zx9e36tx/sistema/programa/pacotes",
+      "/tmp/rs_instalador_real_bu79wwye/.rodovia-instalar-gp8smwdy/sistema/programa/pacotes",
       "--only-binary=:all:",
       "--require-hashes",
       "--disable-pip-version-check",
       "-r",
-      "/tmp/rs_instalador_real_fpaku34n/.rodovia-instalar-zx9e36tx/sistema/programa/requirements-windows.lock"
+      "/tmp/rs_instalador_real_bu79wwye/.rodovia-instalar-gp8smwdy/sistema/programa/requirements-windows.lock"
     ],
     [
-      "/tmp/rs_instalador_real_fpaku34n/.rodovia-instalar-zx9e36tx/sistema/programa/runtime/python.exe",
+      "/tmp/rs_instalador_real_bu79wwye/.rodovia-instalar-gp8smwdy/sistema/programa/runtime/python.exe",
       "-m",
       "pip",
       "check"
     ],
     [
-      "/tmp/rs_instalador_real_fpaku34n/.rodovia-instalar-zx9e36tx/sistema/programa/runtime/python.exe",
+      "/tmp/rs_instalador_real_bu79wwye/.rodovia-instalar-gp8smwdy/sistema/programa/runtime/python.exe",
       "-c",
       "import rasterio; assert rasterio.__gdal_version__"
     ],
     [
-      "/tmp/rs_instalador_real_fpaku34n/.rodovia-instalar-zx9e36tx/sistema/programa/runtime/python.exe",
-      "/tmp/rs_instalador_real_fpaku34n/.rodovia-instalar-zx9e36tx/sistema/programa/diagnostico.py"
+      "/tmp/rs_instalador_real_bu79wwye/.rodovia-instalar-gp8smwdy/sistema/programa/runtime/python.exe",
+      "/tmp/rs_instalador_real_bu79wwye/.rodovia-instalar-gp8smwdy/sistema/programa/diagnostico.py"
     ],
     [
-      "/tmp/rs_instalador_real_fpaku34n/Instalação com espaços ç/sistema/programa/runtime/python.exe",
+      "/tmp/rs_instalador_real_bu79wwye/Instalação com espaços ç/sistema/programa/runtime/python.exe",
       "-c",
       "import rasterio; assert rasterio.__gdal_version__"
     ],
     [
-      "/tmp/rs_instalador_real_fpaku34n/Instalação com espaços ç/sistema/programa/runtime/python.exe",
-      "/tmp/rs_instalador_real_fpaku34n/Instalação com espaços ç/sistema/programa/diagnostico.py"
+      "/tmp/rs_instalador_real_bu79wwye/Instalação com espaços ç/sistema/programa/runtime/python.exe",
+      "/tmp/rs_instalador_real_bu79wwye/Instalação com espaços ç/sistema/programa/diagnostico.py"
     ]
   ],
   "windows_native_executed": false,

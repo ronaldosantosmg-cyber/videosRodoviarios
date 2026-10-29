@@ -109,3 +109,10 @@ def test_signature_flow_does_not_create_or_trust_certificate():
 
 def test_null_path_is_refused_before_extraction():
     with pytest.raises(ValueError):I.safe_name("bad\x00name")
+
+
+def test_manifest_requests_current_user_without_elevation():
+    import xml.etree.ElementTree as ET
+    document=ET.parse(Path(__file__).resolve().parents[1]/'aplicativo.manifest')
+    level=document.find('.//{urn:schemas-microsoft-com:asm.v3}requestedExecutionLevel')
+    assert level.get('level')=='asInvoker' and level.get('uiAccess')=='false'

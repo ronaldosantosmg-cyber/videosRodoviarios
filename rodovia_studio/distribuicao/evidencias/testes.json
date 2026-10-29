@@ -1,8 +1,8 @@
 {
   "approved": true,
-  "source_sha256": "a594c7b1c1357c9518dc424c79781a232480c0848cd818a61ef9b43bba5afb6f",
+  "source_sha256": "c5129110e9d29ac7d79fe4ba966b206c87f4c0b8f6eef99c72443295925018b8",
   "pytest": {
-    "tests": 19,
+    "tests": 20,
     "failures": 0,
     "errors": 0,
     "skipped": 0

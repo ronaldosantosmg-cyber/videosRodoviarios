@@ -57,10 +57,19 @@ def compiler():
     return [str(root/'usr/bin/mono-sgen'),str(root/'usr/lib/mono/4.5/mcs.exe')]
 
 def compile_cs(source,output,assembly,webview=None):
-    common=['/nologo','/target:winexe','/platform:x64','/r:System.Windows.Forms.dll','/r:System.Drawing.dll','/out:'+str(output)]
+    common=['/nologo','/win32manifest:'+str(HERE/'aplicativo.manifest'),'/target:winexe','/platform:x64','/r:System.Windows.Forms.dll','/r:System.Drawing.dll','/out:'+str(output)]
     if webview:common+=['/define:WEBVIEW2','/r:'+str(webview/'Microsoft.Web.WebView2.Core.dll'),'/r:'+str(webview/'Microsoft.Web.WebView2.WinForms.dll')]
     else:common+=['/r:System.Web.Extensions.dll','/r:System.IO.Compression.dll','/r:System.IO.Compression.FileSystem.dll']
     subprocess.run(compiler()+common+[str(assembly),str(source)],check=True)
+    if os.name!='nt':
+        # mcs aceita /win32manifest, mas pode não gravá-lo no PE. Segunda passagem
+        # com .res explícito conserva VERSIONINFO e garante RT_MANIFEST.
+        from recursos_pe import resources
+        resource=output.with_suffix('.res');resource.write_bytes(resources(output.read_bytes(),(HERE/'aplicativo.manifest').read_bytes()))
+        flags=[f for f in common if not f.startswith('/win32manifest:')]+['/win32res:'+str(resource)]
+        subprocess.run(compiler()+flags+[str(assembly),str(source)],check=True)
+        resource.unlink()
+    if b'asInvoker' not in output.read_bytes():raise RuntimeError('Manifesto asInvoker não foi incorporado no executável.')
 
 def sign(path,args):
     if not args.certificado:return
@@ -77,7 +86,7 @@ def build(args):
     cache=Path(args.cache);cache.mkdir(parents=True,exist_ok=True);python=cache/'python.3.12.10.nupkg'
     if not python.is_file():python.write_bytes(get(PYTHON_URL))
     if sha(python)!=PYTHON_SHA:raise RuntimeError('O Python oficial não corresponde ao hash auditado.')
-    output=REPO/'atualizacoes/RodoviaStudio_2_02_instalacao_completa.zip'
+    output=REPO/'atualizacoes/RodoviaStudio_2_02_instalacao_completa_r2.zip'
     if output.exists():raise RuntimeError('Instalador histórico já existe; não será sobrescrito.')
     deps=dependencies();dependency_proof=validate_dependencies(deps,cache);evidence=HERE/'evidencias';evidence.mkdir(exist_ok=True)
     (evidence/'dependencias-verificadas.json').write_text(json.dumps(dependency_proof,indent=2)+'\n')
@@ -99,7 +108,7 @@ def build(args):
             (target/'WebView2Loader.dll').write_bytes(loader)
         assembly=Path(temporary)/'AssemblyInfo.cs';assembly.write_text('using System.Reflection;\n[assembly: AssemblyCompany("Ronaldo Santos")]\n[assembly: AssemblyCopyright("Ronaldo Santos")]\n[assembly: AssemblyProduct("Rodovia Studio")]\n[assembly: AssemblyFileVersion("2.2.0.0")]\n[assembly: AssemblyVersion("2.2.0.0")]\n')
         compile_cs(BASE/'iniciador/RodoviaStudio.cs',payload/'Rodovia Studio.exe',assembly,target);sign(payload/'Rodovia Studio.exe',args)
-        manifest=dict(version='2.02',architecture='win_amd64',publisher='Ronaldo Santos',authenticode_signed=bool(args.certificado),first_install_internet=True,python_origin=PYTHON_URL,dependencies=deps,dependency_download_bytes=sum(d['bytes'] for d in deps),files={p.relative_to(stage).as_posix():sha(p) for p in sorted(stage.rglob('*')) if p.is_file()})
+        manifest=dict(version='2.02',installer_revision=2,architecture='win_amd64',publisher='Ronaldo Santos',authenticode_signed=bool(args.certificado),first_install_internet=True,python_origin=PYTHON_URL,dependencies=deps,dependency_download_bytes=sum(d['bytes'] for d in deps),files={p.relative_to(stage).as_posix():sha(p) for p in sorted(stage.rglob('*')) if p.is_file()})
         (stage/'distribuicao.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8');digest=sha(stage/'distribuicao.json')
         source=Path(temporary)/'Instalador.cs';source.write_text((HERE/'Instalador.cs').read_text().replace('@MANIFEST_SHA@',digest).replace('@SIGNING_NOTICE@','Assinado com certificado de Ronaldo Santos.' if args.certificado else 'Sem certificado Authenticode: o Windows pode mostrar fornecedor desconhecido.'),encoding='utf-8')
         compile_cs(source,stage/'INSTALAR RODOVIA STUDIO.exe',assembly);sign(stage/'INSTALAR RODOVIA STUDIO.exe',args)
@@ -120,7 +129,7 @@ def build(args):
 
 def source_digest():
     h=hashlib.sha256()
-    for f in sorted([HERE/'instalar.py',HERE/'Instalador.cs',HERE/'assinar.ps1',HERE/'gerar_instalador.py',HERE/'LEIA-ME.txt']):h.update(f.name.encode());h.update(f.read_bytes())
+    for f in sorted([HERE/'instalar.py',HERE/'Instalador.cs',HERE/'assinar.ps1',HERE/'gerar_instalador.py',HERE/'LEIA-ME.txt',HERE/'aplicativo.manifest',HERE/'recursos_pe.py']):h.update(f.name.encode());h.update(f.read_bytes())
     return h.hexdigest()
 
 if __name__=='__main__':

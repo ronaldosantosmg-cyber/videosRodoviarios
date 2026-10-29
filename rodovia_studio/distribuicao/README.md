@@ -1,4 +1,4 @@
-# Rodovia Studio 2.02 — opção de instalação nova
+# Rodovia Studio 2.02 — instalação nova r2
 
 Complemento da revisão 2.02. Não modifica o ZIP de atualização nem o código-base aprovado. Gera um assistente Windows x64 com fabricante **Ronaldo Santos**, Python local e preparação online das bibliotecas. Não é um pacote totalmente offline.
 
@@ -8,7 +8,7 @@ Complemento da revisão 2.02. Não modifica o ZIP de atualização nem o código
 2. Executar **INSTALAR RODOVIA STUDIO.exe**, escolher uma pasta nova e clicar Instalar.
 3. Aguardar as verificações. Ao concluir, Abrir pasta → **Rodovia Studio.exe**.
 
-Windows 10/11 x64, .NET Framework 4.8, internet e pelo menos 3 GiB livres. Não precisa instalar Python previamente ou solicitar elevação pelo instalador. O ZIP tem 26.923.705 bytes; as 36 bibliotecas/FFmpeg somam 196.588.159 bytes de download. Os wheels são mantidos localmente para a preparação futura.
+Windows 10/11 x64, .NET Framework 4.8, internet e pelo menos 3 GiB livres. Não precisa instalar Python previamente ou solicitar elevação pelo instalador. O ZIP tem 26.924.588 bytes; as 36 bibliotecas/FFmpeg somam 196.588.159 bytes de download. Os wheels são mantidos localmente para a preparação futura.
 
 O instalador nunca sobrescreve uma pasta existente. Antes da criação do destino, falha/cancelamento remove somente seu temporário. Se a verificação no caminho final falhar, a pasta permanece marcada como incompleta para diagnóstico; eventuais arquivos recebidos nela são preservados. Logs: `%LOCALAPPDATA%\Ronaldo Santos\Logs`.
 
@@ -31,7 +31,7 @@ A sequência do construtor é: compilar iniciador → assinar iniciador, se conf
 ## Validação executada
 
 - Aplicativo-base: verificador `validar_entrega.py --retomar .../entrega-validada --evidencias base-instalador`, com os 995 resultados do produto inalterado preservados por hash, nenhuma falha/erro/ignorado; splash/C# reexecutados. Não são 995 testes novos do instalador.
-- Instalador: **19 testes novos aprovados**, sem falhas/erros/ignorados, cobrindo pasta existente, caminho com acento, traversal/link no ZIP, manifesto/payload alterado, origem HTTPS permitida, hash/tamanho de wheel, cancelamento e falhas antes/depois da criação do destino.
+- Instalador: **20 testes novos aprovados**, sem falhas/erros/ignorados, cobrindo pasta existente, caminho com acento, traversal/link no ZIP, manifesto/payload alterado, origem HTTPS permitida, hash/tamanho de wheel, cancelamento e falhas antes/depois da criação do destino.
 - Instalador e iniciador WebView2 compilados como Windows x64. Metadados de ambos: Ronaldo Santos / 2.2.0.0. Captura visual inspecionada em Mono/Xvfb.
 - ZIP real: hashes de todo o payload conferidos, manifesto ancorado no executável, Python extraído, 36 wheels reais preparados e 270 arquivos do programa comparados byte a byte em destino novo com espaço/acento. Subprocessos Windows foram substituídos nesse ensaio Linux; não foi uma instalação Windows nativa.
 - Todos os 36 wheels foram baixados e verificados; fechamento de dependências foi avaliado com marcadores Windows/Python 3.12.10.
@@ -47,3 +47,7 @@ No ambiente de desenvolvimento, obter wheels CPython 3.12 Windows x64 para `requ
 Executar `validar_instalador.py`, conferir a imagem, depois `gerar_instalador.py --cache <cache com python.3.12.10.nupkg e wheels/>`. `MONO_ROOT`, `WEBVIEW2_LIB` e `DISPLAY` apontam para as ferramentas Linux. Para build no Windows, usar o compilador .NET e o SDK correspondente. Assinatura opcional: `--certificado <thumbprint> --timestamp <URL HTTPS do emissor>`, em ambiente do titular com certificado válido e política PowerShell aprovada pela TI. Não enviar chaves ao repositório.
 
 O builder recusa sobrescrever um ZIP existente. Publicar somente na branch de desenvolvimento; main não foi alterada.
+
+## Revisão r2 do instalador
+
+Usar RodoviaStudio_2_02_instalacao_completa_r2.zip. Inclui manifesto Win32 asInvoker/Windows 10/DPI em ambos os executáveis. O build Mono usa recursos_pe.py para conservar VERSIONINFO e incorporar RT_MANIFEST explicitamente; o construtor recusa executável sem asInvoker. Um candidato sem manifesto foi recusado na conferência e não foi publicado como r2. O ZIP inicial sem sufixo permanece histórico. Para repassar fontes/projeto a outra IA, consulte ../CONTINUIDADE_OUTRA_IA.md.

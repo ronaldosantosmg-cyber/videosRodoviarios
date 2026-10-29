@@ -1,0 +1,19 @@
+{
+  "approved": true,
+  "source_sha256": "a594c7b1c1357c9518dc424c79781a232480c0848cd818a61ef9b43bba5afb6f",
+  "pytest": {
+    "tests": 19,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "compiled": [
+    "instalador Windows x64",
+    "iniciador WebView2 Windows x64"
+  ],
+  "publisher_metadata": "Ronaldo Santos",
+  "authenticode_signed": false,
+  "visual": "Mono/Xvfb",
+  "windows_native": false,
+  "scope": "Ensaios de arquivos usam o atualizador e o ZIP 2.02 reais; subprocessos Windows simulados. Compilação/GUI Mono não comprovam execução nativa Windows."
+}

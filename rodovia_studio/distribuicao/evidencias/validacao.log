@@ -1,7 +1,6 @@
-...................                                                      [100%]
-19 passed in 34.36s
+....................                                                     [100%]
+20 passed in 20.10s
 Fontconfig error: No writable cache directories
-Could not set X locale modifiers
 Gtk not found (missing LD_LIBRARY_PATH to libgtk-x11-2.0.so.0?), using built-in colorscheme
 Ronaldo Santos | 2.2.0.0
 Ronaldo Santos | 2.2.0.0

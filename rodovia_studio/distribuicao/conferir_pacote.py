@@ -6,11 +6,12 @@ import instalar as I
 HERE=Path(__file__).resolve().parent;REPO=HERE.parents[1]
 
 def main():
-    p=REPO/'atualizacoes/RodoviaStudio_2_02_instalacao_completa.zip';proof=json.loads((HERE/'evidencias/pacote.json').read_text())
+    proof=json.loads((HERE/'evidencias/pacote.json').read_text());p=REPO/'atualizacoes'/proof['zip']
     assert I.sha(p)==proof['sha256']
     with tempfile.TemporaryDirectory(prefix='rs_instalador_real_') as temporary:
         tmp=Path(temporary);I.unpack(p,tmp/'entrada');root=tmp/'entrada/Rodovia Studio 2.02';m=I.verify(root,proof['manifest_sha256'])
         assert proof['manifest_sha256'].encode('utf-16le') in (root/'INSTALAR RODOVIA STUDIO.exe').read_bytes()
+        assert all(b'asInvoker' in f.read_bytes() for f in (root/'INSTALAR RODOVIA STUDIO.exe',root/'payload/Rodovia Studio.exe'))
         assert I.sha(root/'payload/aplicativo.zip')=='2654167d0fadbf9b293f15ecd8bdf89eccc19c069b137ee630f1c0863b7bc0ed'
         assert (root/'payload/aplicativo.zip').read_bytes()==(REPO/'atualizacoes/RodoviaStudio_2_02_atualizacao.zip').read_bytes()
         calls=[]

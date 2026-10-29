@@ -1,5 +1,6 @@
 {
   "version": "2.02",
+  "installer_revision": 2,
   "architecture": "win_amd64",
   "publisher": "Ronaldo Santos",
   "authenticode_signed": false,
@@ -299,7 +300,7 @@
   "files": {
     "LEIA-ME.txt": "a816af096e80f7c987ecef61c0987ea44e6e60eb6e129a71366f65b9e77ae6d6",
     "instalar.py": "c94c8bd9f5664c563fe67d3a29b750d9b5cc39a5b0841c14bb16d0c7fd3a350e",
-    "payload/Rodovia Studio.exe": "49bde876d9aee4ba5feb53eb96b40f4b706d2966edaa6daa6619b255380b411f",
+    "payload/Rodovia Studio.exe": "7853e5087146d815122b7d6d965715d3a580a2ebafbf3e9968ca4743194e36ff",
     "payload/aplicativo.zip": "2654167d0fadbf9b293f15ecd8bdf89eccc19c069b137ee630f1c0863b7bc0ed",
     "payload/python.nupkg": "0eb85c2dfccccf1b17352de4c397f69194035b7d37149eacc16f1147d93de3b8",
     "payload/webview2/LICENSE.txt": "0af8f1b807512aae39c2ac1aa4d0cae65cabecb6fd554b8439a5162a0d6eca55",
