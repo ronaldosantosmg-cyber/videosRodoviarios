@@ -46,3 +46,9 @@ Reconexão de leitura sem reenviar o cálculo, espera na fila sem limite arbitr�
 ### Entrega 1.42.38 — acompanhamento corrigido e empacotado
 
 A correção antes disponível apenas na branch agora integra um ZIP novo, após aprovação consolidada de 971 casos, splash e compilação C#. Atualização 37 → 38, arquivos corrigidos instalados e rollback para 37 conferidos com preservação de dados de teste. Evidências em evidencias/1.42.38/. A preferência de sempre entregar novo ZIP após correções foi registrada em AGENTS.md; a tentativa anterior sem pacote é histórico. Limites Windows/8 GB/carga prolongada e nota de referência 7,8/10 mantidos.
+
+### Entrega 2.01 — operação e apresentação consolidadas
+
+Versão solicitada pelo usuário, sobre a 1.42.38, sem substituição do motor e com schema 31. Preservação de escala/centro no resize, Aplicar sem fechar com novo ponto de descarte, validação de campos, fila única nos formulários, ordenação das camadas/materiais, contraste/ícones e materiais locais em superfícies 2D. Evidências em evidencias/2.01/LEIA_ME.md.
+
+Aprovação consolidada de 977 casos do mesmo produto (897 preservados, 80 repetidos), splash/C# em Mono/Xvfb. Atualização real do ZIP e rollback para 1.42.38 conferidos com preservação de bytes e restauração de todos os hashes anteriores. HTTPS HTTP 200 e SHA-256 conferidos. Main intacta. Prontidão provisória 6,5/10; Windows/8 GB, projeto real e demais limites constam no relatório. A infraestrutura paralela de testes ainda requer isolamento de banco por worker para evitar interferência entre instâncias; módulos afetados foram repetidos em série.
