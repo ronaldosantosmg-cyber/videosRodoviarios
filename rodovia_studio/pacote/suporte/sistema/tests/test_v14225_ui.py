@@ -36,9 +36,11 @@ def test_execution_reaches_real_worker_preview_commit_revalidation_and_undo(gl_p
  h=m.add_hatch(dxfattribs={'layer':'PAVIMENTO'});h.paths.add_polyline_path([(500000,7799980),(500500,7799980),(500500,7800200),(500000,7800200)],is_closed=True);doc.saveas(d/'input.dxf')
  data=P.read_config(d);data['route_directions']={'axis:'+__import__('app.native_axes',fromlist=['axis_fingerprint']).axis_fingerprint([(500050,7800000),(500200,7800000),(500200,7800150)],'EIXO'):'forward'};data['render_workers']=1;P.save_config(d,data);s=Settings.model_validate(data);publish(d,s);source=(d/'input.dxf').read_bytes()
  p.evaluate('(id)=>load(id,{resultsOnly:true,syncConfig:true})',live[1]);p.evaluate('RodoviaExecution.open()')
- p.get_by_role('button',name='Analisar e propor correção').first.click()
+ p.get_by_role('button',name='Reconstruir rota completa').first.click()
  p.get_by_role('button',name='Confirmar e aplicar correção').wait_for(timeout=90000)
  assert not P.read_config(d)['flow_recoveries'] and not p.get_by_role('button',name='Confirmar e aplicar correção').is_disabled()
+ assert p.get_by_text('Continuidade integral aprovada em todos os sentidos solicitados.',exact=True).is_visible()
+ screenshot(p,'202_reconstrucao_integral_previa')
  screenshot(p,'14225_previa_motor_antes_de_aplicar')
  p.get_by_role('button',name='Confirmar e aplicar correção').click();p.get_by_role('button',name='Revalidar resultado').wait_for()
  assert P.read_config(d)['flow_recoveries'] and (d/'input.dxf').read_bytes()==source

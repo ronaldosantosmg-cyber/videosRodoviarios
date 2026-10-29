@@ -440,6 +440,22 @@ class TrafficNetwork:
                 if fit:
                     self.raw_info[-1].setdefault('lateral_fits',[]).append(fit)
                     offset=fit['applied_m']
+            reconstruction_requested=bool(user.get('reconstruct') and not disabled)
+            if reconstruction_requested:
+                self.raw_info[-1]['reconstruction_requested']=True
+                if r.get('explicit_cut',False):
+                    self.raw_info[-1]['recovery_reports'].append({'status':'blocked','reconstruction':{'continuous':False,'reason':'recorte_manual_preservado'}})
+                    continue
+                from .flow_recovery import recover_sections
+                minimum=1. if r.get('native_axis') and self.origin_info.get(r.get('origin'),(0.,False))[0]>=self.min_route else max(1.,self.min_route)
+                rebuilt,reconstruction_report=recover_sections(lane,self.allowed,minimum,reconstruct=True)
+                reconstruction_report['geometry_in_travel_direction']=True
+                self.raw_info[-1]['recovery_reports'].append(reconstruction_report)
+                if not rebuilt:continue
+                candidate=rebuilt[0]
+                self._add_flow_edge(candidate,q,0,len(q),r,base,kind,disabled,ring,both,offset,route_meta,spd,True,(True,True))
+                self.edges[-1]['reconstruction_direction']=bool(f)
+                continue
             # Invalid interior samples split the edge: no jumps across gaps or barriers.
             changes=np.diff(np.r_[False,valid,False].astype(np.int8))
             runs=list(zip(np.flatnonzero(changes==1),np.flatnonzero(changes==-1)))

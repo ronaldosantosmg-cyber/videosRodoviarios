@@ -17,7 +17,7 @@ def test_central_disabled_flow_and_small_screen_close(gl_page):
     p.route('**/assistencia/execucao',lambda r:r.fulfill(json={'signature':'test','segments':[dict(id=0,source='Eixo teste',technical_status='problem',technical_message='Curva a conferir',disabled=True,technical_assistant={'title':'Conferir eixo','steps':[{'instruction':'Revisar vértices'}]})]}))
     p.evaluate('RodoviaFlowRepair.open()');d=p.locator('#rsFlowCenter');d.wait_for()
     assert d.get_by_text('Revisar vértices',exact=True).is_visible()
-    assert d.get_by_role('button',name='Analisar e propor correção').is_disabled()
+    assert d.get_by_role('button',name='Reconstruir rota completa').is_disabled()
     assert d.locator('footer button').evaluate('e=>e.getBoundingClientRect().bottom<=innerHeight')
     screenshot(p,'14237_central_compacta');d.get_by_role('button',name='Fechar',exact=True).click();assert d.count()==0
     p.unroute('**/assistencia/execucao')
@@ -28,7 +28,7 @@ def test_failed_proposal_releases_button_without_changing_model(gl_page):
     p.evaluate('RodoviaFlowRepair.open()');d=p.locator('#rsFlowCenter');d.wait_for()
     p.evaluate("()=>{window.before37=JSON.stringify(M);window.oldStart37=start;start=async()=>{throw Error('Falha controlada de proposta')}}")
     try:
-        b=d.get_by_role('button',name='Analisar e propor correção');b.click();p.wait_for_function("!document.querySelector('#rsFlowCenter').dataset.pending")
+        b=d.get_by_role('button',name='Reconstruir rota completa');b.click();p.wait_for_function("!document.querySelector('#rsFlowCenter').dataset.pending")
         assert b.is_enabled() and d.is_visible() and p.evaluate('JSON.stringify(M)===before37')
         d.get_by_role('button',name='Fechar',exact=True).click()
     finally:p.evaluate('()=>{start=oldStart37}');p.unroute('**/assistencia/execucao')
@@ -49,7 +49,7 @@ def test_committed_plan_cannot_be_submitted_again_after_refresh_failure(gl_page)
     p.evaluate('RodoviaExecution.open()')
     p.evaluate("()=>{window.start37=start;window.load37=load;start=async()=>({state:'done'});load=async()=>{throw Error('Falha de leitura após aplicação')}}")
     try:
-        d=p.locator('#rsFlowCenter');d.get_by_role('button',name='Analisar e propor correção').click()
+        d=p.locator('#rsFlowCenter');d.get_by_role('button',name='Reconstruir rota completa').click()
         b=d.get_by_role('button',name='Confirmar e aplicar correção');b.wait_for();b.click()
         p.wait_for_function("!document.querySelector('#rsFlowCenter').dataset.pending")
         assert b.is_disabled() and b.get_attribute('data-applied')=='true'

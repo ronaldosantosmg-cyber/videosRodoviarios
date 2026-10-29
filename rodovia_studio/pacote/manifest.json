@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "2.01",
-  "description": "2.01: operação protegida, enquadramento estável, confirmação sem fechar e interface compacta."
+  "version": "2.02",
+  "description": "2.02: reconstrução integral no corredor, continuidade por sentido e proposta reversível."
 }

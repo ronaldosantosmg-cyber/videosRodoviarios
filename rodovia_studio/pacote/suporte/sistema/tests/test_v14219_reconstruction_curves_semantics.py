@@ -166,6 +166,6 @@ def test_reconstruct_action_is_available_in_visual_repair_dialog(page):
     page.get_by_role('tab',name='Tráfego',exact=True).click()
     page.evaluate('RodoviaFlowRepair.advanced()')
     page.locator('.rsFlowRepairAdvanced').first.locator('summary').click()
-    assert page.get_by_role('button',name='Reconstruir ligação contínua').first.is_visible()
+    assert page.get_by_role('button',name='Reconstruir rota completa…').first.is_visible()
     assert '8 m' in page.get_by_role('dialog',name='Corrigir fluxos').inner_text()
     screenshot(page,'14219_reconstrucao_continua')

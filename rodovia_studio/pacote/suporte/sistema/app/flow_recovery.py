@@ -35,11 +35,14 @@ def recover_sections(points,allowed,minimum=50.,reconstruct=False):
     if reconstruct:
         from .flow_reconstruction import reconstruct as rebuild
         candidate,reconstruction=rebuild(p,allowed,minimum)
+        reconstruction.setdefault('critical_point',audit.get('critical_center_xy'))
         report['reconstruction']=reconstruction
         if candidate is not None:
             report.update(status='reconstructed',strategy='reconstrucao_continua_validada',
                           retained=[[0.,total]],retained_geometry=[_preview(candidate)])
             return [candidate],report
+        report['message']='Reconstrução integral recusada: '+reconstruction.get('reason','sem ligação validada')+'. Use Recuperar trechos para uma recuperação parcial explícita.'
+        return [],report
     if total>100000 or len(p)>50000:
         report['message']='Extensão excessiva: divida a análise antes de recuperar.';return [],report
     # Primeiro tenta uma correção leve da trajetória derivada, limitada a 0,5 m.

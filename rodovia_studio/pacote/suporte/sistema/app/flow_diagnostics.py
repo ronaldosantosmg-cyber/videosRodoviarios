@@ -87,6 +87,18 @@ def flow_diagnostics(network):
             status='adjustment';message='ENSAIO CLÁSSICO: veículos ilustrativos; somente canteiros e integridade numérica conferidos.'
             automatic='Manter o ensaio explicitamente identificado; não considerar circulação validada.'
             manual='Desative o modo clássico para validar colisões, semáforos e demais restrições.'
+        reconstruction=None
+        if raw.get('reconstruction_requested'):
+            from .flow_reconstruction import continuity_evidence
+            reconstruction=continuity_evidence(network,raw.get('origin_key'))
+            if reconstruction['complete']:
+                message+=' Reconstrução integral conferida: itinerário completo em cada sentido solicitado.'
+            else:
+                status='adjustment' if circulating else 'problem'
+                message='Reconstrução integral não aprovada: '+reconstruction['message']+' Não foi declarada resolvida por recuperar apenas partes.'
+                for report in reconstruction['reports']:
+                    point=report.get('reconstruction',{}).get('critical_point')
+                    if point:critical.append({'point':point,'reasons':[report['reconstruction']['reason']]})
         fleet=getattr(network,'fleet_compatibility',{})
         path_rows=[r for r in fleet.get('paths',[]) if raw['base'] in r['bases']]
         details=[v for row in path_rows for v in row['vehicles'] if v.get('checked',True)]
@@ -99,8 +111,8 @@ def flow_diagnostics(network):
         assistant=guidance(status,reasons,disabled=bool(raw.get('disabled')),length=effective_length,minimum=minimum,points=critical)
         out.append({'technical_status':status,'technical_message':message,'technical_assistant':assistant,
                     'technical_fleet':{'checked':bool(path_rows),'compatible':compatible,'blocked':blocked},
-                    'technical_context':{'source':raw.get('source'),'route_id':raw.get('route'),'origin_key':raw.get('origin_key'),'direction':'crescente' if raw.get('forward') else 'decrescente','level':raw.get('level',0),'base_registered':bool(raw.get('native_axis') or raw.get('route') or raw.get('manual'))},
+                    'technical_context':{'source':raw.get('source'),'route_id':raw.get('route'),'origin_key':raw.get('origin_key'),'direction':'crescente' if raw.get('forward') else 'decrescente','level':raw.get('level',0),'origin_length_m':effective_length,'base_registered':bool(raw.get('native_axis') or raw.get('route') or raw.get('manual'))},
                     'technical_exclusion':('manual' if raw.get('disabled') else 'length_limit' if finite and length>0 and effective_length<minimum else None),
                     'technical_circulation':{'enabled':bool(circulating),'used_edges':len(circulating),'active_edges':len(active),'blocked_edges':sum(bool(e.get('disabled')) for _,e in edges)},
-                    'technical_lateral_fits':raw.get('lateral_fits',[]),'technical_automatic':automatic,'technical_manual':manual,'technical_recovery':recovery_info,'technical_points':critical[:20],'technical_reasons':reasons})
+                    'technical_reconstruction':({k:v for k,v in reconstruction.items() if k!='reports'} if reconstruction else None),'technical_lateral_fits':raw.get('lateral_fits',[]),'technical_automatic':automatic,'technical_manual':manual,'technical_recovery':recovery_info,'technical_points':critical[:20],'technical_reasons':reasons})
     return out

@@ -217,21 +217,21 @@ function foregroundFlows(){
  ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.lineJoin='round';ctx.lineCap='round';
  const line=(points,status,forward=true,both=false,dashed=false)=>{
   const pts=(points||[]).map(p=>Array.isArray(p)?P(p):p).filter(p=>Number.isFinite(p.x)&&Number.isFinite(p.y));if(pts.length<2||polyLen(pts)<.1)return;
-  const color=flowStudyColor(status);poly(pts);ctx.setLineDash([]);ctx.strokeStyle='#081623';ctx.lineWidth=7;ctx.stroke();
-  ctx.setLineDash(dashed?[7,4]:[]);ctx.strokeStyle=color;ctx.lineWidth=4;ctx.stroke();ctx.setLineDash([]);arrowsAlong(pts,forward,both,color,85);
+  const reference=!!status?.reference,color=reference?'#8a95a2':flowStudyColor(status);poly(pts);ctx.setLineDash([]);ctx.strokeStyle='#081623';ctx.lineWidth=7;ctx.stroke();
+  ctx.setLineDash(dashed?[7,4]:[]);ctx.strokeStyle=color;ctx.lineWidth=reference?1.5:4;ctx.stroke();ctx.setLineDash([]);if(!reference)arrowsAlong(pts,forward,both,color,85);
  };
- for(const seg of editor?.segments||[])line(seg.points,seg,seg.forward,seg.both,seg.disabled);
+ for(const seg of editor?.segments||[])line(seg.points,seg.technical_reconstruction?.complete?{reference:true}:seg,seg.forward,seg.both,seg.disabled||seg.technical_reconstruction?.complete);
  for(const route of M.traffic_paths||[])line(route.points,route.enabled===false?{disabled:true}:(editor?.segments||[]).find(s=>s.source===route.name),true,false,route.enabled===false);
  for(const route of M.route_alignments||[]){
   const calculated=(editor?.segments||[]).filter(s=>s.route===route.id);const status=route.enabled===false?{disabled:true}:polyLen(route.points)<minFlowLength()?{technical_status:'adjustment'}:calculated.find(s=>s.technical_status==='problem')||calculated.find(s=>s.technical_status==='adjustment')||calculated[0];
-  line(route.points,status,true,false,true);
+  line(route.points,calculated.some(s=>s.technical_reconstruction?.complete)?{reference:true}:status,true,false,true);
  }
- for(const lane of routeLanes||[]){const route=M.route_alignments?.[lane.route];const calculated=(editor?.segments||[]).find(s=>s.route===route?.id);line(lane.points,lane.enabled===false?{disabled:true}:calculated,true,false)}
+ for(const lane of routeLanes||[]){const route=M.route_alignments?.[lane.route];const calculated=(editor?.segments||[]).find(s=>s.route===route?.id);line(lane.points,calculated?.technical_reconstruction?.complete?{reference:true}:lane.enabled===false?{disabled:true}:calculated,true,false)}
  for(const link of editor?.connections||[])line(link.p,{technical_status:'ok'},true,false,!!link.forced);
  for(const link of editor?.denied||[])line(link.p,{disabled:true},true,false,true);
  // Resultado técnico da recuperação: geometria original intacta, circulação segregada.
  for(const seg of editor?.segments||[])for(const report of seg.technical_recovery?.reports||[]){
-  for(const pts of report.retained_geometry||[])line(pts,{technical_status:'ok'},seg.forward,seg.both);
+  for(const pts of report.retained_geometry||[])line(pts,{technical_status:'ok'},report.geometry_in_travel_direction?true:seg.forward,report.geometry_in_travel_direction?false:seg.both);
   for(const pts of report.excluded_geometry||[])line(pts,{technical_status:'problem'},seg.forward,seg.both,true);
  }
  // Pontos de diagnóstico são apresentados pela camada DOM técnica, fora do raster de vídeo.
