@@ -1,0 +1,10 @@
+{
+  "filename": "RodoviaStudio_2_02_fontes_conferencia.zip",
+  "sha256": "aa586ab11103f17b106b24cfce93fe82adecb523adc938c4c5ca6516fb00d41d",
+  "bytes": 36028137,
+  "files": 833,
+  "base_commit": "57f775c2f0d3fc3d416cd66b74fff21a1cad491c",
+  "all_file_hashes_checked": true,
+  "user_projects_included": false,
+  "notes": "Inclui o ZIP de atualização 2.02 para reproduzir o build; o instalador e seus downloads são distribuídos separadamente. Não inclui .git, credenciais ou ambientes locais."
+}
