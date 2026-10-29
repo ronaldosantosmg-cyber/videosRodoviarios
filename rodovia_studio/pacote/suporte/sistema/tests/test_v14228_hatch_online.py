@@ -5,6 +5,8 @@ from visual_harness import screenshot
 
 def test_legacy_empty_origin_does_not_trap_hatch_editor(gl_page,live):
     p=gl_page
+    # Esta regressão verifica salvar/fechar, após concluir o cálculo inicial da fixture.
+    p.wait_for_function('!task&&!taskRequestPending&&!RodoviaUpdates.snapshot().requests',timeout=180000)
     p.evaluate("async()=>{fill({...cfg,origin:'',destination:''});await save();await start('analyze');openSection('Configuração')}")
     box=p.locator('#hatchBox');box.locator('summary').click()
     role=p.locator('#hatchList select[data-hk=role]').first;role.wait_for();sig=role.locator('..').locator('..').get_attribute('data-sig')

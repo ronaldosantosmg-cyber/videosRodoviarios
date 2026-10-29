@@ -116,14 +116,24 @@ def test_reconstructed_route_reaches_actual_3d_and_decoded_video(defective_proje
     from app.scene3d import build
     from app.encoding import ffmpeg_exe,validate_mp4
     d,s,segment=defective_project;plan=E.preview(d,dict(signature=E.signature(d),segment=segment['id'],action='reconstruct'));assert plan['can_apply']
-    E.apply(d,plan['id']);s=Settings.model_validate(P.read_config(d));scene=Scene(d,s)
+    E.apply(d,plan['id']);s=Settings.model_validate(P.read_config(d));source=(d/'input.dxf').read_bytes()
+    baseline=Scene.light(d,s);technical_paths=[p['p'].copy() for p in baseline.network.paths if p.get('route')=='R']
+    appearance=dict(style_profile='padrao',texture_style='artistico',earthwork_look='natural',visual_quality='enhanced',natural_materials_only=True,detail_textures=True,median_grass=True)
+    before=s.model_dump();s=Settings.model_validate(dict(before,**appearance));P.save_config(d,s.model_dump())
+    assert all(s.model_dump()[k]==v for k,v in before.items() if k not in appearance)
+    scene=Scene(d,s)
     paths=[p for p in scene.network.paths if p.get('route')=='R'];assert paths
+    assert len(paths)==len(technical_paths) and all(np.array_equal(p['p'],q) for p,q in zip(paths,technical_paths))
     assert any(np.ptp(p['p'][:,0])>285 for p in paths)
     sim=scene.traffic();assert any(list(scene.traffic_iter(t)) for t in [0,.5,1.,1.5])
     data=build(d,s);assert data['vehicles']
     output=render(d,s);check=validate_mp4(ffmpeg_exe(),output,72,1280,720,24);assert check['ok']
     evidence=Path(os.environ.get('VISUAL_ARTIFACTS','/tmp/rodovia202-evidence'));evidence.mkdir(parents=True,exist_ok=True)
-    (evidence/'202_rota_reconstruida_video.json').write_text(json.dumps({'mp4':check,'reconstruction':plan['reconstruction'],'itineraries':len(paths),'scope':'Cenário sintético; não reproduz o projeto salvo do usuário.'},ensure_ascii=False,indent=2)+'\n')
+    from PIL import Image
+    image,_=scene.frame(1.5,view=([500200,7800000],360));assert image.shape==(720,1280,3) and np.ptp(image)>50
+    Image.fromarray(image).save(evidence/'202_apresentacao_realista.png')
+    assert (d/'input.dxf').read_bytes()==source
+    (evidence/'202_rota_reconstruida_video.json').write_text(json.dumps({'mp4':check,'reconstruction':plan['reconstruction'],'itineraries':len(paths),'presentation':appearance,'calculation_geometry_preserved':True,'scope':'Cenário sintético no perfil artístico existente; não reproduz o projeto salvo do usuário nem certifica realismo fotográfico.'},ensure_ascii=False,indent=2)+'\n')
 
 
 def test_internal_native_contact_is_not_blocked_by_independent_route_limit():

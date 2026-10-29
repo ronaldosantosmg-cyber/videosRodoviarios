@@ -1,0 +1,13 @@
+{
+  "reused_tests": 965,
+  "executed_tests": 30,
+  "total": 995,
+  "product_sha256": "a23bc61f37473828bb4433570d9870ad8dc4a0bf0d7e50dc4a4eb1bfd749248b",
+  "origin": "/workspace/videosRodoviarios/rodovia_studio/evidencias/2.02/entrega-final",
+  "changed_test_modules": [
+    "nomes_indefinidos.py",
+    "test_v131.py",
+    "test_v14228_hatch_online.py",
+    "test_v202_reconstruction.py"
+  ]
+}

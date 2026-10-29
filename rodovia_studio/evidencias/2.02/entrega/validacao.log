@@ -1,0 +1,556 @@
+No broken requirements found.
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.7.0 -- /workspace/.venvs/rodovia-studio/bin/python
+rootdir: /workspace/videosRodoviarios
+configfile: pyproject.toml
+plugins: anyio-4.15.1, xdist-3.8.0
+created: 4/4 workers
+4 workers [994 items]
+
+scheduling tests via LoadFileScheduling
+
+tests/test_v14221_simplification.py::test_simulation_settings_keep_geometry_and_editor_valid[changes0] 
+tests/test_v1426_import_capacity.py::test_kmz_above_100mb_due_to_images_is_read_without_extracting_attachments 
+tests/test_v1423_motion.py::test_invalid_motion_is_rejected[None] 
+[gw1] [  0%] PASSED tests/test_v1423_motion.py::test_invalid_motion_is_rejected[None] 
+tests/test_v142_update.py::test_apply_snapshot_rollback_and_relocation 
+tests/test_v1423_motion.py::test_invalid_motion_is_rejected[bad1] 
+[gw1] [  0%] PASSED tests/test_v1423_motion.py::test_invalid_motion_is_rejected[bad1] 
+tests/test_v1423_motion.py::test_invalid_motion_is_rejected[bad2] 
+[gw1] [  0%] PASSED tests/test_v1423_motion.py::test_invalid_motion_is_rejected[bad2] 
+tests/test_v1423_motion.py::test_invalid_motion_is_rejected[bad3] 
+[gw1] [  0%] PASSED tests/test_v1423_motion.py::test_invalid_motion_is_rejected[bad3] 
+tests/test_v1423_motion.py::test_invalid_motion_is_rejected[bad4] 
+[gw1] [  0%] PASSED tests/test_v1423_motion.py::test_invalid_motion_is_rejected[bad4] 
+tests/test_v1423_motion.py::test_invalid_motion_is_rejected[bad5] 
+[gw1] [  0%] PASSED tests/test_v1423_motion.py::test_invalid_motion_is_rejected[bad5] 
+tests/test_v1423_motion.py::test_front_and_rear_coordinates_and_unit_heading 
+[gw1] [  0%] PASSED tests/test_v1423_motion.py::test_front_and_rear_coordinates_and_unit_heading 
+tests/test_v1423_motion.py::test_sharp_turn_reversal_and_crossing_are_rejected[points0] 
+[gw1] [  0%] PASSED tests/test_v1423_motion.py::test_sharp_turn_reversal_and_crossing_are_rejected[points0] 
+tests/test_v1423_motion.py::test_sharp_turn_reversal_and_crossing_are_rejected[points1] 
+[gw1] [  0%] PASSED tests/test_v1423_motion.py::test_sharp_turn_reversal_and_crossing_are_rejected[points1] 
+tests/test_v1423_motion.py::test_sharp_turn_reversal_and_crossing_are_rejected[points2] 
+[gw1] [  1%] PASSED tests/test_v1423_motion.py::test_sharp_turn_reversal_and_crossing_are_rejected[points2] 
+tests/test_v1423_motion.py::test_close_zigzag_is_rejected_but_long_smooth_lane_change_allowed 
+[gw1] [  1%] PASSED tests/test_v1423_motion.py::test_close_zigzag_is_rejected_but_long_smooth_lane_change_allowed 
+[gw2] [  1%] PASSED tests/test_v142_update.py::test_apply_snapshot_rollback_and_relocation 
+tests/test_v1423_motion.py::test_real_vehicle_dimensions_change_steering_feasibility 
+tests/test_v142_update.py::test_failed_replace_restores_all_and_has_journal_before_write 
+[gw1] [  1%] PASSED tests/test_v1423_motion.py::test_real_vehicle_dimensions_change_steering_feasibility 
+tests/test_v1423_motion.py::test_front_rear_body_must_stay_on_pavement 
+[gw0] [  1%] PASSED tests/test_v14221_simplification.py::test_simulation_settings_keep_geometry_and_editor_valid[changes0] 
+tests/test_v14221_simplification.py::test_simulation_settings_keep_geometry_and_editor_valid[changes1] 
+[gw1] [  1%] PASSED tests/test_v1423_motion.py::test_front_rear_body_must_stay_on_pavement 
+tests/test_v1423_motion.py::test_legitimate_smooth_return_and_roundabout_are_not_blanket_removed 
+[gw1] [  1%] PASSED tests/test_v1423_motion.py::test_legitimate_smooth_return_and_roundabout_are_not_blanket_removed 
+tests/test_v1423_motion.py::test_forced_connector_cannot_reverse_explicit_route_direction 
+[gw1] [  1%] PASSED tests/test_v1423_motion.py::test_forced_connector_cannot_reverse_explicit_route_direction 
+tests/test_v1423_motion.py::test_forced_connector_cannot_bypass_no_connection_zone 
+[gw1] [  1%] PASSED tests/test_v1423_motion.py::test_forced_connector_cannot_bypass_no_connection_zone 
+tests/test_v1423_motion.py::test_zero_gap_collinear_connector_does_not_generate_loop 
+[gw1] [  1%] PASSED tests/test_v1423_motion.py::test_zero_gap_collinear_connector_does_not_generate_loop 
+tests/test_v1423_motion.py::test_vehicle_pose_is_continuous_between_samples_and_reports_front_rear 
+[gw2] [  2%] PASSED tests/test_v142_update.py::test_failed_replace_restores_all_and_has_journal_before_write 
+tests/test_v142_update.py::test_incomplete_backup_rejected_before_any_restore 
+[gw0] [  2%] PASSED tests/test_v14221_simplification.py::test_simulation_settings_keep_geometry_and_editor_valid[changes1] 
+tests/test_v14221_simplification.py::test_simulation_settings_keep_geometry_and_editor_valid[changes2] 
+[gw2] [  2%] PASSED tests/test_v142_update.py::test_incomplete_backup_rejected_before_any_restore 
+tests/test_v142_update.py::test_zip_formats_apply_and_archive[] 
+[gw2] [  2%] PASSED tests/test_v142_update.py::test_zip_formats_apply_and_archive[] 
+tests/test_v142_update.py::test_zip_formats_apply_and_archive[pacote/] 
+[gw0] [  2%] PASSED tests/test_v14221_simplification.py::test_simulation_settings_keep_geometry_and_editor_valid[changes2] 
+tests/test_v14221_simplification.py::test_simulation_settings_keep_geometry_and_editor_valid[changes3] 
+[gw2] [  2%] PASSED tests/test_v142_update.py::test_zip_formats_apply_and_archive[pacote/] 
+tests/test_v142_update.py::test_zip_formats_apply_and_archive[RS142/pacote/] 
+[gw0] [  2%] PASSED tests/test_v14221_simplification.py::test_simulation_settings_keep_geometry_and_editor_valid[changes3] 
+tests/test_v14221_simplification.py::test_density_changes_real_vehicle_simulation_without_collisions 
+[gw2] [  2%] PASSED tests/test_v142_update.py::test_zip_formats_apply_and_archive[RS142/pacote/] 
+tests/test_v142_update.py::test_only_updates_directory_and_equivalent_versions 
+[gw2] [  2%] PASSED tests/test_v142_update.py::test_only_updates_directory_and_equivalent_versions 
+tests/test_v142_update.py::test_reject_zip_traversal_and_quarantine[../../fora.py] 
+[gw2] [  2%] PASSED tests/test_v142_update.py::test_reject_zip_traversal_and_quarantine[../../fora.py] 
+tests/test_v142_update.py::test_reject_zip_traversal_and_quarantine[C:/fora.py] 
+[gw2] [  3%] PASSED tests/test_v142_update.py::test_reject_zip_traversal_and_quarantine[C:/fora.py] 
+tests/test_v142_update.py::test_reject_zip_traversal_and_quarantine[..\\fora.py] 
+[gw2] [  3%] PASSED tests/test_v142_update.py::test_reject_zip_traversal_and_quarantine[..\\fora.py] 
+tests/test_v142_update.py::test_reject_zip_traversal_and_quarantine[/fora.py] 
+[gw2] [  3%] PASSED tests/test_v142_update.py::test_reject_zip_traversal_and_quarantine[/fora.py] 
+tests/test_v142_update.py::test_invalid_content_quarantined_and_valid_can_follow 
+[gw2] [  3%] PASSED tests/test_v142_update.py::test_invalid_content_quarantined_and_valid_can_follow 
+tests/test_v142_update.py::test_bad_manifest_archived_even_with_valid_candidate 
+[gw2] [  3%] PASSED tests/test_v142_update.py::test_bad_manifest_archived_even_with_valid_candidate 
+tests/test_v142_update.py::test_snapshot_names_do_not_collide 
+[gw2] [  3%] PASSED tests/test_v142_update.py::test_snapshot_names_do_not_collide 
+tests/test_v142_update.py::test_target_symlink_cannot_change_persistent_data 
+[gw2] [  3%] PASSED tests/test_v142_update.py::test_target_symlink_cannot_change_persistent_data 
+tests/test_v142_update.py::test_tampered_backup_target_is_rejected 
+[gw2] [  3%] PASSED tests/test_v142_update.py::test_tampered_backup_target_is_rejected 
+tests/test_v142_update.py::test_concurrent_update_is_rejected 
+[gw2] [  3%] PASSED tests/test_v142_update.py::test_concurrent_update_is_rejected 
+tests/test_v142_update.py::test_api_listing_real_candidate_and_rollback 
+[gw3] [  3%] PASSED tests/test_v1426_import_capacity.py::test_kmz_above_100mb_due_to_images_is_read_without_extracting_attachments 
+tests/test_v1426_import_capacity.py::test_invalid_xml_or_coordinates_rejected[<kml xmlns="http://www.opengis.net/kml/2.2"><Document><Placemark><name>Refer\xeancia</name><LineString><coordinates>NaN,-19 -43.001,-19.001</coordinates></LineString></Placemark></Document></kml>] 
+[gw3] [  4%] PASSED tests/test_v1426_import_capacity.py::test_invalid_xml_or_coordinates_rejected[<kml xmlns="http://www.opengis.net/kml/2.2"><Document><Placemark><name>Refer\xeancia</name><LineString><coordinates>NaN,-19 -43.001,-19.001</coordinates></LineString></Placemark></Document></kml>] 
+tests/test_v1426_import_capacity.py::test_invalid_xml_or_coordinates_rejected[<kml xmlns="http://www.opengis.net/kml/2.2"><Document><Placemark><name>Refer\xeancia</name><LineString><coordinates>900,-19 -43.001,-19.001</coordinates></LineString></Placemark></Document></kml>] 
+[gw3] [  4%] PASSED tests/test_v1426_import_capacity.py::test_invalid_xml_or_coordinates_rejected[<kml xmlns="http://www.opengis.net/kml/2.2"><Document><Placemark><name>Refer\xeancia</name><LineString><coordinates>900,-19 -43.001,-19.001</coordinates></LineString></Placemark></Document></kml>] 
+tests/test_v1426_import_capacity.py::test_invalid_xml_or_coordinates_rejected[<kml>] 
+[gw3] [  4%] PASSED tests/test_v1426_import_capacity.py::test_invalid_xml_or_coordinates_rejected[<kml>] 
+tests/test_v1426_import_capacity.py::test_invalid_xml_or_coordinates_rejected[<!DOCTYPE kml [<!ENTITY x "aaa">]><kml>&x;</kml>] 
+[gw3] [  4%] PASSED tests/test_v1426_import_capacity.py::test_invalid_xml_or_coordinates_rejected[<!DOCTYPE kml [<!ENTITY x "aaa">]><kml>&x;</kml>] 
+tests/test_v1426_import_capacity.py::test_missing_kml_and_traversal_have_specific_messages 
+[gw3] [  4%] PASSED tests/test_v1426_import_capacity.py::test_missing_kml_and_traversal_have_specific_messages 
+tests/test_v1426_import_capacity.py::test_kml_namespace_21_and_no_namespace_are_supported 
+[gw3] [  4%] PASSED tests/test_v1426_import_capacity.py::test_kml_namespace_21_and_no_namespace_are_supported 
+tests/test_v1426_import_capacity.py::test_high_positive_capacity_and_demand_are_accepted[3500] 
+[gw3] [  4%] PASSED tests/test_v1426_import_capacity.py::test_high_positive_capacity_and_demand_are_accepted[3500] 
+tests/test_v1426_import_capacity.py::test_high_positive_capacity_and_demand_are_accepted[5000] 
+[gw3] [  4%] PASSED tests/test_v1426_import_capacity.py::test_high_positive_capacity_and_demand_are_accepted[5000] 
+tests/test_v1426_import_capacity.py::test_high_positive_capacity_and_demand_are_accepted[10000] 
+[gw3] [  4%] PASSED tests/test_v1426_import_capacity.py::test_high_positive_capacity_and_demand_are_accepted[10000] 
+tests/test_v1426_import_capacity.py::test_high_positive_capacity_and_demand_are_accepted[20000] 
+[gw3] [  4%] PASSED tests/test_v1426_import_capacity.py::test_high_positive_capacity_and_demand_are_accepted[20000] 
+tests/test_v1426_import_capacity.py::test_zero_and_invalid_traffic_inputs_are_rejected[0-traffic_capacity_vphpl] 
+[gw3] [  5%] PASSED tests/test_v1426_import_capacity.py::test_zero_and_invalid_traffic_inputs_are_rejected[0-traffic_capacity_vphpl] 
+tests/test_v1426_import_capacity.py::test_zero_and_invalid_traffic_inputs_are_rejected[0-traffic_demand_vphpl] 
+[gw3] [  5%] PASSED tests/test_v1426_import_capacity.py::test_zero_and_invalid_traffic_inputs_are_rejected[0-traffic_demand_vphpl] 
+tests/test_v1426_import_capacity.py::test_zero_and_invalid_traffic_inputs_are_rejected[-1-traffic_capacity_vphpl] 
+[gw3] [  5%] PASSED tests/test_v1426_import_capacity.py::test_zero_and_invalid_traffic_inputs_are_rejected[-1-traffic_capacity_vphpl] 
+tests/test_v1426_import_capacity.py::test_zero_and_invalid_traffic_inputs_are_rejected[-1-traffic_demand_vphpl] 
+[gw3] [  5%] PASSED tests/test_v1426_import_capacity.py::test_zero_and_invalid_traffic_inputs_are_rejected[-1-traffic_demand_vphpl] 
+tests/test_v1426_import_capacity.py::test_zero_and_invalid_traffic_inputs_are_rejected[-traffic_capacity_vphpl] 
+[gw3] [  5%] PASSED tests/test_v1426_import_capacity.py::test_zero_and_invalid_traffic_inputs_are_rejected[-traffic_capacity_vphpl] 
+tests/test_v1426_import_capacity.py::test_zero_and_invalid_traffic_inputs_are_rejected[-traffic_demand_vphpl] 
+[gw3] [  5%] PASSED tests/test_v1426_import_capacity.py::test_zero_and_invalid_traffic_inputs_are_rejected[-traffic_demand_vphpl] 
+tests/test_v1426_import_capacity.py::test_zero_and_invalid_traffic_inputs_are_rejected[nan-traffic_capacity_vphpl] 
+[gw3] [  5%] PASSED tests/test_v1426_import_capacity.py::test_zero_and_invalid_traffic_inputs_are_rejected[nan-traffic_capacity_vphpl] 
+tests/test_v1426_import_capacity.py::test_zero_and_invalid_traffic_inputs_are_rejected[nan-traffic_demand_vphpl] 
+[gw3] [  5%] PASSED tests/test_v1426_import_capacity.py::test_zero_and_invalid_traffic_inputs_are_rejected[nan-traffic_demand_vphpl] 
+tests/test_v1426_import_capacity.py::test_zero_and_invalid_traffic_inputs_are_rejected[inf-traffic_capacity_vphpl] 
+[gw3] [  5%] PASSED tests/test_v1426_import_capacity.py::test_zero_and_invalid_traffic_inputs_are_rejected[inf-traffic_capacity_vphpl] 
+tests/test_v1426_import_capacity.py::test_zero_and_invalid_traffic_inputs_are_rejected[inf-traffic_demand_vphpl] 
+[gw3] [  5%] PASSED tests/test_v1426_import_capacity.py::test_zero_and_invalid_traffic_inputs_are_rejected[inf-traffic_demand_vphpl] 
+tests/test_v1426_import_capacity.py::test_zero_and_invalid_traffic_inputs_are_rejected[20001-traffic_capacity_vphpl] 
+[gw3] [  6%] PASSED tests/test_v1426_import_capacity.py::test_zero_and_invalid_traffic_inputs_are_rejected[20001-traffic_capacity_vphpl] 
+tests/test_v1426_import_capacity.py::test_zero_and_invalid_traffic_inputs_are_rejected[20001-traffic_demand_vphpl] 
+[gw3] [  6%] PASSED tests/test_v1426_import_capacity.py::test_zero_and_invalid_traffic_inputs_are_rejected[20001-traffic_demand_vphpl] 
+tests/test_v1426_import_capacity.py::test_demand_3500_builds_queue_against_1900_without_forcing_3500_discharge 
+[gw1] [  6%] PASSED tests/test_v1423_motion.py::test_vehicle_pose_is_continuous_between_samples_and_reports_front_rear 
+tests/test_v1423_motion.py::test_unsafe_class_is_not_spawned_on_tight_curve 
+[gw1] [  6%] PASSED tests/test_v1423_motion.py::test_unsafe_class_is_not_spawned_on_tight_curve 
+tests/test_v1423_motion.py::test_explicit_crossing_prohibition_beats_forced_or_free_mode 
+[gw1] [  6%] PASSED tests/test_v1423_motion.py::test_explicit_crossing_prohibition_beats_forced_or_free_mode 
+tests/test_v1423_motion.py::test_long_lane_change_is_valid_but_short_sharp_shift_is_refused 
+[gw1] [  6%] PASSED tests/test_v1423_motion.py::test_long_lane_change_is_valid_but_short_sharp_shift_is_refused 
+tests/test_v1423_motion.py::test_curve_speed_envelope_respects_lateral_acceleration 
+[gw1] [  6%] PASSED tests/test_v1423_motion.py::test_curve_speed_envelope_respects_lateral_acceleration 
+tests/test_v1423_motion.py::test_stopped_vehicle_does_not_slide_sideways_to_finish_lane_change 
+[gw1] [  6%] PASSED tests/test_v1423_motion.py::test_stopped_vehicle_does_not_slide_sideways_to_finish_lane_change 
+tests/test_v1423_motion.py::test_front_rear_profiles_match_rendered_vehicle_dimensions 
+[gw1] [  6%] PASSED tests/test_v1423_motion.py::test_front_rear_profiles_match_rendered_vehicle_dimensions 
+tests/test_v1423_motion.py::test_organic_heading_and_forward_motion_on_continuous_curve 
+[gw2] [  6%] PASSED tests/test_v142_update.py::test_api_listing_real_candidate_and_rollback 
+tests/test_v142_update.py::test_session_shutdown_requires_token_and_refuses_active_work 
+[gw2] [  7%] PASSED tests/test_v142_update.py::test_session_shutdown_requires_token_and_refuses_active_work 
+tests/test_v142_update.py::test_invalid_wait_is_rejected[nan] 
+[gw2] [  7%] PASSED tests/test_v142_update.py::test_invalid_wait_is_rejected[nan] 
+tests/test_v142_update.py::test_invalid_wait_is_rejected[inf] 
+[gw2] [  7%] PASSED tests/test_v142_update.py::test_invalid_wait_is_rejected[inf] 
+tests/test_v142_update.py::test_invalid_wait_is_rejected[-1] 
+[gw2] [  7%] PASSED tests/test_v142_update.py::test_invalid_wait_is_rejected[-1] 
+tests/test_v142_update.py::test_failed_rollback_recovers_state_before_attempt 
+[gw2] [  7%] PASSED tests/test_v142_update.py::test_failed_rollback_recovers_state_before_attempt 
+tests/test_v142_update.py::test_recover_pending_update_after_process_crash 
+[gw2] [  7%] PASSED tests/test_v142_update.py::test_recover_pending_update_after_process_crash 
+tests/test_v142_update.py::test_hash_manifest_detects_tampering_and_unlisted_files 
+[gw2] [  7%] PASSED tests/test_v142_update.py::test_hash_manifest_detects_tampering_and_unlisted_files 
+tests/test_small_ai_bridge.py::test_prepare_is_redacted_bounded_and_never_changes_configuration 
+[gw2] [  7%] PASSED tests/test_small_ai_bridge.py::test_prepare_is_redacted_bounded_and_never_changes_configuration 
+tests/test_small_ai_bridge.py::test_reply_is_validated_and_configuration_unchanged 
+[gw2] [  7%] PASSED tests/test_small_ai_bridge.py::test_reply_is_validated_and_configuration_unchanged 
+tests/test_small_ai_bridge.py::test_code_unknown_or_out_of_scope_action_is_rejected[bad0] 
+[gw2] [  7%] PASSED tests/test_small_ai_bridge.py::test_code_unknown_or_out_of_scope_action_is_rejected[bad0] 
+tests/test_small_ai_bridge.py::test_code_unknown_or_out_of_scope_action_is_rejected[bad1] 
+[gw2] [  8%] PASSED tests/test_small_ai_bridge.py::test_code_unknown_or_out_of_scope_action_is_rejected[bad1] 
+tests/test_small_ai_bridge.py::test_code_unknown_or_out_of_scope_action_is_rejected[bad2] 
+[gw2] [  8%] PASSED tests/test_small_ai_bridge.py::test_code_unknown_or_out_of_scope_action_is_rejected[bad2] 
+tests/test_small_ai_bridge.py::test_stale_and_copied_prompts_are_rejected 
+[gw2] [  8%] PASSED tests/test_small_ai_bridge.py::test_stale_and_copied_prompts_are_rejected 
+tests/test_small_ai_bridge.py::test_result_changed_during_inference_is_discarded 
+[gw2] [  8%] PASSED tests/test_small_ai_bridge.py::test_result_changed_during_inference_is_discarded 
+tests/test_small_ai_bridge.py::test_online_never_sends_without_explicit_consent 
+[gw2] [  8%] PASSED tests/test_small_ai_bridge.py::test_online_never_sends_without_explicit_consent 
+tests/test_small_ai_bridge.py::test_known_texture_is_reviewed_not_applied 
+[gw2] [  8%] PASSED tests/test_small_ai_bridge.py::test_known_texture_is_reviewed_not_applied 
+tests/test_small_ai_bridge.py::test_invented_layer_is_rejected 
+[gw2] [  8%] PASSED tests/test_small_ai_bridge.py::test_invented_layer_is_rejected 
+tests/test_small_ai_bridge.py::test_memory_guard_no_process_and_missing_model_status 
+[gw2] [  8%] PASSED tests/test_small_ai_bridge.py::test_memory_guard_no_process_and_missing_model_status 
+tests/test_small_ai_bridge.py::test_model_hash_and_paths_are_checked_before_execution 
+[gw2] [  8%] PASSED tests/test_small_ai_bridge.py::test_model_hash_and_paths_are_checked_before_execution 
+tests/test_small_ai_bridge.py::test_concurrent_work_and_cancel_do_not_apply 
+[gw2] [  8%] PASSED tests/test_small_ai_bridge.py::test_concurrent_work_and_cancel_do_not_apply 
+tests/test_small_ai_bridge.py::test_small_model_ui_previews_without_loading_missing_weights 
+[gw1] [  9%] PASSED tests/test_v1423_motion.py::test_organic_heading_and_forward_motion_on_continuous_curve 
+tests/test_v1423_motion.py::test_legacy_animation_has_same_class_audit_and_no_zero_division 
+[gw1] [  9%] PASSED tests/test_v1423_motion.py::test_legacy_animation_has_same_class_audit_and_no_zero_division 
+tests/test_v14231_flow_nodes.py::test_legacy_default_keeps_two_existing_lanes_and_positions 
+[gw1] [  9%] PASSED tests/test_v14231_flow_nodes.py::test_legacy_default_keeps_two_existing_lanes_and_positions 
+tests/test_v14231_flow_nodes.py::test_nodes_orient_section_arrows_and_vehicle_path_from_same_lane[crescente-entrada-saida-1] 
+[gw1] [  9%] PASSED tests/test_v14231_flow_nodes.py::test_nodes_orient_section_arrows_and_vehicle_path_from_same_lane[crescente-entrada-saida-1] 
+tests/test_v14231_flow_nodes.py::test_nodes_orient_section_arrows_and_vehicle_path_from_same_lane[decrescente-saida-entrada--1] 
+[gw1] [  9%] PASSED tests/test_v14231_flow_nodes.py::test_nodes_orient_section_arrows_and_vehicle_path_from_same_lane[decrescente-saida-entrada--1] 
+tests/test_v14231_flow_nodes.py::test_access_centered_and_return_on_right_and_disabled_side_not_resurrected 
+[gw1] [  9%] PASSED tests/test_v14231_flow_nodes.py::test_access_centered_and_return_on_right_and_disabled_side_not_resurrected 
+tests/test_v14231_flow_nodes.py::test_roundabout_rotation_explicit_at_large_cad_coordinates[horario--1] 
+[gw1] [  9%] PASSED tests/test_v14231_flow_nodes.py::test_roundabout_rotation_explicit_at_large_cad_coordinates[horario--1] 
+tests/test_v14231_flow_nodes.py::test_roundabout_rotation_explicit_at_large_cad_coordinates[anti_horario-1] 
+[gw1] [  9%] PASSED tests/test_v14231_flow_nodes.py::test_roundabout_rotation_explicit_at_large_cad_coordinates[anti_horario-1] 
+tests/test_v14231_flow_nodes.py::test_invalid_contradictory_nodes_never_silently_reverse_or_invent_geometry[kwargs0] 
+[gw1] [  9%] PASSED tests/test_v14231_flow_nodes.py::test_invalid_contradictory_nodes_never_silently_reverse_or_invent_geometry[kwargs0] 
+tests/test_v14231_flow_nodes.py::test_invalid_contradictory_nodes_never_silently_reverse_or_invent_geometry[kwargs1] 
+[gw1] [  9%] PASSED tests/test_v14231_flow_nodes.py::test_invalid_contradictory_nodes_never_silently_reverse_or_invent_geometry[kwargs1] 
+tests/test_v14231_flow_nodes.py::test_invalid_contradictory_nodes_never_silently_reverse_or_invent_geometry[kwargs2] 
+[gw1] [ 10%] PASSED tests/test_v14231_flow_nodes.py::test_invalid_contradictory_nodes_never_silently_reverse_or_invent_geometry[kwargs2] 
+tests/test_v14231_flow_nodes.py::test_invalid_contradictory_nodes_never_silently_reverse_or_invent_geometry[kwargs3] 
+[gw1] [ 10%] PASSED tests/test_v14231_flow_nodes.py::test_invalid_contradictory_nodes_never_silently_reverse_or_invent_geometry[kwargs3] 
+tests/test_v14231_flow_nodes.py::test_invalid_contradictory_nodes_never_silently_reverse_or_invent_geometry[kwargs4] 
+[gw1] [ 10%] PASSED tests/test_v14231_flow_nodes.py::test_invalid_contradictory_nodes_never_silently_reverse_or_invent_geometry[kwargs4] 
+tests/test_v14231_flow_nodes.py::test_invalid_contradictory_nodes_never_silently_reverse_or_invent_geometry[kwargs5] 
+[gw1] [ 10%] PASSED tests/test_v14231_flow_nodes.py::test_invalid_contradictory_nodes_never_silently_reverse_or_invent_geometry[kwargs5] 
+tests/test_v14231_flow_nodes.py::test_invalid_contradictory_nodes_never_silently_reverse_or_invent_geometry[kwargs6] 
+[gw1] [ 10%] PASSED tests/test_v14231_flow_nodes.py::test_invalid_contradictory_nodes_never_silently_reverse_or_invent_geometry[kwargs6] 
+tests/test_v14231_flow_nodes.py::test_invalid_contradictory_nodes_never_silently_reverse_or_invent_geometry[kwargs7] 
+[gw1] [ 10%] PASSED tests/test_v14231_flow_nodes.py::test_invalid_contradictory_nodes_never_silently_reverse_or_invent_geometry[kwargs7] 
+tests/test_v14231_flow_nodes.py::test_category_totals_are_five_and_twenty_not_per_branch_and_sum_to_one 
+[gw1] [ 10%] PASSED tests/test_v14231_flow_nodes.py::test_category_totals_are_five_and_twenty_not_per_branch_and_sum_to_one 
+tests/test_v14231_flow_nodes.py::test_multiple_lanes_do_not_multiply_category_allocation 
+[gw1] [ 10%] PASSED tests/test_v14231_flow_nodes.py::test_multiple_lanes_do_not_multiply_category_allocation 
+tests/test_v14231_flow_nodes.py::test_external_arrival_adds_to_global_vdm_without_stealing_principal_demand 
+[gw1] [ 10%] PASSED tests/test_v14231_flow_nodes.py::test_external_arrival_adds_to_global_vdm_without_stealing_principal_demand 
+tests/test_v14231_flow_nodes.py::test_real_typed_y_junction_preserves_connections_and_conservation 
+[gw1] [ 10%] PASSED tests/test_v14231_flow_nodes.py::test_real_typed_y_junction_preserves_connections_and_conservation 
+tests/test_v14231_flow_nodes.py::test_external_merge_keeps_received_vehicles_and_global_demand_separate 
+[gw0] [ 11%] PASSED tests/test_v14221_simplification.py::test_density_changes_real_vehicle_simulation_without_collisions 
+tests/test_v14221_simplification.py::test_presentation_does_not_invalidate_editor[changes0] 
+[gw0] [ 11%] PASSED tests/test_v14221_simplification.py::test_presentation_does_not_invalidate_editor[changes0] 
+tests/test_v14221_simplification.py::test_presentation_does_not_invalidate_editor[changes1] 
+[gw0] [ 11%] PASSED tests/test_v14221_simplification.py::test_presentation_does_not_invalidate_editor[changes1] 
+tests/test_v14221_simplification.py::test_presentation_does_not_invalidate_editor[changes2] 
+[gw0] [ 11%] PASSED tests/test_v14221_simplification.py::test_presentation_does_not_invalidate_editor[changes2] 
+tests/test_v14221_simplification.py::test_geometry_cache_reuses_dxf_for_density_and_material_without_changing_source 
+[gw0] [ 11%] PASSED tests/test_v14221_simplification.py::test_geometry_cache_reuses_dxf_for_density_and_material_without_changing_source 
+tests/test_v14221_simplification.py::test_corrupt_geometry_cache_falls_back_and_preserves_original 
+[gw0] [ 11%] PASSED tests/test_v14221_simplification.py::test_corrupt_geometry_cache_falls_back_and_preserves_original 
+tests/test_v14221_simplification.py::test_five_tabs_eight_menus_and_no_duplicate_visible_tool_catalog 
+[gw1] [ 11%] PASSED tests/test_v14231_flow_nodes.py::test_external_merge_keeps_received_vehicles_and_global_demand_separate 
+tests/test_v14231_flow_nodes.py::test_existing_manual_shutdown_is_preserved_after_classifying_access_on_center 
+[gw1] [ 11%] PASSED tests/test_v14231_flow_nodes.py::test_existing_manual_shutdown_is_preserved_after_classifying_access_on_center 
+tests/test_v14231_flow_nodes.py::test_shared_approach_diversion_preserves_id_and_position_when_main_blocked 
+[gw1] [ 11%] PASSED tests/test_v14231_flow_nodes.py::test_shared_approach_diversion_preserves_id_and_position_when_main_blocked 
+tests/test_v14231_flow_nodes.py::test_scheduled_total_closure_diverts_real_vehicles_before_node_without_respawning 
+[gw2] [ 11%] PASSED tests/test_small_ai_bridge.py::test_small_model_ui_previews_without_loading_missing_weights 
+tests/test_small_ai_bridge.py::test_actual_managed_process_protocol_and_unload_with_non_generative_stub 
+[gw2] [ 12%] PASSED tests/test_small_ai_bridge.py::test_actual_managed_process_protocol_and_unload_with_non_generative_stub 
+tests/test_small_ai_bridge.py::test_textures_response_reaches_existing_review_ui_without_applying 
+[gw1] [ 12%] PASSED tests/test_v14231_flow_nodes.py::test_scheduled_total_closure_diverts_real_vehicles_before_node_without_respawning 
+tests/test_v14231_flow_nodes.py::test_direction_marks_cannot_reverse_node_oriented_route_but_legacy_marks_still_work 
+[gw1] [ 12%] PASSED tests/test_v14231_flow_nodes.py::test_direction_marks_cannot_reverse_node_oriented_route_but_legacy_marks_still_work 
+tests/test_v1424_resilience.py::test_duration_display_never_raises_for_invalid_values[inf] 
+[gw1] [ 12%] PASSED tests/test_v1424_resilience.py::test_duration_display_never_raises_for_invalid_values[inf] 
+tests/test_v1424_resilience.py::test_duration_display_never_raises_for_invalid_values[-inf] 
+[gw1] [ 12%] PASSED tests/test_v1424_resilience.py::test_duration_display_never_raises_for_invalid_values[-inf] 
+tests/test_v1424_resilience.py::test_duration_display_never_raises_for_invalid_values[nan] 
+[gw1] [ 12%] PASSED tests/test_v1424_resilience.py::test_duration_display_never_raises_for_invalid_values[nan] 
+tests/test_v1424_resilience.py::test_duration_display_never_raises_for_invalid_values[None] 
+[gw1] [ 12%] PASSED tests/test_v1424_resilience.py::test_duration_display_never_raises_for_invalid_values[None] 
+tests/test_v1424_resilience.py::test_duration_display_never_raises_for_invalid_values[] 
+[gw1] [ 12%] PASSED tests/test_v1424_resilience.py::test_duration_display_never_raises_for_invalid_values[] 
+tests/test_v1424_resilience.py::test_duration_display_never_raises_for_invalid_values[-5] 
+[gw1] [ 12%] PASSED tests/test_v1424_resilience.py::test_duration_display_never_raises_for_invalid_values[-5] 
+tests/test_v1424_resilience.py::test_duration_display_never_raises_for_invalid_values[0] 
+[gw1] [ 12%] PASSED tests/test_v1424_resilience.py::test_duration_display_never_raises_for_invalid_values[0] 
+tests/test_v1424_resilience.py::test_task_snapshot_and_stage_times_use_monotonic_clock 
+[gw0] [ 13%] PASSED tests/test_v14221_simplification.py::test_five_tabs_eight_menus_and_no_duplicate_visible_tool_catalog 
+tests/test_v14221_simplification.py::test_progress_is_unique_in_footer_and_reports_failure_and_indeterminate 
+[gw1] [ 13%] PASSED tests/test_v1424_resilience.py::test_task_snapshot_and_stage_times_use_monotonic_clock 
+tests/test_v1424_resilience.py::test_usage_catalog_explains_evidence_and_ignores_bad_timings 
+[gw1] [ 13%] PASSED tests/test_v1424_resilience.py::test_usage_catalog_explains_evidence_and_ignores_bad_timings 
+tests/test_v1424_resilience.py::test_ai_prompt_keeps_full_config_last_render_snapshot_and_bundle 
+[gw1] [ 13%] PASSED tests/test_v1424_resilience.py::test_ai_prompt_keeps_full_config_last_render_snapshot_and_bundle 
+tests/test_v1424_resilience.py::test_corrupt_config_still_produces_diagnostic_prompt 
+[gw1] [ 13%] PASSED tests/test_v1424_resilience.py::test_corrupt_config_still_produces_diagnostic_prompt 
+tests/test_v1424_resilience.py::test_worker_invalid_config_is_logged_and_does_not_leave_task_running 
+[gw1] [ 13%] PASSED tests/test_v1424_resilience.py::test_worker_invalid_config_is_logged_and_does_not_leave_task_running 
+tests/test_v1424_resilience.py::test_cleanup_preserves_recent_logs_originals_and_symlink_destinations 
+[gw1] [ 13%] PASSED tests/test_v1424_resilience.py::test_cleanup_preserves_recent_logs_originals_and_symlink_destinations 
+tests/test_v1424_resilience.py::test_cleanup_only_deletes_working_video_if_archived_content_matches 
+[gw1] [ 13%] PASSED tests/test_v1424_resilience.py::test_cleanup_only_deletes_working_video_if_archived_content_matches 
+tests/test_v1424_resilience.py::test_failed_gpu_probe_is_cached_but_file_change_invalidates_it 
+[gw1] [ 13%] PASSED tests/test_v1424_resilience.py::test_failed_gpu_probe_is_cached_but_file_change_invalidates_it 
+tests/test_v1424_resilience.py::test_local_dependencies_fonts_and_actual_ffmpeg_are_available 
+[gw1] [ 13%] PASSED tests/test_v1424_resilience.py::test_local_dependencies_fonts_and_actual_ffmpeg_are_available 
+tests/test_v1424_resilience.py::test_job_progress_is_finite_or_null[None] 
+[gw1] [ 14%] PASSED tests/test_v1424_resilience.py::test_job_progress_is_finite_or_null[None] 
+tests/test_v1424_resilience.py::test_job_progress_is_finite_or_null[] 
+[gw1] [ 14%] PASSED tests/test_v1424_resilience.py::test_job_progress_is_finite_or_null[] 
+tests/test_v1424_resilience.py::test_job_progress_is_finite_or_null[nan] 
+[gw1] [ 14%] PASSED tests/test_v1424_resilience.py::test_job_progress_is_finite_or_null[nan] 
+tests/test_v1424_resilience.py::test_job_progress_is_finite_or_null[inf] 
+[gw1] [ 14%] PASSED tests/test_v1424_resilience.py::test_job_progress_is_finite_or_null[inf] 
+tests/test_v1424_resilience.py::test_job_progress_is_finite_or_null[-100] 
+[gw1] [ 14%] PASSED tests/test_v1424_resilience.py::test_job_progress_is_finite_or_null[-100] 
+tests/test_v1424_resilience.py::test_job_progress_is_finite_or_null[100] 
+[gw1] [ 14%] PASSED tests/test_v1424_resilience.py::test_job_progress_is_finite_or_null[100] 
+tests/test_v1424_resilience.py::test_support_endpoints_show_local_capabilities_and_catalog_without_network 
+[gw1] [ 14%] PASSED tests/test_v1424_resilience.py::test_support_endpoints_show_local_capabilities_and_catalog_without_network 
+tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[HATCH_OAE-oae] 
+[gw1] [ 14%] PASSED tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[HATCH_OAE-oae] 
+tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[POL_ARVORE-vegetation] 
+[gw1] [ 14%] PASSED tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[POL_ARVORE-vegetation] 
+tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[LINHA_HIDROLOGIA-water] 
+[gw1] [ 14%] PASSED tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[LINHA_HIDROLOGIA-water] 
+tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[EIXO_FERROVIA-railway] 
+[gw1] [ 15%] PASSED tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[EIXO_FERROVIA-railway] 
+tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[C-GASMIG-gas] 
+[gw1] [ 15%] PASSED tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[C-GASMIG-gas] 
+tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[REDE_GAS-gas] 
+[gw1] [ 15%] PASSED tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[REDE_GAS-gas] 
+tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[LINHA DE TRANSMISS\xc3O-electric] 
+[gw1] [ 15%] PASSED tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[LINHA DE TRANSMISS\xc3O-electric] 
+tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[POSTES-pole] 
+[gw1] [ 15%] PASSED tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[POSTES-pole] 
+tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[EDIFICA\xc7\xc3O-building] 
+[gw1] [ 15%] PASSED tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[EDIFICA\xc7\xc3O-building] 
+tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[OFFSET-earthwork] 
+[gw1] [ 15%] PASSED tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[OFFSET-earthwork] 
+tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[OFF SET-earthwork] 
+[gw1] [ 15%] PASSED tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[OFF SET-earthwork] 
+tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[GABI\xc3O-earthwork] 
+[gw1] [ 15%] PASSED tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[GABI\xc3O-earthwork] 
+tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[EROS\xc3O-erosion] 
+[gw1] [ 15%] PASSED tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[EROS\xc3O-erosion] 
+tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[CORTINA ATIRANTADA-anchored_wall] 
+[gw1] [ 16%] PASSED tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[CORTINA ATIRANTADA-anchored_wall] 
+tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[FIBRA \xd3PTICA-fiber] 
+[gw1] [ 16%] PASSED tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[FIBRA \xd3PTICA-fiber] 
+tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[RADAR-radar] 
+[gw1] [ 16%] PASSED tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[RADAR-radar] 
+tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[TORRE-tower] 
+[gw1] [ 16%] PASSED tests/test_v14210_engineering_assets.py::test_requested_cad_aliases[TORRE-tower] 
+tests/test_v14210_engineering_assets.py::test_material_catalog_has_distinct_local_textures_and_preserves_noise_seed 
+[gw1] [ 16%] PASSED tests/test_v14210_engineering_assets.py::test_material_catalog_has_distinct_local_textures_and_preserves_noise_seed 
+tests/test_v14210_engineering_assets.py::test_oae_elevation_prevents_rail_retention_only_for_matching_crossing 
+[gw1] [ 16%] PASSED tests/test_v14210_engineering_assets.py::test_oae_elevation_prevents_rail_retention_only_for_matching_crossing 
+tests/test_v14210_engineering_assets.py::test_symbols_produce_finite_3d_geometry_with_explicit_illustrative_dimensions 
+[gw1] [ 16%] PASSED tests/test_v14210_engineering_assets.py::test_symbols_produce_finite_3d_geometry_with_explicit_illustrative_dimensions 
+tests/test_v14210_engineering_assets.py::test_transport_does_not_stop_for_a_railway_below_a_declared_oae 
+[gw1] [ 16%] PASSED tests/test_v14210_engineering_assets.py::test_transport_does_not_stop_for_a_railway_below_a_declared_oae 
+tests/test_v14210_engineering_assets.py::test_named_asset_hatches_take_precedence_over_a_generic_grass_pattern 
+[gw1] [ 16%] PASSED tests/test_v14210_engineering_assets.py::test_named_asset_hatches_take_precedence_over_a_generic_grass_pattern 
+tests/test_v14223_update_policy.py::test_complete_context_rebuilds_geometry_once_and_does_not_leak 
+[gw1] [ 17%] PASSED tests/test_v14223_update_policy.py::test_complete_context_rebuilds_geometry_once_and_does_not_leak 
+tests/test_v14223_update_policy.py::test_complete_context_rebuilds_each_route_only_once 
+[gw1] [ 17%] PASSED tests/test_v14223_update_policy.py::test_complete_context_rebuilds_each_route_only_once 
+tests/test_v14223_update_policy.py::test_full_scene_rebuilds_cached_surface_without_changing_pixels 
+[gw1] [ 17%] PASSED tests/test_v14223_update_policy.py::test_full_scene_rebuilds_cached_surface_without_changing_pixels 
+tests/test_v14223_update_policy.py::test_refresh_endpoint_reuses_valid_geometry_and_finishes_with_current_outputs 
+[gw0] [ 17%] PASSED tests/test_v14221_simplification.py::test_progress_is_unique_in_footer_and_reports_failure_and_indeterminate 
+tests/test_v14221_simplification.py::test_polled_failure_keeps_single_progress_and_disables_old_eta 
+[gw3] [ 17%] PASSED tests/test_v1426_import_capacity.py::test_demand_3500_builds_queue_against_1900_without_forcing_3500_discharge 
+tests/test_v1426_import_capacity.py::test_shared_itineraries_do_not_multiply_per_lane_demand 
+[gw0] [ 17%] PASSED tests/test_v14221_simplification.py::test_polled_failure_keeps_single_progress_and_disables_old_eta 
+tests/test_v14221_simplification.py::test_zoom_and_undo_are_accessible_without_changing_tabs 
+[gw0] [ 17%] PASSED tests/test_v14221_simplification.py::test_zoom_and_undo_are_accessible_without_changing_tabs 
+tests/test_v14221_simplification.py::test_saving_density_and_marks_never_posts_calculation_jobs 
+[gw2] [ 17%] PASSED tests/test_small_ai_bridge.py::test_textures_response_reaches_existing_review_ui_without_applying 
+tests/test_small_ai_bridge.py::test_retention_only_removes_old_derived_prompt_pairs 
+[gw2] [ 17%] PASSED tests/test_small_ai_bridge.py::test_retention_only_removes_old_derived_prompt_pairs 
+tests/test_small_ai_bridge.py::test_invalid_input_is_rejected_before_context_or_provider[value0] 
+[gw2] [ 17%] PASSED tests/test_small_ai_bridge.py::test_invalid_input_is_rejected_before_context_or_provider[value0] 
+tests/test_small_ai_bridge.py::test_invalid_input_is_rejected_before_context_or_provider[value1] 
+[gw2] [ 18%] PASSED tests/test_small_ai_bridge.py::test_invalid_input_is_rejected_before_context_or_provider[value1] 
+tests/test_small_ai_bridge.py::test_invalid_input_is_rejected_before_context_or_provider[value2] 
+[gw2] [ 18%] PASSED tests/test_small_ai_bridge.py::test_invalid_input_is_rejected_before_context_or_provider[value2] 
+tests/test_small_ai_bridge.py::test_invalid_input_is_rejected_before_context_or_provider[value3] 
+[gw2] [ 18%] PASSED tests/test_small_ai_bridge.py::test_invalid_input_is_rejected_before_context_or_provider[value3] 
+tests/test_small_ai_bridge.py::test_texture_scope_cannot_reclassify_axis 
+[gw2] [ 18%] PASSED tests/test_small_ai_bridge.py::test_texture_scope_cannot_reclassify_axis 
+tests/test_small_ai_bridge.py::test_corrupt_manifest_is_unavailable_instead_of_server_error 
+[gw2] [ 18%] PASSED tests/test_small_ai_bridge.py::test_corrupt_manifest_is_unavailable_instead_of_server_error 
+tests/test_v14222_reliability.py::test_rejected_connection_does_not_block_valid_circulation 
+[gw2] [ 18%] PASSED tests/test_v14222_reliability.py::test_rejected_connection_does_not_block_valid_circulation 
+tests/test_v14222_reliability.py::test_real_unavailable_pavement_remains_red_and_located 
+[gw2] [ 18%] PASSED tests/test_v14222_reliability.py::test_real_unavailable_pavement_remains_red_and_located 
+tests/test_v14222_reliability.py::test_route_cache_rebuilds_only_changed_route_and_returns_independent_arrays 
+[gw2] [ 18%] PASSED tests/test_v14222_reliability.py::test_route_cache_rebuilds_only_changed_route_and_returns_independent_arrays 
+tests/test_v14222_reliability.py::test_route_cache_is_independent_of_density_but_respects_pare_siga 
+[gw2] [ 18%] PASSED tests/test_v14222_reliability.py::test_route_cache_is_independent_of_density_but_respects_pare_siga 
+tests/test_v14222_reliability.py::test_corrupt_route_cache_is_rebuilt_and_original_route_preserved 
+[gw2] [ 18%] PASSED tests/test_v14222_reliability.py::test_corrupt_route_cache_is_rebuilt_and_original_route_preserved 
+tests/test_v14222_reliability.py::test_cached_lanes_do_not_bypass_new_physical_barrier 
+[gw2] [ 19%] PASSED tests/test_v14222_reliability.py::test_cached_lanes_do_not_bypass_new_physical_barrier 
+tests/test_v14222_reliability.py::test_section_gaps_are_reported_without_filling_them 
+[gw2] [ 19%] PASSED tests/test_v14222_reliability.py::test_section_gaps_are_reported_without_filling_them 
+tests/test_v14222_reliability.py::test_adjacent_sections_have_no_false_gap 
+[gw2] [ 19%] PASSED tests/test_v14222_reliability.py::test_adjacent_sections_have_no_false_gap 
+tests/test_v14222_reliability.py::test_picked_material_keeps_original_internal_voids 
+[gw2] [ 19%] PASSED tests/test_v14222_reliability.py::test_picked_material_keeps_original_internal_voids 
+tests/test_v14222_reliability.py::test_cached_auto_material_follows_project_default_without_changing_manual_material 
+[gw2] [ 19%] PASSED tests/test_v14222_reliability.py::test_cached_auto_material_follows_project_default_without_changing_manual_material 
+tests/test_v14222_reliability.py::test_route_cache_refuses_symlink_to_other_data 
+[gw2] [ 19%] PASSED tests/test_v14222_reliability.py::test_route_cache_refuses_symlink_to_other_data 
+tests/test_v14222_reliability.py::test_optional_route_cache_failure_cannot_stop_valid_calculation 
+[gw2] [ 19%] PASSED tests/test_v14222_reliability.py::test_optional_route_cache_failure_cannot_stop_valid_calculation 
+tests/test_v14222_reliability.py::test_same_dxf_layer_can_keep_different_3d_materials 
+[gw2] [ 19%] PASSED tests/test_v14222_reliability.py::test_same_dxf_layer_can_keep_different_3d_materials 
+tests/test_v14222_reliability.py::test_repair_center_has_three_primary_actions_and_collapsed_advanced 
+[gw2] [ 19%] PASSED tests/test_v14222_reliability.py::test_repair_center_has_three_primary_actions_and_collapsed_advanced 
+tests/test_v14222_reliability.py::test_contextual_dxf_pavement_uses_material_editor_not_generic_overlay 
+[gw2] [ 19%] PASSED tests/test_v14222_reliability.py::test_contextual_dxf_pavement_uses_material_editor_not_generic_overlay 
+[gw1] [ 20%] PASSED tests/test_v14223_update_policy.py::test_refresh_endpoint_reuses_valid_geometry_and_finishes_with_current_outputs 
+tests/test_v14222_reliability.py::test_custom_web_tiles_are_project_scoped_but_public_esri_is_reusable 
+tests/test_v14223_update_policy.py::test_manual_form_confirmation_saves_but_keeps_update_pending 
+[gw2] [ 20%] PASSED tests/test_v14222_reliability.py::test_custom_web_tiles_are_project_scoped_but_public_esri_is_reusable 
+tests/test_v14222_reliability.py::test_late_web_tile_cannot_redraw_another_private_project 
+[gw3] [ 20%] PASSED tests/test_v1426_import_capacity.py::test_shared_itineraries_do_not_multiply_per_lane_demand 
+tests/test_v14230_flow_rules.py::test_branch_percentages_keep_main_and_secondary_mass_conservation[None-0.2] 
+[gw3] [ 20%] PASSED tests/test_v14230_flow_rules.py::test_branch_percentages_keep_main_and_secondary_mass_conservation[None-0.2] 
+tests/test_v14230_flow_rules.py::test_branch_percentages_keep_main_and_secondary_mass_conservation[35-0.35] 
+[gw3] [ 20%] PASSED tests/test_v14230_flow_rules.py::test_branch_percentages_keep_main_and_secondary_mass_conservation[35-0.35] 
+tests/test_v14230_flow_rules.py::test_branch_percentages_keep_main_and_secondary_mass_conservation[0-0] 
+[gw3] [ 20%] PASSED tests/test_v14230_flow_rules.py::test_branch_percentages_keep_main_and_secondary_mass_conservation[0-0] 
+tests/test_v14230_flow_rules.py::test_branch_percentages_keep_main_and_secondary_mass_conservation[100-1] 
+[gw3] [ 20%] PASSED tests/test_v14230_flow_rules.py::test_branch_percentages_keep_main_and_secondary_mass_conservation[100-1] 
+tests/test_v14230_flow_rules.py::test_invalid_or_conflicting_percentages_are_not_silently_normalized 
+[gw3] [ 20%] PASSED tests/test_v14230_flow_rules.py::test_invalid_or_conflicting_percentages_are_not_silently_normalized 
+tests/test_v14230_flow_rules.py::test_vdm_applies_once_to_entries_and_does_not_drop_half_on_one_way_network 
+[gw3] [ 20%] PASSED tests/test_v14230_flow_rules.py::test_vdm_applies_once_to_entries_and_does_not_drop_half_on_one_way_network 
+tests/test_v14230_flow_rules.py::test_entry_is_inside_by_five_meters_without_disabling_signals_or_collisions 
+[gw3] [ 20%] PASSED tests/test_v14230_flow_rules.py::test_entry_is_inside_by_five_meters_without_disabling_signals_or_collisions 
+tests/test_v14230_flow_rules.py::test_confirmed_alignment_can_have_an_operational_corridor_without_a_hatch 
+[gw3] [ 21%] PASSED tests/test_v14230_flow_rules.py::test_confirmed_alignment_can_have_an_operational_corridor_without_a_hatch 
+tests/test_v14230_flow_rules.py::test_oae_zero_or_longitudinal_does_not_invent_an_obstacle_or_elevation 
+[gw3] [ 21%] PASSED tests/test_v14230_flow_rules.py::test_oae_zero_or_longitudinal_does_not_invent_an_obstacle_or_elevation 
+tests/test_v14230_flow_rules.py::test_contact_turn_gets_a_tangent_curve_only_inside_real_pavement 
+[gw3] [ 21%] PASSED tests/test_v14230_flow_rules.py::test_contact_turn_gets_a_tangent_curve_only_inside_real_pavement 
+tests/test_v14230_flow_rules.py::test_trimmed_merge_uses_physical_edge_offsets_for_following 
+[gw3] [ 21%] PASSED tests/test_v14230_flow_rules.py::test_trimmed_merge_uses_physical_edge_offsets_for_following 
+tests/test_v14230_flow_rules.py::test_engineering_fleet_dimensions_match_bodies_without_changing_legacy_profiles 
+[gw3] [ 21%] PASSED tests/test_v14230_flow_rules.py::test_engineering_fleet_dimensions_match_bodies_without_changing_legacy_profiles 
+tests/test_v14230_flow_rules.py::test_actual_y_junction_has_derived_itineraries_and_continuity_with_distribution 
+[gw2] [ 21%] PASSED tests/test_v14222_reliability.py::test_late_web_tile_cannot_redraw_another_private_project 
+[gw0] [ 21%] PASSED tests/test_v14221_simplification.py::test_saving_density_and_marks_never_posts_calculation_jobs 
+tests/test_v14222_reliability.py::test_online_zoom_out_keeps_available_child_detail 
+tests/test_v14221_simplification.py::test_repeated_request_shares_one_real_job 
+[gw3] [ 21%] PASSED tests/test_v14230_flow_rules.py::test_actual_y_junction_has_derived_itineraries_and_continuity_with_distribution 
+tests/test_v14230_flow_rules.py::test_no_median_checkbox_overrides_permitted_return_without_touching_parallel_flow 
+[gw3] [ 21%] PASSED tests/test_v14230_flow_rules.py::test_no_median_checkbox_overrides_permitted_return_without_touching_parallel_flow 
+tests/test_v14230_flow_rules.py::test_dxf_oae_elevation_is_preserved_instead_of_assigning_a_fake_height 
+[gw3] [ 21%] PASSED tests/test_v14230_flow_rules.py::test_dxf_oae_elevation_is_preserved_instead_of_assigning_a_fake_height 
+tests/test_v14230_flow_rules.py::test_density_does_not_double_just_because_a_branch_was_added 
+[gw3] [ 22%] PASSED tests/test_v14230_flow_rules.py::test_density_does_not_double_just_because_a_branch_was_added 
+tests/test_v14230_flow_rules.py::test_saturated_entry_keeps_weighted_choice_until_admission_instead_of_starving_branch 
+[gw3] [ 22%] PASSED tests/test_v14230_flow_rules.py::test_saturated_entry_keeps_weighted_choice_until_admission_instead_of_starving_branch 
+tests/test_v14230_flow_rules.py::test_vehicle_collision_toggle_keeps_people_and_oae_grade_separation_independent 
+[gw3] [ 22%] PASSED tests/test_v14230_flow_rules.py::test_vehicle_collision_toggle_keeps_people_and_oae_grade_separation_independent 
+tests/test_v14230_flow_rules.py::test_larger_axis_has_merge_priority_within_same_road_category 
+[gw3] [ 22%] PASSED tests/test_v14230_flow_rules.py::test_larger_axis_has_merge_priority_within_same_road_category 
+tests/test_v14230_flow_rules.py::test_invalid_oae_z_never_releases_a_crossing_or_leaks_non_finite_json[None] 
+[gw3] [ 22%] PASSED tests/test_v14230_flow_rules.py::test_invalid_oae_z_never_releases_a_crossing_or_leaks_non_finite_json[None] 
+tests/test_v14230_flow_rules.py::test_invalid_oae_z_never_releases_a_crossing_or_leaks_non_finite_json[nan] 
+[gw3] [ 22%] PASSED tests/test_v14230_flow_rules.py::test_invalid_oae_z_never_releases_a_crossing_or_leaks_non_finite_json[nan] 
+tests/test_v14230_flow_rules.py::test_invalid_oae_z_never_releases_a_crossing_or_leaks_non_finite_json[inf] 
+[gw3] [ 22%] PASSED tests/test_v14230_flow_rules.py::test_invalid_oae_z_never_releases_a_crossing_or_leaks_non_finite_json[inf] 
+tests/test_v14230_flow_rules.py::test_route_only_keeps_a_vehicle_available_after_first_pass_without_increasing_density 
+[gw3] [ 22%] PASSED tests/test_v14230_flow_rules.py::test_route_only_keeps_a_vehicle_available_after_first_pass_without_increasing_density 
+tests/test_v14230_flow_rules.py::test_route_inspection_preflight_does_not_hide_initial_vehicles_with_cinematic_reveal 
+[gw3] [ 22%] PASSED tests/test_v14230_flow_rules.py::test_route_inspection_preflight_does_not_hide_initial_vehicles_with_cinematic_reveal 
+tests/test_v14220_sections_materials.py::test_existing_is_condition_not_surface_type[ACOSTAMENTO_EXISTENTE-shoulder] 
+[gw3] [ 22%] PASSED tests/test_v14220_sections_materials.py::test_existing_is_condition_not_surface_type[ACOSTAMENTO_EXISTENTE-shoulder] 
+tests/test_v14220_sections_materials.py::test_existing_is_condition_not_surface_type[ACOSTAMENTO_PROJETADO-shoulder] 
+[gw3] [ 23%] PASSED tests/test_v14220_sections_materials.py::test_existing_is_condition_not_surface_type[ACOSTAMENTO_PROJETADO-shoulder] 
+tests/test_v14220_sections_materials.py::test_existing_is_condition_not_surface_type[OAE_EXISTENTE-oae] 
+[gw3] [ 23%] PASSED tests/test_v14220_sections_materials.py::test_existing_is_condition_not_surface_type[OAE_EXISTENTE-oae] 
+tests/test_v14220_sections_materials.py::test_existing_is_condition_not_surface_type[CORTE_EXISTENTE-cut] 
+[gw3] [ 23%] PASSED tests/test_v14220_sections_materials.py::test_existing_is_condition_not_surface_type[CORTE_EXISTENTE-cut] 
+tests/test_v14220_sections_materials.py::test_existing_is_condition_not_surface_type[CANTEIRO_EXISTENTE-median] 
+[gw3] [ 23%] PASSED tests/test_v14220_sections_materials.py::test_existing_is_condition_not_surface_type[CANTEIRO_EXISTENTE-median] 
+tests/test_v14220_sections_materials.py::test_existing_is_condition_not_surface_type[PAVIMENTO_EXISTENTE-existing_pavement] 
+[gw3] [ 23%] PASSED tests/test_v14220_sections_materials.py::test_existing_is_condition_not_surface_type[PAVIMENTO_EXISTENTE-existing_pavement] 
+tests/test_v14220_sections_materials.py::test_existing_is_condition_not_surface_type[PAVIMENTO_PROJETADO-pavement] 
+[gw3] [ 23%] PASSED tests/test_v14220_sections_materials.py::test_existing_is_condition_not_surface_type[PAVIMENTO_PROJETADO-pavement] 
+tests/test_v14220_sections_materials.py::test_explicit_typical_section_generates_continuous_lanes_without_dxf_pavement_hatch[False-False-2] 
+[gw3] [ 23%] PASSED tests/test_v14220_sections_materials.py::test_explicit_typical_section_generates_continuous_lanes_without_dxf_pavement_hatch[False-False-2] 
+tests/test_v14220_sections_materials.py::test_explicit_typical_section_generates_continuous_lanes_without_dxf_pavement_hatch[False-True-3] 
+[gw3] [ 23%] PASSED tests/test_v14220_sections_materials.py::test_explicit_typical_section_generates_continuous_lanes_without_dxf_pavement_hatch[False-True-3] 
+tests/test_v14220_sections_materials.py::test_explicit_typical_section_generates_continuous_lanes_without_dxf_pavement_hatch[True-False-4] 
+[gw3] [ 23%] PASSED tests/test_v14220_sections_materials.py::test_explicit_typical_section_generates_continuous_lanes_without_dxf_pavement_hatch[True-False-4] 
+tests/test_v14220_sections_materials.py::test_explicit_typical_section_generates_continuous_lanes_without_dxf_pavement_hatch[True-True-5] 
+[gw3] [ 23%] PASSED tests/test_v14220_sections_materials.py::test_explicit_typical_section_generates_continuous_lanes_without_dxf_pavement_hatch[True-True-5] 
+tests/test_v14220_sections_materials.py::test_lane_selection_preserves_other_lane_positions_and_never_enables_shoulder 
+[gw3] [ 24%] PASSED tests/test_v14220_sections_materials.py::test_lane_selection_preserves_other_lane_positions_and_never_enables_shoulder 
+tests/test_v14220_sections_materials.py::test_short_intervals_are_absent_from_motor_and_technical_preview 
+[gw3] [ 24%] PASSED tests/test_v14220_sections_materials.py::test_short_intervals_are_absent_from_motor_and_technical_preview 
+tests/test_v14220_sections_materials.py::test_section_surface_keeps_real_barriers_and_manual_disable 
+[gw3] [ 24%] PASSED tests/test_v14220_sections_materials.py::test_section_surface_keeps_real_barriers_and_manual_disable 
+tests/test_v14220_sections_materials.py::test_source_binding_can_be_undone_and_does_not_suppress_another_level 
+[gw3] [ 24%] PASSED tests/test_v14220_sections_materials.py::test_source_binding_can_be_undone_and_does_not_suppress_another_level 
+tests/test_v14220_sections_materials.py::test_density_box_remains_editable_and_typing_activates_density 
+[gw2] [ 24%] PASSED tests/test_v14222_reliability.py::test_online_zoom_out_keeps_available_child_detail 
+tests/test_v14222_reliability.py::test_custom_profile_can_be_selected_and_saved 
+[gw1] [ 24%] PASSED tests/test_v14223_update_policy.py::test_manual_form_confirmation_saves_but_keeps_update_pending 
+tests/test_v14223_update_policy.py::test_automatic_form_confirmation_runs_one_refresh_with_confirmed_values 
+[gw0] [ 24%] PASSED tests/test_v14221_simplification.py::test_repeated_request_shares_one_real_job 
+tests/test_v14221_simplification.py::test_explicit_update_refreshes_even_a_current_preview 
+[gw3] [ 24%] PASSED tests/test_v14220_sections_materials.py::test_density_box_remains_editable_and_typing_activates_density 
+tests/test_v14220_sections_materials.py::test_axis_chooser_builds_section_from_real_dxf_and_shows_lane_controls 
+[gw2] [ 24%] PASSED tests/test_v14222_reliability.py::test_custom_profile_can_be_selected_and_saved 
+tests/test_v14222_reliability.py::test_manual_disabled_flow_has_no_automatic_reactivation_action 
+[gw2] [ 24%] PASSED tests/test_v14222_reliability.py::test_manual_disabled_flow_has_no_automatic_reactivation_action 
+tests/test_v14222_reliability.py::test_keyboard_tabs_and_technical_tool_highlight_remain_consistent 
+[gw2] [ 25%] PASSED tests/test_v14222_reliability.py::test_keyboard_tabs_and_technical_tool_highlight_remain_consistent 
+tests/test_v1426_transport.py::test_exact_formulas_mutual_exclusion_and_pedestrian_phase[2-5] 
+[gw2] [ 25%] PASSED tests/test_v1426_transport.py::test_exact_formulas_mutual_exclusion_and_pedestrian_phase[2-5] 
+tests/test_v1426_transport.py::test_exact_formulas_mutual_exclusion_and_pedestrian_phase[3-15] 
+[gw2] [ 25%] PASSED tests/test_v1426_transport.py::test_exact_formulas_mutual_exclusion_and_pedestrian_phase[3-15] 
+tests/test_v1426_transport.py::test_train_counts_determinism_single_double_and_full_tail_clearance 
+[gw2] [ 25%] PASSED tests/test_v1426_transport.py::test_train_counts_determinism_single_double_and_full_tail_clearance 
+tests/test_v1426_transport.py::test_wave_offset_and_invalid_links 
+[gw2] [ 25%] PASSED tests/test_v1426_transport.py::test_wave_offset_and_invalid_links 
+tests/test_v1426_transport.py::test_invalid_speeds_cannot_reach_motor[nan] 
+[gw2] [ 25%] PASSED tests/test_v1426_transport.py::test_invalid_speeds_cannot_reach_motor[nan] 
+tests/test_v1426_transport.py::test_invalid_speeds_cannot_reach_motor[inf] 
+[gw2] [ 25%] PASSED tests/test_v1426_transport.py::test_invalid_speeds_cannot_reach_motor[inf] 
+tests/test_v1426_transport.py::test_invalid_speeds_cannot_reach_motor[None] 
+[gw2] [ 25%] PASSED tests/test_v1426_transport.py::test_invalid_speeds_cannot_reach_motor[None] 
+tests/test_v1426_transport.py::test_invalid_speeds_cannot_reach_motor[] 
+[gw2] [ 25%] PASSED tests/test_v1426_transport.py::test_invalid_speeds_cannot_reach_motor[] 
+tests/test_v1426_transport.py::test_invalid_speeds_cannot_reach_motor[0] 
+[gw2] [ 25%] PASSED tests/test_v1426_transport.py::test_invalid_speeds_cannot_reach_motor[0] 
+tests/test_v1426_transport.py::test_invalid_speeds_cannot_reach_motor[-1] 
+[gw2] [ 26%] PASSED tests/test_v1426_transport.py::test_invalid_speeds_cannot_reach_motor[-1] 
+tests/test_v1426_transport.py::test_disabled_and_separate_levels_do_not_block 
+[gw2] [ 26%] PASSED tests/test_v1426_transport.py::test_disabled_and_separate_levels_do_not_block 
+tests/test_v1426_transport.py::test_real_simulation_stops_and_releases[rail] 
+[gw1] [ 26%] PASSED tests/test_v14223_update_policy.py::test_automatic_form_confirmation_runs_one_refresh_with_confirmed_values 
+tests/test_v14223_update_policy.py::test_explicit_project_save_refreshes_once_in_manual_mode 
+[gw2] [ 26%] PASSED tests/test_v1426_transport.py::test_real_simulation_stops_and_releases[rail] 
+tests/test_v1426_transport.py::test_real_simulation_stops_and_releases[signal] 
+[gw3] [ 26%] PASSED tests/test_v14220_sections_materials.py::test_axis_chooser_builds_section_from_real_dxf_and_shows_lane_controls 
+tests/test_v14220_sections_materials.py::test_artistic_preset_preserves_geometries_and_sets_natural_materials 
+[gw2] [ 26%] PASSED tests/test_v1426_transport.py::test_real_simulation_stops_and_releases[signal] 
+tests/test_v1426_transport.py::test_adjustable_five_to_one_hundred_wagons_and_safe_interval 
+[gw2] [ 26%] PASSED tests/test_v1426_transport.py::test_adjustable_five_to_one_hundred_wagons_and_safe_interval 
+tests/test_v1426_transport.py::test_all_one_hundred_wagons_exist_and_last_tail_holds_crossing 
+[gw2] [ 26%] PASSED tests/test_v1426_transport.py::test_all_one_hundred_wagons_exist_and_last_tail_holds_crossing 
+tests/test_v1426_transport.py::test_entry_inside_intersection_does_not_spawn_during_red_and_long_crossing_gets_clearance 
+[gw2] [ 26%] PASSED tests/test_v1426_transport.py::test_entry_inside_intersection_does_not_spawn_during_red_and_long_crossing_gets_clearance 
+tests/test_v1426_transport.py::test_extreme_coordinates_rejected_before_projection 
+[gw2] [ 26%] PASSED tests/test_v1426_transport.py::test_extreme_coordinates_rejected_before_projection 
+tests/test_v1426_transport.py::test_skew_intersection_controls_both_axes_and_rejects_parallel_plans 
+[gw2] [ 27%] PASSED tests/test_v1426_transport.py::test_skew_intersection_controls_both_axes_and_rejects_parallel_plans 
+tests/test_v1426_transport.py::test_short_alignment_warns_before_train_enters_and_across_cycle_boundary 
+[gw2] [ 27%] PASSED tests/test_v1426_transport.py::test_short_alignment_warns_before_train_enters_and_across_cycle_boundary 
+tests/test_v1426_transport.py::test_short_crossing_clears_heavy_vehicle_bodies_before_train_arrival 
+[gw1] [ 27%] PASSED tests/test_v14223_update_policy.py::test_explicit_project_save_refreshes_once_in_manual_mode 

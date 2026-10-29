@@ -1,0 +1,51 @@
+{
+  "2.01": {
+    "seconds": 0.0028,
+    "complete": false,
+    "report": {
+      "status": "blocked",
+      "strategy": "reconstrucao_continua",
+      "attempts": 0,
+      "reason": "eixo_fora_da_superficie_ou_barreira"
+    }
+  },
+  "2.02": {
+    "seconds": 0.1469,
+    "complete": true,
+    "report": {
+      "status": "reconstructed",
+      "strategy": "reconstrucao_continua",
+      "attempts": 8,
+      "continuous": true,
+      "endpoints_preserved": true,
+      "search_clearance_m": 2.0,
+      "search_positions": 2567,
+      "search_links": 1912,
+      "method": "busca_no_corredor_validada",
+      "length_m": 301.4124156295096,
+      "max_deviation_m": 4.0,
+      "audit": {
+        "ok": true,
+        "reasons": [],
+        "message": "Trajetória cinemática válida.",
+        "max_steering_deg": 19.907,
+        "vehicle": "car",
+        "samples": 604,
+        "critical_station_m": 179.948,
+        "critical_center_xy": [
+          128.5449,
+          0.154
+        ],
+        "front_xy": [
+          130.7464,
+          -0.3108
+        ],
+        "rear_xy": [
+          126.3434,
+          0.6188
+        ]
+      }
+    }
+  },
+  "scope": "Uma execução sintética Linux, 300 m, obstáculo finito; não mede FPS ou DXF grande e não certifica norma."
+}
