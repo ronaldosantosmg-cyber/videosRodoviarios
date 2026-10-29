@@ -1,0 +1,30 @@
+{
+  "release_commit": "4646861d1b96ff46bf79672a2d71e22cc4c9872e",
+  "downloads": [
+    {
+      "path": "atualizacoes/RodoviaStudio_2_02_instalacao_completa_r2.zip",
+      "url": "https://raw.githubusercontent.com/ronaldosantosmg-cyber/videosRodoviarios/4646861d1b96ff46bf79672a2d71e22cc4c9872e/atualizacoes/RodoviaStudio_2_02_instalacao_completa_r2.zip",
+      "http_status": 200,
+      "bytes": 26924588,
+      "sha256": "fcb35f6c487545fbc5000091e654ba5fe7319989c2d049fba4f54f0d0f29a56e",
+      "local_bytes_match": true
+    },
+    {
+      "path": "atualizacoes/RodoviaStudio_2_02_fontes_conferencia.zip",
+      "url": "https://raw.githubusercontent.com/ronaldosantosmg-cyber/videosRodoviarios/4646861d1b96ff46bf79672a2d71e22cc4c9872e/atualizacoes/RodoviaStudio_2_02_fontes_conferencia.zip",
+      "http_status": 200,
+      "bytes": 36028137,
+      "sha256": "aa586ab11103f17b106b24cfce93fe82adecb523adc938c4c5ca6516fb00d41d",
+      "local_bytes_match": true
+    },
+    {
+      "path": "rodovia_studio/CONTINUIDADE_OUTRA_IA.md",
+      "url": "https://raw.githubusercontent.com/ronaldosantosmg-cyber/videosRodoviarios/4646861d1b96ff46bf79672a2d71e22cc4c9872e/rodovia_studio/CONTINUIDADE_OUTRA_IA.md",
+      "http_status": 200,
+      "bytes": 8046,
+      "sha256": "debd30dc7e2f7abd9c1183a8b35b9bcf2995e0f1eab9d355f413ff0ef19d1778",
+      "local_bytes_match": true
+    }
+  ],
+  "main_commit_unchanged": "4a4e47011ce44f6a33d4fc6f7bc31cac3ec472c3"
+}

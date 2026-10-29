@@ -51,3 +51,10 @@ O builder recusa sobrescrever um ZIP existente. Publicar somente na branch de de
 ## Revisão r2 do instalador
 
 Usar RodoviaStudio_2_02_instalacao_completa_r2.zip. Inclui manifesto Win32 asInvoker/Windows 10/DPI em ambos os executáveis. O build Mono usa recursos_pe.py para conservar VERSIONINFO e incorporar RT_MANIFEST explicitamente; o construtor recusa executável sem asInvoker. Um candidato sem manifesto foi recusado na conferência e não foi publicado como r2. O ZIP inicial sem sufixo permanece histórico. Para repassar fontes/projeto a outra IA, consulte ../CONTINUIDADE_OUTRA_IA.md.
+
+## Downloads conferidos
+
+- [RodoviaStudio_2_02_instalacao_completa_r2.zip](https://raw.githubusercontent.com/ronaldosantosmg-cyber/videosRodoviarios/4646861d1b96ff46bf79672a2d71e22cc4c9872e/atualizacoes/RodoviaStudio_2_02_instalacao_completa_r2.zip): HTTP 200, 26924588 bytes; SHA-256 `fcb35f6c487545fbc5000091e654ba5fe7319989c2d049fba4f54f0d0f29a56e`.
+- [RodoviaStudio_2_02_fontes_conferencia.zip](https://raw.githubusercontent.com/ronaldosantosmg-cyber/videosRodoviarios/4646861d1b96ff46bf79672a2d71e22cc4c9872e/atualizacoes/RodoviaStudio_2_02_fontes_conferencia.zip): HTTP 200, 36028137 bytes; SHA-256 `aa586ab11103f17b106b24cfce93fe82adecb523adc938c4c5ca6516fb00d41d`.
+
+Os bytes HTTPS coincidem com os arquivos locais aprovados. Evidência atual: evidencias/downloads-r2-fontes.json. Arquivos download-verificado*.json anteriores registram o instalador inicial histórico. A main permaneceu em 4a4e47011ce44f6a33d4fc6f7bc31cac3ec472c3.
