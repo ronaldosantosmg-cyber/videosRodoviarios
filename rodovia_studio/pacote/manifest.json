@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "1.42.38",
-  "description": "1.42.38: reconexão do acompanhamento sem reenviar cálculos, fila sem prazo arbitrário e Retomar no rodapé."
+  "version": "2.01",
+  "description": "2.01: operação protegida, enquadramento estável, confirmação sem fechar e interface compacta."
 }

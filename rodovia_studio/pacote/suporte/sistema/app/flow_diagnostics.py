@@ -80,7 +80,7 @@ def flow_diagnostics(network):
             automatic='Excluir os movimentos inválidos da simulação; preservar o traçado original para revisão.'
             manual='Editar os pontos, o sentido e as ligações; recalcular e conferir o diagnóstico antes de circular.'
         if 'corpo_fora_da_pista' in reasons:
-            manual='Confira a área de pavimento no ponto indicado: corrija a classificação/hachura ou reposicione a faixa dentro da pista. Linhas de bordo não são barreiras; canteiros, obstáculos e cortes continuam bloqueando.'
+            manual='Localize o ponto e confira a seção e a superfície operacional. Cadastre uma seção no eixo ou ajuste o afastamento da faixa. Se não houver pavimento, confirme por eixo a opção de apresentação fora dele. Contornos decorativos e bordos não são barreiras; canteiros, barreiras físicas e interdições continuam restringindo o movimento.'
         elif status=='adjustment' and effective_length>=minimum:
             manual='Confira as pontas, o sentido e a camada Eixo. Para escolha explícita, use Rota de veículos → Selecionar uma linha / Seleção contínua, confirme o sentido e recalcule.'
         if getattr(network,'classic',False) and circulating:

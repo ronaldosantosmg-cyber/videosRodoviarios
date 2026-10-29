@@ -682,3 +682,17 @@ dialog#rsNewProject{padding:20px 24px;box-sizing:border-box;border:1px solid var
 .desktop140 #secVista .sessRow.dwSecondary{display:flex!important}
 
 body.paineis #secVista .rsVistaGroups :is(#fitView,#fullscreen,#areaMaxBtn,#regenPreview,#updFlows){display:inline-flex!important}
+
+/* 2.01: contraste e espaço sem trocar widgets ou comandos existentes. */
+#menuBar{background:#f7f9fc;color:#172c45;border-bottom:1px solid #a8b6c6}
+#menuBar button,#rsToolRibbon button,#rsQuickNavigation button{color:#18344f;background:#fff;border-color:#94a5b8}
+#rsToolRibbon button:hover,#rsQuickNavigation button:hover{background:#e7f1ff;border-color:#2869aa;color:#103860}
+#rsToolRibbon button:focus-visible,#rsQuickNavigation button:focus-visible,#menuBar button:focus-visible{outline:2px solid #1769aa;outline-offset:2px}
+#rsToolRibbon button[aria-selected=true],#rsToolRibbon button.on,#rsQuickNavigation button.on{background:#d9eaff;border-color:#1769aa;color:#103860}
+#rsToolRibbon button:disabled,#rsQuickNavigation button:disabled{color:#67788b;background:#edf0f4}
+#rsToolRibbon .rsPrimaryAction svg{stroke-width:1.9}
+#rsPanelPopup footer{flex-wrap:wrap;gap:6px;padding:10px 14px;border-top:1px solid #9baabe;background:#f5f7fa}
+#rsPanelPopup footer button{min-height:30px;white-space:nowrap}
+#rsPanelApply{border-color:#2869aa;color:#174c7e}
+.rsModelDialog section{min-width:0;overflow:auto}
+@media(max-width:800px){#rsPanelPopup footer [data-rs-edit-status]{flex-basis:100%;max-height:2.8em;overflow:auto}}

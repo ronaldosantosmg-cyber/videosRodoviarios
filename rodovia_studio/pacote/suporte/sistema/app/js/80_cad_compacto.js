@@ -1,6 +1,10 @@
 // Preferências de interface: mesmos comandos, sem alterar o projeto ou cálculos.
 (()=>{'use strict';
 const glyphs={
+ 'Escolher eixo':'M3 19 8 5l8 14 5-14M3 19h.1M21 5h.1',
+ 'Configurar faixas':'M3 3v18M21 3v18M9 3v5m0 3v5m0 3v2M15 3v5m0 3v5m0 3v2',
+ 'Materiais e texturas':'M3 3h18v18H3ZM3 9h18M3 15h18M9 3v6m6 0v6m-6 0v6',
+ 'Atualizar':'M20 7V3l-4 4a8 8 0 1 0 4 10M20 3h-5',
  'Arquivos do projeto':'M3 7V5h6l2 2h10v13H3Z',
  'Camadas e imagens':'m12 3 10 5-10 5L2 8Zm-9 10 9 5 9-5M3 18l9 4 9-4',
  'Analisar layers / IA':'M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14m5 12 6 6M8 10h4M10 8v4',

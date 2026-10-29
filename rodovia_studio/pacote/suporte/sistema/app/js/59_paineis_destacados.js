@@ -21,8 +21,8 @@ function restore(base){
 function dialog(){
  let d=$('rsPanelPopup');if(d)return d;
  d=document.createElement('dialog');d.id='rsPanelPopup';d.setAttribute('aria-labelledby','rsPanelTitle');
- d.innerHTML='<header><h2 id="rsPanelTitle"></h2><button type="button" id="rsPanelClose" aria-label="Fechar janela">×</button></header><div id="rsPanelBody"></div><footer><span id="rsPanelStatus" data-rs-edit-status role="status">Alterações de configuração serão confirmadas ao salvar.</span><button type="button" id="rsPanelCancel">Cancelar</button><button type="button" id="rsPanelDiscard">Descartar alterações</button><button type="button" id="rsPanelSave" class="primary">Salvar e fechar</button></footer>';
- document.body.appendChild(d);$('rsPanelClose').onclick=()=>void requestClose();$('rsPanelCancel').onclick=()=>void requestClose();$('rsPanelSave').onclick=()=>void commitClose();$('rsPanelDiscard').onclick=discardClose;
+ d.innerHTML='<header><h2 id="rsPanelTitle"></h2><button type="button" id="rsPanelClose" aria-label="Fechar janela">×</button></header><div id="rsPanelBody"></div><footer><span id="rsPanelStatus" data-rs-edit-status role="status">Alterações de configuração serão confirmadas ao salvar.</span><button type="button" id="rsPanelCancel">Cancelar</button><button type="button" id="rsPanelDiscard">Descartar alterações</button><button type="button" id="rsPanelApply">Aplicar</button><button type="button" id="rsPanelSave" class="primary">Salvar e fechar</button></footer>';
+ document.body.appendChild(d);$('rsPanelClose').onclick=()=>void requestClose();$('rsPanelCancel').onclick=()=>void requestClose();$('rsPanelSave').onclick=()=>void commitClose();$('rsPanelApply').onclick=()=>void commitClose(true);$('rsPanelDiscard').onclick=discardClose;
  d.addEventListener('cancel',e=>{e.preventDefault();void requestClose()});
  d.addEventListener('input',e=>{if(e.target.matches('[data-rs-transient]'))return;scheduleSave();panelStatus('Alterações pendentes — salve ou descarte antes de fechar.')});return d;
 }
@@ -52,13 +52,13 @@ function finish(discard){
  if(discard&&base.project&&!savePending)void oldApi('/api/projects/'+base.project).then(r=>{if(pid===base.project&&!savePending&&projectSession.revision===r.config_revision)window.dispatchEvent(new CustomEvent('rodovia:project-state',{detail:{project:base.project,...r}}))}).catch(()=>{});
  if(savePending){clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{try{await originalSave();refresh()}catch(e){msg(e.message,true)}},900)}else setTimeout(refresh,350)
 }
-async function commitClose(){
+async function commitClose(keepOpen=false){
  if(!active||committing)return false;
  const pane=active;
  if(pane.project!==pid){msg('O projeto mudou. Feche e reabra esta janela.',true);return false}
  if(!pid){msg('Crie ou abra um projeto antes de salvar.',true);return false}
  committing=true;
- try{flushPropertyInputs(pane.node);surface().querySelectorAll('button,input,select,textarea').forEach(e=>{e.dataset.rsWasDisabled=String(e.disabled);e.disabled=true});if(!String($('name')?.value||'').trim())throw Error('Informe o nome do projeto antes de salvar.');await originalSave();if(savePending)throw Error('Há novas alterações pendentes. Revise e salve novamente.');finish(false);window.dispatchEvent(new CustomEvent('rodovia:form-committed',{detail:{project:pane.project,context:projectSession.context}}));return true}
+ try{flushPropertyInputs(pane.node);surface().querySelectorAll('button,input,select,textarea').forEach(e=>{e.dataset.rsWasDisabled=String(e.disabled);e.disabled=true});if(!String($('name')?.value||'').trim())throw Error('Informe o nome do projeto antes de salvar.');await originalSave();if(savePending)throw Error('Há novas alterações pendentes. Revise e salve novamente.');if(keepOpen){Object.assign(pane,state(pane.node));panelStatus('Alterações aplicadas. Você pode continuar editando ou fechar.')}else finish(false);window.dispatchEvent(new CustomEvent('rodovia:form-committed',{detail:{project:pane.project,context:projectSession.context}}));return true}
  catch(e){panelStatus('Não foi salvo: '+e.message);msg(e.message,true);return false}
  finally{document.querySelectorAll('[data-rs-was-disabled]').forEach(e=>{e.disabled=e.dataset.rsWasDisabled==='true';delete e.dataset.rsWasDisabled});committing=false}
 }
@@ -155,5 +155,5 @@ function installImagery(){
  });syncImagery();
 }
 window.addEventListener('rodovia:project-state',syncImagery);queueMicrotask(()=>{for(const w of document.querySelectorAll('.floatWin[data-dock]'))encaixar(w.dataset.dock);installImagery()});
-window.RodoviaPanels=Object.freeze({openDock:id=>abrirAba(id,false),openDialog,saveAndClose:commitClose,discard:discardClose,close:requestClose,get pending(){return differs()},get opened(){return active?.key||null}});
+window.RodoviaPanels=Object.freeze({openDock:id=>abrirAba(id,false),openDialog,saveAndClose:()=>commitClose(),apply:()=>commitClose(true),discard:discardClose,close:requestClose,get pending(){return differs()},get opened(){return active?.key||null}});
 })();

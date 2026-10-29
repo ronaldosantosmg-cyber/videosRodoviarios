@@ -1,10 +1,10 @@
 /* ---------- Vista: imagem <-> canvas <-> mundo ---------- */
 let view={s:1,ox:0,oy:0};
-let canvasResizeFrame=0;
+let canvasResizeFrame=0,canvasPixelRatio=window.devicePixelRatio||1;
 function scheduleCanvasResize(){if(canvasResizeFrame)return;canvasResizeFrame=requestAnimationFrame(()=>{canvasResizeFrame=0;resizeCanvas()})}
-function resizeCanvas(){const r=canvas.getBoundingClientRect(),d=window.devicePixelRatio||1;const w=Math.max(320,Math.round(r.width*d)),h=Math.max(180,Math.round(r.height*d));if(canvas.width!==w||canvas.height!==h){const k=w/canvas.width;
- // 1.29: o ponto no centro da tela continua no centro quando a tela muda de tamanho.
- const cx=(canvas.width/2-view.ox)/view.s,cy=(canvas.height/2-view.oy)/view.s;canvas.width=w;canvas.height=h;view.s*=k;view.ox=w/2-cx*view.s;view.oy=h/2-cy*view.s}draw()}
+function resizeCanvas(){const r=canvas.getBoundingClientRect(),d=window.devicePixelRatio||1;const w=Math.max(320,Math.round(r.width*d)),h=Math.max(180,Math.round(r.height*d));if(canvas.width!==w||canvas.height!==h){const k=d/canvasPixelRatio;
+ // Preservar centro e escala em pixels CSS; abrir painéis não equivale a zoom.
+ const cx=(canvas.width/2-view.ox)/view.s,cy=(canvas.height/2-view.oy)/view.s;canvas.width=w;canvas.height=h;view.s*=k;view.ox=w/2-cx*view.s;view.oy=h/2-cy*view.s}canvasPixelRatio=d;draw()}
 // O espaço de imagem pode mudar após recalcular rotas; conservar a vista em CRS.
 function captureProjectView(){
  if(!ready())return null;
@@ -56,9 +56,9 @@ async function loadGeo(){const id=pid,context=projectSession.context,keep=geoPid
  try{await localUi()}catch{}if(!current())return;if(!keep&&geoPid!==id)tileState={ok:0,fail:0};geoPid=id}
 
 function buildVectorPaths(){vecPaths={};if(!vec||!geo)return;const L=vec.layers||{};
- for(const [role,list] of Object.entries(L)){if(!list.length)continue;const path=new Path2D(),fill=new Path2D();let nf=0;
-  for(const r of list){r.p.forEach((q,i)=>{const [x,y]=worldToImg({x:q[0],y:q[1]});if(i){path.lineTo(x,y);if(r.c)fill.lineTo(x,y)}else{path.moveTo(x,y);if(r.c){fill.moveTo(x,y);nf++}}});if(r.c){path.closePath();fill.closePath()}}
-  const col=role==='overlay'&&list[0].color?list[0].color:VSTYLE[role]?.[0];vecPaths[role]={path,fill:nf?fill:null,n:list.length,color:col};if(vecOn[role]===undefined)vecOn[role]=true}
+ for(const [role,list] of Object.entries(L)){if(!list.length)continue;const path=new Path2D(),fill=new Path2D(),surfaces=new Map();let nf=0;
+  for(const r of list){r.p.forEach((q,i)=>{const [x,y]=worldToImg({x:q[0],y:q[1]});if(i){path.lineTo(x,y);if(r.c)fill.lineTo(x,y)}else{path.moveTo(x,y);if(r.c){fill.moveTo(x,y);nf++}}});if(r.c){path.closePath();fill.closePath();const layer=vec.layer_names?.[r.l]||'',key=String(r.l??'');let surface=surfaces.get(key);if(!surface){surface={layer,path:new Path2D(),anchor:r.p[0]};surfaces.set(key,surface)}r.p.forEach((q,i)=>{const a=worldToImg({x:q[0],y:q[1]});i?surface.path.lineTo(...a):surface.path.moveTo(...a)});surface.path.closePath()}}
+  const col=role==='overlay'&&list[0].color?list[0].color:VSTYLE[role]?.[0];vecPaths[role]={path,fill:nf?fill:null,surfaces,n:list.length,color:col};if(vecOn[role]===undefined)vecOn[role]=true}
  buildSignage()}
 function buildSignage(){if(!vecPaths||!geo)return;delete vecPaths.signage;delete vecPaths.signage_y;delete vecPaths.arrows;if(!editor)return;
  const w={signage:new Path2D(),signage_y:new Path2D()};let n=0;
@@ -114,10 +114,31 @@ function drawTiles(){const z=tileZoom(),n=2**z,size=2*MERC/n;
   if(!retained)for(let cy=0;cy<2;cy++)for(let cx=0;cx<2;cx++){const child=peekTile(z+1,tx*2+cx,ty*2+cy);if(child)ctx.drawImage(child.img,ix+cx*px/2,iy+cy*px/2,px/2+pad,px/2+pad)}
  }
  ctx.restore()}
+// Amostra local dos materiais do catálogo; o render final conserva seu próprio nível de detalhe.
+const vectorMaterials=new Map();
+const vectorDefaults={pavement:'asphalt',existing_pavement:'asphalt_old',shoulder:'asphalt_old',median:'grass',oae:'concrete',cut:'earth',fill:'earth',water:'water'};
+function drawVectorMaterials(role,vector){
+ if(!$('natural_materials_only')?.checked)return false;
+ const fallback=vectorDefaults[role];if(!fallback||!vector.surfaces?.size)return false;
+ for(const surface of vector.surfaces.values()){
+  let material=cfg.layer_materials?.[surface.layer]||fallback;
+  if(!cfg.layer_materials?.[surface.layer]&&['pavement','existing_pavement','shoulder'].includes(role)){
+   const field={pavement:'pavement_material',existing_pavement:'existing_material',shoulder:'shoulder_material'}[role];if($(field)?.value==='rigido')material='concrete';
+  }
+  let image=vectorMaterials.get(material);
+  if(!image){image=new Image();image.onload=()=>{window.RodoviaLayers?.invalidate('technical');draw()};image.onerror=()=>{if(!image.rsReported){image.rsReported=true;msg('Não foi possível apresentar o material '+material+'. Confira o catálogo antes de exportar.',true)}};image.src='/api/materials/'+encodeURIComponent(material)+'.png';vectorMaterials.set(material,image)}
+  if(!image.complete||!image.naturalWidth)continue;
+  const pattern=ctx.createPattern(image,'repeat');if(!pattern)continue;
+  const anchor=worldToImg({x:surface.anchor[0],y:surface.anchor[1]});
+  pattern.setTransform(new DOMMatrix().translate(anchor[0],anchor[1]).scale(4/mpp()/image.naturalWidth));
+  ctx.save();ctx.globalAlpha=1;ctx.fillStyle=pattern;ctx.fill(surface.path,'evenodd');ctx.restore();
+ }
+ return true;
+}
 function drawVectors(){if(!vecPaths)return;ctx.save();ctx.setTransform(view.s,0,0,view.s,view.ox,view.oy);ctx.lineJoin='round';ctx.lineCap='round';ctx.globalAlpha=vecAlpha;const k=1/view.s;
  for(const role of [...Object.keys(VSTYLE)]){const v=vecPaths[role];if(!v||vecOn[role]===false)continue;const st=VSTYLE[role];
-  if(v.fill&&st[3]){ctx.fillStyle=v.color+Math.round(st[3]*255).toString(16).padStart(2,'0');ctx.fill(v.fill,'evenodd')}
-  ctx.setLineDash([]);ctx.strokeStyle='#05101a';ctx.globalAlpha=vecAlpha*.55;ctx.lineWidth=(st[1]+2)*k;ctx.stroke(v.path);ctx.globalAlpha=vecAlpha;
+  const artistic=drawVectorMaterials(role,v);if(!artistic&&v.fill&&st[3]){ctx.fillStyle=v.color+Math.round(st[3]*255).toString(16).padStart(2,'0');ctx.fill(v.fill,'evenodd')}
+  if(artistic)continue;ctx.setLineDash([]);ctx.strokeStyle='#05101a';ctx.globalAlpha=vecAlpha*.55;ctx.lineWidth=(st[1]+2)*k;ctx.stroke(v.path);ctx.globalAlpha=vecAlpha;
   ctx.setLineDash(st[2].map(d=>d*k));ctx.strokeStyle=v.color;ctx.lineWidth=st[1]*k;ctx.stroke(v.path)}
  ctx.setLineDash([]);const mpx=geo.R0/geo.k;// metros por pixel do espaço de imagem
  // Sinalização e setas como no vídeo: largura real (0,15 m / 0,16 m) com mínimo de 1 px na tela.
