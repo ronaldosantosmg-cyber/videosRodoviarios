@@ -33,3 +33,7 @@ Busca até 8 m de desvio, 20 km/20 mil vértices, 42.517 posições e 250 mil li
 Salvar o projeto e manter cópia. Colocar RodoviaStudio_2_02_atualizacao.zip em atualizacoes/ e usar o atualizador do aplicativo com encerramento controlado. Não apagar projetos/, videos/, originais ou cache GeoTIFF. Usar Tráfego → Corrigir problemas → Reconstruir rota completa; conferir a prévia e escolher Confirmar e aplicar correção → Revalidar resultado. Em recusa, Localizar impedimento.
 
 SHA-256: 2654167d0fadbf9b293f15ecd8bdf89eccc19c069b137ee630f1c0863b7bc0ed. Tamanho: 12.382.573 bytes. Histórico 2.01 preservado. Publicação somente na branch de desenvolvimento; main permanece com 4a4e47011ce44f6a33d4fc6f7bc31cac3ec472c3.
+
+## Download publicado e conferido
+
+[Baixar Rodovia Studio 2.02](https://raw.githubusercontent.com/ronaldosantosmg-cyber/videosRodoviarios/9f94b5355541bd6f724071e9778e1b261d2327e9/atualizacoes/RodoviaStudio_2_02_atualizacao.zip). HTTPS HTTP 200, 12.382.573 bytes e igualdade byte a byte com o ZIP local aprovado. Commit de publicação: 9f94b5355541bd6f724071e9778e1b261d2327e9. Prova em download-verificado.json.

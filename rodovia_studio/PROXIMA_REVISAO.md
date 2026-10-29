@@ -52,3 +52,10 @@ A correção antes disponível apenas na branch agora integra um ZIP novo, após
 Versão solicitada pelo usuário, sobre a 1.42.38, sem substituição do motor e com schema 31. Preservação de escala/centro no resize, Aplicar sem fechar com novo ponto de descarte, validação de campos, fila única nos formulários, ordenação das camadas/materiais, contraste/ícones e materiais locais em superfícies 2D. Evidências em evidencias/2.01/LEIA_ME.md.
 
 Aprovação consolidada de 977 casos do mesmo produto (897 preservados, 80 repetidos), splash/C# em Mono/Xvfb. Atualização real do ZIP e rollback para 1.42.38 conferidos com preservação de bytes e restauração de todos os hashes anteriores. HTTPS HTTP 200 e SHA-256 conferidos. Main intacta. Prontidão provisória 6,5/10; Windows/8 GB, projeto real e demais limites constam no relatório. A infraestrutura paralela de testes ainda requer isolamento de banco por worker para evitar interferência entre instâncias; módulos afetados foram repetidos em série.
+
+
+### Entrega 2.02 — reconstrução integral e continuidade comprovada
+
+Reconstrói a trajetória inteira antes de separar amostras inválidas; busca limitada no corredor físico e validação do percurso. A central exige um itinerário cobrindo todos os subtrechos de cada sentido antes de permitir aplicar. Distingue recuperação parcial, preserva recortes/desligamentos, recusa correção sem efeito e localiza impedimento real. Fonte CAD, nós, seções e motor existente preservados.
+
+Regressão nova: 995 casos (965 do mesmo produto preservados e 30 reexecutados), zero falhas/erros/ignorados no relatório consolidado. Progresso inicial: 994/995; o caso de hachuras teve sua preparação sincronizada com a conclusão do trabalho inicial e passou novamente. C#/splash em Mono/Xvfb; MP4 inteiro decodificado. Perfil artístico existente validado com veículos, materiais naturais e a mesma geometria de cálculo. Não foi criado outro renderizador. Atualização real do ZIP, preservação e rollback 2.01 conferidos; HTTPS HTTP 200 e SHA-256 idênticos. Main intacta. Evidências em evidencias/2.02/LEIA_ME.md. Prontidão provisória 7/10; Windows/8 GB, projeto real e carga prolongada pendentes.
