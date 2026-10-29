@@ -173,3 +173,18 @@ def test_real_ui_refuses_partial_plan_and_locates_impediment(gl_page,live,defect
     assert p.locator('#rsReturnExecution').is_visible()
     assert P.read_config(d)==before and (d/'input.dxf').read_bytes()==source
     screenshot(p,'202_impedimento_localizado')
+
+
+def test_warning_on_valid_geometry_does_not_offer_an_ineffective_repair(tmp_path):
+    from app import assisted_execution as E,project_state as P,store,artifacts
+    from test_v1425_scene3d import project
+    from test_v14225_execution import publish
+    d=tmp_path/('d'*32);d.mkdir();d,s=project(d);P.save_config(d,s.model_dump());data=publish(d,s)
+    segment=next(row for row in data['segments'] if row['technical_circulation']['enabled'])
+    segment.update(technical_status='adjustment',technical_message='Aviso de frota; geometria já contínua.')
+    store.write_json(d/'editor.json',data);ticket=artifacts.begin(d,'test-warning','analyze',s);artifacts.finish(d,ticket)
+    before=P.read_config(d);plan=E.preview(d,dict(signature=E.signature(d),segment=segment['id'],action='reconstruct'))
+    assert plan['checks']['full_route_continuity'] and not plan['checks']['effective_repair']
+    assert not plan['can_apply'] and 'nenhuma reparação efetiva' in plan['notice']
+    assert P.read_config(d)==before
+    with pytest.raises(ValueError):E.apply(d,plan['id'])

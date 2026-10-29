@@ -26,6 +26,7 @@ Em estudo técnico, o traçado original fica como referência cinza quando a rec
 - Recusa auto-interseção ambígua, extremidades sem corredor contínuo e curvas reprovadas. Explica a causa e fornece ponto quando localizado.
 - Limites desta busca: 8 m de desvio máximo, 20 km e 20 mil vértices por trajetória, 42.517 posições e 250 mil ligações no grafo. Buscas fora do orçamento exigem subdivisão/edição explícita.
 - A auditoria geométrica de referência usa o veículo leve do modelo. A simulação e a conferência da frota continuam verificando as classes; uma reconstrução geométrica não certifica que todo caminhão/articulado caberá. Semáforos, interdições e colisões continuam no motor de simulação existente.
+- Avisos de frota/configuração com geometria já contínua não produzem uma marca de correção sem efeito: a aplicação fica bloqueada e a orientação pede rever a causa correta.
 - Não inclui núcleo CAD completo, modelo semântico de imagens ou pesos de IA 3B. Não há promessa de corrigir qualquer desenho sem informação suficiente.
 
 ## Atualizar

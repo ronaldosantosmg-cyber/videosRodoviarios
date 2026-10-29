@@ -82,6 +82,7 @@ def preview(d,request,status=lambda *a:None,cancel=lambda:False):
         selected=[diag for raw,diag in zip(scene.network.raw_info,diagnostics) if raw.get('origin_key')==origin]
         from .flow_reconstruction import continuity_evidence
         reconstruction=continuity_evidence(scene.network,origin) if action=='reconstruct' else None
+        effective_repair=action!='reconstruct' or any(r.get('status')=='reconstructed' for r in reconstruction['reports']) or not segment.get('technical_circulation',{}).get('enabled',False) and reconstruction['complete']
         enabled=any(r.get('technical_circulation',{}).get('enabled') for r in selected)
         valid=all(analyze_motion(path['p'],allowed=scene.network.allowed)['ok'] for path in scene.network.paths)
         after=[{'status':r['technical_status'],'message':r['technical_message'],'circulation':r.get('technical_circulation',{})} for r in selected]
@@ -96,7 +97,8 @@ def preview(d,request,status=lambda *a:None,cancel=lambda:False):
     if cancel():raise InterruptedError('Proposta cancelada; projeto preservado.')
     if signature(d)!=initial:raise Conflict('O projeto mudou durante a prévia. Resultado descartado.')
     key=uuid.uuid4().hex
-    result={'id':key,'project':d.name,'signature':initial,'action':action,'segment':segment['id'],'origin_key':origin,'mark':mark,'before_revision':revision(before),'before':{'status':segment['technical_status'],'message':segment['technical_message'],'geometry':segment['points']},'after':after,'geometry':geometry,'can_apply':bool(enabled and valid and candidate!=before and (action!='reconstruct' or reconstruction['complete'])),'state':'proposta','created':time.time(),'checks':{'all_paths_motion_valid':valid,'circulation_available':enabled,'physical_rules_preserved':True,'full_route_continuity':action!='reconstruct' or reconstruction['complete']},'reconstruction':reconstruction,'notice':'Reconstruir exige um itinerário completo por sentido, com extremidades preservadas. Recuperar trechos é uma ação parcial distinta. Barreiras, níveis, sentidos e desligamentos manuais são preservados. Revalide a simulação e a frota após aplicar.'}
+    result={'id':key,'project':d.name,'signature':initial,'action':action,'segment':segment['id'],'origin_key':origin,'mark':mark,'before_revision':revision(before),'before':{'status':segment['technical_status'],'message':segment['technical_message'],'geometry':segment['points']},'after':after,'geometry':geometry,'can_apply':bool(enabled and valid and effective_repair and candidate!=before and (action!='reconstruct' or reconstruction['complete'])),'state':'proposta','created':time.time(),'checks':{'all_paths_motion_valid':valid,'circulation_available':enabled,'physical_rules_preserved':True,'full_route_continuity':action!='reconstruct' or reconstruction['complete'],'effective_repair':bool(effective_repair)},'reconstruction':reconstruction,'notice':'Reconstruir exige um itinerário completo por sentido, com extremidades preservadas. Recuperar trechos é uma ação parcial distinta. Barreiras, níveis, sentidos e desligamentos manuais são preservados. Revalide a simulação e a frota após aplicar.'}
+    if action=='reconstruct' and not effective_repair:result['notice']='A geometria já está contínua e nenhuma reparação efetiva foi produzida. Confira a frota, a seção e os avisos de configuração; não aplique uma marca sem correção.'
     write_json(folder(d)/(key+'.json'),result);status(1,'Proposta pronta para revisão; nenhuma correção aplicada')
     return result
 
