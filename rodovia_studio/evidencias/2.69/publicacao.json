@@ -1,0 +1,25 @@
+{
+  "release_commit": "04f53704f40f45a039a25de938379a2512616de9",
+  "branch": "desenvolvimento/rodovia-studio-2.69",
+  "main_unchanged": true,
+  "main_commit": "4a4e47011ce44f6a33d4fc6f7bc31cac3ec472c3",
+  "verified_at_utc": "2026-11-01T17:17:42.529029+00:00",
+  "packages": [
+    {
+      "filename": "RodoviaStudio_2_69_atualizacao.zip",
+      "url": "https://raw.githubusercontent.com/ronaldosantosmg-cyber/videosRodoviarios/04f53704f40f45a039a25de938379a2512616de9/atualizacoes/RodoviaStudio_2_69_atualizacao.zip",
+      "http_status": 200,
+      "bytes": 8721596,
+      "sha256": "de29337fae4d1334f11ce3ad3691ec5a16c83264eabf4fe971daef8056e42404",
+      "verified": true
+    },
+    {
+      "filename": "RodoviaStudio_2_69_atualizacao_leve.zip",
+      "url": "https://raw.githubusercontent.com/ronaldosantosmg-cyber/videosRodoviarios/04f53704f40f45a039a25de938379a2512616de9/atualizacoes/RodoviaStudio_2_69_atualizacao_leve.zip",
+      "http_status": 200,
+      "bytes": 4396299,
+      "sha256": "a654ec39dad8225295eeb7cbd25e3f1f2b32765baa4c117d95bbe5f04bcef57f",
+      "verified": true
+    }
+  ]
+}
