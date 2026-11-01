@@ -1,0 +1,26 @@
+{
+  "release_commit": "b165d9085c8979cf01a05ac442e1b8658bbf1ee7",
+  "branch": "desenvolvimento/rodovia-studio-3.0",
+  "main_unchanged": true,
+  "main_commit": "4a4e47011ce44f6a33d4fc6f7bc31cac3ec472c3",
+  "verified_at_utc": "2026-11-01T18:17:24.654041+00:00",
+  "packages": [
+    {
+      "filename": "RodoviaStudio_3_0_atualizacao.zip",
+      "url": "https://raw.githubusercontent.com/ronaldosantosmg-cyber/videosRodoviarios/b165d9085c8979cf01a05ac442e1b8658bbf1ee7/atualizacoes/RodoviaStudio_3_0_atualizacao.zip",
+      "http_status": 200,
+      "bytes": 9411771,
+      "sha256": "ccf654517ccdc554afdd12313051da6ee593b0e1a0e8d72d2a3e5d0d59f25c16",
+      "verified": true
+    },
+    {
+      "filename": "RodoviaStudio_3_0_atualizacao_leve.zip",
+      "url": "https://raw.githubusercontent.com/ronaldosantosmg-cyber/videosRodoviarios/b165d9085c8979cf01a05ac442e1b8658bbf1ee7/atualizacoes/RodoviaStudio_3_0_atualizacao_leve.zip",
+      "http_status": 200,
+      "bytes": 4932189,
+      "sha256": "95e0ef7a8d533de61c367707a93058c66cbb4e12cb306108571408893254ba7a",
+      "verified": true
+    }
+  ],
+  "continuity": "rodovia_studio/CONTINUIDADE_3_0.md"
+}
