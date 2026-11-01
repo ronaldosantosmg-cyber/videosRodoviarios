@@ -1,0 +1,14 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/ronaldosantosmg-cyber/videosRodoviarios/86dc2659639972ed8487d7274eb1458cf38e5e54/atualizacoes/RodoviaStudio_2_66_atualizacao.zip",
+    "http_status": 200,
+    "bytes": 5785529,
+    "sha256": "36f9d66c55dba7b3f57b7c2047a4f3dd9cc1de71df98885ca5f2d828311ce199"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/ronaldosantosmg-cyber/videosRodoviarios/86dc2659639972ed8487d7274eb1458cf38e5e54/atualizacoes/RodoviaStudio_2_66_atualizacao_leve.zip",
+    "http_status": 200,
+    "bytes": 1374043,
+    "sha256": "00af0c299854e811aebb053d4fe0983bba256ccc7631e2342934855abe849d1c"
+  }
+]
