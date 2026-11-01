@@ -93,7 +93,7 @@ class Detail:
         self.base_px=float(scene.px)
     # ---------- estado serializável (processos auxiliares) ----------
     def __getstate__(self):
-        d=dict(self.__dict__);d['mem']=collections.OrderedDict();d['lock']=None;d['_tr']=None;d['sc']=None;d['_paths']=None;return d
+        d=dict(self.__dict__);d['mem']=collections.OrderedDict();d['lock']=None;d['_tr']=None;d['sc']=None;d['_paths']=None;d.pop('_existing_variant',None);return d
     def __setstate__(self,d):
         self.__dict__.update(d);self.lock=threading.Lock()
     def weight(self,m_per_px):
@@ -122,7 +122,7 @@ class Detail:
         sc=self.sc;out=[]
         for e in sc.items:
             role=e['role']
-            if role not in ('cut','fill','terrain','existing_pavement','pavement','shoulder','median','barrier','oae','overlay'):continue
+            if role not in ('water','cut','fill','terrain','existing_pavement','pavement','shoulder','median','barrier','oae','overlay'):continue
             if role in ('cut','fill') and not sc.exclusion.is_empty:
                 try:
                     g=(Polygon(e['points'],holes=e.get('holes',[])).buffer(0) if e['closed'] else LineString(e['points'])).difference(sc.exclusion)
@@ -157,83 +157,88 @@ class Detail:
                     cv2.fillPoly(excl,[np.rint(wp(np.asarray(a.exterior.coords))*16).astype(np.int32)],255,cv2.LINE_8,4)
                     for h in a.interiors:cv2.fillPoly(excl,[np.rint(wp(np.asarray(h.coords))*16).astype(np.int32)],0,cv2.LINE_8,4)
         q=lambda p:np.rint(wp(p)*16).astype(np.int32)  # subpixel (shift=4)
-        for role in ['cut','fill','terrain','existing_pavement','pavement','shoulder','median','barrier','oae']:
-            items=[o for o in near if o['role']==role]
-            if not items:continue
-            mask=np.zeros((n,n),np.uint8);lines=np.zeros_like(mask);rmask=None;kmasks={}
-            for o in items:
-                if o['closed']:
-                    tmp=np.zeros_like(mask);cv2.fillPoly(tmp,[q(o['p'])],255,cv2.LINE_AA,4)
-                    for h in o['holes']:cv2.fillPoly(tmp,[q(np.asarray(h))],0,cv2.LINE_AA,4)
-                    mask=np.maximum(mask,tmp)
-                    if o['e'].get('material')=='rigido':rmask=tmp if rmask is None else np.maximum(rmask,tmp)
-                    if role=='oae' and o['e'].get('oae_kind') in visual.OAE_KIND_SURF:kmasks[o['e']['oae_kind']]=tmp if o['e']['oae_kind'] not in kmasks else np.maximum(kmasks[o['e']['oae_kind']],tmp)
-                else:cv2.polylines(lines,[q(o['p'])],False,255,max(1,round(.25/self.R)),cv2.LINE_AA,4)
-            if role in ('cut','fill'):
-                hard=(mask>127).astype(np.uint8)*255
-                color,alpha=earthwork_style(hard,lines,role,self.R,phase=(i*n,j*n),look=getattr(sc.s,'earthwork_look','hatch'),base_color=sc.s.role_colors.get(role))
-                if excl is not None:alpha[excl>0]=0
-            else:alpha=mask
-            rgb=_rgb(sc.color(role) if hasattr(sc,'color') else COLORS[role])
-            if role=='pavement':
-                rng=np.random.default_rng((57,i,j));grain=rng.integers(-3,4,(n,n),dtype=np.int16)
-                color=np.clip(rgb.astype(np.int16)[None,None,:]+grain[:,:,None],0,255).astype(np.uint8)
-            elif role not in ('cut','fill'):color=rgb
-            if getattr(sc.s,'style_profile','padrao')=='tecnico' and role in visual.TECH_HATCH:
-                hm,hc=visual.surface_hatch((n,n),x0,y1,self.R,role)
-                base_c=np.broadcast_to(np.asarray(color,np.float32),(n,n,3)) if np.ndim(color)==1 else color.astype(np.float32)
-                color=(base_c*(1-hm[:,:,None]*.85)+hc*hm[:,:,None]*.85).astype(np.uint8)
-            if rmask is not None:
-                from .pavement import paint_rigid,JointField
-                if getattr(sc,'joint_field_net',None) is None:
+        from .presentation import is_existing,phase_color
+        for phase in (True,False):
+            for role in ['water','cut','fill','terrain','existing_pavement','pavement','shoulder','median','barrier','oae']:
+                items=[o for o in near if o['role']==role and is_existing(o['e'])==phase]
+                if not items:continue
+                mask=np.zeros((n,n),np.uint8);lines=np.zeros_like(mask);rmask=None;kmasks={}
+                for o in items:
+                    if o['closed']:
+                        tmp=np.zeros_like(mask);cv2.fillPoly(tmp,[q(o['p'])],255,cv2.LINE_AA,4)
+                        for h in o['holes']:cv2.fillPoly(tmp,[q(np.asarray(h))],0,cv2.LINE_AA,4)
+                        mask=np.maximum(mask,tmp)
+                        if o['e'].get('material')=='rigido':rmask=tmp if rmask is None else np.maximum(rmask,tmp)
+                        if role=='oae' and o['e'].get('oae_kind') in visual.OAE_KIND_SURF:kmasks[o['e']['oae_kind']]=tmp if o['e']['oae_kind'] not in kmasks else np.maximum(kmasks[o['e']['oae_kind']],tmp)
+                    else:cv2.polylines(lines,[q(o['p'])],False,255,max(1,round(.25/self.R)),cv2.LINE_AA,4)
+                if role in ('cut','fill'):
+                    hard=(mask>127).astype(np.uint8)*255
+                    color,alpha=earthwork_style(hard,lines,role,self.R,phase=(i*n,j*n),look=getattr(sc.s,'earthwork_look','hatch'),base_color=sc.s.role_colors.get(role))
+                    if excl is not None:alpha[excl>0]=0
+                else:alpha=mask
+                rgb=_rgb(sc.color(role) if hasattr(sc,'color') else COLORS[role])
+                if role=='pavement':
+                    rng=np.random.default_rng((57,i,j));grain=rng.integers(-3,4,(n,n),dtype=np.int16)
+                    color=np.clip(rgb.astype(np.int16)[None,None,:]+grain[:,:,None],0,255).astype(np.uint8)
+                elif role not in ('cut','fill'):color=rgb
+                if getattr(sc.s,'style_profile','padrao')=='tecnico' and role in visual.TECH_HATCH:
+                    hm,hc=visual.surface_hatch((n,n),x0,y1,self.R,role)
+                    base_c=np.broadcast_to(np.asarray(color,np.float32),(n,n,3)) if np.ndim(color)==1 else color.astype(np.float32)
+                    color=(base_c*(1-hm[:,:,None]*.85)+hc*hm[:,:,None]*.85).astype(np.uint8)
+                if rmask is not None:
+                    from .pavement import paint_rigid,JointField
+                    if getattr(sc,'joint_field_net',None) is None:
+                        net=getattr(sc,'network',None);f=JointField.from_network(net) if net is not None else None
+                        sc.joint_field_net=f if f is not None and f.ok else JointField(sc.axes)
+                    color=paint_rigid(color,rmask>127,role,x0,y1,self.R,sc.joint_field_net,float(getattr(sc.s,'joint_spacing_m',5)),getattr(sc.s,'style_profile','padrao')=='tecnico')
+                from .pavement import chosen,paint_style
+                st=chosen(sc.s,role) if role in ('pavement','existing_pavement','shoulder') else None
+                if st is not None and st.pattern=='placas' and getattr(sc,'joint_field_net',None) is None:
+                    from .pavement import JointField
                     net=getattr(sc,'network',None);f=JointField.from_network(net) if net is not None else None
                     sc.joint_field_net=f if f is not None and f.ok else JointField(sc.axes)
-                color=paint_rigid(color,rmask>127,role,x0,y1,self.R,sc.joint_field_net,float(getattr(sc.s,'joint_spacing_m',5)),getattr(sc.s,'style_profile','padrao')=='tecnico')
-            from .pavement import chosen,paint_style
-            st=chosen(sc.s,role) if role in ('pavement','existing_pavement','shoulder') else None
-            if st is not None and st.pattern=='placas' and getattr(sc,'joint_field_net',None) is None:
-                from .pavement import JointField
-                net=getattr(sc,'network',None);f=JointField.from_network(net) if net is not None else None
-                sc.joint_field_net=f if f is not None and f.ok else JointField(sc.axes)
-            if st is not None:color=paint_style(color,mask>127,role,x0,y1,self.R,st,getattr(sc,'joint_field_net',None),float(getattr(sc.s,'joint_spacing_m',5)))  # 1.21: representação escolhida pelo usuário
-            if getattr(sc.s,'texture_relief',True) and getattr(sc.s,'texture_style','artistico')!='anterior' and getattr(sc.s,'style_profile','padrao')!='tecnico' and (role not in ('cut','fill') or getattr(sc.s,'earthwork_look','hatch') in ('natural','textura')):
-                from . import relevo   # 2.48/2.49: relevo iluminado por material (flexível/rígido; novo/existente)
-                if role in relevo.MATERIAIS or role in relevo.RIGIDOS:color=relevo.acabar_misto(color,mask>127,rmask,role,x0,y1,self.R,quality=sc.s.realism_profile)
-            sel=alpha>0;a=alpha[sel,None].astype(np.float32)/255;old=ov[sel,:3].astype(np.float32)
-            c=color[sel] if getattr(color,'ndim',1)==3 else color
-            ov[sel,:3]=(old*(1-a)+c*a).astype(np.uint8);ov[:,:,3]=np.maximum(ov[:,:,3],alpha)
-            if role in ('cut','fill'):ov[sel,:3]=color[sel]
-            m=mask>127
-            if role in visual.SURF:surf[m]=visual.SURF[role]
-            elif role in visual.EARTH_SURF and getattr(sc.s,'earthwork_look','hatch') in ('natural','textura'):surf[m]=visual.EARTH_SURF[role]
-            elif role in ('median','barrier'):surf[m]=0
-            if rmask is not None:surf[m&(rmask>127)]=visual.SURF['oae']
-            for kind,km_ in kmasks.items():
-                sel_=m&(km_>127);surf[sel_]=visual.OAE_KIND_SURF[kind];ov[sel_,:3]=visual.OAE_KIND_RGB[kind]
-                if getattr(sc.s,'texture_relief',True) and getattr(sc.s,'texture_style','artistico')!='anterior' and getattr(sc.s,'style_profile','padrao')!='tecnico' and sel_.any():
-                    from . import relevo;ov[:,:,:3]=np.where(sel_[...,None],relevo.acabar_oae(ov[:,:,:3],sel_,kind,x0,y1,self.R),ov[:,:,:3])   # 2.50: OAE com concreto novo/existente/alargado
-            if role in ('pavement','existing_pavement','shoulder','oae'):road=np.maximum(road,mask)
-        for o in near:
-            if o['closed'] and o['e'].get('tex_code'):
-                tm=np.zeros((n,n),np.uint8);cv2.fillPoly(tm,[q(o['p'])],255,cv2.LINE_AA,4)
-                for h in o['holes']:cv2.fillPoly(tm,[q(np.asarray(h))],0,cv2.LINE_AA,4)
-                surf[tm>127]=o['e']['tex_code']
-        if hasattr(sc,'texture_areas'):
-            for code,base,_,pts in sc.texture_areas():
-                tm=np.zeros((n,n),np.uint8);cv2.fillPoly(tm,[q(pts)],255,cv2.LINE_AA,4);surf[(tm>127)&(surf==base)]=code
-        groups={}
-        for o in near:
-            if o['role']=='overlay':groups.setdefault(o['e']['overlay_order'],[]).append(o)
-        for order in sorted(groups):
-            st=groups[order][0]['e']['style'];rgb=_rgb(st['color']);mask=np.zeros((n,n),np.uint8);lw=max(1,round(st['width_m']/self.R))
-            for o in groups[order]:
-                if o['closed'] and st['fill']:cv2.fillPoly(mask,[q(o['p'])],115,cv2.LINE_AA,4)
-            from .dxf_trim import runs
-            for o in groups[order]:
-                for p in (runs(o['e']) if o['closed'] else [o['p']]):cv2.polylines(mask,[q(p)],False,255,lw,cv2.LINE_AA,4)
-            a=(mask.astype(np.float32)*st['opacity']).astype(np.uint8);sel=a>0
-            if not sel.any():continue
-            f=a[sel,None]/255;old=ov[sel,:3].astype(np.float32);ov[sel,:3]=(old*(1-f)+rgb*f).astype(np.uint8);ov[:,:,3]=np.maximum(ov[:,:,3],a)
+                if st is not None:color=paint_style(color,mask>127,role,x0,y1,self.R,st,getattr(sc,'joint_field_net',None),float(getattr(sc.s,'joint_spacing_m',5)))  # 1.21: representação escolhida pelo usuário
+                if getattr(sc.s,'texture_relief',True) and getattr(sc.s,'texture_style','artistico')!='anterior' and getattr(sc.s,'style_profile','padrao')!='tecnico' and (role not in ('cut','fill') or getattr(sc.s,'earthwork_look','hatch') in ('natural','textura')):
+                    from . import relevo   # 2.48/2.49: relevo iluminado por material (flexível/rígido; novo/existente)
+                    if role in relevo.MATERIAIS or role in relevo.RIGIDOS:color=relevo.acabar_misto(color,mask>127,rmask,role,x0,y1,self.R,quality=sc.s.realism_profile)
+                color=phase_color(color,phase,sc.s,role)
+                sel=alpha>0;a=alpha[sel,None].astype(np.float32)/255;old=ov[sel,:3].astype(np.float32)
+                c=color[sel] if getattr(color,'ndim',1)==3 else color
+                ov[sel,:3]=(old*(1-a)+c*a).astype(np.uint8);ov[:,:,3]=np.maximum(ov[:,:,3],alpha)
+                if role in ('cut','fill'):ov[sel,:3]=color[sel]
+                m=mask>127
+                if role in visual.SURF:surf[m]=visual.SURF[role]
+                elif role in visual.EARTH_SURF and getattr(sc.s,'earthwork_look','hatch') in ('natural','textura'):surf[m]=visual.EARTH_SURF[role]
+                elif role in ('median','barrier'):surf[m]=0
+                if rmask is not None:surf[m&(rmask>127)]=visual.SURF['oae']
+                for kind,km_ in kmasks.items():
+                    sel_=m&(km_>127);surf[sel_]=visual.OAE_KIND_SURF[kind];ov[sel_,:3]=visual.OAE_KIND_RGB[kind]
+                    if getattr(sc.s,'texture_relief',True) and getattr(sc.s,'texture_style','artistico')!='anterior' and getattr(sc.s,'style_profile','padrao')!='tecnico' and sel_.any():
+                        from . import relevo;ov[:,:,:3]=np.where(sel_[...,None],relevo.acabar_oae(ov[:,:,:3],sel_,kind,x0,y1,self.R),ov[:,:,:3])   # 2.50: OAE com concreto novo/existente/alargado
+                if role in ('pavement','existing_pavement','shoulder','oae'):road=np.maximum(road,mask)
+            for o in near:
+                if is_existing(o['e'])!=phase:continue
+                if o['closed'] and o['e'].get('tex_code'):
+                    tm=np.zeros((n,n),np.uint8);cv2.fillPoly(tm,[q(o['p'])],255,cv2.LINE_AA,4)
+                    for h in o['holes']:cv2.fillPoly(tm,[q(np.asarray(h))],0,cv2.LINE_AA,4)
+                    surf[tm>127]=o['e']['tex_code']
+            if hasattr(sc,'texture_areas'):
+                for code,base,_,pts in sc.texture_areas():
+                    tm=np.zeros((n,n),np.uint8);cv2.fillPoly(tm,[q(pts)],255,cv2.LINE_AA,4);surf[(tm>127)&(surf==base)]=code
+            groups={}
+            for o in near:
+                if is_existing(o['e'])!=phase:continue
+                if o['role']=='overlay':groups.setdefault(o['e']['overlay_order'],[]).append(o)
+            for order in sorted(groups):
+                st=groups[order][0]['e']['style'];rgb=_rgb(st['color']);mask=np.zeros((n,n),np.uint8);lw=max(1,round(st['width_m']/self.R))
+                for o in groups[order]:
+                    if o['closed'] and st['fill']:cv2.fillPoly(mask,[q(o['p'])],115,cv2.LINE_AA,4)
+                from .dxf_trim import runs
+                for o in groups[order]:
+                    for p in (runs(o['e']) if o['closed'] else [o['p']]):cv2.polylines(mask,[q(p)],False,255,lw,cv2.LINE_AA,4)
+                a=(mask.astype(np.float32)*st['opacity']).astype(np.uint8);sel=a>0
+                if not sel.any():continue
+                f=a[sel,None]/255;old=ov[sel,:3].astype(np.float32);ov[sel,:3]=(old*(1-f)+rgb*f).astype(np.uint8);ov[:,:,3]=np.maximum(ov[:,:,3],a)
         if self.realistic and (surf==2).any():self.wheel_paths(surf,i,j)
         if road.any():
             shadow=cv2.GaussianBlur(road,(0,0),1.0/self.R);outside=(ov[:,:,3]==0)&(shadow>0)
@@ -281,8 +286,8 @@ class Detail:
         return (lr*a+esri*(1-a)).astype(np.uint8)
     def _water(self,out,i,j):
         sc=self.sc
-        if getattr(sc,'hydro',None) is not None and sc.s.water_texture and (sc.hydro.lines or sc.hydro.polygons):
-            try:sc.hydro.paint_map(out,self.worldpx(i,j),self.R,sc.s.water_texture_opacity,sc.enhanced)
+        if getattr(sc,'_background_hydro',getattr(sc,'hydro',None)) is not None and sc.s.water_texture and (getattr(sc,'_background_hydro',sc.hydro).lines or getattr(sc,'_background_hydro',sc.hydro).polygons):
+            try:getattr(sc,'_background_hydro',sc.hydro).paint_map(out,self.worldpx(i,j),self.R,sc.s.water_texture_opacity,sc.enhanced)
             except Exception as _e:_falha(__name__,_e)
         return out
     def esri_tile(self,i,j):
@@ -319,8 +324,8 @@ class Detail:
             out=grade(out)
             if self.realistic:out=self.match_base(out,i,j)
             sc=self.sc
-            if getattr(sc,'hydro',None) is not None and sc.s.water_texture and (sc.hydro.lines or sc.hydro.polygons):
-                try:sc.hydro.paint_map(out,self.worldpx(i,j),self.R,sc.s.water_texture_opacity,sc.enhanced)
+            if getattr(sc,'_background_hydro',getattr(sc,'hydro',None)) is not None and sc.s.water_texture and (getattr(sc,'_background_hydro',sc.hydro).lines or getattr(sc,'_background_hydro',sc.hydro).polygons):
+                try:getattr(sc,'_background_hydro',sc.hydro).paint_map(out,self.worldpx(i,j),self.R,sc.s.water_texture_opacity,sc.enhanced)
                 except Exception as _e:_falha(__name__,_e)
             return out
         return None
@@ -372,7 +377,7 @@ class Detail:
         val=(img,ov,surf)
         with self.lock:
             self.mem[k]=val
-            while len(self.mem)>48:self.mem.popitem(last=False)
+            while len(self.mem)>(12 if getattr(self,'_existing_only',False) else 36):self.mem.popitem(last=False)
         return val
     @staticmethod
     def _save(path,arr,params=()):

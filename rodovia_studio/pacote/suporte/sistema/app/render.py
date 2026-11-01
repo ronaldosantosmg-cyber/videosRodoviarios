@@ -143,6 +143,13 @@ class Scene:
         self.n=self.map.shape[0];self.px=((self.box[2]-self.box[0]) / (self.n))
         self.hydro=Hydrography(directory,s,[self.report['bounds'][0][0]-250,self.report['bounds'][0][1]-250,self.report['bounds'][1][0]+250,self.report['bounds'][1][1]+250],status)
         self.enhanced=s.visual_quality=='enhanced';self.water_mask=None
+        import copy
+        self._background_hydro=copy.copy(self.hydro);self._background_hydro.lines=list(self.hydro.lines);self._background_hydro.polygons=list(self.hydro.polygons)
+        if (self.hydro.lines or self.hydro.polygons) and (s.water_texture or s.water_names):
+            if s.water_texture:
+                self.map=self.map.copy();wm=self.hydro.paint_map(self.map,self.worldpx,self.px,s.water_texture_opacity,self.enhanced)
+                if s.water_animated and self.hydro.polygons:self.water_mask=wm
+            self.attribution+=' • Hidrografia: IBGE / © OpenStreetMap (ODbL)'
         # 1.14: camadas do DXF mapeadas como Hidrografia somam-se à base pública (ou a substituem, se ela estiver desligada).
         for e in self.items:
             if e['role']!='water':continue
@@ -152,11 +159,6 @@ class Scene:
                     if part.geom_type=='Polygon' and part.area>1:self.hydro.polygons.append(part)
             elif len(e['points'])>=2:self.hydro.lines.extend(runs(e))
         if any(e['role']=='water' for e in self.items) and 'DXF' not in self.hydro.source:self.hydro.source=(self.hydro.source+' + ' if self.hydro.source else '')+'hidrografia do DXF'
-        if (self.hydro.lines or self.hydro.polygons) and (s.water_texture or s.water_names):
-            if s.water_texture:
-                self.map=self.map.copy();wm=self.hydro.paint_map(self.map,self.worldpx,self.px,s.water_texture_opacity,self.enhanced)
-                if s.water_animated and self.hydro.polygons:self.water_mask=wm
-            self.attribution+=' • Hidrografia: IBGE / © OpenStreetMap (ODbL)'
         if self.hydro.warning:self.report['warnings'].append(self.hydro.warning)
         self.center=(np.array(self.report['bounds'][0])+self.report['bounds'][1])/2
         delta=self.axis[-1]-self.axis[0]
@@ -298,118 +300,135 @@ class Scene:
                 if not (cache_dir/'surface.npy').exists():raise ValueError('Cache anterior à 1.5')
                 self.surface=np.load(cache_dir/'surface.npy',mmap_mode='r',allow_pickle=False)
                 if overlay.shape!=(self.n,self.n,4) or overlay.dtype!=np.uint8 or stations.shape!=(self.n,self.n) or stations.dtype!=np.uint16:raise ValueError('Cache incompatível')
+                self.existing_overlay=np.load(cache_dir/'existing_overlay.npy',mmap_mode='r',allow_pickle=False) if (cache_dir/'existing_overlay.npy').exists() else None
+                self.projected_mask=np.load(cache_dir/'projected_mask.npy',mmap_mode='r',allow_pickle=False)
+                self.existing_surface=np.load(cache_dir/'existing_surface.npy',mmap_mode='r',allow_pickle=False) if self.existing_overlay is not None else None
+                if self.projected_mask.shape!=(self.n,self.n) or self.projected_mask.dtype!=np.uint8:raise ValueError('Máscara de apresentação incompatível')
+                if self.existing_overlay is not None and (self.existing_overlay.shape!=(self.n,self.n,4) or self.existing_overlay.dtype!=np.uint8 or self.existing_surface.shape!=(self.n,self.n) or self.existing_surface.dtype!=np.uint8):raise ValueError('Subcamada existente incompatível')
                 self.overlay=overlay;self.stations=stations;self.geometry_cache_hit=True
                 status(.22,'Geometria recuperada do cache local');return
         except (OSError,ValueError):
             if cache_dir is not None:shutil.rmtree(cache_dir,ignore_errors=True)
             cache_dir=None
-        n=self.n;self.overlay=np.zeros((n,n,4),np.uint8);roadmask=np.zeros((n,n),np.uint8);stationmask=np.zeros((n,n),np.uint8);self.surface=np.zeros((n,n),np.uint8)
+        n=self.n;self.overlay=np.zeros((n,n,4),np.uint8);roadmask=np.zeros((n,n),np.uint8);stationmask=np.zeros((n,n),np.uint8);self.surface=np.zeros((n,n),np.uint8);self.projected_mask=np.zeros((n,n),np.uint8)
         from .pavement import paint_rigid,JointField
-        for role in ['cut','fill','terrain','existing_pavement','pavement','shoulder','median','barrier','oae']:
-            mask=np.zeros((n,n),np.uint8);lines=np.zeros_like(mask);rmask=None;kmasks={}
+        from .presentation import is_existing,phase_color
+        self.existing_overlay=self.existing_surface=None
+        for phase in (True,False):
+            for role in ['water','cut','fill','terrain','existing_pavement','pavement','shoulder','median','barrier','oae']:
+                if not any(e['role']==role and is_existing(e)==phase for e in self.items):continue
+                mask=np.zeros((n,n),np.uint8);lines=np.zeros_like(mask);rmask=None;kmasks={}
+                for e in self.items:
+                    if is_existing(e)!=phase:continue
+                    if e['role']!=role:continue
+                    if role=='oae' and e.get('oae_kind') in visual.OAE_KIND_SURF and e['closed']:
+                        km_=kmasks.setdefault(e['oae_kind'],np.zeros_like(mask));cv2.fillPoly(km_,[np.rint(self.worldpx(e['points'])).astype(np.int32)],255)
+                        for hole in e.get('holes',[]):cv2.fillPoly(km_,[np.rint(self.worldpx(hole)).astype(np.int32)],0)
+                    if role in ('pavement','existing_pavement','shoulder','oae') and e.get('material')=='rigido' and e['closed']:
+                        # 1.21: pavimento rígido (placas de concreto).
+                        if rmask is None:rmask=np.zeros_like(mask)
+                        cv2.fillPoly(rmask,[np.rint(self.worldpx(e['points'])).astype(np.int32)],255)
+                        for hole in e.get('holes',[]):cv2.fillPoly(rmask,[np.rint(self.worldpx(hole)).astype(np.int32)],0)
+                    if role in ['cut','fill'] and not self.exclusion.is_empty:
+                        g=poly(e) if e['closed'] else LineString(e['points']);g=g.difference(self.exclusion)
+                        geoms=list(g.geoms) if hasattr(g,'geoms') else [g]
+                        paths=[np.array(v.exterior.coords if v.geom_type=='Polygon' else v.coords) for v in geoms if not v.is_empty and v.geom_type in ['Polygon','LineString']]
+                    else:
+                        from .dxf_trim import runs
+                        paths=[e['points']] if e['closed'] else runs(e)
+                    for p in paths:
+                        q=np.rint(self.worldpx(p)).astype(np.int32)
+                        if e['closed']:
+                            # 2.59: só o retângulo do polígono (antes: 2 matrizes do tamanho do mapa por polígono — dezenas de segundos num mapa 8192²)
+                            bx0,by0=max(0,int(q[:,0].min())),max(0,int(q[:,1].min()));bx1,by1=min(n,int(q[:,0].max())+1),min(n,int(q[:,1].max())+1)
+                            if bx1>bx0 and by1>by0:
+                                temp=np.zeros((by1-by0,bx1-bx0),np.uint8);off=(-bx0,-by0);cv2.fillPoly(temp,[q],255,offset=off)
+                                for hole in e.get('holes',[]):cv2.fillPoly(temp,[np.rint(self.worldpx(hole)).astype(np.int32)],0,offset=off)
+                                np.bitwise_or(mask[by0:by1,bx0:bx1],temp,out=mask[by0:by1,bx0:bx1])
+                        else:cv2.polylines(lines,[q],False,255,1,cv2.LINE_AA)
+                if role in ['cut','fill']:
+                    earth_color,alpha=earthwork_style(mask,lines,role,self.px,look=getattr(self.s,'earthwork_look','hatch'),base_color=self.s.role_colors.get(role))
+                    if not self.exclusion.is_empty:
+                        # Final raster clip also removes widened offset strokes in cleaned areas.
+                        geoms=list(self.exclusion.geoms) if hasattr(self.exclusion,'geoms') else [self.exclusion]
+                        for area in geoms:
+                            if area.geom_type!='Polygon':continue
+                            clip=np.zeros_like(mask)
+                            cv2.fillPoly(clip,[np.rint(self.worldpx(np.array(area.exterior.coords))).astype(np.int32)],255)
+                            for hole in area.interiors:cv2.fillPoly(clip,[np.rint(self.worldpx(np.array(hole.coords))).astype(np.int32)],0)
+                            alpha[clip>0]=0
+                else:alpha=np.maximum(mask,lines)
+                rgb=np.array([int(self.color(role)[i:i+2],16) for i in [1,3,5]],np.uint8)
+                if role=='pavement':
+                    # The asphalt texture remains fixed in project coordinates.
+                    grain=np.random.default_rng(57).integers(-3,4,(n,n),dtype=np.int16)
+                    color=np.clip(rgb.astype(np.int16)[None,None,:]+grain[:,:,None],0,255).astype(np.uint8);del grain
+                elif role in ['cut','fill']:color=earth_color
+                else:color=rgb
+                if getattr(self.s,'style_profile','padrao')=='tecnico' and role in visual.TECH_HATCH:
+                    # 1.20: hachura fixa nas coordenadas do projeto (dourada na pista nova, cinza-azulada na existente).
+                    hm,hc=visual.surface_hatch((n,n),self.box[0],self.box[3],self.px,role)
+                    base_c=np.broadcast_to(np.asarray(color,np.float32),(n,n,3)) if np.ndim(color)==1 else color.astype(np.float32)
+                    color=(base_c*(1-hm[:,:,None]*.85)+hc*hm[:,:,None]*.85).astype(np.uint8);del hm
+                if rmask is not None:
+                    if getattr(self,'joint_field',None) is None:self.joint_field=JointField(self.axes)
+                    color=paint_rigid(color,rmask>0,role,self.box[0],self.box[3],self.px,self.joint_field,float(getattr(self.s,'joint_spacing_m',5)),getattr(self.s,'style_profile','padrao')=='tecnico')
+                from .pavement import chosen,paint_style
+                st=chosen(self.s,role) if role in ('pavement','existing_pavement','shoulder') else None
+                if st is not None:color=paint_style(color,mask>0,role,self.box[0],self.box[3],self.px,st,getattr(self,'joint_field',None) or JointField(self.axes),float(getattr(self.s,'joint_spacing_m',5)))  # 1.21: representação escolhida pelo usuário
+                if getattr(self.s,'texture_relief',True) and getattr(self.s,'texture_style','artistico')!='anterior' and getattr(self.s,'style_profile','padrao')!='tecnico' and (role not in ('cut','fill') or getattr(self.s,'earthwork_look','hatch') in ('natural','textura')):
+                    from . import relevo   # 2.48/2.49: relevo iluminado por material (flexível/rígido; novo/existente)
+                    if role in relevo.MATERIAIS or role in relevo.RIGIDOS:color=relevo.acabar_misto(color,mask>0,rmask,role,self.box[0],self.box[3],self.px,quality=self.s.realism_profile)
+                if not phase:np.maximum(self.projected_mask,alpha,out=self.projected_mask)
+                color=phase_color(color,phase,self.s,role)
+                select=alpha>0;old=self.overlay[select,:3].astype(np.float32);a=alpha[select,None]/255
+                c=color[select] if getattr(color,'ndim',1)==3 else color
+                self.overlay[select,:3]=(old*(1-a)+c*a).astype(np.uint8);self.overlay[:,:,3]=np.maximum(self.overlay[:,:,3],alpha)
+                # Use straight RGB colors for translucent earthwork over satellite.
+                if role in ['cut','fill']:self.overlay[select,:3]=c
+                stationmask=np.maximum(stationmask,alpha)
+                if role in visual.SURF:self.surface[mask>0]=visual.SURF[role]
+                elif role in visual.EARTH_SURF and getattr(self.s,'earthwork_look','hatch') in ('natural','textura'):self.surface[mask>0]=visual.EARTH_SURF[role]
+                elif role in ['median','barrier']:self.surface[mask>0]=0
+                if rmask is not None:self.surface[(mask>0)&(rmask>0)]=visual.SURF['oae']   # textura de concreto
+                for kind,km_ in kmasks.items():                                              # 1.42.40: OAE nova / existente / alargada
+                    sel_=(mask>0)&(km_>0);self.surface[sel_]=visual.OAE_KIND_SURF[kind];self.overlay[sel_,:3]=visual.OAE_KIND_RGB[kind]
+                    if getattr(self.s,'texture_relief',True) and getattr(self.s,'texture_style','artistico')!='anterior' and getattr(self.s,'style_profile','padrao')!='tecnico' and sel_.any():
+                        from . import relevo;self.overlay[:,:,:3]=np.where(sel_[...,None],relevo.acabar_oae(self.overlay[:,:,:3],sel_,kind,self.box[0],self.box[3],self.px),self.overlay[:,:,:3])   # 2.50
+                if role in ['pavement','existing_pavement','shoulder','oae']:roadmask=np.maximum(roadmask,mask)
             for e in self.items:
-                if e['role']!=role:continue
-                if role=='oae' and e.get('oae_kind') in visual.OAE_KIND_SURF and e['closed']:
-                    km_=kmasks.setdefault(e['oae_kind'],np.zeros_like(mask));cv2.fillPoly(km_,[np.rint(self.worldpx(e['points'])).astype(np.int32)],255)
-                    for hole in e.get('holes',[]):cv2.fillPoly(km_,[np.rint(self.worldpx(hole)).astype(np.int32)],0)
-                if role in ('pavement','existing_pavement','shoulder','oae') and e.get('material')=='rigido' and e['closed']:
-                    # 1.21: pavimento rígido (placas de concreto).
-                    if rmask is None:rmask=np.zeros_like(mask)
-                    cv2.fillPoly(rmask,[np.rint(self.worldpx(e['points'])).astype(np.int32)],255)
-                    for hole in e.get('holes',[]):cv2.fillPoly(rmask,[np.rint(self.worldpx(hole)).astype(np.int32)],0)
-                if role in ['cut','fill'] and not self.exclusion.is_empty:
-                    g=poly(e) if e['closed'] else LineString(e['points']);g=g.difference(self.exclusion)
-                    geoms=list(g.geoms) if hasattr(g,'geoms') else [g]
-                    paths=[np.array(v.exterior.coords if v.geom_type=='Polygon' else v.coords) for v in geoms if not v.is_empty and v.geom_type in ['Polygon','LineString']]
-                else:
+                if is_existing(e)!=phase:continue
+                if e.get('tex_code'):
+                    # 1.27: área com textura própria (código de superfície exclusivo).
+                    tm=np.zeros((n,n),np.uint8);cv2.fillPoly(tm,[np.rint(self.worldpx(e['points'])).astype(np.int32)],255)
+                    for hole in e.get('holes',[]):cv2.fillPoly(tm,[np.rint(self.worldpx(hole)).astype(np.int32)],0)
+                    self.surface[tm>0]=e['tex_code']
+            for code,base,_,pts in self.texture_areas():
+                # 1.29: região com textura própria (talude, canteiro, pavimento): só onde a superfície é do tipo escolhido.
+                tm=np.zeros((n,n),np.uint8);cv2.fillPoly(tm,[np.rint(self.worldpx(pts)).astype(np.int32)],255)
+                self.surface[(tm>0)&(self.surface==base)]=code
+            # Camadas DXF adicionais sem classe: desenhadas com o estilo da camada, na ordem escolhida.
+            groups={}
+            for e in self.items:
+                if is_existing(e)!=phase:continue
+                if e['role']=='overlay':groups.setdefault(e['overlay_order'],[]).append(e)
+            for order in sorted(groups):
+                st=groups[order][0]['style'];rgb=np.array([int(st['color'][i:i+2],16) for i in (1,3,5)],np.uint8)
+                mask=np.zeros((n,n),np.uint8);lw=max(1,round(st['width_m']/self.px))
+                for e in groups[order]:
+                    q=np.rint(self.worldpx(e['points'])).astype(np.int32)
+                    if e['closed'] and st['fill']:cv2.fillPoly(mask,[q],115)
+                for e in groups[order]:
                     from .dxf_trim import runs
-                    paths=[e['points']] if e['closed'] else runs(e)
-                for p in paths:
-                    q=np.rint(self.worldpx(p)).astype(np.int32)
-                    if e['closed']:
-                        # 2.59: só o retângulo do polígono (antes: 2 matrizes do tamanho do mapa por polígono — dezenas de segundos num mapa 8192²)
-                        bx0,by0=max(0,int(q[:,0].min())),max(0,int(q[:,1].min()));bx1,by1=min(n,int(q[:,0].max())+1),min(n,int(q[:,1].max())+1)
-                        if bx1>bx0 and by1>by0:
-                            temp=np.zeros((by1-by0,bx1-bx0),np.uint8);off=(-bx0,-by0);cv2.fillPoly(temp,[q],255,offset=off)
-                            for hole in e.get('holes',[]):cv2.fillPoly(temp,[np.rint(self.worldpx(hole)).astype(np.int32)],0,offset=off)
-                            np.bitwise_or(mask[by0:by1,bx0:bx1],temp,out=mask[by0:by1,bx0:bx1])
-                    else:cv2.polylines(lines,[q],False,255,1,cv2.LINE_AA)
-            if role in ['cut','fill']:
-                earth_color,alpha=earthwork_style(mask,lines,role,self.px,look=getattr(self.s,'earthwork_look','hatch'),base_color=self.s.role_colors.get(role))
-                if not self.exclusion.is_empty:
-                    # Final raster clip also removes widened offset strokes in cleaned areas.
-                    geoms=list(self.exclusion.geoms) if hasattr(self.exclusion,'geoms') else [self.exclusion]
-                    for area in geoms:
-                        if area.geom_type!='Polygon':continue
-                        clip=np.zeros_like(mask)
-                        cv2.fillPoly(clip,[np.rint(self.worldpx(np.array(area.exterior.coords))).astype(np.int32)],255)
-                        for hole in area.interiors:cv2.fillPoly(clip,[np.rint(self.worldpx(np.array(hole.coords))).astype(np.int32)],0)
-                        alpha[clip>0]=0
-            else:alpha=np.maximum(mask,lines)
-            rgb=np.array([int(self.color(role)[i:i+2],16) for i in [1,3,5]],np.uint8)
-            if role=='pavement':
-                # The asphalt texture remains fixed in project coordinates.
-                grain=np.random.default_rng(57).integers(-3,4,(n,n),dtype=np.int16)
-                color=np.clip(rgb.astype(np.int16)[None,None,:]+grain[:,:,None],0,255).astype(np.uint8);del grain
-            elif role in ['cut','fill']:color=earth_color
-            else:color=rgb
-            if getattr(self.s,'style_profile','padrao')=='tecnico' and role in visual.TECH_HATCH:
-                # 1.20: hachura fixa nas coordenadas do projeto (dourada na pista nova, cinza-azulada na existente).
-                hm,hc=visual.surface_hatch((n,n),self.box[0],self.box[3],self.px,role)
-                base_c=np.broadcast_to(np.asarray(color,np.float32),(n,n,3)) if np.ndim(color)==1 else color.astype(np.float32)
-                color=(base_c*(1-hm[:,:,None]*.85)+hc*hm[:,:,None]*.85).astype(np.uint8);del hm
-            if rmask is not None:
-                if getattr(self,'joint_field',None) is None:self.joint_field=JointField(self.axes)
-                color=paint_rigid(color,rmask>0,role,self.box[0],self.box[3],self.px,self.joint_field,float(getattr(self.s,'joint_spacing_m',5)),getattr(self.s,'style_profile','padrao')=='tecnico')
-            from .pavement import chosen,paint_style
-            st=chosen(self.s,role) if role in ('pavement','existing_pavement','shoulder') else None
-            if st is not None:color=paint_style(color,mask>0,role,self.box[0],self.box[3],self.px,st,getattr(self,'joint_field',None) or JointField(self.axes),float(getattr(self.s,'joint_spacing_m',5)))  # 1.21: representação escolhida pelo usuário
-            if getattr(self.s,'texture_relief',True) and getattr(self.s,'texture_style','artistico')!='anterior' and getattr(self.s,'style_profile','padrao')!='tecnico' and (role not in ('cut','fill') or getattr(self.s,'earthwork_look','hatch') in ('natural','textura')):
-                from . import relevo   # 2.48/2.49: relevo iluminado por material (flexível/rígido; novo/existente)
-                if role in relevo.MATERIAIS or role in relevo.RIGIDOS:color=relevo.acabar_misto(color,mask>0,rmask,role,self.box[0],self.box[3],self.px,quality=self.s.realism_profile)
-            select=alpha>0;old=self.overlay[select,:3].astype(np.float32);a=alpha[select,None]/255
-            c=color[select] if getattr(color,'ndim',1)==3 else color
-            self.overlay[select,:3]=(old*(1-a)+c*a).astype(np.uint8);self.overlay[:,:,3]=np.maximum(self.overlay[:,:,3],alpha)
-            # Use straight RGB colors for translucent earthwork over satellite.
-            if role in ['cut','fill']:self.overlay[select,:3]=c
-            stationmask=np.maximum(stationmask,alpha)
-            if role in visual.SURF:self.surface[mask>0]=visual.SURF[role]
-            elif role in visual.EARTH_SURF and getattr(self.s,'earthwork_look','hatch') in ('natural','textura'):self.surface[mask>0]=visual.EARTH_SURF[role]
-            elif role in ['median','barrier']:self.surface[mask>0]=0
-            if rmask is not None:self.surface[(mask>0)&(rmask>0)]=visual.SURF['oae']   # textura de concreto
-            for kind,km_ in kmasks.items():                                              # 1.42.40: OAE nova / existente / alargada
-                sel_=(mask>0)&(km_>0);self.surface[sel_]=visual.OAE_KIND_SURF[kind];self.overlay[sel_,:3]=visual.OAE_KIND_RGB[kind]
-                if getattr(self.s,'texture_relief',True) and getattr(self.s,'texture_style','artistico')!='anterior' and getattr(self.s,'style_profile','padrao')!='tecnico' and sel_.any():
-                    from . import relevo;self.overlay[:,:,:3]=np.where(sel_[...,None],relevo.acabar_oae(self.overlay[:,:,:3],sel_,kind,self.box[0],self.box[3],self.px),self.overlay[:,:,:3])   # 2.50
-            if role in ['pavement','existing_pavement','shoulder','oae']:roadmask=np.maximum(roadmask,mask)
-        for e in self.items:
-            if e.get('tex_code'):
-                # 1.27: área com textura própria (código de superfície exclusivo).
-                tm=np.zeros((n,n),np.uint8);cv2.fillPoly(tm,[np.rint(self.worldpx(e['points'])).astype(np.int32)],255)
-                for hole in e.get('holes',[]):cv2.fillPoly(tm,[np.rint(self.worldpx(hole)).astype(np.int32)],0)
-                self.surface[tm>0]=e['tex_code']
-        for code,base,_,pts in self.texture_areas():
-            # 1.29: região com textura própria (talude, canteiro, pavimento): só onde a superfície é do tipo escolhido.
-            tm=np.zeros((n,n),np.uint8);cv2.fillPoly(tm,[np.rint(self.worldpx(pts)).astype(np.int32)],255)
-            self.surface[(tm>0)&(self.surface==base)]=code
-        # Camadas DXF adicionais sem classe: desenhadas com o estilo da camada, na ordem escolhida.
-        groups={}
-        for e in self.items:
-            if e['role']=='overlay':groups.setdefault(e['overlay_order'],[]).append(e)
-        for order in sorted(groups):
-            st=groups[order][0]['style'];rgb=np.array([int(st['color'][i:i+2],16) for i in (1,3,5)],np.uint8)
-            mask=np.zeros((n,n),np.uint8);lw=max(1,round(st['width_m']/self.px))
-            for e in groups[order]:
-                q=np.rint(self.worldpx(e['points'])).astype(np.int32)
-                if e['closed'] and st['fill']:cv2.fillPoly(mask,[q],115)
-            for e in groups[order]:
-                from .dxf_trim import runs
-                for p in runs(e):
-                    q=np.rint(self.worldpx(p)).astype(np.int32);cv2.polylines(mask,[q],False,255,lw,cv2.LINE_AA)
-            a=(mask.astype(np.float32)*st['opacity']).astype(np.uint8);del mask;select=a>0
-            if not select.any():continue
-            f=a[select,None]/255;old=self.overlay[select,:3].astype(np.float32)
-            self.overlay[select,:3]=(old*(1-f)+rgb*f).astype(np.uint8);self.overlay[:,:,3]=np.maximum(self.overlay[:,:,3],a);stationmask=np.maximum(stationmask,a)
+                    for p in runs(e):
+                        q=np.rint(self.worldpx(p)).astype(np.int32);cv2.polylines(mask,[q],False,255,lw,cv2.LINE_AA)
+                a=(mask.astype(np.float32)*st['opacity']).astype(np.uint8);del mask;select=a>0
+                if not phase:np.maximum(self.projected_mask,a,out=self.projected_mask)
+                if not select.any():continue
+                f=a[select,None]/255;old=self.overlay[select,:3].astype(np.float32)
+                self.overlay[select,:3]=(old*(1-f)+rgb*f).astype(np.uint8);self.overlay[:,:,3]=np.maximum(self.overlay[:,:,3],a);stationmask=np.maximum(stationmask,a)
+            if phase and self.overlay[:,:,3].any():
+                self.existing_overlay=self.overlay.copy();self.existing_surface=self.surface.copy()
         # Subtle shadow at the outside of the pavement footprint.
         shadow=cv2.GaussianBlur(roadmask,(0,0),1.2);outside=(self.overlay[:,:,3]==0)&(shadow>0)
         self.overlay[outside,:3]=0;self.overlay[outside,3]=(shadow[outside]*.18).astype(np.uint8)
@@ -417,25 +436,19 @@ class Scene:
         ys,xs=np.nonzero(stationmask)
         for start in range(0,len(xs),250000):
             xx=xs[start:start+250000];yy=ys[start:start+250000];pts=np.column_stack([self.box[0]+xx*self.px,self.box[3]-yy*self.px]);ids=self.tree.query(pts)[1];self.stations[yy,xx]=np.minimum(65534,(_sdiv(self.ch[ids], self.length))*65534).astype(np.uint16)
-        if any(e.get('frozen') for e in self.items):
-            # 1.26: camada congelada aparece pronta desde o início do vídeo (sem a construção progressiva).
-            fz=np.zeros((n,n),np.uint8)
-            for e in self.items:
-                if not e.get('frozen'):continue
-                q=np.rint(self.worldpx(e['points'])).astype(np.int32)
-                if e['closed']:cv2.fillPoly(fz,[q],255)
-                cv2.polylines(fz,[q],bool(e['closed']),255,3)
-            self.stations[(fz>0)&(self.stations!=65535)]=0
         if cache_dir is not None:
             try:
                 import uuid
                 temp=cache_dir.parent/('preparando_'+uuid.uuid4().hex);temp.mkdir(parents=True)
+                if self.existing_overlay is not None:
+                    np.save(temp/'existing_overlay.npy',self.existing_overlay,allow_pickle=False);np.save(temp/'existing_surface.npy',self.existing_surface,allow_pickle=False)
+                np.save(temp/'projected_mask.npy',self.projected_mask,allow_pickle=False)
                 np.save(temp/'overlay.npy',self.overlay,allow_pickle=False);np.save(temp/'stations.npy',self.stations,allow_pickle=False);np.save(temp/'surface.npy',self.surface,allow_pickle=False)
                 (temp/'ready.json').write_text(json.dumps({'shape':self.n,'version':'1.5'}),encoding='utf-8')
                 if not cache_dir.exists():temp.replace(cache_dir)
                 elif force_surface:
                     from . import store
-                    for name in ('overlay.npy','stations.npy','surface.npy','ready.json'):store.replace(temp/name,cache_dir/name)
+                    for name in ('overlay.npy','stations.npy','surface.npy','projected_mask.npy','ready.json')+tuple(n for n in ('existing_overlay.npy','existing_surface.npy') if (temp/n).exists()):store.replace(temp/name,cache_dir/name)
                     temp.rmdir()
                 else:shutil.rmtree(temp,ignore_errors=True)
                 rebuilt('surface',str(cache_dir))
@@ -540,11 +553,13 @@ class Scene:
                 for g in (list(pg.geoms) if hasattr(pg,'geoms') else [pg]):
                     if g.geom_type!='Polygon' or g.area<20:continue
                     ring=np.asarray(g.buffer(-.3).exterior.coords) if not g.buffer(-.3).is_empty and g.buffer(-.3).geom_type=='Polygon' else np.asarray(g.exterior.coords)
-                    self.oae_detail.append({'ring':np.asarray(g.exterior.coords),'level':0.,'joints':joints(g),'rails':side_rails(ring),'bbox':np.r_[np.asarray(g.bounds)],'chain_max':float(self.ch[self.tree.query(np.asarray(g.exterior.coords))[1]].max())})
+                    from .presentation import is_existing
+                    self.oae_detail.append({'existing':is_existing(e),'ring':np.asarray(g.exterior.coords),'level':0.,'joints':joints(g),'rails':side_rails(ring),'bbox':np.r_[np.asarray(g.bounds)],'chain_max':float(self.ch[self.tree.query(np.asarray(g.exterior.coords))[1]].max())})
         for o in self.oae:
             g=o['deck'];g=g if g.geom_type=='Polygon' else max(g.geoms,key=lambda x:x.area)
             js=joints(g) if not o.get('polygon') else [h for h in o.get('heads',[])]+joints(g)
-            self.oae_detail.append({'ring':np.asarray(g.exterior.coords),'level':float(o['level_m']),'joints':js,'rails':[],'bbox':np.r_[np.asarray(g.bounds)],'chain_max':o['chain'][1],'mark':True})
+            from .presentation import is_existing
+            self.oae_detail.append({'existing':is_existing(o),'ring':np.asarray(g.exterior.coords),'level':float(o['level_m']),'joints':js,'rails':[],'bbox':np.r_[np.asarray(g.bounds)],'chain_max':o['chain'][1],'mark':True})
         # Bordas da superfície de rolamento (união das áreas: sem costuras entre hachuras vizinhas).
         surf=unary_union([poly(e) for e in self.items if e['closed'] and e['role'] in ('pavement','existing_pavement','shoulder','oae')])
         for g in (list(surf.geoms) if hasattr(surf,'geoms') else [surf]):
@@ -626,7 +641,7 @@ class Scene:
         kp=ambiente.pose_pontos(self,t)   # 1.36: câmera por pontos-chave
         if kp is not None:self._key_title=kp[2];return kp[0],kp[1],1,None,'chave'
         if self.s.duration_s<45 and self.s.short_video_mode=='auto':
-            f=np.clip(t/max(self.s.duration_s,1),0,1);smooth=f*f*(3-2*f)
+            f=np.clip(t/max(self.s.duration_s-1/self.s.fps,1),0,1);smooth=f*f*(3-2*f)
             candidates=sorted(self.pois,key=lambda p:p['chain'])
             count=min(len(candidates),max(1,int(self.s.duration_s/3)))
             poi=candidates[min(count-1,int(f*count))] if count else None
@@ -702,20 +717,14 @@ class Scene:
                 if wd<.5:dsurf=None
         if im is None:im=base_im()
         from .image_context import draw as draw_context
-        draw_context(self,im,cam,width)
         q=getattr(self.s,'video_quality','padrao')
         if q!='padrao' and getattr(self,'_matte',None) is None and self.s.imagery!='neutral':im=sharpen_imagery(im,q)
         if ov is None:ov=base_ov()
+        from .presentation import existing_backdrop,clip_reveal
+        backdrop=existing_backdrop(self,im,cam,width,mat,det,wd) if progress<1 else im.copy()
+        draw_context(self,im,cam,width)
         y0=int(157*self.scale)+1;y1=self.H-int(154*self.scale);view=im[y0:y1];ov=ov[y0:y1];alpha=ov[:,:,3].astype(np.float32)/255
         opacity=getattr(self,'reveal_opacity',1.);alpha*=opacity
-        if progress<1:
-            st=cv2.warpAffine(self.stations,mat,(self.W,self.H),flags=cv2.INTER_NEAREST|cv2.WARP_INVERSE_MAP,borderValue=65535);st=st[y0:y1]
-            if dsurf is not None:
-                from .presentation import repair_reveal_stations
-                A=np.array([[self.px,0,self.box[0]],[0,-self.px,self.box[3]]])@np.vstack([mat.astype(np.float64),[0,0,1]])
-                A[:,2]+=A[:,1]*y0
-                st=repair_reveal_stations(alpha,st,A,self.tree,self.ch,self.length)
-            ahead=(st.astype(float)/65534-progress)*self.length;alpha*=np.clip(1-ahead/20,0,1);alpha[st==65535]=0
         pc=float(getattr(self.s,'project_contrast',0) or 0)
         if pc>0 and getattr(self,'_matte',None) is None:
             # 1.21: contraste projeto × imagem: a imagem aérea fica mais escura e menos saturada; o projeto, por cima, não.
@@ -747,20 +756,14 @@ class Scene:
             end=max(2,int(np.searchsorted(self.ds,progress*self.length)))
             coords=self.screen(self.axis[:end],cam,width).astype(np.int32)
             if len(coords)>1:cv2.polylines(im,[coords],False,(120,218,230),max(2,round(4*self.scale)),cv2.LINE_AA)
-        lead=float(getattr(self.s,'dxf_lead_m',30.))
-        if progress<1 and lead>0:
-            from .presentation import DXFAdvance
-            if not hasattr(self,'_dxf_advance'):self._dxf_advance=DXFAdvance(self.items,self.tree,self.ch)
-            segments=self._dxf_advance.window(progress*self.length,lead)
-            if len(segments):
-                near=np.linalg.norm(segments.mean(1)-cam,axis=1)<width*.8
-                coords=self.screen(segments[near].reshape(-1,2),cam,width).reshape(-1,2,2).astype(np.int32)
-                if len(coords):
-                    cv2.polylines(im,coords,False,(35,43,46),3,cv2.LINE_AA)
-                    cv2.polylines(im,coords,False,(215,229,230),1,cv2.LINE_AA)
+        self._projected_screen=cv2.warpAffine(self.projected_mask,mat,(self.W,self.H),flags=cv2.INTER_NEAREST|cv2.WARP_INVERSE_MAP)
         before_vectors=im.copy() if opacity<1 else None
         if self.enhanced:self.draw_enhanced_structures(im,cam,width,progress)
-        else:self.draw_oae_marks(im,cam,width,progress)
+        else:
+            import copy
+            from .presentation import is_existing
+            clone=copy.copy(self);prior=im.copy();clone.oae=[o for o in self.oae if is_existing(o)];clone.draw_oae_marks(im,cam,width,progress)
+            np.copyto(im,prior,where=(self._projected_screen>0)[:,:,None]);clone.oae=[o for o in self.oae if not is_existing(o)];clone.draw_oae_marks(im,cam,width,progress)
         sp=getattr(self.s,'signage_paint',None);wear=sp is not None and (sp.wear>0 or sp.opacity<1) and width<3000
         pre=im.copy() if (wear or self._tinta_on()) else None
         # Draw vector lane paint to preserve detail at close range.
@@ -803,6 +806,19 @@ class Scene:
                 if not contains_xy(self.allowed,pts[:,0],pts[:,1]).all():continue
                 cv2.polylines(im,[self.screen(pts,cam,width).astype(np.int32)],False,(242,239,220),max(1,round(.16/m)),cv2.LINE_AA)
         if before_vectors is not None:im=cv2.addWeighted(im,opacity,before_vectors,1-opacity,0)
+        im=clip_reveal(self,im,backdrop,cam,width,progress)
+        lead=float(getattr(self.s,'dxf_lead_m',30.))
+        if progress<1 and lead>0:
+            from .presentation import DXFAdvance,is_existing
+            if not hasattr(self,'_dxf_advance') or getattr(self,'_dxf_advance_visibility',None)!=self.s.existing_visibility:
+                self._dxf_advance_visibility=self.s.existing_visibility;self._dxf_advance=DXFAdvance([e for e in self.items if self.s.existing_visibility!='initial' or not is_existing(e)],self.tree,self.ch)
+            segments=self._dxf_advance.window(progress*self.length,lead)
+            if len(segments):
+                near=np.linalg.norm(segments.mean(1)-cam,axis=1)<width*.8
+                coords=self.screen(segments[near].reshape(-1,2),cam,width).reshape(-1,2,2).astype(np.int32)
+                if len(coords):
+                    cv2.polylines(im,coords,False,(35,43,46),3,cv2.LINE_AA)
+                    cv2.polylines(im,coords,False,(215,229,230),1,cv2.LINE_AA)
         return im
     def tinta_real(self,im,pre,mat,m):
         """2.51: tinta de sinalização horizontal realista (desgaste em manchas, microbrilho, espessura)."""
@@ -838,9 +854,10 @@ class Scene:
                     cv2.polylines(layer,[scr(self.edges[k][0]).astype(np.int32)],False,(52,56,57),max(1,round(.12/m)),cv2.LINE_AA)
                 # Bordas só onde o pavimento já foi revelado pela construção progressiva.
                 cv2.copyTo(layer,cv2.dilate(self._revealed,np.ones((5,5),np.uint8)),im)
-        for o in self.oae_detail:
+        for o in sorted(self.oae_detail,key=lambda v:not v.get('existing',False)):
             b=o['bbox']
             if o['chain_max']>progress*self.length+20 or b[2]<lo[0] or b[0]>hi[0] or b[3]<lo[1] or b[1]>hi[1]:continue
+            prior=im.copy() if o.get('existing') else None
             visual.cast_shadow(im,o['ring'],o['level'],scr,dir=self.sombra_oae)
             if o.get('mark'):
                 q=scr(o['ring']).astype(np.int32);cv2.fillPoly(im,[q],(138,139,136),cv2.LINE_AA);cv2.polylines(im,[q],True,(92,96,94),max(1,round(.35/m)),cv2.LINE_AA)
@@ -852,13 +869,17 @@ class Scene:
                     c=visual.concrete().sample(s2w,sel.shape,m);roi=im[y0:y1,x0:x1];f=sel>0
                     roi[f]=np.clip(roi[f].astype(np.float32)*(1+.06*c[f])[:,None],0,255).astype(np.uint8)
             visual.oae_details(im,o['joints'],o['rails'],scr,m)
-        for o in self.oae:
+            if prior is not None:np.copyto(im,prior,where=(getattr(self,'_projected_screen',np.zeros(im.shape[:2],np.uint8))>0)[:,:,None])
+        from .presentation import is_existing
+        for o in sorted(self.oae,key=lambda v:not is_existing(v)):
+            prior=im.copy() if is_existing(o) else None
             if o['chain'][1]>progress*self.length+20:continue
             if o.get('polygon'):rails=[np.asarray(r) for r in o.get('rails',[])]
             else:
                 line=o['line'];t=np.gradient(line,axis=0);t/=np.maximum(np.linalg.norm(t,axis=1)[:,None],1e-9);n=np.column_stack([-t[:,1],t[:,0]])
                 rails=[line+n*side*(o['width_m']/2-.3) for side in (-1,1)]
             visual.oae_details(im,[],rails,scr,m)
+            if prior is not None:np.copyto(im,prior,where=(getattr(self,'_projected_screen',np.zeros(im.shape[:2],np.uint8))>0)[:,:,None])
     def draw_oae_marks(self,im,cam,width,progress):
         # OAE marcada por dois pontos: tabuleiro próprio sobre o eixo, guarda-corpos e sombra pelo nível.
         if not self.oae:return
@@ -1048,7 +1069,7 @@ class Scene:
         if xe>x0:cv2.rectangle(im,(x0,y),(xe,y+h),(214,184,104),-1)
         txt=f'Revelação do projeto {int(round(100*float(np.clip(progress,0,1))))}%';fs=max(.42,.85*sc)
         (tw,th),_=cv2.getTextSize(txt,cv2.FONT_HERSHEY_SIMPLEX,fs,1);cv2.putText(im,txt,(x1-tw,y-int(8*sc)),cv2.FONT_HERSHEY_SIMPLEX,fs,(200,215,222),1,cv2.LINE_AA)
-    BIG=('map','overlay','stations','surface','water_mask')
+    BIG=('map','overlay','stations','surface','water_mask','existing_overlay','existing_surface','projected_mask')
     def snapshot(self,folder):
         """Grava a cena pronta para processos auxiliares (matrizes grandes em .npy mapeadas na memória)."""
         import pickle
@@ -1057,7 +1078,7 @@ class Scene:
             v=state.pop(k,None)
             if v is not None:np.save(folder/(k+'.npy'),np.ascontiguousarray(v),allow_pickle=False);state['_npy_'+k]=True
         for k in ('static','headers'):state[k]={}
-        for k in [k for k in state if k.startswith('_shade') or k in ('_footer','_revealed')]:state.pop(k,None)
+        for k in [k for k in state if k.startswith('_shade') or k in ('_footer','_revealed','_reveal_view_key','_reveal_view_chains','_projected_screen')]:state.pop(k,None)
         with open(folder/'scene.pkl','wb') as f:pickle.dump(state,f,protocol=5)
         from .snapshot_auth import sign
         return sign(folder,['scene.pkl']+[k+'.npy' for k in self.BIG if state.get('_npy_'+k)])
@@ -1097,14 +1118,13 @@ class Scene:
         return np.dstack([np.clip(color,0,255),alpha*255]).round().astype(np.uint8)
     def frame(self,t,overview=False,view=None):
         self.reveal_opacity=1.
-        if self.s.duration_s<45 and self.s.short_video_mode=='auto' and self.s.camera_mode!='trafego' and not self.s.traffic_route_only and not self.s.traffic_classic and not overview and view is None:
-            f=float(np.clip(t/max(1,min(8,self.s.duration_s*.55)),0,1));self.reveal_opacity=f*f*(3-2*f)
         self._t=t;self._night=visual.night_factor(self.s,t);self._night_items=[]
         if view is not None:cam=np.asarray(view[0],float);width=float(view[1]);progress=1;poi=None;scene='preview'
         elif overview:cam=self.center;width=self.overview;progress=1;poi=None;scene='preview'
         else:cam,width,progress,poi,scene=self.pose(t)
-        if self.s.traffic_route_only or self.s.traffic_classic:progress=1.;self.reveal_opacity=1.
-        key=scene if scene.startswith('detalhe') and getattr(self,'_matte',None) is None else None
+        if not overview and view is None and (scene in ('curto','chave') or self.s.camera_mode=='trafego'):
+            progress=self.advance_map(float(np.clip(t/max(self.s.duration_s-1/self.s.fps,1),0,1)))
+        key=scene if progress>=1 and scene.startswith('detalhe') and getattr(self,'_matte',None) is None else None
         if key and key in self.static:im=self.static[key].copy()
         else:
             im=self.draw_base(cam,width,progress)
@@ -1113,6 +1133,7 @@ class Scene:
         ad=ambiente.antes_depois(self,t) if getattr(self,'_matte',None) is None else None   # 1.36: antes/depois
         if ad is not None:
             antes=self.draw_base(cam,width,-1.);x=int(round(ad*self.W));im[:,x:]=antes[:,x:]
+        dynamic_background=im.copy() if progress<1 else None
         if getattr(self.s,'lane_blocks',None) and width<3000:self.draw_blocks(im,t,cam,width)
         from . import transport_render
         from .engineering_assets import draw_map as draw_engineering_assets
@@ -1136,15 +1157,22 @@ class Scene:
         if getattr(self,'_matte',None) is None:   # 1.37: vegetação e pedestres
             hv,fv=int(157*self.scale),int(154*self.scale)
             if getattr(self.s,'vegetation_points',None) or getattr(self.s,'vegetation_areas',None):vida.draw_vegetation(self,im,cam,width,progress,hv,fv)
-        if self._night>0 and getattr(self,'_matte',None) is None:self.apply_night(im,cam,width,progress)
+        if self._night>0 and getattr(self,'_matte',None) is None:
+            self.apply_night(im,cam,width,progress)
+            if dynamic_background is not None:
+                y0n=int(157*self.scale)+1;y1n=self.H-int(154*self.scale);ambient=dynamic_background[y0n:y1n].astype(np.float32);visual.darken(ambient,self._night*self.s.night_darkness);dynamic_background[y0n:y1n]=ambient.astype(np.uint8)
         from .traffic_indicators import draw as draw_indicators
         draw_indicators(self,im,t,cam,width)
         transport_render.draw_dynamic(self,im,t,cam,width)
         if getattr(self,'_matte',None) is None and getattr(self.s,'pedestrians',False):vida.draw_pedestrians(self,im,t,cam,width,progress,hv,fv)
+        if dynamic_background is not None:
+            from .presentation import clip_reveal
+            im=clip_reveal(self,im,dynamic_background,cam,width,progress)
         if (getattr(self.s,'weather','limpo')!='limpo' or getattr(self.s,'photo_atmosphere',False)) and getattr(self,'_matte',None) is None:   # 1.36: clima
             v=getattr(self,'_via',None) if not (key and key in self.static) else getattr(self,'_via_static',None);via=None
             if v is not None:via=np.zeros((self.H,self.W),bool);y0v,sv,av=v;via[y0v:y0v+sv.shape[0]]=(sv>0)&(sv!=6)&(sv!=7)&av
             ambiente.clima(self,im,t,int(157*self.scale),int(154*self.scale),via)
+        dynamic_background=im.copy() if progress<1 else None
         if getattr(self.network,'signs',None) and getattr(self,'_matte',None) is None:
             from .signage import draw_signs
             draw_signs(im,self,cam,width,progress,int(157*self.scale),self.H-int(154*self.scale))
@@ -1217,6 +1245,9 @@ class Scene:
                 digits=''.join(re.findall(r'\d+',p.get('id','')))
                 label={'passarela':'P'+digits,'fauna':'PF'+digits,'oae':'OAE','intersecao':'D','via_marginal':'M'+digits,'correcao':'CH','onibus':'BUS'}.get(p['kind'],'I')
                 fs=max(.25,.48*self.scale);sz=cv2.getTextSize(label,cv2.FONT_HERSHEY_SIMPLEX,fs,1)[0];cv2.putText(im,label,(x-sz[0]//2,y+sz[1]//2),cv2.FONT_HERSHEY_SIMPLEX,fs,(184,237,243),1,cv2.LINE_AA)
+        if dynamic_background is not None:
+            from .presentation import clip_reveal
+            im=clip_reveal(self,im,dynamic_background,cam,width,progress)
         sc=self.scale;header=int(157*sc);footer=int(154*sc)
         shade=max(1,round(60*sc))
         if not hasattr(self,'_shade_lut'):

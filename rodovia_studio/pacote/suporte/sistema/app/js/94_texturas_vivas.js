@@ -57,19 +57,20 @@
   const A=(typeof window!=='undefined'&&window.RodoviaAparencia)?window.RodoviaAparencia.leitura():{};
   if(A.style_profile==='tecnico'||A.texture_style==='anterior')return;   // perfil técnico / texturas anteriores: sem textura procedural
   const mpx=geo.R0/geo.k;if(!mpx)return;
+  const projected=role==='pavement'&&v.existing===false;
   const st=(A.ps||{})[role];
   if(st&&st.pattern&&st.pattern!=='auto'){
-   if(TILE_M/mpx*view.s<14){c.save();c.globalAlpha=Math.min(1,(typeof vecAlpha==='number'?vecAlpha:1)*.8);c.fillStyle=st.fill||'#2a3033';c.fill(v.fill,'evenodd');c.restore();return}
+   if(TILE_M/mpx*view.s<14){c.save();c.globalAlpha=Math.min(1,projected?1:(typeof vecAlpha==='number'?vecAlpha:1)*.8);c.fillStyle=st.fill||'#2a3033';c.fill(v.fill,'evenodd');c.restore();return}
    const e=ladrilhoEstilo(st,mpx);if(!e||!e.pat)return;const K=32,sc=1/mpx/K;
    if(e.pat.setTransform&&typeof DOMMatrix!=='undefined'){const m=new DOMMatrix();e.pat.setTransform((st.pattern==='diagonal'||st.pattern==='cruzada')?m.rotate(-(Number(st.angle_deg)||0)).scale(sc,sc):m.scale(sc,sc))}
    c.save();c.globalAlpha=Math.min(1,(typeof vecAlpha==='number'?vecAlpha:1));c.fillStyle=e.pat;c.fill(v.fill,'evenodd');c.restore();return}
   const pxTile=TILE_M/mpx*view.s;
   const mat=MATERIAL_DE[role]?A[MATERIAL_DE[role]]:null,rigido=mat==='rigido';
   const tp=A.tp||{};
-  if(pxTile<14){c.save();c.globalAlpha=Math.min(1,(typeof vecAlpha==='number'?vecAlpha:1)*.8);c.fillStyle=corMedia(SUP[role],tp[SUP[role]],rigido);c.fill(v.fill,'evenodd');c.restore();return}
+  if(pxTile<14){c.save();c.globalAlpha=Math.min(1,projected?1:(typeof vecAlpha==='number'?vecAlpha:1)*.8);c.fillStyle=corMedia(SUP[role],tp[SUP[role]],rigido);c.fill(v.fill,'evenodd');c.restore();return}
 const pt=rigido?ladrilho(SUP[role],'rigido',A.joint_spacing_m||5):padrao(SUP[role],tp[SUP[role]]);if(!pt)return;
   const k=rigido?Math.max(.5,Number(A.joint_spacing_m)||5)/mpx/LADO:TILE_M/mpx/LADO;if(pt.setTransform&&typeof DOMMatrix!=='undefined')pt.setTransform(new DOMMatrix().scale(k,k));
-  c.save();c.globalAlpha=Math.min(1,(typeof vecAlpha==='number'?vecAlpha:1)*forca);c.fillStyle=pt;c.fill(v.fill,'evenodd');c.restore()}
+  c.save();c.globalAlpha=Math.min(1,projected?1:(typeof vecAlpha==='number'?vecAlpha:1)*forca);c.fillStyle=pt;c.fill(v.fill,'evenodd');c.restore()}
  function pintar(){return}
  function pintar_antigo(){
   if(!ligado||typeof vecPaths==='undefined'||!vecPaths||typeof ctx==='undefined'||!ctx)return;

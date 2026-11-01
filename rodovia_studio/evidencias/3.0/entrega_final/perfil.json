@@ -1,0 +1,31 @@
+{
+  "profile": "curto_por_risco",
+  "risk": {
+    "baseline": "c458dce",
+    "changed_runtime": [
+      "app/ajuda.html",
+      "app/dependencies.py",
+      "app/detail.py",
+      "app/execlog.py",
+      "app/index.html",
+      "app/js/01_estado_configuracao.js",
+      "app/js/02_vista_imagem_web.js",
+      "app/js/20_camadas_ocultar_hachuras.js",
+      "app/js/22_menu_contexto_tela.js",
+      "app/js/34_gerenciador_camadas.js",
+      "app/js/54_vista_3d.js",
+      "app/js/75_operacao_consolidada.js",
+      "app/js/94_texturas_vivas.js",
+      "app/models.py",
+      "app/presentation.py",
+      "app/render.py",
+      "app/scene3d.py",
+      "app/webgl/reveal.mjs",
+      "app/webgl/viewer.mjs",
+      "app/webmap.py"
+    ],
+    "sensitive": [],
+    "requires_broad": false
+  },
+  "limit_seconds": 360
+}

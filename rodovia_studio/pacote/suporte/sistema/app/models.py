@@ -977,7 +977,7 @@ class Settings(BaseModel):
     curve_speed: bool = True   # 1.27: veículos reduzem nas curvas fechadas e ligações (projetos antigos: desligado)
     dxf_line_trims: list[DxfLineTrim] = Field(default_factory=list,max_length=2000)
     hidden_layers: list[str] = Field(default_factory=list,max_length=3000)   # 1.26: some no editor e no vídeo
-    frozen_layers: list[str] = Field(default_factory=list,max_length=3000)   # 1.26: travada no editor; no vídeo aparece pronta desde o início
+    frozen_layers: list[str] = Field(default_factory=list,max_length=3000)   # 1.26: travada no editor; no vídeo respeita a classificação existente/projetado e o avanço
     callout_layout: Literal['auto','anterior'] = 'auto'   # 1.26: caixas sem sobreposição; 'anterior' = como na 1.25
     render_engine: Literal['otimizado','anterior'] = 'otimizado'   # 1.24: 'anterior' reproduz os quadros da 1.23
     hatch_roles: dict[str,HatchRole] = Field(default_factory=dict)
@@ -996,6 +996,7 @@ class Settings(BaseModel):
     texture_style: Literal['artistico','realistic','anterior'] = 'artistico'   # 1.34: artístico realista (novos projetos)
     realism_profile: Literal['realista','ultra_realista'] = 'ultra_realista'
     presentation_guides: bool = False
+    existing_visibility: Literal['initial','progressive'] = 'initial'  # apresentação, não altera tráfego
     dxf_lead_m: float = Field(default=30.,ge=0,le=150)
     natural_materials_only: bool = False
     earthwork_look: Literal['hatch','natural','textura'] = 'textura'   # 1.42.40: a textura cobre a hachura (projetos já salvos mantêm o valor gravado)

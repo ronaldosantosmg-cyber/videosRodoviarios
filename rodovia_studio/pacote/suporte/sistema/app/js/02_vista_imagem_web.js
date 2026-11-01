@@ -57,10 +57,10 @@ async function loadGeo(){const id=pid,context=projectSession.context,keep=geoPid
  try{await localUi()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('vista_imagem_web',_e)}if(!current())return;if(!keep&&geoPid!==id)tileState={ok:0,fail:0};geoPid=id}
 
 function buildVectorPaths(){vecPaths={};if(!vec||!geo)return;const L=vec.layers||{};
- for(const [role,list] of Object.entries(L)){if(!list.length)continue;const path=new Path2D(),fill=new Path2D();let nf=0;
+ const part=(role,list,existing)=>{const path=new Path2D(),fill=new Path2D();let nf=0;
   for(const r of list){for(const stroke of (window.RodoviaTrimController?.records(r.hatch_outline?{...r,k:cfg.derived_contours?r.source_k:Array.from({length:r.p.length},(_,i)=>i)}:r)||[r])){const sk=stroke.k?new Set(stroke.k):null;stroke.p.forEach((q,i)=>{const [x,y]=worldToImg({x:q[0],y:q[1]});if(i&&!(sk&&sk.has(i-1)))path.lineTo(x,y);else path.moveTo(x,y)});if(stroke.c&&!(sk&&sk.has(stroke.p.length-1)))path.closePath()}if(r.c){r.p.forEach((q,i)=>{const [x,y]=worldToImg({x:q[0],y:q[1]});if(i)fill.lineTo(x,y);else{fill.moveTo(x,y);nf++}});fill.closePath()}}
-
-  const col=role==='overlay'&&list[0].color?list[0].color:VSTYLE[role]?.[0];vecPaths[role]={path,fill:nf?fill:null,n:list.length,color:col};if(vecOn[role]===undefined)vecOn[role]=true}
+  return {path,fill:nf?fill:null,n:list.length,color:role==='overlay'&&list[0]?.color?list[0].color:VSTYLE[role]?.[0],existing}};
+ for(const [role,list] of Object.entries(L)){if(!list.length)continue;const v=part(role,list,null);v.phases=[true,false].map(existing=>part(role,list.filter(r=>(r.existing??(role==='existing_pavement'))===existing),existing));vecPaths[role]=v;if(vecOn[role]===undefined)vecOn[role]=true}
  buildSignage()}
 function buildSignage(){if(!vecPaths||!geo)return;delete vecPaths.signage;delete vecPaths.signage_y;delete vecPaths.arrows;if(!editor)return;
  const w={signage:new Path2D(),signage_y:new Path2D()};let n=0;
@@ -122,7 +122,7 @@ function drawTiles(){const z=tileZoom(),n=2**z,size=2*MERC/n;
  }
  ctx.restore()}
 function drawVectors(){if(!vecPaths)return;ctx.save();ctx.setTransform(view.s,0,0,view.s,view.ox,view.oy);ctx.lineJoin='round';ctx.lineCap='round';ctx.globalAlpha=vecAlpha;const k=1/view.s;
- for(const role of [...Object.keys(VSTYLE)]){const v=vecPaths[role];if(!v||vecOn[role]===false)continue;const st=VSTYLE[role];
+ for(const phase of [true,false])for(const role of Object.keys(VSTYLE)){const base=vecPaths[role],v=base?.phases?.find(p=>p.existing===phase)||(phase===false?base:null);if(!v||!v.n||vecOn[role]===false)continue;const st=VSTYLE[role];
   if(v.fill&&st[3]){ctx.fillStyle=v.color+Math.round(st[3]*255).toString(16).padStart(2,'0');ctx.fill(v.fill,'evenodd')}
   try{window.RodoviaTexturasVivas?.pintarRole?.(ctx,role,v)}catch(e){window.RodoviaErros?.avisar('textura 2D',e)}
   ctx.setLineDash([]);ctx.strokeStyle='#05101a';ctx.globalAlpha=vecAlpha*.55;ctx.lineWidth=(st[1]+2)*k;ctx.stroke(v.path);ctx.globalAlpha=vecAlpha;

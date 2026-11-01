@@ -167,7 +167,7 @@ def ai_prompt(project_dir,pid):
              'Não invente dados que não estejam aqui: quando faltar algo (ex.: o próprio DXF), peça o arquivo.')
     L.append('')
     L.append('## Como o vídeo é gerado (pipeline)')
-    L.append('1. **Análise** (`analyze`): lê o DXF (ezdxf) e o KMZ; cada camada recebe um tipo (eixo, pista nova, existente, acostamento...) pelo mapeamento `layers` da configuração; hachuras são classificadas por assinatura `camada | padrão | cor` (`hatch_roles`, `hatch_auto`); camadas em `hidden_layers` são ignoradas e as de `frozen_layers` aparecem prontas desde o início.')
+    L.append('1. **Análise** (`analyze`): lê o DXF (ezdxf) e o KMZ; cada camada recebe um tipo (eixo, pista nova, existente, acostamento...) pelo mapeamento `layers` da configuração; hachuras são classificadas por assinatura `camada | padrão | cor` (`hatch_roles`, `hatch_auto`); camadas em `hidden_layers` são ignoradas e as de `frozen_layers` ficam travadas apenas para edição; a apresentação segue a classificação existente/projetado e a opção de avanço.')
     L.append('2. **Eixo e estaqueamento**: maior linha do papel “eixo” (ou `custom_axis`), sentido por `reverse_axis`, km por `km_start_m`/`km_end_m` e `chainage`.')
     L.append('3. **Cena**: mosaico da imagem aérea (`imagery`, `web_imagery`, `local_imagery`), pavimento rasterizado com texturas, sinalização, tráfego simulado (`traffic*`), destaques, pórticos (`gantries`) e chamadas.')
     L.append('4. **Câmera**: percurso ao longo do eixo com paradas nas obras (`camera_mode`, `duration_s`, `view_width_m`); construção progressiva do projeto.')

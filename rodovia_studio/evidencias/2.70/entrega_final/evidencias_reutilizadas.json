@@ -1,0 +1,25 @@
+{
+  "origin": "/workspace/rodovia-studio-263/rodovia_studio/evidencias/2.70/foco",
+  "product_sha256": "60c445eb959bf6e09071151dd1655f1280b2a3c27da8a905112b04fcbb2a12fd",
+  "files": {
+    "270_meio.png": "a0556a5f768a7d6a32b694ffe3d6c1ddb6448dddf59e74c3e086a49083f870e6",
+    "266_ui_perfis.png": "31723905b2d3902f5843fb9fa27ec85dbbf3e89b7554cf4fe15c7e4f871e9eba",
+    "270_existente_progressivo.png": "60e421a859e8f1f389b2614f2d17ac7db24d2a5ed3b09f645fb0d208ea08c660",
+    "270_video_final.png": "dedd4e76b30a85c88ae429324c2a75917f3ff831a44ed141ca560b1cd3d20099",
+    "selecao.json": "b1628d1f47b2ed12bc8ad42358a93d87ed245243fa9faf24b41e6ba32db0a0a7",
+    "1425_05_video_3d_conferido.png": "77c38ab9f1203577e087a18b1becfc13f3f06e6ca558cbc8eac0e0e977eb0fb4",
+    "270_video.json": "9ddc03105eb3c443420a23c95e0457e4020f5d632df630366e0c0bff8227faa5",
+    "266_3d.png": "fff63a60025a2c05fc243e1b3ae65320089d454619d0267bab0daafe65a9dccb",
+    "270_3d_final.png": "f35de35196bbcf550bbb3c612cb91389c8528de18074e4d14a7188e0f5f2c940",
+    "1426_video_1.5.png": "c321aa3e0e47a842859aa01310bbfe2350dd9aaeaa42c333552703e97982461b",
+    "1426_video_metadados.json": "67f9bfee767623ec41c6be3a99025b48ff7a20a12be332a5e545b0ee74a373af",
+    "270_video_inicio.png": "4ed23fa319b968a469b227cb3c413dba1e06fe7e23f10bdee130797cb1bb50a5",
+    "270_inicio_existente.png": "f0f021e1973cc5b4c631dd83ca2edcceeb27e6c7d8cc6046b49f4d2cf8c90b4f",
+    "270_final.png": "de027d404f69afb798fbf7bdfecfc8624a4c0b4894d34c1367ef4cc644b19326",
+    "270_3d_inicio.png": "ded7d269f05a93731e060225349852b83d72fe1d81e5930c1d63748247b78340",
+    "1426_video_2.9.png": "494be67efc3a6da2c62924db6323bf7730449c15f673e7727040ad007680d59e",
+    "1426_video_0.png": "78078ff6e88b9207d0b02b80dbf18ff098b4bbe960e3677356a63a2c93ce6a96",
+    "1426_03_ferrovia_semaforos_webgl.png": "a361df37a61f091fa50c6832c17ba25de0ddb177ecb5732be6bdd2b2b2a506c0"
+  },
+  "scope": "Artefatos do mesmo produto; testes repetidos substituem suas saídas. A aprovação depende do relatório final, não da presença de imagens."
+}

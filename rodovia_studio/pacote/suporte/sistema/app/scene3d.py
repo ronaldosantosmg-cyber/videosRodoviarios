@@ -78,8 +78,10 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
         geom=shapely.make_valid(Polygon(p,holes=e.get('holes',[])))
         if geom.is_empty:continue
         material='concrete' if e.get('material')=='rigido' or e['role']=='oae' else e.get('asset_material')
-        key_mesh=e['role']+'|'+str(e.get('layer',''))+'|'+str(material)
-        labels[key_mesh]={'role':e['role'],'layer':str(e.get('layer','')),'name':str(e.get('layer') or e['role'])}
+        from .presentation import is_existing
+        state='existing' if is_existing(e) else 'projected'
+        key_mesh=state+'|'+e['role']+'|'+str(e.get('layer',''))+'|'+str(material)
+        labels[key_mesh]={'presentation_state':state,'role':e['role'],'layer':str(e.get('layer','')),'name':str(e.get('layer') or e['role'])}
         from .presentation import ART_COLORS
         color=settings.role_colors.get(e['role']) or ART_COLORS.get(e['role'])
         if color:labels[key_mesh]['color']=color
@@ -89,6 +91,7 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
             q=np.asarray(triangle.exterior.coords)[:3,:2];total+=3
             if total>MAX_VERTICES:raise ValueError('Cena 3D muito detalhada. Divida o desenho em trechos menores.')
             lift={'pavement':.06,'existing_pavement':.05,'shoulder':.04,'oae':.085,'water':-.1}.get(e['role'],.02)
+            lift+=0. if state=='existing' else .12
             buffers[key_mesh].extend(local(q,lift).ravel().tolist())
     meshes=[dict(labels[k],id=f'surface-{i}',positions=p) for i,(k,p) in enumerate(buffers.items())]
     from .engineering_assets import asset_meshes
@@ -154,12 +157,23 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
     from .transport import Transport,timings,AMBER,CLEARANCE,at
     from .transport_render import geometry as transport_geometry
     transport=sim.transport if sim else Transport(settings,scene.network);tg=transport_geometry(transport)
+    from .presentation import is_existing
+    from shapely.geometry import LineString,Point
+    rail_sources=[(LineString(r['p']),is_existing(r['config'])) for r in transport.rails]
+    signal_sources=[(np.asarray(h['arm_end']),is_existing(transport.by_id[h['signal']])) for h in tg['heads']]
+    def transport_existing(points,kind):
+        center=np.mean(points,axis=0)
+        if kind in ('rail','sleeper') and rail_sources:
+            point=Point(center);return min(rail_sources,key=lambda row:row[0].distance(point))[1]
+        return min(signal_sources,key=lambda row:float(np.linalg.norm(row[0]-center)))[1] if signal_sources else False
     for role,polys,lift in [('rail_ballast',tg['beds'],.07),('crosswalk',tg['crosswalks'],.15)]:
-        positions=[]
+        positions={True:[],False:[]}
         for poly in polys:
-            positions.extend(local(poly[[0,1,2,0,2,3]],lift).ravel().tolist())
-        if positions:meshes.append({'id':role,'role':role,'layer':'Transportes','name':'Lastro ferroviário' if role=='rail_ballast' else 'Faixa de pedestres','positions':positions})
-    transport_lines=[{'p':local(row['points'],.22 if row['kind']=='rail' else .16).ravel().tolist(),'kind':row['kind']} for row in tg['lines']]
+            existing=transport_existing(poly,'rail' if role=='rail_ballast' else 'stop')
+            positions[existing].extend(local(poly[[0,1,2,0,2,3]],lift).ravel().tolist())
+        for existing,vertices in positions.items():
+            if vertices:meshes.append({'id':role+str(existing),'role':role,'layer':'Transportes','name':'Lastro ferroviário' if role=='rail_ballast' else 'Faixa de pedestres','presentation_state':'existing' if existing else 'projected','positions':vertices})
+    transport_lines=[{'p':local(row['points'],.22 if row['kind']=='rail' else .16).ravel().tolist(),'kind':row['kind'],'presentation_state':'existing' if transport_existing(row['points'],row['kind']) else 'projected'} for row in tg['lines']]
     train_tracks={}
     for t in np.r_[np.arange(0,duration,.2),duration]:
         for part in transport.train_parts(float(t)):
@@ -196,14 +210,14 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
                 columns.extend(vertices[[face[0],face[1],face[2],face[0],face[2],face[3]]].ravel().tolist())
         if columns:meshes.append({'id':'apoios_'+route['id'],'role':'passarela','name':'Apoios da passarela','positions':columns,'color':'#929da6'})
     warnings.extend(people.warnings)
-    heads=[{'p':local(np.array([h['point']]),.25)[0].tolist(),'signal':h['signal'],'axis':h['axis'],'kind':'signal','arm':local(np.array([h['arm_end']]),.25)[0].tolist()} for h in tg['heads']]
+    heads=[{'presentation_state':'existing' if is_existing(transport.by_id[h['signal']]) else 'projected','p':local(np.array([h['point']]),.25)[0].tolist(),'signal':h['signal'],'axis':h['axis'],'kind':'signal','arm':local(np.array([h['arm_end']]),.25)[0].tolist()} for h in tg['heads']]
     rail_stops=[];seen=set()
     for stops in transport.stops:
         for stop in stops:
             if stop['kind']!='rail':continue
             point,_=at(stop['rail']['p'],stop['rail']['d'],stop['rail_s']);key_stop=tuple(np.round(point,2))
             if key_stop in seen:continue
-            seen.add(key_stop);rail_stops.append(stop);heads.append({'p':local(np.array([point+np.array([4.,4.])]),.25)[0].tolist(),'kind':'rail','rail_index':len(rail_stops)-1})
+            seen.add(key_stop);rail_stops.append(stop);heads.append({'presentation_state':'existing' if is_existing(stop['rail']['config']) else 'projected','p':local(np.array([point+np.array([4.,4.])]),.25)[0].tolist(),'kind':'rail','rail_index':len(rail_stops)-1})
     clock=set(np.round(np.arange(0,duration,.1),6).tolist()+[duration])
     for signal in transport.signals:
         greens,walk,cycle=timings(signal);offset=transport.offsets[signal.id];clearance=signal.clearance_s;amber=getattr(signal,'amber_s',AMBER)
@@ -224,7 +238,17 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
     if cancel():raise InterruptedError('Construção 3D cancelada.')
     if sum(len(mesh['positions'])//3 for mesh in context_meshes+meshes)>MAX_VERTICES:raise ValueError('Cena e objetos da imagem excedem o orçamento 3D. Reduza a área.')
     if not settings.traffic_prevent_collisions or not settings.traffic_respect_signals:warnings.append('Ensaio: verificação de colisões ou respeito aos semáforos desativado; não interpretar como circulação validada.')
-    data={'simulation_mode':'protegido' if not settings.traffic_classic and settings.traffic_prevent_collisions and settings.traffic_respect_signals and not settings.heavy_shoulder_overtake else 'ensaio','format':'rodovia-scene3d-1','realism_profile':settings.realism_profile,'revision':rev0,'origin_crs':origin.tolist(),'crs':settings.crs,'coordinates_confirmed':settings.coordinates_confirmed,'span_m':span,'meshes':context_meshes+meshes,'terrain':terrain,'markings':markings,'marking_width_m':marking_width_m,'diagnostics':diagnostics,'vehicles':list(tracks.values())+list(train_tracks.values()),'pedestrians':list(person_tracks.values()),'pedestrian_report':people.report(),'rail_smoke':settings.rail_smoke,'transport':transport_data,'duration_s':duration,'source_duration_s':settings.duration_s,'simulation_report':sim.report() if sim else None,'warnings':warnings[-25:],'scope':'Visualização de projeto e tráfego. Diagnósticos técnicos não integram a captura de apresentação.'}
+    # Campo visual limitado a 128² amostras: a mesma referência longitudinal do 2D.
+    from .presentation import is_existing
+    n_reveal=128
+    rb=[float(bounds[0,0]-origin[0]),float(-(bounds[1,1]-origin[1])),float(bounds[1,0]-origin[0]),float(-(bounds[0,1]-origin[1]))]
+    if rb[2]<=rb[0]:rb[2]=rb[0]+1.
+    if rb[3]<=rb[1]:rb[3]=rb[1]+1.
+    X,Z=np.meshgrid(np.linspace(rb[0],rb[2],n_reveal),np.linspace(rb[1],rb[3],n_reveal));points=np.column_stack([X.ravel()+origin[0],origin[1]-Z.ravel()])
+    fractions=np.clip(scene.ch[scene.tree.query(points)[1]]/max(scene.length,1e-9),0,1)
+    reveal={'size':n_reveal,'bounds':rb,'stations':np.rint(fractions*65534).astype(np.uint16).tolist(),'existing':settings.existing_visibility}
+    for mesh in context_meshes+meshes:mesh.setdefault('presentation_state','existing' if is_existing(mesh) else 'projected')
+    data={'reveal':reveal,'simulation_mode':'protegido' if not settings.traffic_classic and settings.traffic_prevent_collisions and settings.traffic_respect_signals and not settings.heavy_shoulder_overtake else 'ensaio','format':'rodovia-scene3d-1','realism_profile':settings.realism_profile,'revision':rev0,'origin_crs':origin.tolist(),'crs':settings.crs,'coordinates_confirmed':settings.coordinates_confirmed,'span_m':span,'meshes':context_meshes+meshes,'terrain':terrain,'markings':markings,'marking_width_m':marking_width_m,'diagnostics':diagnostics,'vehicles':list(tracks.values())+list(train_tracks.values()),'pedestrians':list(person_tracks.values()),'pedestrian_report':people.report(),'rail_smoke':settings.rail_smoke,'transport':transport_data,'duration_s':duration,'source_duration_s':settings.duration_s,'simulation_report':sim.report() if sim else None,'warnings':warnings[-25:],'scope':'Visualização de projeto e tráfego. Diagnósticos técnicos não integram a captura de apresentação.'}
     if not np.isfinite(origin).all():raise ValueError('Origem 3D inválida.')
     if rev0!=revision(d):raise ValueError('O projeto mudou durante o processamento. Reconstrua o 3D.')
     encoded=json.dumps(data,ensure_ascii=False,allow_nan=False,separators=(',',':')).encode()

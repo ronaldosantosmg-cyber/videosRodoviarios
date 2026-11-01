@@ -9,7 +9,7 @@ import gate_profiles
 
 def test_core_or_unknown_change_promotes_broad_and_appearance_is_currently_scoped():
     report=gate_profiles.assess(gate.ROOT.parent,gate.SYSTEM)
-    assert report['baseline']=='3ff694c' and not report.get('requires_broad'),report
+    assert report['baseline']=='c458dce' and not report.get('requires_broad'),report
     # Um contrato existente não pode desaparecer ao retirar os campos de aparência.
     assert gate_profiles.model_contract('class Settings:\n x:int=1')!=gate_profiles.model_contract('class Settings:\n x:int=2',True)
 
