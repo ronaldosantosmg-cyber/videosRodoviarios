@@ -165,6 +165,15 @@ def _file_hash(path):
     return h.hexdigest()
 
 
+def _replace_retry(source,target,attempts=24,delay=.5):
+    """2.16: no Windows, antivírus/indexador/processo de cálculo podem segurar o arquivo por instantes; tenta de novo antes de falhar."""
+    for k in range(attempts):
+        try:return os.replace(source,target)
+        except PermissionError:
+            if k==attempts-1:raise PermissionError('O arquivo do projeto está em uso por outro programa ou pelo motor. Feche o que estiver usando o DXF e tente de novo; nada foi alterado.')
+            time.sleep(delay)
+
+
 def import_files(directory,replacements,metadata):
     """Valida antes desta chamada; publica entradas, identidade e metadados juntos.
 
@@ -190,7 +199,7 @@ def import_files(directory,replacements,metadata):
         try:
             for name,source in replacements.items():
                 if source is None:(d/name).unlink(missing_ok=True)
-                else:os.replace(source,d/name)
+                else:_replace_retry(source,d/name)
             # Não chama save_config durante um diário de importação aberto.
             _snapshot(d,config);_write(d/'config.json',config);_write(d/'arquivos.json',metadata)
             _write(marker,{'id':identity,'state':'committed','files':rows})

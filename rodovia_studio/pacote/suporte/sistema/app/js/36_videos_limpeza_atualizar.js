@@ -17,7 +17,7 @@ $('vdRows')?.addEventListener('click',guard(async e=>{const b=e.target.closest('
 async function openFolder(tipo){const r=await api('/api/abrir_pasta',json('POST',{tipo,pid:pid||null}));msg(r.aberta?`Pasta aberta: ${r.pasta}`:`Pasta: ${r.pasta}`)}
 $('vdFolder')?.addEventListener('click',guard(()=>openFolder(pid?'videos_projeto':'videos')));
 $('vdClose')?.addEventListener('click',()=>{$('vdPlayer').pause?.();$('videosDlg').close()});
-$('videosDlg')?.addEventListener('close',()=>{try{$('vdPlayer').pause()}catch{}});
+$('videosDlg')?.addEventListener('close',()=>{try{$('vdPlayer').pause()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('videos_limpeza_atualizar',_e)}});
 
 // ---------- Limpar memória (resíduos) ----------
 async function openCleanup(){const r=await api('/api/limpeza');const C=r.categorias||[];
@@ -25,7 +25,8 @@ async function openCleanup(){const r=await api('/api/limpeza');const C=r.categor
  const tot=C.reduce((a,c)=>a+c.bytes,0);$('clInfo').textContent=`Total recuperável: ${MB(tot)}. Marque o que deseja apagar.`;if(!$('cleanDlg').open)$('cleanDlg').showModal()}
 $('clGo')?.addEventListener('click',guard(async()=>{const cats=[...document.querySelectorAll('#clRows [data-cl]:checked')].map(x=>x.dataset.cl);if(!cats.length)return msg('Marque ao menos um item.',true);
  if(!await confirmBox('Apagar os resíduos marcados? Os caches são refeitos quando precisar (a próxima prévia ou vídeo demora mais).','Limpar','Cancelar'))return;
- const r=await api('/api/limpeza',json('POST',{categorias:cats}));await openCleanup();$('clInfo').textContent=`Liberados ${MB(r.bytes)} (${r.items} itens).`+(r.errors.length?` Não foi possível apagar ${r.errors.length} item(ns) em uso.`:'');msg(`Limpeza concluída: ${MB(r.bytes)} liberados.`)}));
+ let r;try{r=await api('/api/limpeza',json('POST',{categorias:cats}))}catch(e){if(!/tarefa em andamento/.test(String(e&&e.message||e)))throw e;if(!await confirmBox('Há tarefa em andamento ou na fila. Cancelar as tarefas pendentes e limpar?','Cancelar tarefas e limpar','Voltar'))return;r=await api('/api/limpeza',json('POST',{categorias:cats,cancelar_pendentes:true}))}
+ await openCleanup();$('clInfo').textContent=`Liberados ${MB(r.bytes)} (${r.items} itens).`+(r.errors.length?` Não foi possível apagar ${r.errors.length} item(ns) em uso.`:'');msg(`Limpeza concluída: ${MB(r.bytes)} liberados.`)}));
 $('clClose')?.addEventListener('click',()=>$('cleanDlg').close());
 
 // ---------- Atualizar pelo aplicativo ----------
@@ -48,7 +49,7 @@ comando(['LIMPAR','LIMPEZA'],()=>guard(openCleanup)(),'Limpar memória: apaga re
 comando(['ATUALIZAR'],()=>guard(openUpdate)(),'Procura e aplica a atualização mais nova');
 comando(['VERSAOANTERIOR','ROLLBACK'],()=>guard(openUpdate)(),'Abre Atualização para restabelecer a versão anterior');
 // Ao concluir um vídeo, a mensagem lembra que ele foi guardado e oferece a lista.
-estender('poll',anterior=>async function(jid){const r=await anterior(jid);try{const j=r;if(j.kind==='render'&&j.state==='done'&&/guardado em/.test(j.message||''))msg(j.message+' — Arquivo › Vídeos gerados para ver todos.')}catch{}return r},'vídeos: aviso do arquivo guardado');
+estender('poll',anterior=>async function(jid){const r=await anterior(jid);try{const j=await api('/api/jobs/'+jid);if(j.kind==='render'&&j.state==='done'&&/guardado em/.test(j.message||''))msg(j.message+' — Arquivo › Vídeos gerados para ver todos.')}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('videos_limpeza_atualizar',_e)}return r},'vídeos: aviso do arquivo guardado');
 
 // O iniciador aguarda esta promessa antes de encerrar a janela e o servidor.
 window.rodoviaPrepararAtualizacao=async function(){

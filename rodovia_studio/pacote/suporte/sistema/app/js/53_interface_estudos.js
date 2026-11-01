@@ -53,7 +53,7 @@ function menuDefinitions(){
  const choose=(...names)=>groups.filter(g=>names.includes(g.t));
  return [{t:'Arquivo',sub:(MENUBAR[0]?.[1]||[]).map(i=>i?leaf(i[0],i.at(-1),typeof i[1]==='string'?i[1]:null):{sep:true})},
  {t:'Editar',sub:[...find('Editar'),leaf('Desfazer',undo,'Ctrl+Z'),leaf('Refazer',redo,'Ctrl+Y'),...['MOVER','GIRAR','COPIAR','ESCALA','ESPELHAR','OFFSET','APAGAR'].map(k=>leaf(k.charAt(0)+k.slice(1).toLowerCase(),()=>runCommand(k))),{t:'Seleção e propriedades',sub:find('Propriedades').filter(g=>g.t==='Seleção')},...choose('Outras ferramentas').map(g=>({...g,sub:g.sub.filter(i=>!['Inserir nó de ligação','Selecionar nó','Editar nó','Mover nó de ligação','Apagar nó','Nó de entrada, saída ou fim','Inspecionar arrasto dos veículos','Apagar intervalo do fluxo','Juntar subsegmentos'].includes(i.t))}))]},
- {t:'Projeto',sub:[leaf('Proteção e recuperação de dados',()=>window.RodoviaProtection?.open()),leaf('Analisar layers e eixos / IA',()=>window.RodoviaIA?.open('layers')),...find('Projeto').filter(g=>g.t!=='Projeto'),...find('Início').filter(g=>['Arquivos'].includes(g.t)),...choose('Traçado e referências')]},
+ {t:'Projeto',sub:[leaf('Proteção e recuperação de dados',()=>window.RodoviaProtection?.open()),leaf('Analisar camadas e eixos / IA',()=>window.RodoviaIA?.open('layers')),...find('Projeto').filter(g=>g.t!=='Projeto'),...find('Início').filter(g=>['Arquivos'].includes(g.t)),...choose('Traçado e referências')]},
  {t:'Tráfego',sub:[leaf('Regras e operação dos fluxos',()=>window.RodoviaFlowPolicy?.open()),leaf('Criar ligação de ramal',()=>setTool('nodeadd')),leaf('Diagnosticar veículos',()=>window.RodoviaTrafficHelp?.open()),leaf('Sentidos e nós',()=>window.RodoviaCirculation?.directions()),leaf('Testar circulação',()=>window.RodoviaCirculation?.check()),...find('Fluxos'),leaf('Escolher eixo e configurar faixas',()=>RodoviaSections.chooseAxis()),leaf('Gerar e visualizar',()=>window.RodoviaUpdates?.update()),leaf('Central de correção dos fluxos',()=>RodoviaFlowRepair.open()),{t:'Nós e edição de trechos',sub:['nodeadd','nodeselect','nodeedit','nodemove','nodedelete','nodeend','swept','flowcut','flowjoin'].map(toolItem).filter(Boolean)},...choose('Tráfego e ligações','Ferrovia e semáforos')]},
  {t:'Cena',sub:[...find('Aparência'),...choose('Pavimento e superfícies','Sinalização e estruturas','Apresentação e ambiente'),leaf('Materiais e texturas',()=>window.RodoviaMaterialsHub?.open())]},
  {t:'Vídeo',sub:find('Vídeo')},{t:'Exibir',sub:find('Exibir')},{t:'Ajuda',sub:[leaf('IA de apoio — API online',()=>window.RodoviaSmallAI?.open()),leaf('Diagnóstico dos logs / IA',()=>window.RodoviaIA?.open('logs')),...find('Ajuda')]}];
@@ -205,7 +205,8 @@ function dockCommands(){
  const title=document.querySelector('.dwTitleBar');if(title)$('menuBar').before(title);
  let rail=$('rsCommandRail');if(!rail){rail=document.createElement('div');rail.id='rsCommandRail';rail.setAttribute('aria-label','Acesso rápido e opções da ferramenta');$('menuBar').after(rail)}
  technicalOptions(rail);commandRibbon(rail);
- for(const el of [$('toolOptions'),$('selBar')])if(el&&el.parentNode!==rail)rail.appendChild(el);
+ // 2.14: a barra da seleção (selBar) NÃO entra na faixa de comandos: ela flutua sobre o mapa e nunca altera a altura do layout.
+ for(const el of [$('toolOptions')])if(el&&el.parentNode!==rail)rail.appendChild(el);
  const tb=$('toolbar');if(tb){tb.hidden=true;$('toolLabels')?.remove()}
  let footer=$('rsStudyFooter');if(!footer){footer=document.createElement('div');footer.id='rsStudyFooter';footer.setAttribute('aria-label','Comando, coordenadas e diagnóstico de fluxos');$('bottomBar').before(footer)}
  if(!$('rsActiveTool')){const head=document.createElement('div');head.id='rsActiveTool';head.setAttribute('role','status');footer.appendChild(head)}
@@ -215,23 +216,25 @@ function dockCommands(){
 function foregroundFlows(){
  if(!ready()||!flowEditing()||vecOn.flows===false)return;
  ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.lineJoin='round';ctx.lineCap='round';
- const line=(points,status,forward=true,both=false,dashed=false)=>{
+ const line=(points,status,forward=true,both=false,dashed=false,semSeta=false)=>{
   const pts=(points||[]).map(p=>Array.isArray(p)?P(p):p).filter(p=>Number.isFinite(p.x)&&Number.isFinite(p.y));if(pts.length<2||polyLen(pts)<.1)return;
-  const reference=!!status?.reference,color=reference?'#8a95a2':flowStudyColor(status);poly(pts);ctx.setLineDash([]);ctx.strokeStyle='#081623';ctx.lineWidth=7;ctx.stroke();
-  ctx.setLineDash(dashed?[7,4]:[]);ctx.strokeStyle=color;ctx.lineWidth=reference?1.5:4;ctx.stroke();ctx.setLineDash([]);if(!reference)arrowsAlong(pts,forward,both,color,85);
+  const color=flowStudyColor(status);poly(pts);ctx.setLineDash([]);ctx.strokeStyle='#081623';ctx.lineWidth=7;ctx.stroke();
+  ctx.setLineDash(dashed?[7,4]:[]);ctx.strokeStyle=color;ctx.lineWidth=4;ctx.stroke();ctx.setLineDash([]);if(!semSeta)arrowsAlong(pts,forward,both,color,85);
  };
- for(const seg of editor?.segments||[])line(seg.points,seg.technical_reconstruction?.complete?{reference:true}:seg,seg.forward,seg.both,seg.disabled||seg.technical_reconstruction?.complete);
- for(const route of M.traffic_paths||[])line(route.points,route.enabled===false?{disabled:true}:(editor?.segments||[]).find(s=>s.source===route.name),true,false,route.enabled===false);
+ for(const seg of editor?.segments||[])line(seg.points,seg,seg.forward,seg.both,seg.disabled);
+ for(const route of M.traffic_paths||[]){const rp=(route.points||[]).map(p=>Array.isArray(p)?P(p):p);let sg=(editor?.segments||[]).find(s=>s.source===route.name),fw=true;
+  if(!sg&&rp.length>1)for(const s of editor?.segments||[]){const q=s.points.map(P);if(q.length<2)continue;const d=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);const a0=rp[0],a1=rp[rp.length-1];if(d(a0,q[0])<2&&d(a1,q[q.length-1])<2){sg=s;break}if(d(a0,q[q.length-1])<2&&d(a1,q[0])<2){sg=s;fw=false;break}}
+  const sf=sg?(fw?sg.forward:!sg.forward):true;line(route.points,route.enabled===false?{disabled:true}:sg,sf,sg?!!sg.both:false,route.enabled===false)}   // 2.36: a seta segue o sentido calculado do trecho, nunca um 'para frente' fixo
  for(const route of M.route_alignments||[]){
   const calculated=(editor?.segments||[]).filter(s=>s.route===route.id);const status=route.enabled===false?{disabled:true}:polyLen(route.points)<minFlowLength()?{technical_status:'adjustment'}:calculated.find(s=>s.technical_status==='problem')||calculated.find(s=>s.technical_status==='adjustment')||calculated[0];
-  line(route.points,calculated.some(s=>s.technical_reconstruction?.complete)?{reference:true}:status,true,false,true);
+  line(route.points,status,true,false,true,calculated.length>0);   // 2.36: com trechos calculados, só eles desenham seta (evita duas setas contrárias na mesma via)
  }
- for(const lane of routeLanes||[]){const route=M.route_alignments?.[lane.route];const calculated=(editor?.segments||[]).find(s=>s.route===route?.id);line(lane.points,calculated?.technical_reconstruction?.complete?{reference:true}:lane.enabled===false?{disabled:true}:calculated,true,false)}
+ for(const lane of routeLanes||[]){const route=M.route_alignments?.[lane.route];const calculated=(editor?.segments||[]).find(s=>s.route===route?.id);line(lane.points,lane.enabled===false?{disabled:true}:calculated,true,false,false,!!calculated)}
  for(const link of editor?.connections||[])line(link.p,{technical_status:'ok'},true,false,!!link.forced);
  for(const link of editor?.denied||[])line(link.p,{disabled:true},true,false,true);
  // Resultado técnico da recuperação: geometria original intacta, circulação segregada.
  for(const seg of editor?.segments||[])for(const report of seg.technical_recovery?.reports||[]){
-  for(const pts of report.retained_geometry||[])line(pts,{technical_status:'ok'},report.geometry_in_travel_direction?true:seg.forward,report.geometry_in_travel_direction?false:seg.both);
+  for(const pts of report.retained_geometry||[])line(pts,{technical_status:'ok'},seg.forward,seg.both);
   for(const pts of report.excluded_geometry||[])line(pts,{technical_status:'problem'},seg.forward,seg.both,true);
  }
  // Pontos de diagnóstico são apresentados pela camada DOM técnica, fora do raster de vídeo.
@@ -252,7 +255,6 @@ function sync(){
 }
 function init(){
  registerControlTool();document.body.classList.add('studio142');buildMenus();dockCommands();sync();
- const oldPlace=placeSelBar;placeSelBar=function(){oldPlace();const b=$('selBar');if(b){b.style.left='';b.style.top=''}};
  const oldTool=setTool;setTool=function(...args){if(flowTools.has(args[0]))vecOn.flows=true;const r=oldTool(...args);sync();return r};
  const oldDraw=draw;draw=function(...args){const r=oldDraw(...args);foregroundFlows();return r};
  const oldDock=aplicarDock;aplicarDock=function(...args){const r=oldDock(...args);sync();return r};

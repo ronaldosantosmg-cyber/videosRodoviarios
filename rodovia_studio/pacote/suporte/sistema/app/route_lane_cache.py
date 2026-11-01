@@ -18,7 +18,8 @@ class RouteLaneCache:
 
     def get(self,route,settings,compute):
         zones=[z.model_dump() for z in getattr(settings,'alternating_zones',[]) if z.enabled and z.route_id==route.id] if settings else []
-        raw=json.dumps([self.engine,route.model_dump(),zones],sort_keys=True,allow_nan=False,separators=(',',':')).encode()
+        from .routes import inherited_sense
+        raw=json.dumps([self.engine,route.model_dump(),zones,inherited_sense(route,settings)],sort_keys=True,allow_nan=False,separators=(',',':')).encode()
         key=hashlib.sha256(raw).hexdigest()
         identity=hashlib.sha256((route.id or route.name).encode()).hexdigest()
         target=self.folder/(identity+'.json.z') if self.folder else None

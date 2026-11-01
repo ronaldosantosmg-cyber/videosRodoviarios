@@ -11,7 +11,7 @@ from .migration import clean_name
 # Campos que pertencem a um trecho específico (geometria marcada, km, arquivos). Num modelo "só configurações"
 # eles voltam ao padrão; ao aplicar um modelo a um projeto existente, eles são mantidos do projeto.
 PROJECT_KEYS=['name','origin','destination','km_start_m','km_end_m','reference_length_m','coordinates_confirmed',
- 'preview_center','preview_width_m','works','route_directions','local_imagery','overlays','dxf_alignment','chainage','custom_axis']
+ 'preview_center','preview_width_m','works','route_directions','axis_types','local_imagery','overlays','dxf_alignment','chainage','custom_axis']
 MARK_KEYS=['pavement_areas','shoulder_marks','pois','exclusions','traffic_paths','direction_marks','flow_overrides','oae_marks',
  'no_connection_zones','cabin','highlights','clean_areas','cities','lane_blocks','crossing_zones','crosswalks','hatch_areas','signs',
  'lane_zones','accesses','lane_ranges','gantries','connection_rules','advance_zones','texture_areas','route_alignments']

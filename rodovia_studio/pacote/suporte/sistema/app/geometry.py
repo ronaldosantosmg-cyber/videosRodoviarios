@@ -1,3 +1,4 @@
+from .falhas import registrar as _falha
 import json, re, unicodedata, zipfile, xml.etree.ElementTree as ET
 from collections import Counter
 from pathlib import Path
@@ -9,8 +10,8 @@ from shapely.geometry import Polygon, LineString
 from shapely.ops import unary_union
 from shapely import make_valid
 
-ROLES=['axis','pavement','existing_pavement','shoulder','median','barrier','oae','cut','fill','domain','edge_line','water','earthwork','sign_h','sign_v']
-COLORS={'sign_h':'#ffffff','sign_v':'#ff5d5d','edge_line':'#f4f2e2','water':'#2a80b9','existing_pavement':'#a4a8a9','pavement':'#454c4e','shoulder':'#858983','median':'#7f9b6e','barrier':'#e0ddd2','oae':'#b9bcb7','cut':'#df6262','fill':'#53bb77','domain':'#ffd56b'}
+ROLES=['axis','pavement','existing_pavement','shoulder','median','terrain','barrier','oae','cut','fill','domain','edge_line','water','earthwork','sign_h','sign_v']
+COLORS={'sign_h':'#ffffff','sign_v':'#ff5d5d','edge_line':'#f4f2e2','water':'#2a80b9','existing_pavement':'#a4a8a9','pavement':'#3a3c3f','shoulder':'#858983','median':'#76905f','terrain':'#6f9a52','barrier':'#e0ddd2','oae':'#b9bcb7','cut':'#df6262','fill':'#53bb77','domain':'#ffd56b'}
 from .asset_catalog import ASSET_ROLES,CATALOG,DEFAULT,material_for
 ROLES.extend(ASSET_ROLES)
 COLORS.update({role:CATALOG[DEFAULT[role]]['color'] for role in ASSET_ROLES})
@@ -87,8 +88,17 @@ def convert(e,layer,role,units,entities,warnings,extra=None):
             for p in ps:
                 if len(p)>=3: shape=shape.symmetric_difference(make_valid(Polygon(p)))
             # 1.26: coleções aninhadas (MultiPolygon dentro de GeometryCollection) não perdem partes.
+            # 2.18: laço aberto da hachura é fechado por uma reta que NÃO existe no DXF; guarda-a como 'virtual'
+            # (preenche a área, mas não vira linha de contorno/bordo).
+            chords=[]
+            for p in ps:
+                if len(p)>=3 and float(np.linalg.norm(p[0]-p[-1]))>.3 and float(np.linalg.norm(p[0]-p[-1]))>=3:chords.append((p[-1],p[0]))
             for poly in _polygons(shape):
-                entities.append({'layer':layer,'role':role,'closed':True,'points':np.array(poly.exterior.coords),'holes':[np.array(h.coords) for h in poly.interiors],**extra})
+                extra_v={}
+                if chords:
+                    vs=[[a.tolist(),b.tolist()] for a,b in chords if poly.buffer(.5).intersects(LineString([a,b]))]
+                    if vs:extra_v={'virtual':vs}
+                entities.append({'layer':layer,'role':role,'closed':True,'hatch':True,'points':np.array(poly.exterior.coords),'holes':[np.array(h.coords) for h in poly.interiors],**extra,**extra_v})
         else:
             for pts in ps:
                 closed=bool(e.dxf.get('flags',0)&1) if e.dxftype() in ['LWPOLYLINE','POLYLINE'] else np.linalg.norm(pts[0]-pts[-1])<.05
@@ -253,7 +263,9 @@ def analyze(directory,settings,preview=None,hatch_preview=None):
                     hr=hroles[sig];r_=hr.role if hasattr(hr,'role') else hr.get('role')
                     if r_=='ignore':continue
                     mat=hr.material if hasattr(hr,'material') else hr.get('material')
-                    convert(e,layer,r_,settings.units_to_m,entities,warnings,{'material':mat} if mat and mat!='auto' else None);continue
+                    ok_=hr.oae_kind if hasattr(hr,'oae_kind') else hr.get('oae_kind')
+                    ex_={**({'material':mat} if mat and mat!='auto' else {}),**({'oae_kind':ok_} if r_=='oae' and ok_ and ok_!='auto' else {})}
+                    convert(e,layer,r_,settings.units_to_m,entities,warnings,ex_ or None);continue
                 if role is None and hauto and info['suggested_role']:
                     mat=info['suggested_material']
                     convert(e,layer,info['suggested_role'],settings.units_to_m,entities,warnings,{'material':mat} if mat else None);rec['auto_applied']=True;continue
@@ -394,7 +406,7 @@ def custom_axis_points(ca,step=1.):
         return cs(ss)
     return P
 
-HATCH_KW=[('shoulder',('ACOST','SHOULDER')),('median',('CANTEIRO','MEDIAN','ILHA','GRAMA')),
+HATCH_KW=[('terrain',('GRAMADO','AREA VERDE','AREAVERDE')),('shoulder',('ACOST','SHOULDER')),('median',('CANTEIRO','MEDIAN','ILHA','GRAMA')),
           ('cut',('CORTE','CUT')),('fill',('ATERRO','FILL')),('water',('AGUA','RIO','CORREGO','LAGO')),('oae',('OAE','PONTE','VIADUTO','TABULEIRO')),
           ('existing_pavement',('EXIST','ATUAL','ANTIG')),
           ('pavement',('PAV','PISTA','ASFALT','CBUQ','CAUQ','REVEST','RIGID','CONCRET','CCP','PCC'))]
@@ -448,7 +460,7 @@ def hatch_signature(e,layer,doc,units=1.):
             shape=Polygon()
             for r in rings:shape=shape.symmetric_difference(make_valid(Polygon(r)))
             ps=_polygons(shape);area=float(sum(p.area for p in ps));islands=sum(len(p.interiors) for p in ps)
-    except Exception:pass
+    except Exception as _e:_falha(__name__,_e)
     n=norm(layer+' '+pat);role=None;mat=None;conf=None;why=''
     g=guess(layer)
     if g in ('pavement','existing_pavement','shoulder','median','cut','fill','water','oae'):

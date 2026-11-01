@@ -4,6 +4,8 @@ O navegador trabalha em Web Mercator (como os ladrilhos). A conversão entre o C
 Web Mercator usa polinômios de 3º grau ajustados pelo pyproj na área do projeto (erro informado,
 tipicamente milimétrico), para que o editor siga gravando tudo no CRS do projeto.
 """
+from .seguro import sdiv as _sdiv
+from .falhas import registrar as _falha
 import json,urllib.request,threading
 from pathlib import Path
 import numpy as np
@@ -136,9 +138,98 @@ def tile(cache_root,z,y,x,fetch=None,timeout=12,source=None):
 
 STYLE_ORDER=['water','cut','fill','existing_pavement','pavement','shoulder','median','barrier','oae','edge_line','sign_h','domain','axis','overlay']
 
+PAVE_ROLES=('pavement','existing_pavement','shoulder','oae')
+
+def _dedupe_outlines(out,items,axis,perp_cos=.5,reach=30.,max_perp_len=40.):
+    """2.15: o contorno desenhado de hachuras de pavimento passa a ser só o limite EXTERNO da união: juntas internas entre blocos,
+    sobreposições (pista nova sobre existente) e segmentos transversais ao eixo (fim de bloco) não são traçados (o preenchimento não muda).
+    Cada registro recebe ``k``: índices dos segmentos (i -> i+1; o último fecha o anel) que não devem ser riscados."""
+    import shapely
+    from shapely.geometry import Polygon
+    from shapely.ops import unary_union
+    polys=[]
+    for e in items:
+        if e.get('role') in PAVE_ROLES and e.get('closed') and len(e['points'])>=3:
+            try:g=Polygon(np.asarray(e['points']),[np.asarray(h) for h in e.get('holes',[]) if len(h)>=3]).buffer(0)
+            except Exception:continue
+            if not g.is_empty:polys.append(g)
+    if not polys:return
+    U=unary_union(polys).buffer(.3,join_style='mitre',mitre_limit=2.).buffer(-.3,join_style='mitre',mitre_limit=2.)
+    a=np.asarray(axis,float)
+    if len(a)<2:return
+    from scipy.spatial import cKDTree
+    ds=np.r_[0,np.cumsum(np.linalg.norm(np.diff(a,axis=0),axis=1))];ss=np.arange(0,max(ds[-1],1.),5.)
+    P=np.column_stack([np.interp(ss,ds,a[:,0]),np.interp(ss,ds,a[:,1])]);T=np.gradient(P,axis=0);T/=np.maximum(np.linalg.norm(T,axis=1)[:,None],1e-9)
+    tree=cKDTree(P);seen=set();dropped=0
+    for role in PAVE_ROLES:
+        for rec in out.get(role,[]):
+            q=np.asarray(rec['p'],float)
+            if len(q)<3:continue
+            closed=bool(rec.get('c'));A=q[:-1];B=q[1:]
+            if closed and not np.allclose(q[0],q[-1]):A=np.vstack([A,q[-1:]]);B=np.vstack([B,q[:1]])
+            V=B-A;L=np.linalg.norm(V,axis=1);ok=L>1e-6
+            Nn=np.column_stack([-V[:,1],V[:,0]])/np.maximum(L,1e-9)[:,None];M=(A+B)/2
+            left=shapely.contains_xy(U,M[:,0]+Nn[:,0]*.2,M[:,1]+Nn[:,1]*.2);right=shapely.contains_xy(U,M[:,0]-Nn[:,0]*.2,M[:,1]-Nn[:,1]*.2)
+            skip=ok&left&right                                   # junta interna ou sobreposição
+            d,i=tree.query(M);cos=np.abs(np.sum(V*T[i],axis=1))/np.maximum(L,1e-9)
+            skip|=ok&(d<=reach)&(cos<perp_cos)&(L<=max_perp_len)   # transversal ao eixo
+            for k in np.flatnonzero(ok&~skip):                       # coincidentes entre registros: mantém um só
+                key=(round(float(M[k,0])/.3),round(float(M[k,1])/.3))
+                if key in seen:skip[k]=True
+                else:seen.add(key)
+            idx=[int(k) for k in np.flatnonzero(skip)]
+            if idx:rec['k']=sorted(set(rec.get('k',[]))|set(idx));dropped+=len(idx)
+
+
+def virtual_skips(p,chords,closed,tol=.6):
+    """2.18: índices dos segmentos (p[i]->p[i+1]; último = fechamento) que repousam sobre retas de fechamento
+    de hachura 'virtuais' (inexistentes no DXF). O preenchimento continua; só o traço é omitido."""
+    from shapely.geometry import LineString as LS,Point as PT
+    P=np.asarray(p,float);n=len(P);out=[]
+    C=[LS(c) for c in chords]
+    last=n if closed else n-1
+    for i in range(last):
+        a,b=P[i],P[(i+1)%n]
+        if np.linalg.norm(b-a)<2:continue
+        m=PT((a+b)/2)
+        for c in C:
+            if c.distance(PT(a))<tol and c.distance(PT(b))<tol and c.distance(m)<tol:out.append(i);break
+    return out
+
+BACKING_ROLES=('edge_line','shoulder','barrier','median','oae','pavement','existing_pavement','domain')
+
+def backing_lines(items):
+    """2.19: linhas realmente desenhadas no DXF (entidades que não são hachura) que podem sustentar um contorno."""
+    import shapely
+    from shapely.geometry import LineString as LS
+    lines=[]
+    for e in items:
+        if e.get('hatch') or e['role'] not in BACKING_ROLES:continue
+        for r in [e['points']]+list(e.get('holes',[])):
+            r=np.asarray(r,float)
+            if len(r)>=2:lines.append(LS(r))
+    if not lines:return None
+    U=shapely.union_all(lines);shapely.prepare(U);return U
+
+def unbacked_skips(p,closed,U,tol=.8,min_backed=.2):
+    """Índices de segmentos de um contorno de HACHURA sem linha real do DXF por baixo (a hachura preenche, mas o CAD não a contorna).
+    Só atua quando parte do contorno é sustentada por linhas reais; contorno 100% sem linha fica inteiro (não há como distinguir)."""
+    import shapely
+    P=np.asarray(p,float);n=len(P)
+    if U is None or n<3:return []
+    last=n if closed else n-1
+    A=P[:last];B=P[(np.arange(last)+1)%n];M=(A+B)/2;L=np.linalg.norm(B-A,axis=1)
+    near=shapely.dwithin(shapely.points(A),U,tol)&shapely.dwithin(shapely.points(B),U,tol)&shapely.dwithin(shapely.points(M),U,tol)
+    ok=L>1e-6
+    if not ok.any():return []
+    if (_sdiv(float(L[ok&near].sum()), float(L[ok].sum())))<min_backed:return []
+    return [int(i) for i in np.flatnonzero(ok&~near)]
+
 def vectors(items,axis,kmz_lines=(),tol=.25):
     """Contornos simplificados por classe (CRS do projeto), para desenhar rápido sobre a imagem web."""
     out={r:[] for r in STYLE_ORDER};count=0;lnames={}
+    try:backing=backing_lines(items)
+    except Exception:backing=None
     for e in items:
         role=e['role'];role=role if role in out else 'overlay'
         rings=[e['points']]+list(e.get('holes',[]))
@@ -149,9 +240,21 @@ def vectors(items,axis,kmz_lines=(),tol=.25):
             p=np.round(np.asarray(g.coords),2)
             if len(p)>=2:
                 rec={'p':p.tolist(),'c':bool(e.get('closed')),'l':lnames.setdefault(str(e.get('layer','')),len(lnames))}
+                if e.get('hatch') and role in PAVE_ROLES and backing is not None:
+                    try:
+                        sk=unbacked_skips(p,bool(e.get('closed')),backing)
+                        if sk:rec['k']=sorted(set(rec.get('k',[]))|set(sk))
+                    except Exception as _e:_falha(__name__,_e)
+                if e.get('virtual'):
+                    try:
+                        sk=virtual_skips(p,e['virtual'],bool(e.get('closed')))
+                        if sk:rec['k']=sorted(set(rec.get('k',[]))|set(sk))
+                    except Exception as _e:_falha(__name__,_e)
                 if e.get('frozen'):rec['z']=1
                 if role=='overlay' and e.get('style'):rec['color']=e['style']['color']
                 out[role].append(rec);count+=len(p)
+    try:_dedupe_outlines(out,items,axis)
+    except Exception as _e:_falha(__name__,_e)   # contorno completo é preferível a nenhum contorno
     out['kmz']=[{'p':np.round(np.asarray(LineString(l).simplify(tol).coords),2).tolist(),'c':False} for l in kmz_lines if len(l)>=2]
     a=np.asarray(axis);ds=np.r_[0,np.cumsum(np.linalg.norm(np.diff(a,axis=0),axis=1))]
     ss=np.arange(0,ds[-1],2.);ax=np.column_stack([np.interp(ss,ds,a[:,0]),np.interp(ss,ds,a[:,1])]);ax=np.vstack([ax,a[-1:]])
@@ -231,7 +334,7 @@ def _lines(directory):
     return d
 
 def _dist(line,p):
-    a=line[:-1];b=line[1:];ab=b-a;L=(ab**2).sum(1);t=np.clip(((p-a)*ab).sum(1)/np.where(L>0,L,1),0,1)
+    a=line[:-1];b=line[1:];ab=b-a;L=(ab**2).sum(1);t=np.clip(((((p-a)*ab).sum(1)) / (np.where(L>0,L,1))),0,1)
     q=a+ab*t[:,None];dd=np.hypot(*(q-p).T);k=int(dd.argmin());return float(dd[k]),k,float(t[k])
 
 def pick_line(directory,x,y,tol=5.):

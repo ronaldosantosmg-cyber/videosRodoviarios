@@ -1,4 +1,5 @@
 """Inventário das camadas originais, independente do cálculo de eixos/tráfego."""
+from .falhas import registrar as _falha
 import json
 from collections import Counter
 from pathlib import Path
@@ -14,7 +15,7 @@ def catalog(directory):
     try:
         saved=json.loads(cache.read_text(encoding='utf-8'))
         if saved.get('revision')==key:return saved
-    except (OSError,ValueError):pass
+    except (OSError,ValueError) as _e:_falha(__name__,_e)
     doc=ezdxf.readfile(source);counts=Counter();usable=Counter();types=Counter();stats={};warnings=[]
     for entity in walk(doc.modelspace()):
         layer=entity.dxf.layer;counts[layer]+=1;types[entity.dxftype()]+=1

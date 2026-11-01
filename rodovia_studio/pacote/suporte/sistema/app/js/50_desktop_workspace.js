@@ -9,11 +9,11 @@
 
 const DW={
  get(k,d){try{const v=localStorage.getItem('rodovia_dw_'+k);return v==null?d:JSON.parse(v)}catch{return d}},
- set(k,v){try{localStorage.setItem('rodovia_dw_'+k,JSON.stringify(v))}catch{}}
+ set(k,v){try{localStorage.setItem('rodovia_dw_'+k,JSON.stringify(v))}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('desktop_workspace',_e)}}
 };
 
-function dwResize(){setTimeout(()=>{try{resizeCanvas()}catch{}},30)}
-function dwSetRibbonMini(v=true){try{localStorage.setItem('rodovia_ribbon_min',v?'1':'0')}catch{}
+function dwResize(){setTimeout(()=>{try{resizeCanvas()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('desktop_workspace',_e)}},30)}
+function dwSetRibbonMini(v=true){try{localStorage.setItem('rodovia_ribbon_min',v?'1':'0')}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('desktop_workspace',_e)}
  const b=document.querySelector('.rbMin');if(!b)return;
  const body=document.querySelector('.rbBody');
  if(body){body.hidden=!!v;b.textContent=v?'▾':'▴';b.title=v?'Expandir a faixa (Ctrl+F1)':'Recolher a faixa (Ctrl+F1)'}
@@ -27,7 +27,7 @@ function dwCommandDrawer(){
  const launcher=document.createElement('button');launcher.id='dwCmdLauncher';launcher.type='button';launcher.className='dwCmdLauncher';launcher.title='Linha de comando (Ctrl+Espaço)';launcher.innerHTML='<span>&gt;_</span><span class="dwCmdLaunchText">Comando</span>';
  const bb=$('bottomBar');if(bb)bb.insertBefore(launcher,bb.firstChild);else document.body.appendChild(launcher);
  const open=(focus=true)=>{drawer.hidden=false;document.body.classList.add('dwCmdOpen');DW.set('cmd',true);dwResize();if(focus)setTimeout(()=>$('cmdLine')?.focus(),40)};
- const close=()=>{drawer.hidden=true;document.body.classList.remove('dwCmdOpen');DW.set('cmd',false);try{canvas?.focus()}catch{}dwResize()};
+ const close=()=>{drawer.hidden=true;document.body.classList.remove('dwCmdOpen');DW.set('cmd',false);try{canvas?.focus()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('desktop_workspace',_e)}dwResize()};
  launcher.onclick=()=>drawer.hidden?open():close();
  drawer.onclick=e=>{const b=e.target.closest('[data-dwc]');if(!b)return;if(b.dataset.dwc==='close')close();else $('cmdHelpDlg')?.showModal?.()};
  window.dwCommandOpen=open;window.dwCommandClose=close;
@@ -37,25 +37,25 @@ function dwCommandDrawer(){
 
 function dwForceDockedPanels(){
  // Painel esquerdo: nunca flutua sobre o desenho. Abrir = redimensionar viewport.
- try{pnEstado.fixado=true;PNPREF.set('fixado',true)}catch{}
- try{dockState.fixada=true;AREA.set('fixada',true)}catch{}
+ try{pnEstado.fixado=true;PNPREF.set('fixado',true)}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('desktop_workspace',_e)}
+ try{dockState.fixada=true;AREA.set('fixada',true)}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('desktop_workspace',_e)}
  const oldPnFix=window.pnFixar;window.pnFixar=function(){pnEstado.fixado=true;pnAplicar();msg('Painel encaixado: o desenho foi redimensionado.');};
  const oldDockFix=window.fixarDock;window.fixarDock=function(){dockState.fixada=true;aplicarDock();msg('Painel lateral encaixado: o desenho foi redimensionado.');};
  // Nenhum painel ocupa espaço ao abrir o programa.
- try{pnEstado.aberto=null;PNPREF.set('aberto',null);pnAplicar(false)}catch{}
- try{dockState.recolhida=true;AREA.set('recolhida',true);aplicarDock(false)}catch{}
+ try{pnEstado.aberto=null;PNPREF.set('aberto',null);pnAplicar(false)}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('desktop_workspace',_e)}
+ try{dockState.recolhida=true;AREA.set('recolhida',true);aplicarDock(false)}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('desktop_workspace',_e)}
  // Botões de pin deixam de sugerir modo sobreposto.
  $('pnFixar')?.setAttribute('title','Painéis da 1.40 sempre ficam encaixados e redimensionam o desenho');
  document.querySelector('[data-dk="pin"]')?.setAttribute('title','Painéis da 1.40 sempre ficam encaixados e redimensionam o desenho');
  // 1.40.7: em telas estreitas, nunca esmaga o viewport com os dois painéis abertos ao mesmo tempo.
  const basePnAbrir=window.pnAbrir,baseRecolher=window.recolherDock;
- if(typeof basePnAbrir==='function')window.pnAbrir=function(id,...args){if(id&&innerWidth<=1400&&typeof baseRecolher==='function')try{baseRecolher(true)}catch{};const r=basePnAbrir(id,...args);dwResize();return r};
- if(typeof baseRecolher==='function')window.recolherDock=function(v,...args){if(v===false&&innerWidth<=1400&&typeof basePnAbrir==='function')try{basePnAbrir(null)}catch{};const r=baseRecolher(v,...args);dwResize();return r};
+ if(typeof basePnAbrir==='function')window.pnAbrir=function(id,...args){if(id&&innerWidth<=1400&&typeof baseRecolher==='function')try{baseRecolher(true)}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('desktop_workspace',_e)};const r=basePnAbrir(id,...args);dwResize();return r};
+ if(typeof baseRecolher==='function')window.recolherDock=function(v,...args){if(v===false&&innerWidth<=1400&&typeof basePnAbrir==='function')try{basePnAbrir(null)}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('desktop_workspace',_e)};const r=baseRecolher(v,...args);dwResize();return r};
 }
 
 function dwProjectFocus(v){
  const on=v??!document.body.classList.contains('dwProjectFocus');document.body.classList.toggle('dwProjectFocus',on);DW.set('focus',on);
- if(on){try{pnAbrir(null)}catch{};try{recolherDock(true)}catch{};try{dwCommandClose()}catch{};dwSetRibbonMini(true)}
+ if(on){try{pnAbrir(null)}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('desktop_workspace',_e)};try{recolherDock(true)}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('desktop_workspace',_e)};try{dwCommandClose()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('desktop_workspace',_e)};dwSetRibbonMini(true)}
  dwResize();msg(on?'Modo Projeto: área gráfica maximizada. F11 retorna aos controles.':'Controles restaurados.');
 }
 
@@ -67,13 +67,13 @@ function dwChrome(){
  document.querySelector('.sessRow')?.classList.add('dwSecondary');
  document.querySelector('.cursorRow')?.classList.add('dwCursor');
  // Ribbon recolhida por padrão, mas a aba clicada continua abrindo normalmente pelo código existente.
- try{if(localStorage.getItem('rodovia_dw_initialized')!=='1'){localStorage.setItem('rodovia_ribbon_min','1');localStorage.setItem('rodovia_paineis','1');localStorage.setItem('rodovia_dw_initialized','1')}}catch{}
+ try{if(localStorage.getItem('rodovia_dw_initialized')!=='1'){localStorage.setItem('rodovia_ribbon_min','1');localStorage.setItem('rodovia_paineis','1');localStorage.setItem('rodovia_dw_initialized','1')}}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('desktop_workspace',_e)}
 }
 
 function dwShortcuts(e){
  if(e.ctrlKey&&!e.altKey&&e.code==='Space'){e.preventDefault();const d=$('dwCommandDrawer');d?.hidden?dwCommandOpen():dwCommandClose();return}
- if(e.ctrlKey&&!e.altKey&&(e.key==='b'||e.key==='B')){e.preventDefault();try{pnAbrir(pnEstado.aberto?null:(pnItens[0]?.id||null))}catch{};return}
- if(e.ctrlKey&&e.altKey&&(e.key==='b'||e.key==='B')){e.preventDefault();try{recolherDock(!dockState.recolhida)}catch{};return}
+ if(e.ctrlKey&&!e.altKey&&(e.key==='b'||e.key==='B')){e.preventDefault();try{pnAbrir(pnEstado.aberto?null:(pnItens[0]?.id||null))}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('desktop_workspace',_e)};return}
+ if(e.ctrlKey&&e.altKey&&(e.key==='b'||e.key==='B')){e.preventDefault();try{recolherDock(!dockState.recolhida)}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('desktop_workspace',_e)};return}
  if(e.key==='F11'&&!e.ctrlKey&&!e.altKey){e.preventDefault();dwProjectFocus();return}
 }
 

@@ -15,7 +15,7 @@ def test_update_progress_share_snap_row_and_live_coordinates_follow_continuous_m
     page.wait_for_timeout(30);after=page.locator('#rsLiveCoordinates').inner_text()
     assert before!=after and 'X ' in after and 'Y ' in after
     assert page.locator('#rsLiveCoordinates').get_attribute('title')
-    snap=page.locator('#statusBar span').filter(has_text='SNAP').bounding_box();update=page.locator('#rsUpdateProject').bounding_box()
+    snap=page.locator('#statusBar span').filter(has_text='CAPTURA').bounding_box();update=page.locator('#rsUpdateProject').bounding_box()
     assert abs((snap['y']+snap['height']/2)-(update['y']+update['height']/2))<8
     screenshot(page,'14224_rodape_unico_coordenadas')
 

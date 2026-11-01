@@ -11,12 +11,16 @@ function DPR(){return Math.max(1,window.devicePixelRatio||1)}
 function areaPx(P){let a=0;for(let i=0,j=P.length-1;i<P.length;j=i++)a+=(P[j][0]+P[i][0])*(P[j][1]-P[i][1]);return Math.abs(a/2)}
 function dentro(P,x,y){let inside=false;for(let i=0,j=P.length-1;i<P.length;j=i++){const [xi,yi]=P[i],[xj,yj]=P[j];if(((yi>y)!==(yj>y))&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)inside=!inside}return inside}
 // Todos os objetos sob o cursor, do mais provável ao menos provável.
-function hitObjects(c){const T=10*DPR(),out=[];
- for(const o of objList()){const P=o.grips.map(g=>W2C(gripGet(g)));let d=Infinity,score=Infinity;
+// 1.42.38: regiões grandes de fundo (textura, vegetação, faixas por trecho) só são selecionadas pela borda;
+// o interior delas só vale com Alt ou quando já estão selecionadas. Sem isso cobriam a pista e roubavam o clique do eixo e das camadas.
+const FUNDO_SO_BORDA=new Set(['texture_areas','vegetation_areas','lane_zones']);
+function hitObjects(c){const T=10*DPR(),out=[];const alt=!!(window.event&&window.event.altKey);
+ for(const o of objList()){const P=o.grips.map(g=>W2C(gripGet(g)));let d=Infinity,score=Infinity;const fundo=FUNDO_SO_BORDA.has(o.key);
   if(o.shape==='pt'){d=Math.min(...P.map(([x,y])=>Math.hypot(x-c.cx,y-c.cy)));score=d}
   else{for(let k=0;k+1<P.length;k++)d=Math.min(d,segDist(c.cx,c.cy,...P[k],...P[k+1]));
    if(o.shape==='area'&&P.length>2){d=Math.min(d,segDist(c.cx,c.cy,...P[P.length-1],...P[0]));score=d+2*DPR();
-    if(d>T&&dentro(P,c.cx,c.cy)){d=T*.9;score=T+Math.min(T,Math.sqrt(areaPx(P))/40)}}
+    if(fundo)score+=3*DPR();                                     // na borda, objetos mais específicos vencem
+    if(d>T&&dentro(P,c.cx,c.cy)&&(!fundo||alt||(sel&&sel.key===o.key&&sel.i===o.i))){d=T*.9;score=T+Math.min(T,Math.sqrt(areaPx(P))/40)+(fundo?T:0)}}
    else score=d+1*DPR()}
   if(d<=T)out.push({key:o.key,i:o.i,d,score})}
  return out.sort((a,b)=>a.score-b.score)}

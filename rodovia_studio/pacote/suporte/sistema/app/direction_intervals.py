@@ -1,4 +1,5 @@
 """Aplicação de sentido por intervalo projetado no eixo; fonte CAD permanece intacta."""
+from .seguro import sdiv as _sdiv
 import numpy as np
 from shapely.geometry import LineString,Point
 from shapely.ops import substring
@@ -42,7 +43,7 @@ def split_intervals(raw,marks,tolerance=6.):
             if matches:item.update(explicit_direction=bool(matches[-1][2]),direction_mark_id=matches[-1][3])
             if r.get('route_dir') in ('f','r'):
                 a=float(r['route_start_m']);b=float(r['route_end_m']);span=b-a
-                stations=[a+span*v/line.length if r['route_dir']=='f' else b-span*v/line.length for v in (lo,hi)]
+                stations=[a+(_sdiv(span*v, line.length)) if r['route_dir']=='f' else b-(_sdiv(span*v, line.length)) for v in (lo,hi)]
                 item['route_start_m'],item['route_end_m']=sorted(stations)
                 if item.get('explicit_direction') is False:item['route_dir']='r' if r['route_dir']=='f' else 'f'
             result.append(item)

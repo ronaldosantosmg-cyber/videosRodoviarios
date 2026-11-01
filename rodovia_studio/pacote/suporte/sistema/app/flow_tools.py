@@ -1,4 +1,5 @@
 """Cortes explícitos e junções validadas, sem modificar as fontes CAD."""
+from .seguro import sdiv as _sdiv
 import numpy as np
 from shapely.geometry import LineString,Point
 from shapely.ops import substring
@@ -65,4 +66,4 @@ def join_segments(first,second,allowed,minimum=50.):
     if d[-1]<minimum:raise ValueError('O fluxo unido permanece abaixo do limite do projeto.')
     audit=analyze_motion(points,allowed=allowed)
     if not audit['ok']:return {'ok':False,'audit':audit,'at':audit.get('front_xy'),'reason':audit['message']}
-    return {'ok':True,'points':points.tolist(),'length_m':float(d[-1]),'gap_m':gap,'level':first.get('level',0),'join_from':a[-1].tolist(),'join_to':b[0].tolist(),'join_from_heading':((a[-1]-a[-2])/np.linalg.norm(a[-1]-a[-2])).tolist(),'join_to_heading':((b[1]-b[0])/np.linalg.norm(b[1]-b[0])).tolist()}
+    return {'ok':True,'points':points.tolist(),'length_m':float(d[-1]),'gap_m':gap,'level':first.get('level',0),'join_from':a[-1].tolist(),'join_to':b[0].tolist(),'join_from_heading':((_sdiv(a[-1]-a[-2], np.linalg.norm(a[-1]-a[-2])))).tolist(),'join_to_heading':((_sdiv(b[1]-b[0], np.linalg.norm(b[1]-b[0])))).tolist()}

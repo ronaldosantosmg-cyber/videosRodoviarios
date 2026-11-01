@@ -25,7 +25,7 @@ def probe(path):
     if f:info['fps']=float(f[1])
     if 'duration_s' in info and 'fps' in info:info['frames']=int(round(info['duration_s']*info['fps']))
     if 'duration_s' in info:info['bitrate_avg_mbps']=round(info['bytes']*8/info['duration_s']/1e6,3)
-    if all(k in info for k in ('bitrate_avg_mbps','width','height','fps')):info['bits_per_pixel']=round(info['bitrate_avg_mbps']*1e6/(info['width']*info['height']*info['fps']),4)
+    if all(k in info for k in ('bitrate_avg_mbps','width','height','fps')):info['bits_per_pixel']=round(((info['bitrate_avg_mbps']*1e6) / (info['width']*info['height']*info['fps'])),4)
     return info
 
 def frame_at(path,t,width=None):

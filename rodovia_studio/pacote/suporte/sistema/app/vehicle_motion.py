@@ -12,7 +12,9 @@ from shapely import contains_xy
 PROFILES={'car':(4.5,1.8,2.7,35.),'pickup':(5.3,1.8,3.1,35.),
           'van':(5.4,1.8,3.3,35.),'moto':(2.1,.8,1.4,35.),
           'truck':(12.,3.,6.,32.),'bus':(12.4,3.,6.2,32.),
-          'carreta':(18.6,3.,8.,30.),'car6':(6.,2.,3.6,35.),'moto2':(2.,.5,1.3,35.),'truck18':(18.,3.,9.,32.),'long30':(30.,3.,12.,30.)}
+          'carreta':(18.6,3.,8.,30.),'car6':(6.,2.,3.6,35.),'moto2':(2.,.5,1.3,35.),'truck18':(18.,3.,9.,32.),'long30':(30.,3.,12.,30.),
+          'hatch':(3.95,1.68,2.45,35.),'sedan':(4.6,1.8,2.7,35.),'suv':(4.7,1.9,2.8,35.),'vuc':(6.3,2.2,3.6,34.),'toco':(9.0,2.5,5.2,32.),'cacamba':(8.4,2.5,4.9,32.),
+          'onibus13':(13.2,2.6,6.6,32.),'micro':(8.8,2.4,5.0,33.),'bitrem':(25.0,2.6,10.5,28.)}
 
 
 def prepare_points(points):
@@ -42,7 +44,9 @@ def axle_geometry(points,vehicle='car',stations=None):
 def axle_geometry_prepared(p,d,vehicle='car',stations=None):
     L,B,wb,_=PROFILES.get(vehicle,PROFILES['car'])
     s=d if stations is None else np.asarray(stations,float)
-    center=interpolate(p,d,s);front_axle=interpolate(p,d,s+wb/2);rear_axle=interpolate(p,d,s-wb/2)
+    # 2.60: uma única interpolação para centro e eixos (np.interp é elemento a elemento; resultado idêntico, 3x menos chamadas).
+    n=len(s);tri=interpolate(p,d,np.concatenate([s,s+wb/2,s-wb/2]))
+    center=tri[:n];front_axle=tri[n:2*n];rear_axle=tri[2*n:]
     delta=front_axle-rear_axle;heading=delta/np.maximum(np.linalg.norm(delta,axis=1)[:,None],1e-9)
     front=center+heading*L/2;rear=center-heading*L/2
     return {'center':center,'front':front,'rear':rear,'front_axle':front_axle,'rear_axle':rear_axle,'heading':heading,'stations':s,'width':B}
@@ -85,5 +89,10 @@ def analyze_motion(points,vehicle='car',allowed=None):
                 if not inside.all():
                     reasons.append('corpo_fora_da_pista');critical=int(np.flatnonzero(~inside)[0]);break
             if 'corpo_fora_da_pista' in reasons:break
+    _art=None
+    if vehicle in ('carreta','bitrem'):
+        try:
+            from .articulado import rastro;_art=rastro(p,'carreta',allowed=allowed)
+        except Exception as exc:_art={'disponivel':False,'motivo':str(exc)}
     return {'ok':not reasons,'reasons':list(dict.fromkeys(reasons)),'message':'Trajetória cinemática válida.' if not reasons else 'Trajetória recusada: '+', '.join(dict.fromkeys(reasons))+'.',
-            'max_steering_deg':round(peak,3),'vehicle':vehicle,'samples':count,'critical_station_m':round(float(s[critical]),3),'critical_center_xy':g['center'][critical].round(4).tolist(),'front_xy':g['front'][critical].round(4).tolist(),'rear_xy':g['rear'][critical].round(4).tolist()}
+            'max_steering_deg':round(peak,3),'vehicle':vehicle,'samples':count,'critical_station_m':round(float(s[critical]),3),'critical_center_xy':g['center'][critical].round(4).tolist(),'front_xy':g['front'][critical].round(4).tolist(),'rear_xy':g['rear'][critical].round(4).tolist(),'articulado':_art}

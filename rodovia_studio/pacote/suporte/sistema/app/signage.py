@@ -8,6 +8,7 @@
 * Faixas de pedestre (dois pontos) e placas verticais (biblioteca básica), automáticas e manuais.
 Tudo é calculado sobre a geometria do projeto; o DXF original não é alterado.
 """
+from .seguro import sdiv as _sdiv
 import math
 import numpy as np
 import cv2
@@ -119,10 +120,16 @@ def lane_geometry(L,sl,k,fwd=None):
         rest=width-k*ww;out['edge'].append(np.where(rest>=1.,inner+sgn*k*ww,np.nan))
         out['centers'].append([inner+sgn*(j+.5)*ww for j in range(k)])
     if L['both']:
-        c=(dr-dl)/2;out['center']=c
+        # 2.14: eixo cadastrado no DXF é a referência da pintura: linha central exatamente sobre ele (e não no meio do pavimento).
+        c=np.zeros_like(dr) if L.get('axis_center') else (dr-dl)/2;out['center']=c
         side(c,dr,1.,'r');side(c,-dl,-1.,'l')
     else:
         f=L['fwd'] if fwd is None else fwd
+        if L.get('axis_center') and min(float(np.median(dl)),float(np.median(dr)))<L['lw']*.6:
+            # 2.14: eixo do DXF junto a um bordo (ex.: pistas duplicadas, eixo na borda do canteiro): as faixas partem EXATAMENTE do eixo, em direção ao lado pavimentado.
+            if float(np.median(dr))>=float(np.median(dl)):side(np.zeros_like(dr),dr,1.,'o')
+            else:side(np.zeros_like(dl),-dl,-1.,'o')
+            return out
         if f:side(-dl,dr,1.,'o')
         else:side(dr,-dl,-1.,'o')
     return out
@@ -227,10 +234,11 @@ def lane_lines(net,p,both,src,fwd=True):
     L=layout(p,net.ext,net.inside,getattr(s,'lane_width_m',3.5),both,net.lane_zones,count=count if kind=='main' else 0,fwd=fwd)
     net.lane_info[src]=L
     if L is None:return
+    L['axis_center']=bool(0<=src<len(net.raw_info) and net.raw_info[src].get('native_axis'))
     apply_ranges(net,L)
     q,n,lanes=L['q'],L['n'],L['lanes']
     jz=getattr(net,'_jz',None)
-    def emit(off,color,dashed,sl):
+    def emit(off,color,dashed,sl,solid_edge=False):
         ok=np.isfinite(off)
         if ok.sum()<2:return
         idx=np.flatnonzero(ok);runs=np.split(idx,np.flatnonzero(np.diff(idx)>1)+1)
@@ -238,7 +246,12 @@ def lane_lines(net,p,both,src,fwd=True):
             if len(r)<2:continue
             pts=q[sl][r]+n[sl][r]*off[r][:,None]
             for piece in (dashes(pts) if dashed else [pts]):
-                for a,b in chain_line(piece):
+                segs=chain_line(piece)
+                if segs and color==WHITE:
+                    # 2.15: onde coincide com o contorno do hatch / Bordo do DXF, a linha do DXF vence (bordas 1,2 m; tracejados 0,6 m); sem segmentos transversais ao eixo.
+                    mids=np.array([(a+b)/2 for a,b in segs]);near=net.near_authoritative(mids,1.2 if solid_edge else .6)
+                    net.auth_dropped=getattr(net,'auth_dropped',0)+int(near.sum());segs=[sg for sg,k in zip(segs,near) if not k]
+                for a,b in segs:
                     if jz is not None and not jz.is_empty and jz.covers(Point(*(a+b)/2)):continue
                     if contains_xy(net.allowed,np.array([a[0],b[0]]),np.array([a[1],b[1]])).all():
                         net.markings.append((a,b,color));net.mark_src.append(src)
@@ -250,7 +263,7 @@ def lane_lines(net,p,both,src,fwd=True):
         if g['center'] is not None:
             for off in (-.12,.12):emit(g['center']+off,YELLOW,False,sl)
         for d in g['div']:emit(d,WHITE,True,sl)
-        for e in g['edge']:emit(e,WHITE,False,sl)
+        for e in g['edge']:emit(e,WHITE,False,sl,True)
 
 def apply_ranges(net,L):
     """Faixa adicional (ou menos faixas) entre dois pontos marcados na pista: vale para a pista mais próxima
@@ -512,7 +525,7 @@ def stop_lines(net):
 def crosswalk(net,cw):
     a=np.array([cw.a.x,cw.a.y]);b=np.array([cw.b.x,cw.b.y]);L=float(np.linalg.norm(b-a))
     if L<1:return []
-    u=(b-a)/L;out=[];area=net.paved.buffer(.5)
+    u=(_sdiv(b-a, L));out=[];area=net.paved.buffer(.5)
     for s_ in np.arange(.5,L-.2,1.):
         c=a+u*s_
         if area.covers(Point(*c)):out.append(([rect(c,u,.4,float(cw.width_m))],WHITE))
@@ -571,6 +584,15 @@ def build(net,dxf_h=(),dxf_v=()):
         signs.append({'point':np.asarray(e['points'][0],float),'code':e.get('code','I'),'text':e.get('text',''),'heading':e.get('rotation'),'auto':False,'source':'DXF'})
     for m in getattr(s,'signs',[]) or []:
         if m.show:signs.append({'point':np.array([m.point.x,m.point.y]),'code':m.code,'text':m.text,'heading':m.heading_deg,'auto':False,'source':'manual'})
+    try:                                                                         # 2.55: eixo amarelo duplo da pista simples cadastrada em seções
+        from .transicao_secoes import eixo_amarelo
+        jaamarelo=[((m[0]+m[1])/2) for m,c in ((m,m[2]) for m in net.markings) if tuple(c)==tuple(YELLOW)]
+        tr=cKDTree(np.array(jaamarelo)) if jaamarelo else None
+        for route in getattr(s,'route_alignments',[]) or []:
+            for a_,b_ in eixo_amarelo(route):
+                if tr is not None and tr.query((a_+b_)/2)[0]<.6:continue
+                net.markings.append((np.asarray(a_,float),np.asarray(b_,float),YELLOW));net.mark_src.append(-7)
+    except Exception:pass
     net.fills=paint;net.signs=signs
 
 def clean(net,area):

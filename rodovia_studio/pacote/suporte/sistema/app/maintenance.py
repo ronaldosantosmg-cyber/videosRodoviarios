@@ -1,4 +1,6 @@
 """Remove apenas caches regeneráveis e saídas temporárias interrompidas."""
+from .falhas import registrar as _falha
+from . import caminhos
 import shutil
 from pathlib import Path
 
@@ -26,8 +28,8 @@ def clean(root,execute=False):
         try:
             n=size(p)
             if execute:
-                if p.is_dir():shutil.rmtree(p)
-                else:p.unlink()
+                if p.is_dir():caminhos.rmtree(p)
+                else:caminhos.unlink(p)
             total+=n;count+=1
         except OSError as exc:errors.append(p.name+': '+str(exc))
     return {'bytes':total,'items':count,'executed':execute,'errors':errors}
@@ -46,6 +48,8 @@ CATEGORIAS={
  'lixeira':('Lixeira','Projetos, modelos e vídeos retirados (pastas _lixeira).',True),
  'atualizacoes':('Atualizações antigas','Cópias de segurança de atualizações anteriores (ficam as 2 mais recentes) e ZIPs já aplicados (fica o mais recente).',True),
  'copias_video':('Cópias de trabalho dos vídeos','O último vídeo de cada projeto também fica dentro do projeto (video.mp4); com a cópia na pasta de vídeos, esta pode sair (a tela volta a mostrá-lo da pasta de vídeos).',False),
+
+ 'analises':('Resultados das análises','Análise, editor, vetores, cena 3D e prévia calculados de cada projeto. Reinicia as análises: o próximo cálculo refaz tudo do zero. Não apaga DXF/KMZ, imagens, marcações, configuração nem vídeos.',False),
  'base_imagens':('Base de imagens processadas','GeoTIFFs reutilizáveis gerados a partir de ECW/MrSID. Não são temporários e ficam preservados por padrão para evitar novas conversões.',False),
 }
 _DAY=86400
@@ -70,7 +74,7 @@ def _items(cat,root,install=None,videos=None,now=None):
     elif cat=='registros':
         for pr in _projects(root):
             for n in ('ffmpeg.log','worker.log','error.log'):
-                if (pr/n).is_file() and now-(pr/n).stat().st_mtime>30*_DAY:out.append(pr/n)
+                if (((pr) / (n))).is_file() and now-(((pr) / (n))).stat().st_mtime>30*_DAY:out.append(((pr) / (n)))
             lg=pr/'logs'
             if lg.is_dir():out+=[f for f in lg.glob('*.jsonl') if now-f.stat().st_mtime>30*_DAY]
             snapshots=lg/'execucoes'
@@ -92,6 +96,11 @@ def _items(cat,root,install=None,videos=None,now=None):
                 out+=olds[2:]
         ap=install/'atualizacoes'/'aplicadas'
         if ap.is_dir():out+=sorted(ap.glob('*.zip'),key=lambda f:f.stat().st_mtime,reverse=True)[1:]
+    elif cat=='analises':
+        from .dependencies import FILES
+        for pr in _projects(root):
+            for nome in ('analysis','editor','vectors','preview','scene3d'):
+                out+=[pr/f for f in FILES[nome] if (pr/f).is_file() and not (pr/f).is_symlink()]
     elif cat=='base_imagens':
         b=root/'_base_imagens'
         if b.is_dir():out+=[p for p in b.iterdir() if not p.is_symlink()]
@@ -130,7 +139,7 @@ def survey(root,install=None,videos=None):
         items=_items(k,root,install,videos);n=0
         for p in items:
             try:n+=size(p)
-            except OSError:pass
+            except OSError as _e:_falha(__name__,_e)
         res.append({'id':k,'rotulo':label,'descricao':desc,'padrao':default,'itens':len(items),'bytes':n})
     return res
 
@@ -143,8 +152,8 @@ def clean_categories(root,cats,install=None,videos=None):
         for p in _items(c,root,install,videos):
             try:
                 n=size(p)
-                if p.is_dir() and not p.is_symlink():shutil.rmtree(p)
-                else:p.unlink()
+                if p.is_dir() and not p.is_symlink():caminhos.rmtree(p)
+                else:caminhos.unlink(p)
                 total+=n;b+=n;count+=1
             except OSError as exc:errors.append(p.name+': '+str(exc)[:120])
         by[c]=b

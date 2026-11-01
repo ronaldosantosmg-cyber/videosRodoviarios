@@ -1,4 +1,5 @@
 """Integra os controles à câmera ilustrativa da cabine e desenha os equipamentos em perspectiva."""
+from .seguro import sdiv as _sdiv
 import math
 import numpy as np
 import cv2
@@ -11,7 +12,7 @@ def prepare_camera(cabin):
     sc=cabin.sc
     if not any(r.enabled for r in sc.s.railways) and not any(s.enabled for s in sc.s.traffic_signals):return
     controls=Transport(sc.s,sc.network);sim=sc.traffic();d=cabin.d0;speed=0.;clock=[];dt=.2
-    for k in range(int(math.ceil(cabin.c.duration_s/dt))+2):
+    for k in range(int(math.ceil((_sdiv(cabin.c.duration_s, dt))))+2):
         t=k*dt;clock.append(d);gap=math.inf
         if sim:
             for vid,path,station,_,_ in sim.state(t):

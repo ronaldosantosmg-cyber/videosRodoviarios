@@ -33,10 +33,10 @@ async function inputBox(title,labelText,value=''){return new Promise(res=>{const
 // ---------- desenho da seleção: grips destacados, alça de giro, linha de chamada e mini-barra ----------
 let hotGrip=null,dxfSel=null,selLink=null,showAllLinks=false;
 drawSelection=function(){const L=selObjs();if(!L.length)return;ctx.save();
- for(const o of L){const P=o.grips.map(g=>W2C(gripGet(g)));ctx.strokeStyle='#4fa3ff';ctx.lineWidth=2.5;ctx.setLineDash([7,4]);
+ for(const o of L){if(!o||typeof o.key==='undefined')continue;const P=o.grips.map(g=>W2C(gripGet(g)));ctx.strokeStyle='#4fa3ff';ctx.lineWidth=2.5;ctx.setLineDash([7,4]);
   if(o.shape!=='pt'){ctx.beginPath();P.forEach(([x,y],k)=>k?ctx.lineTo(x,y):ctx.moveTo(x,y));if(o.shape==='area'){ctx.closePath();ctx.fillStyle='#4fa3ff22';ctx.fill()}ctx.shadowColor='#4fa3ff';ctx.shadowBlur=6;ctx.stroke();ctx.shadowBlur=0}
   ctx.setLineDash([]);
-  o.grips.forEach((g,k)=>{const [x,y]=P[k];const hot=hotGrip&&hotGrip.o.key===o.key&&hotGrip.o.i===o.i&&hotGrip.k===k;const s=hot?8:6.5;ctx.fillStyle=drag?.type==='grip'&&hot?'#ff3b3b':hot?'#ff8a00':'#1f6fff';ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.shadowColor='#000a';ctx.shadowBlur=4;ctx.fillRect(x-s,y-s,2*s,2*s);ctx.shadowBlur=0;ctx.strokeRect(x-s,y-s,2*s,2*s)});
+  o.grips.forEach((g,k)=>{const [x,y]=P[k];const hot=hotGrip&&hotGrip.o&&hotGrip.o.key===o.key&&hotGrip.o.i===o.i&&hotGrip.k===k;const s=hot?8:6.5;ctx.fillStyle=drag?.type==='grip'&&hot?'#ff3b3b':hot?'#ff8a00':'#1f6fff';ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.shadowColor='#000a';ctx.shadowBlur=4;ctx.fillRect(x-s,y-s,2*s,2*s);ctx.shadowBlur=0;ctx.strokeRect(x-s,y-s,2*s,2*s)});
   const lp=labelPos(o);if(lp&&L.length===1){const [ax,ay]=W2C(labelAnchor(o)),[lx,ly]=W2C(lp);ctx.strokeStyle='#ffd66b';ctx.lineWidth=1.8;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(lx,ly);ctx.stroke();ctx.setLineDash([]);
    const hot=hotGrip&&hotGrip.label;ctx.fillStyle=hot?'#ff8a00':'#ffd66b';ctx.strokeStyle='#081623';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(lx,ly-9);ctx.lineTo(lx+9,ly);ctx.lineTo(lx,ly+9);ctx.lineTo(lx-9,ly);ctx.closePath();ctx.fill();ctx.stroke();
    const li=leaderInfo(o);ctx.font='11px system-ui';ctx.fillStyle='#ffe7a3';ctx.strokeStyle='#081623';ctx.lineWidth=3;const t=`caixa · linha ${li.d.toFixed(1)} m`;ctx.strokeText(t,lx+12,ly+4);ctx.fillText(t,lx+12,ly+4)}}
@@ -55,7 +55,7 @@ function drawLinks(){if(!editor||!editor.connections||vecOn.flows===false)return
  if(selLink){one(selLink,'#ffe14d',6);one(selLink,selLink.denied?'#ff4d4d':'#36f28a',2.5,selLink.denied?[5,4]:[])}ctx.restore()}
 function drawAdvanceZones(){const ad=axisData();for(const z of M.advance_zones||[]){if(!z.start||!z.end)continue;let pts=[z.start,z.end];if(ad){const a=projectAxis(z.start),b=projectAxis(z.end);if(a&&b)pts=axisSub(a.s,b.s)}
   poly(pts);ctx.save();ctx.lineCap='butt';ctx.strokeStyle=z.enabled===false?'#9aa3a866':(z.speed_pct<100?'#ffb34799':'#5ad8ff99');ctx.lineWidth=Math.max(10,24);ctx.stroke();ctx.restore();label(`⏱ ${z.name} · ${Math.round(z.speed_pct)}%`,pts[0],z.speed_pct<100?'#ffd9a0':'#bfefff')}}
-estender('draw',_d=>function(){_d();if(!ready())return;try{drawAdvanceZones();drawLinks();drawDxfSel();placeSelBar()}catch(err){}},'desenho da seleção: grips destacados, alça de giro, linha de chamada e');
+estender('draw',_d=>function(){_d();if(!ready())return;try{drawAdvanceZones();drawLinks();drawDxfSel();placeSelBar()}catch(err){window.RodoviaErros&&RodoviaErros.avisar('edicao_direta',err)}},'desenho da seleção: grips destacados, alça de giro, linha de chamada e');
 function placeSelBar(){const bar=$('selBar');if(!bar)return;const L=selObjs();const b=selBox();if((!L.length&&!dxfSel)||drag||!b&&!dxfSel){bar.hidden=true;return}
  const r=canvas.getBoundingClientRect(),k=r.width/canvas.width;let x,y;if(b){x=b.x1*k+10;y=b.y0*k-6}else{const q=W2C(P_(dxfSel.points[0]));x=q[0]*k+10;y=q[1]*k-6}
  const isArea=L.length&&L.every(o=>o.key==='pavement_areas')||(!L.length&&dxfSel);const named=L.length===1&&('name' in L[0].o||'title' in L[0].o)||(!L.length&&dxfSel);
@@ -71,7 +71,7 @@ function linkAt(c){if(!editor?.connections)return null;const sid=selSeg?selSeg.i
  for(const lk of editor.connections)test(lk,false);for(const lk of editor.denied||[])test(lk,true);return best&&best.lk}
 let sb=null;   // estado do arraste direto
 window.addEventListener('pointerdown',e=>{if(e.target===canvas&&ctxState)closeMenu();if(e.target!==canvas||e.button!==0||!ready()||tool!=='pan'||cadCmd||spaceDown||e.ctrlKey)return;const c=canvasPt(e);
- const stop=()=>{e.stopImmediatePropagation();e.preventDefault();try{canvas.setPointerCapture(e.pointerId)}catch{};canvas.focus({preventScroll:true})};
+ const stop=()=>{e.stopImmediatePropagation();e.preventDefault();try{canvas.setPointerCapture(e.pointerId)}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('edicao_direta',_e)};canvas.focus({preventScroll:true})};
  const r=hitRot(c);if(r){stop();checkpoint();const L=selObjs();drag={type:'rot',c:r.c,a0:Math.atan2(c.w.y-r.c.y,c.w.x-r.c.x),objs:L,base:L.map(o=>o.grips.map(gripGet)),ang:0,cur:c};return}
  const lo=hitLabel(c);if(lo){stop();checkpoint();drag={type:'label',o:lo};return}
  if(hitAnyGrip(c))return;   // grips: arraste do 1.22
@@ -153,7 +153,7 @@ async function openTexDialog(){const L=selObjs();let base={kind:'pavement',mater
  $('td_kind').value=base.kind||'pavement';$('td_mat').value=base.material||'auto';const t=base.texture||{};for(const [k,d] of [['grao',1],['tom',1],['remendos',1],['fissuras',1],['brilho',0]])$('td_'+k).value=t[k]??d;
  $('td_scope').value='area';$('td_title').textContent=texTarget.dxf?`Trocar textura — área do desenho (camada ${dxfSel.layer})`:L.length>1?`Trocar textura — ${L.length} áreas`:`Trocar textura — ${base.name}`;tdPreview();$('texDlg').showModal()}
 function texApply(){const kind=$('td_kind').value,material=$('td_mat').value,v=tdVals(),neutral=v.grao===1&&v.tom===1&&v.remendos===1&&v.fissuras===1&&v.brilho===0;
- if($('td_scope').value==='tipo'){const surf=tdPreview();cfg.texture_params={...(cfg.texture_params||{}),[surf]:v};scheduleSave();try{texUi&&texUi()}catch{}$('texDlg').close();msg(`Textura de “${TEX_LABEL[surf]}” alterada para todas as áreas deste tipo. Gere a prévia para ver.`);scheduleViewPreview();window.RodoviaUpdatePolicy?.committed();return}
+ if($('td_scope').value==='tipo'){const surf=tdPreview();cfg.texture_params={...(cfg.texture_params||{}),[surf]:v};scheduleSave();try{texUi&&texUi()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('edicao_direta',_e)}$('texDlg').close();msg(`Textura de “${TEX_LABEL[surf]}” alterada para todas as áreas deste tipo. Gere a prévia para ver.`);scheduleViewPreview();window.RodoviaUpdatePolicy?.committed();return}
  if(texTarget?.dxf){dxfSel=texTarget.dxf;dxfToArea({kind,material,texture:neutral?null:v})}
  else if(texTarget?.areas){checkpoint();for(const o of texTarget.areas){o.o.kind=kind;o.o.material=material;o.o.texture=neutral?null:v}changed(`Textura aplicada a ${texTarget.areas.length} área(s). Gere a prévia para ver no vídeo.`);showProps();scheduleViewPreview()}
  $('texDlg').close();window.RodoviaUpdatePolicy?.committed()}

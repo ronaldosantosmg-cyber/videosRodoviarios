@@ -5,9 +5,10 @@ aplicativo, resolução, qualidade, codificador, tempo de geração e a configur
 tem um arquivo .projeto com o identificador, para dois projetos de mesmo nome não se misturarem.
 O vídeo também continua em <projeto>/video.mp4 (último gerado, usado pela tela).
 """
+from .falhas import registrar as _falha
 import json,re,shutil,time,unicodedata
 from pathlib import Path
-from . import store
+from . import store,caminhos
 
 NAME_OK=re.compile(r'^[\w\-. ]+\.mp4$',re.U)
 
@@ -16,22 +17,26 @@ def slug(name,limit=60):
     t=re.sub(r'[\\/:*?"<>|\x00-\x1f]+',' ',t);t=re.sub(r'\s+',' ',t).strip(' .')
     return (t[:limit].strip(' .') or 'Projeto')
 
+FIXO_ARQUIVO=33+16   # _AAAA-MM-DD_HHhMM (17) + _3D (3) + _vNN (4) + .mp4 (4) + .tmp/.json (5) = 33; mais 16 para o nome do vídeo
+
 def project_folder(pid,name,create=True):
-    """Pasta do projeto dentro de <videos>; se outro projeto já usa o nome, acrescenta o início do identificador."""
+    """Pasta do projeto dentro de <videos>; se outro projeto já usa o nome, acrescenta o início do identificador.
+    1.42.38: o nome da pasta é cortado (com hash) só quando pasta + vídeo passariam do limite de caminho do Windows."""
     root=store.videos_root();base=slug(name)
-    for cand in [base,f'{base} ({pid[:6]})']:
+    for suf in ('',f' ({pid[:6]})'):
+        cand=caminhos.encurtar_pasta(root,base,FIXO_ARQUIVO,sufixo=len(suf))+suf
         d=root/cand;mark=d/'.projeto'
         if d.exists():
             try:
                 if mark.read_text(encoding='utf-8').strip()==pid:return d
-            except OSError:pass
+            except OSError as _e:_falha(__name__,_e)
             if not mark.exists() and not any(d.iterdir()):
                 if create:mark.write_text(pid,encoding='utf-8')
                 return d
             continue
         if create:d.mkdir(parents=True,exist_ok=True);mark.write_text(pid,encoding='utf-8')
         return d
-    d=root/f'{base} ({pid})'
+    d=((root) / (caminhos.encurtar_pasta(root,base,FIXO_ARQUIVO,sufixo=len(pid)+3)+f' ({pid})'))
     if create:d.mkdir(parents=True,exist_ok=True);(d/'.projeto').write_text(pid,encoding='utf-8')
     return d
 
@@ -52,7 +57,8 @@ def archive(d,pid,settings,info,seconds=None,source_name='video.mp4'):
     folder=find_folder(pid) or project_folder(pid,settings.name)
     n=1+max([int(m.group(1)) for f in folder.glob('*.mp4') if (m:=re.search(r'_v(\d+)\.mp4$',f.name))]+[0])
     stamp=time.strftime('%Y-%m-%d_%Hh%M')
-    name=f'{slug(settings.name,48)}'+('_3D' if source_name=='video3d.mp4' else '')+f'_{stamp}_v{n:02d}.mp4'
+    stem=caminhos.recortar(slug(settings.name,48),min(48,caminhos.limite()-caminhos.comprimento(folder)-1-33)) or 'video'   # 1.42.38: cabe no limite de caminho
+    name=f'{stem}'+('_3D' if source_name=='video3d.mp4' else '')+f'_{stamp}_v{n:02d}.mp4'
     dst=folder/name;tmp=folder/(name+'.tmp')
     shutil.copyfile(src,tmp);store.replace(tmp,dst)
     from .rotas.comum import VERSION
@@ -70,7 +76,7 @@ def listing(pid):
     for f in sorted(folder.glob('*.mp4'),key=lambda p:p.stat().st_mtime,reverse=True):
         meta={}
         try:meta=json.loads(f.with_suffix('.json').read_text(encoding='utf-8'))
-        except (OSError,ValueError):pass
+        except (OSError,ValueError) as _e:_falha(__name__,_e)
         meta.pop('configuracao',None)
         out.append({'nome':f.name,'bytes':f.stat().st_size,'data':time.strftime('%Y-%m-%d %H:%M',time.localtime(f.stat().st_mtime)),**{k:meta.get(k) for k in ('numero','largura','altura','fps','duracao_s','codificador','qualidade','tempo_geracao_s','versao_app')}})
     return {'pasta':str(folder),'videos':out}
@@ -87,9 +93,9 @@ def remove(pid,name):
     f=path_of(pid,name);trash=store.videos_root()/'_lixeira';trash.mkdir(parents=True,exist_ok=True)
     dst=trash/f'{f.parent.name}__{f.name}'
     if dst.exists():dst=trash/f'{f.parent.name}__{time.strftime("%Y%m%d_%H%M%S")}__{f.name}'
-    f.replace(dst)
+    store.replace(f,dst)   # 2.32: tenta de novo e explica se o vídeo está aberto em player/OneDrive (WinError 32)
     j=f.with_suffix('.json')
-    if j.exists():j.replace(dst.with_suffix('.json'))
+    if j.exists():store.replace(j,dst.with_suffix('.json'))
     return dst.name
 
 def current(d):
@@ -100,5 +106,5 @@ def current(d):
         info=json.loads((d/'video.json').read_text(encoding='utf-8'))
         f=Path(info.get('pasta_videos',''))/info.get('arquivo','')
         if info.get('arquivo') and f.is_file():return f
-    except (OSError,ValueError):pass
+    except (OSError,ValueError) as _e:_falha(__name__,_e)
     return None

@@ -5,6 +5,7 @@ Ficam sempre: arquivos DXF/KMZ, CRS, km inicial/final, estaqueamento, camadas, a
 (local e web), elevação, camadas extras e parâmetros de vídeo. O DXF não é alterado.
 Retirar projeto: a pasta vai para <projetos>/_lixeira (nada é apagado definitivamente pelo programa).
 """
+from .falhas import registrar as _falha
 import json,time,shutil
 from pathlib import Path
 
@@ -12,7 +13,7 @@ GROUPS={
     'obras':('Intervenções, PER, destaques, interdições e cabine',['pois','works','highlights','lane_blocks','cabin']),
     'sinalizacao':('Placas, faixas de pedestre, zebrados e áreas sem sinalização',['signs','crosswalks','hatch_areas','clean_areas']),
     'geometria':('Acessos, 3ª faixa, faixas por trecho, OAE e exclusões',['accesses','lane_ranges','lane_zones','oae_marks','exclusions']),
-    'fluxos':('Fluxos manuais, sentidos, inversões, sem conexão e travessias',['traffic_paths','direction_marks','flow_overrides','no_connection_zones','crossing_zones','route_directions','route_alignments','railways','traffic_signals','signal_links']),
+    'fluxos':('Fluxos manuais, sentidos, inversões, sem conexão e travessias',['traffic_paths','direction_marks','flow_overrides','no_connection_zones','crossing_zones','route_directions','axis_types','route_alignments','railways','traffic_signals','signal_links']),
     'cidades':('Cidades marcadas',['cities']),
 }
 DEFAULT=('obras','sinalizacao')
@@ -38,12 +39,12 @@ def reset(d,settings,groups,outputs=False):
     removed=[]
     if outputs:
         for n in OUTPUTS:
-            f=d/n
+            f=((d) / (n))
             if f.exists():
                 try:f.unlink();removed.append(n)
-                except OSError:pass
+                except OSError as _e:_falha(__name__,_e)
         for n in ('cache_detalhe',):
-            if (d/n).exists():shutil.rmtree(d/n,ignore_errors=True);removed.append(n)
+            if (((d) / (n))).exists():shutil.rmtree(((d) / (n)),ignore_errors=True);removed.append(n)
     return Settings.model_validate(data),{'backup':b.name,'cleared':{k:n for k,n in cleared},'removed':removed}
 
 def undo(d):

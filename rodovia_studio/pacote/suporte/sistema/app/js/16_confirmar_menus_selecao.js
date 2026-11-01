@@ -37,11 +37,11 @@ $('resetDialog')?.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.ta
  const key=s=>'rodovia_sec_'+(s.id||s.querySelector(':scope>h2').textContent.trim().slice(0,30));
  secs.forEach((s,i)=>{const h=s.querySelector(':scope>h2');if(!s.id)s.id='sec_'+i;
   const b=document.createElement('button');b.type='button';b.innerHTML=(h.querySelector('.ico')?.outerHTML||'')+'<span>'+esc(h.textContent.trim().replace(/^\d+\.\s*/,''))+'</span>';b.title='Ir para: '+h.textContent.trim();
-  b.onclick=()=>{s.classList.remove('collapsed');try{localStorage.setItem(key(s),'0')}catch{};s.scrollIntoView({behavior:'smooth',block:'start'})};nav.appendChild(b);
-  h.classList.add('collapsible');h.title='Clique para recolher/expandir';h.addEventListener('click',e=>{if(e.target.closest('button,a,input,select'))return;const c=s.classList.toggle('collapsed');try{localStorage.setItem(key(s),c?'1':'0')}catch{}});
-  try{if(localStorage.getItem(key(s))==='1'&&s.id!=='editorSection')s.classList.add('collapsed')}catch{}});
+  b.onclick=()=>{s.classList.remove('collapsed');try{localStorage.setItem(key(s),'0')}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('confirmar_menus_selecao',_e)};s.scrollIntoView({behavior:'smooth',block:'start'})};nav.appendChild(b);
+  h.classList.add('collapsible');h.title='Clique para recolher/expandir';h.addEventListener('click',e=>{if(e.target.closest('button,a,input,select'))return;const c=s.classList.toggle('collapsed');try{localStorage.setItem(key(s),c?'1':'0')}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('confirmar_menus_selecao',_e)}});
+  try{if(localStorage.getItem(key(s))==='1'&&s.id!=='editorSection')s.classList.add('collapsed')}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('confirmar_menus_selecao',_e)}});
  const all=document.createElement('button');all.type='button';all.className='navAll';all.textContent='Recolher tudo';all.title='Recolhe as seções (o editor fica aberto)';
- all.onclick=()=>{const collapse=all.textContent==='Recolher tudo';secs.forEach(s=>{if(s.id==='editorSection')return;s.classList.toggle('collapsed',collapse);try{localStorage.setItem(key(s),collapse?'1':'0')}catch{}});all.textContent=collapse?'Expandir tudo':'Recolher tudo'};nav.appendChild(all);
+ all.onclick=()=>{const collapse=all.textContent==='Recolher tudo';secs.forEach(s=>{if(s.id==='editorSection')return;s.classList.toggle('collapsed',collapse);try{localStorage.setItem(key(s),collapse?'1':'0')}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('confirmar_menus_selecao',_e)}});all.textContent=collapse?'Expandir tudo':'Recolher tudo'};nav.appendChild(all);
  const first=document.querySelector('main');first.parentNode.insertBefore(nav,first)})();
 
 // ---------- seleção múltipla: Shift+clique, janela (Ctrl+arrastar) ----------
@@ -50,7 +50,7 @@ function selKeyOf(s){return s.key+'#'+s.i}
 function inSet(s){return selSet.some(x=>x.key===s.key&&x.i===s.i)}
 function allSelected(){const L=selSet.slice();if(sel&&!inSet(sel))L.push(sel);return L.map(objOf).filter(Boolean)}
 canvas.addEventListener('pointerdown',e=>{if(!ready()||e.button!==0||tool!=='pan'||cadCmd)return;
- if(e.ctrlKey){const c=canvasPt(e);e.stopImmediatePropagation();try{canvas.setPointerCapture(e.pointerId)}catch{};drag={type:'box',a:c,b:c};return}
+ if(e.ctrlKey){const c=canvasPt(e);e.stopImmediatePropagation();try{canvas.setPointerCapture(e.pointerId)}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('confirmar_menus_selecao',_e)};drag={type:'box',a:c,b:c};return}
  if(e.shiftKey){const c=canvasPt(e);const h=hitObject(c);if(h){e.stopImmediatePropagation();const s={key:h.key,i:h.i};if(sel&&!inSet(sel))selSet.push(sel);
    if(inSet(s)){selSet=selSet.filter(x=>!(x.key===s.key&&x.i===s.i));sel=selSet[selSet.length-1]||null}else{selSet.push(s);sel=s}showProps();draw();msg(`${allSelected().length} objeto(s) selecionado(s).`)}}},true);
 canvas.addEventListener('pointermove',e=>{if(drag?.type!=='box')return;drag.b=canvasPt(e);e.stopImmediatePropagation();draw()},true);
@@ -83,7 +83,7 @@ estender('runCommand',_rc=>function(raw){const t=(raw||'').trim().toUpperCase();
 Object.assign(CMD_ALIAS,{CO:'x',COPIAR:'x',GIRAR:'x',RO:'x'});
 
 // ---------- informação na tela (perto do cursor e da seleção) ----------
-let hudOn=true;try{hudOn=localStorage.getItem('rodovia_hud')!=='0'}catch{}
+let hudOn=true;try{hudOn=localStorage.getItem('rodovia_hud')!=='0'}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('confirmar_menus_selecao',_e)}
 function polyLen(P){let L=0;for(let i=1;i<P.length;i++)L+=Math.hypot(P[i].x-P[i-1].x,P[i].y-P[i-1].y);return L}
 function polyArea(P){let a=0;for(let i=0,j=P.length-1;i<P.length;j=i++)a+=(P[j].x+P[i].x)*(P[j].y-P[i].y);return Math.abs(a/2)}
 function objMetrics(o){const P=o.grips.map(gripGet);const out=[];if(o.shape==='line'||o.shape==='poly')out.push(`comprimento ${polyLen(P).toFixed(3)} m`);
@@ -102,7 +102,7 @@ estender('showProps',_sp=>function(){_sp();const box=$('propPanel');if(!box)retu
  if(L.length>1){box.hidden=false;const by={};L.forEach(o=>by[o.label]=(by[o.label]||0)+1);box.innerHTML=`<h3>Seleção · ${L.length} objetos</h3><p>${Object.entries(by).map(([k,n])=>`${n} × ${esc(k)}`).join('<br>')}</p><div class="row"><button type="button" data-ppact="move">Mover (M)</button><button type="button" data-ppact="copy">Copiar (CO)</button><button type="button" data-ppact="rotate">Girar (RO)</button><button type="button" data-ppact="del" class="danger">Apagar (Del)</button><button type="button" data-ppact="close">Desmarcar</button></div><p class="muted">Shift+clique acrescenta/retira; Ctrl+arrastar seleciona por janela (→) ou cruzamento (←).</p>`;return}
  const o=objOf(sel);if(!o||box.hidden)return;const m=objMetrics(o);if(m.length)box.querySelector('h3')?.insertAdjacentHTML('afterend',`<p class="ppInfo">${m.map(esc).join(' · ')}</p>`)},'informação na tela (perto do cursor e da seleção)');
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#propPanel [data-ppact]');if(!b)return;const a=b.dataset.ppact;if(a==='copy')runCommand('COPIAR');if(a==='rotate')runCommand('GIRAR');if(a==='close'){selSet=[]}});
-$('hudOn')?.addEventListener('change',()=>{hudOn=$('hudOn').checked;try{localStorage.setItem('rodovia_hud',hudOn?'1':'0')}catch{};draw()});
+$('hudOn')?.addEventListener('change',()=>{hudOn=$('hudOn').checked;try{localStorage.setItem('rodovia_hud',hudOn?'1':'0')}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('confirmar_menus_selecao',_e)};draw()});
 if($('hudOn'))$('hudOn').checked=hudOn;
 
 // ---------- fluxos: selecionar uma trajetória e editar o sentido ----------
@@ -116,7 +116,7 @@ function showSegProps(){const box=$('propPanel');if(!box)return;if(!selSeg){if(!
  <div class="row"><button type="button" data-seg="reverse" class="${rev?'primary':''}">⇄ ${rev?'Desfazer inversão':'Inverter sentido'}</button><button type="button" data-seg="disable" class="${off?'primary':''}">⦸ ${off?'Reativar':'Desativar'}</button><button type="button" data-seg="close">Fechar</button></div>
  <label><input type="checkbox" id="flowAuto" ${localStorage.getItem('rodovia_flowauto')==='1'?'checked':''}> Atualizar fluxos automaticamente após editar</label><p class="muted">Clique numa trajetória (verde, vermelha ou amarela) com Navegar para editá-la. A seta indica o sentido atual.</p>`}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#propPanel [data-seg]');if(!b)return;const a=b.dataset.seg;if(a==='close'){selSeg=null;$('propPanel').hidden=true;draw();return}const s=editor?.segments?.find(x=>x.id===selSeg?.id);if(s)segToggle(s,a)});
-document.addEventListener('change',e=>{if(e.target.id==='flowAuto'){try{localStorage.setItem('rodovia_flowauto',e.target.checked?'1':'0')}catch{}}});
+document.addEventListener('change',e=>{if(e.target.id==='flowAuto'){try{localStorage.setItem('rodovia_flowauto',e.target.checked?'1':'0')}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('confirmar_menus_selecao',_e)}}});
 canvas.addEventListener('pointerup',e=>{if(tool!=='pan'||e.button!==0||cadCmd||e.shiftKey||e.ctrlKey||!ready())return;if(sel||selSet.length)return;
  const c=canvasPt(e);if(!c.w)return;const moved=lastDownPt?Math.hypot(c.cx-lastDownPt.cx,c.cy-lastDownPt.cy):99;if(moved>4)return;
  if(vecOn.flows===false)return;const seg=nearestSegment(c.w,6/Math.max(pxPerM(),1e-9));if(!seg){if(selSeg){selSeg=null;showSegProps();draw()}return}selSeg={id:seg.id};showSegProps();draw()});
@@ -124,7 +124,7 @@ let lastDownPt=null;canvas.addEventListener('pointerdown',e=>{lastDownPt=canvasP
 function drawSelSeg(){if(!selSeg||!editor)return;const s=editor.segments.find(x=>x.id===selSeg.id);if(!s)return;const pts=s.points.map(P);poly(pts);ctx.save();ctx.strokeStyle='#ffffff';ctx.lineWidth=6;ctx.globalAlpha=.25;ctx.stroke();ctx.restore()}
 
 // ---------- editor de texturas ----------
-const TEX_LABEL={pista_nova:'Pista nova (asfalto)',pista_existente:'Pista existente',concreto:'Concreto (OAE e pavimento rígido)',acostamento:'Acostamento',canteiro:'Canteiro (grama)',trilhas:'Trilhas de roda',talude_corte:'Talude de corte',talude_aterro:'Talude de aterro'};
+const TEX_LABEL={pista_nova:'Pista nova (asfalto)',pista_existente:'Pista existente',concreto:'Concreto (OAE e pavimento rígido)',acostamento:'Acostamento',canteiro:'Canteiro (grama)',trilhas:'Trilhas de roda',talude_corte:'Talude de corte',talude_aterro:'Talude de aterro',oae_nova:'OAE nova',oae_existente:'OAE existente',oae_alargada:'OAE alargada'};
 const TEX_KEYS=[['grao','Grão / agregado',0,3,.05],['tom','Variação de tom',0,3,.05],['remendos','Remendos / manchas',0,3,.05],['fissuras','Fissuras',0,3,.05],['brilho','Brilho',-.3,.3,.01]];
 function texUi(){const box=$('texEditor');if(!box)return;const tp=cfg.texture_params||{};
  box.innerHTML='<div class="texGrid">'+Object.entries(TEX_LABEL).map(([k,l])=>{const v={grao:1,tom:1,remendos:1,fissuras:1,brilho:0,...(tp[k]||{})};
@@ -137,8 +137,8 @@ $('texEditor')?.addEventListener('input',e=>{const card=e.target.closest('[data-
 $('texEditor')?.addEventListener('change',e=>{const card=e.target.closest('[data-tex]');if(!card||!pid)return;const v=texVals(card),k=card.dataset.tex;const tp={...(cfg.texture_params||{})};
  if(v.grao===1&&v.tom===1&&v.remendos===1&&v.fissuras===1&&v.brilho===0)delete tp[k];else tp[k]=v;cfg.texture_params=tp;scheduleSave();msg(`Textura de “${TEX_LABEL[k]}” ajustada. Gere a prévia para ver no vídeo.`)});
 $('texEditor')?.addEventListener('click',e=>{if(e.target.dataset.texreset===undefined)return;const card=e.target.closest('[data-tex]');card.querySelectorAll('input[data-f]').forEach(i=>{i.value=i.dataset.f==='brilho'?0:1;i.previousElementSibling.textContent=Number(i.value).toFixed(2)});texPrev(card);const tp={...(cfg.texture_params||{})};delete tp[card.dataset.tex];cfg.texture_params=tp;scheduleSave()});
-estender('load',_l7=>async (id,options={})=>{const loaded=await _l7(id,options);if(loaded===false||pid!==id)return false;if(options.resultsOnly)return loaded;try{texUi()}catch{};return loaded},'editor de texturas');
+estender('load',_l7=>async (id,options={})=>{const loaded=await _l7(id,options);if(loaded===false||pid!==id)return false;if(options.resultsOnly)return loaded;try{texUi()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('confirmar_menus_selecao',_e)};return loaded},'editor de texturas');
 
 // ---------- desenho dos extras ----------
-estender('draw',_d2=>function(){_d2();if(!ready())return;try{drawSelSet();drawSelSeg();drawBox();drawHud()}catch(err){}},'desenho dos extras');
+estender('draw',_d2=>function(){_d2();if(!ready())return;try{drawSelSet();drawSelSeg();drawBox();drawHud()}catch(err){window.RodoviaErros&&RodoviaErros.avisar('confirmar_menus_selecao',err)}},'desenho dos extras');
 

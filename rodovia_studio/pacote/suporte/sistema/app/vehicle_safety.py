@@ -1,7 +1,9 @@
 """Corpos orientados e reservas espaciais; nenhum objeto é removido para ocultar uma colisão."""
+from .falhas import registrar as _falha
 import math
 from collections import defaultdict
 import numpy as np
+import shapely
 from shapely.geometry import Polygon,MultiPoint,Point
 from .vehicle_motion import PROFILES,axle_geometry_prepared
 
@@ -16,6 +18,13 @@ def body(center,heading,length,width,buffer_m=0.):
     polygon=Polygon([c+h*a+n*b for a,b in [(-length/2,-width/2-buffer_m),(length/2,-width/2-buffer_m),(length/2,width/2+buffer_m),(-length/2,width/2+buffer_m)]])
     if not polygon.is_valid or not math.isfinite(polygon.area) or polygon.area<=0:raise ValueError('Corpo veicular degenerado.')
     return polygon
+
+def body_corners(center,heading,length,width,buffer_m=0.):
+    """Os 4 cantos de body() sem criar o Polígono (mesmas validações e aritmética; retângulo de lados positivos é sempre válido)."""
+    c=np.asarray(center,float);h=np.asarray(heading,float)
+    if c.shape!=(2,) or h.shape!=(2,) or not np.isfinite([*c,*h,length,width,buffer_m]).all() or length<=0 or width<=0 or buffer_m<0 or math.hypot(*h)<1e-9:raise ValueError('Corpo veicular inválido.')
+    h=h/math.hypot(*h);n=np.array([-h[1],h[0]])
+    return [c+h*a+n*b for a,b in [(-length/2,-width/2-buffer_m),(length/2,-width/2-buffer_m),(length/2,width/2+buffer_m),(-length/2,width/2+buffer_m)]]
 
 class SpatialReservations:
     def __init__(self):self.cells=defaultdict(list)
@@ -44,7 +53,7 @@ class PolygonSafety:
         try:
             _,link,_,_,_=self.sim.locate(v['p'],v['s'])
             if link[0]=='e' and link[1]>=0:return int(self.sim.net.edges[link[1]].get('level',0))
-        except (AttributeError,KeyError,IndexError):pass
+        except (AttributeError,KeyError,IndexError) as _e:_falha(__name__,_e)
         return None
     def corridor_conflict(self,p,q,width,other_width):
         from shapely.geometry import LineString
@@ -124,9 +133,10 @@ class PolygonSafety:
         return all(poly.intersection(self.footprint(v)).area<1e-7 for v in vehicles if v['id']!=new['id'] and (level is None or self.level(v) is None or self.level(v)==level) and np.linalg.norm(self.pose(v)[0]-self.pose(new)[0])<40)
     def sweep(self,v,forward):
         if forward<1e-9:return self.footprint(v)
-        points=[]
-        for ds in np.linspace(0,forward,max(3,min(17,int(math.ceil(forward/.5))+1))):points.extend(self.footprint(v,float(ds),.2*float(ds)/forward).exterior.coords)
-        hull=MultiPoint(points).convex_hull
+        points=[];L,B,_,_=PROFILES.get(v.get('t','car'),PROFILES['car'])
+        for ds in np.linspace(0,forward,max(3,min(17,int(math.ceil(forward/.5))+1))):
+            c,h=self.pose(v,float(ds),.2*float(ds)/forward);points.extend(body_corners(c,h,L,B,LATERAL_BUFFER))
+        hull=shapely.convex_hull(shapely.multipoints(np.array(points)))
         return hull.buffer(.03) if np.linalg.norm(self.pose(v)[1]-self.pose(v,forward)[1])>.002 else hull
     def resolve(self,vehicles,planned,vehicle_check=True):
         if not vehicles:return planned

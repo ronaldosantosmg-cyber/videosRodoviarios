@@ -1,4 +1,5 @@
 """Verifica recursos locais sem baixar instaladores ou contatar serviços externos."""
+from .falhas import registrar as _falha
 from pathlib import Path
 import importlib.util,subprocess
 
@@ -17,7 +18,7 @@ def inspect_local():
     try:
         import rasterio
         with rasterio.Env() as env:drivers=env.drivers()
-    except Exception:pass
+    except Exception as _e:_falha(__name__,_e)
     return {'dependencias_locais':modules,'ffmpeg':{'disponivel':ffmpeg,'detalhe':detail},
             'fontes_locais':(Path(__file__).resolve().parents[1]/'assets/fonts/DejaVuSans.ttf').is_file(),
             'recursos':{'DXF':modules['ezdxf'],'KMZ':True,'GeoTIFF':'GTiff' in drivers,'ECW':'ECW' in drivers,'MrSID':'MrSID' in drivers,'DWG_ODA':bool(conversor())},

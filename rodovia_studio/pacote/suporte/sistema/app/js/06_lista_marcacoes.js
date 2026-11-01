@@ -26,7 +26,7 @@ function refreshLists(){const L=[];const kmTxt=p=>{if(!axisData())return '';cons
  if((M.highlights||[]).length){L.push('<h3>Destaques (pontos especiais)</h3><table>');M.highlights.forEach((h,i)=>L.push(row(`<td><input data-f="hl.${i}.name" value="${esc(h.name)}"><select data-f="hl.${i}.category">${Object.entries(HL_LABEL).map(([k,v])=>`<option value="${k}" ${h.category===k?'selected':''}>${v}</option>`).join('')}</select><input data-f="hl.${i}.description" placeholder="descrição" value="${esc(h.description)}"></td><td>km ${kmTxt(h.point)}<br><input type="color" data-f="hl.${i}.color" value="${h.color||(HL_STYLE[h.category]||HL_STYLE.outro)[0]}"></td><td><label><input type="checkbox" data-f="hl.${i}.show_in_video" ${h.show_in_video!==false?'checked':''}> no vídeo</label><label><input type="checkbox" data-f="hl.${i}.stop" ${h.stop?'checked':''}> parada da câmera</label><label><input type="checkbox" data-f="hl.${i}.show_km" ${h.show_km!==false?'checked':''}> mostrar km</label><button data-act="hl-auto" data-i="${i}">Caixa automática</button> <button data-act="zoom" data-x="${h.point.x}" data-y="${h.point.y}">Ver</button> <button data-act="del" data-list="highlights" data-i="${i}">Excluir</button></td>`,'hl'+i)));L.push('</table>')}
  const anch=M.pois.filter(p=>p.anchor);if(anch.length){L.push('<h3>Linhas de chamada</h3><table>');anch.forEach(p=>{const i=M.pois.indexOf(p);L.push(row(`<td>${esc(p.title)}</td><td><button data-act="zoom" data-x="${p.anchor.x}" data-y="${p.anchor.y}">Ver</button> <button data-act="anchor-del" data-i="${i}">Excluir âncora</button></td>`,'an'+i))});L.push('</table>')}
  L.push('</div>');$('markList').innerHTML=L.join('');
- $('pathList').innerHTML='';showPois();showPairs();$('alignState').value=M.dxf_alignment.applied?'Aplicado ao DXF (em memória)':'Não aplicado';if(typeof cabinUi==='function'&&$('cabinState'))try{cabinUi()}catch{}}
+ $('pathList').innerHTML='';showPois();showPairs();$('alignState').value=M.dxf_alignment.applied?'Aplicado ao DXF (em memória)':'Não aplicado';if(typeof cabinUi==='function'&&$('cabinState'))try{cabinUi()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('lista_marcacoes',_e)}}
 $('markList').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const i=Number(b.dataset.i),act=b.dataset.act;
  if(act==='del'){checkpoint();M[b.dataset.list].splice(i,1);selected=null;changed('Item excluído.')}
  else if(act==='flip-dir'){checkpoint();const d=M.direction_marks[i];[d.start,d.end]=[d.end,d.start];changed('Seta invertida.')}
@@ -50,5 +50,12 @@ $('markList').addEventListener('change',e=>{const f=e.target.dataset.f;if(!f)ret
 async function cityAuto(){try{requireProject();if(!analysis)throw Error('Analise os arquivos antes de buscar as cidades.');msg('Buscando cidades próximas no OpenStreetMap…');const r=await api(`/api/projects/${pid}/cities/auto?radius_km=${Number($('cities_radius_km')?.value||25)}`);
  const have=new Set((M.cities||[]).map(c=>c.name.toLowerCase()));const add=r.cities.filter(c=>!have.has(c.name.toLowerCase()));if(!add.length)return msg(r.cities.length?'As cidades encontradas já estão na lista.':'Nenhuma cidade encontrada no raio informado.');
  checkpoint();for(const c of add)M.cities.push({id:uid(),name:c.name,point:{x:c.x,y:c.y},kind:c.kind,population:c.population,source:'auto',show:true});changed(`${add.length} cidade(s) adicionada(s): ${add.map(c=>c.name).join(', ')}. Renomeie, oculte ou exclua na lista.`)}catch(e){msg(e.message,true)}}
-function zoomTo(w){if(!ready())return;const [x,y]=worldToImg(w);const s=Math.max(view.s,useGeo()?canvas.width*geo.mpp_crs/150:2*canvas.width/baseImage.width);view.s=s;view.ox=canvas.width/2-x*s;view.oy=canvas.height/2-y*s;draw()}
+/* 1.42.42: localizar/editar não altera o zoom. Ponto já visível: nada muda; fora da tela: só desloca (mantém a escala).
+   zoom:true é reservado a comandos explícitos de aproximação. */
+function revealPoint(w,{zoom=false}={}){if(!ready())return;const [x,y]=worldToImg(w);if(!Number.isFinite(x)||!Number.isFinite(y))return;let s=view.s;
+ if(zoom)s=Math.max(view.s,useGeo()?canvas.width*geo.mpp_crs/150:2*canvas.width/baseImage.width);
+ const sx=x*s+(zoom?0:view.ox),sy=y*s+(zoom?0:view.oy);
+ if(!zoom){const mx=canvas.width*.1,my=canvas.height*.1;if(sx>=mx&&sx<=canvas.width-mx&&sy>=my&&sy<=canvas.height-my){draw();return}}
+ view.s=s;view.ox=canvas.width/2-x*s;view.oy=canvas.height/2-y*s;draw()}
+function zoomTo(w,options){revealPoint(w,options)}
 

@@ -4,6 +4,7 @@ Todas as texturas são ancoradas em coordenadas do projeto (não "nadam" com a c
 uma pirâmide pré-filtrada: com zoom aberto, a textura é suavizada em vez de cintilar.
 O modo 'classic' mantém o desenho da 1.4 sem alterações.
 """
+from .seguro import sdiv as _sdiv
 import math
 import numpy as np
 import cv2
@@ -63,19 +64,21 @@ def concrete_fino():
     return _CONCRETE_F
 def asphalt():
     global _ASPHALT
-    if _ASPHALT is None:_ASPHALT=Texture(57)
+    if _ASPHALT is None:_ASPHALT=Texture(57,((16,.14),(64,.26),(256,.6)))
     return _ASPHALT
 def grass():
     global _GRASS
-    if _GRASS is None:_GRASS=Texture(23,((16,.25),(64,.35),(256,.4)))
+    if _GRASS is None:_GRASS=Texture(23,((32,.1),(128,.3),(256,.6)))
     return _GRASS
 def concrete():
     global _CONCRETE
-    if _CONCRETE is None:_CONCRETE=Texture(11,((4,.5),(16,.3),(64,.15),(256,.05)))
+    if _CONCRETE is None:_CONCRETE=Texture(11,((16,.1),(64,.25),(256,.65)))
     return _CONCRETE
 
 # Classes de superfície no raster auxiliar (6/7: taludes; 8: trilha de roda na pista existente, só no detalhe).
-SURF={'pavement':1,'existing_pavement':2,'oae':3,'shoulder':4,'median':5}
+SURF={'pavement':1,'existing_pavement':2,'oae':3,'shoulder':4,'median':5,'terrain':5}
+OAE_KIND_SURF={'nova':9,'existente':10,'alargada':11}   # 1.42.40: texturas distintas por tipo de OAE
+OAE_KIND_RGB={'nova':(156,158,154),'existente':(128,130,126),'alargada':(146,143,132)}
 EARTH_SURF={'cut':6,'fill':7}  # só com taludes 'naturais'
 
 # ---------------- 1.16: texturas realistas ----------------
@@ -106,12 +109,12 @@ def cracks():
         t=Texture(0,base=warp-warp.mean());t.levels=[l+warp.mean() for l in t.levels];_CRACK=t
     return _CRACK
 
-_R_SPK=np.zeros(256,np.float32);_R_SPK[[1,2,3,4,6,8]]=(.055,.06,.03,.07,.05,.03)
-_R_PATCH=np.zeros(256,np.float32);_R_PATCH[[2,8]]=(.09,.05)
-_R_CRACK=np.zeros(256,np.float32);_R_CRACK[2]=.32
+_R_SPK=np.zeros(256,np.float32);_R_SPK[[1,2,3,4,6,8]]=(.055,.06,.03,.07,.05,.03);_R_SPK[[9,10,11]]=(.03,.055,.04)
+_R_PATCH=np.zeros(256,np.float32);_R_PATCH[[2,8]]=(.09,.05);_R_PATCH[10]=.07
+_R_CRACK=np.zeros(256,np.float32);_R_CRACK[2]=.32;_R_CRACK[10]=.22;_R_CRACK[11]=.08
 _R_SHIFT=np.zeros(256,np.float32);_R_SHIFT[[4,8]]=(.03,-.07)
 
-def shade_realistic(im,surface,s2w,m_per_px,valid,lut=None):
+def shade_realistic(im,surface,s2w,m_per_px,valid,lut=None,earth_grass=False):
     """Camada extra das texturas 1.16: agregado, remendos e fissuras na pista existente, trilhas de roda,
     acostamento mais claro e solo/grama nos taludes. Ancorada em metros (não 'nada' com a câmera).
     1.24: 'lut' traz as intensidades editadas pelo usuário (None = padrão)."""
@@ -135,18 +138,49 @@ def shade_realistic(im,surface,s2w,m_per_px,valid,lut=None):
     cut=S==6;fil=S==7
     if cut.any():
         n=soil().sample(A,shape,m_per_px);out*=(1+.10*n*cut)[:,:,None];out[:,:,0]+=cut*4*n
+        if earth_grass:                                   # 1.42.40: talude de corte vermelho com grama
+            gt=np.clip(grass().sample(A,shape,m_per_px)*2.2,0,1)*cut;out[:,:,1]+=gt*22;out[:,:,0]-=gt*10;out[:,:,2]-=gt*6
     if fil.any():
         n=grass().sample(A,shape,m_per_px)*fil;out*=(1+.14*n)[:,:,None];out[:,:,1]+=fil*(5+5*n)
     roi[:]=np.clip(out,0,255).astype(np.uint8)
 
-_LUT_GRAIN=np.zeros(256,np.float32);_LUT_GRAIN[[1,2,4]]=(.075,.045,.05)
-_LUT_TONE=np.zeros(256,np.float32);_LUT_TONE[[1,2,4]]=(.035,.03,.02)
-_LUT_CONC=np.zeros(256,np.float32);_LUT_CONC[3]=.06
+_LUT_GRAIN=np.zeros(256,np.float32);_LUT_GRAIN[[1,2,4]]=(.11,.05,.05)   # 2.28: CBUQ novo com micro/macrotextura mais nítida
+_LUT_TONE=np.zeros(256,np.float32);_LUT_TONE[[1,2,4]]=(.012,.03,.02)  # e tom uniforme (luz difusa)
+_LUT_CONC=np.zeros(256,np.float32);_LUT_CONC[3]=.06;_LUT_CONC[[9,10,11]]=(.045,.08,.06)
 
 def _crop(s2w,x0,y0):
     A=np.array(s2w,float);A[:,2]=A[:,2]+A[:,0]*x0+A[:,1]*y0;return A
 
-def shade_surface(im,surface,s2w,m_per_px,valid,grass_on=True,lut=None,arte=False):
+
+def _grama_ambiente(out,n,GR,A,sol,m_per_px):
+    """2.28: canteiro/grama com relevo iluminado pelo sol (posição e altura), oclusão entre tufos e resposta ao clima.
+    sol = {'az','el','weather','k','sun'}; sem 'sol' mantém só a textura base. Ancorado no terreno (não nada com a câmera)."""
+    if not sol:return out
+    az=math.radians(float(sol.get('az',315.)));el=float(np.clip(sol.get('el',50.),10,80));tempo=sol.get('weather','limpo');k=float(sol.get('k',.6))
+    try:M=np.asarray(A,float)[:,:2];sv=np.linalg.solve(M,np.array([math.sin(az),math.cos(az)]))
+    except np.linalg.LinAlgError:return out
+    sv/=max(float(np.hypot(*sv)),1e-9)
+    gy,gx=np.gradient(cv2.GaussianBlur(n.astype(np.float32),(0,0),.8))
+    gscale=max(float(np.abs(gx).std()+np.abs(gy).std()),1e-6)
+    luz=(_sdiv(-(gx*sv[0]+gy*sv[1]), gscale))                               # >0 voltado para o sol
+    difuso={'limpo':1.,'nublado':.3,'chuva':.4,'neblina':.25}.get(tempo,1.)
+    forca=.11*difuso*(.55+.45*(1-el/80))*(1 if sol.get('sun',True) else .8)
+    ao=np.clip(-n,0,2)*.07*(1.0 if tempo=='limpo' else .8)         # sombra entre tufos
+    mult=1+forca*np.clip(luz,-2.5,2.5)-ao
+    mult*=.82+.18*math.sin(math.radians(el))*(1 if sol.get('sun',True) else 1.2)   # altura do sol: mais escuro de manhã/tarde
+    out*=np.where(GR,mult,1)[:,:,None]
+    quente=np.clip(1-el/55,0,1)*.14*(1 if tempo=='limpo' else .4)   # sol baixo: luz quente
+    out[:,:,0]*=np.where(GR,1+quente,1);out[:,:,2]*=np.where(GR,1-quente*1.2,1)
+    if tempo=='chuva':                                             # grama molhada: escura, mais saturada e com brilho
+        mol=np.where(GR,1,0).astype(np.float32);out*=(1-.2*k*mol)[:,:,None];out[:,:,1]+=mol*5*k
+        out+=(np.clip(luz,0,None)**2*7*k*mol)[:,:,None]
+    elif tempo=='nublado':
+        g=out.mean(2,keepdims=True);out[:]=np.where(GR[:,:,None],out*(1-.22*k)+g*.22*k,out)
+    elif tempo=='neblina':
+        out[:]=np.where(GR[:,:,None],out*(1-.3*k)+np.array([206,210,214],np.float32)*.3*k,out)
+    return out
+
+def shade_surface(im,surface,s2w,m_per_px,valid,grass_on=True,lut=None,arte=False,sol=None):
     """Modula pavimento (grão e tom), via existente (mais clara e lisa), acostamento e OAE (concreto)."""
     L=lut or DEFAULT_LUT;_LUT_GRAIN,_LUT_TONE,_LUT_CONC=L['grain'],L['tone'],L['conc']
     if L.get('bright') is not None:
@@ -170,21 +204,45 @@ def shade_surface(im,surface,s2w,m_per_px,valid,grass_on=True,lut=None,arte=Fals
     C=c[y0:y1,x0:x1]
     if C.any():F+=C*tx_c.sample(A,shape,m_per_px)
     GR=gr[y0:y1,x0:x1];roi=im[y0:y1,x0:x1]
+    NEW=(surface[y0:y1,x0:x1]==1)&valid[y0:y1,x0:x1]
+    if NEW.any():
+        # CBUQ recém-lançado: ligante preto-azeviche com agregado britado claro e uniforme (pontos minerais nítidos).
+        pts=np.clip(speckle().sample(A,shape,m_per_px)-.55,0,None)*NEW*float(np.clip((.12-m_per_px)/.1,0,1))
+        add=pts*34;out=roi.astype(np.float32)*F[:,:,None]+add[:,:,None];roi[:]=np.clip(out,0,255).astype(np.uint8)
+        if not GR.any():return
+        F=np.ones_like(F)
     if GR.any():
         # Grama do canteiro (1.10): textura em metros com leve variação de verde.
-        n=grass().sample(A,shape,m_per_px)*GR;F+=float(L.get('grass',.16))*n
-        out=roi.astype(np.float32)*F[:,:,None];out[:,:,1]+=GR*(6+5*n);roi[:]=np.clip(out,0,255).astype(np.uint8);return
+        n0=grass().sample(A,shape,m_per_px);n=n0*GR;F+=float(L.get('grass',.12))*n
+        out=roi.astype(np.float32)*F[:,:,None];out[:,:,1]+=GR*(2+3*n);out[:,:,0]+=GR*(1.5+2.5*np.clip(n,0,None))
+        out=_grama_ambiente(out,n0,GR,A,sol,m_per_px)
+        roi[:]=np.clip(out,0,255).astype(np.uint8);return
     roi[:]=np.clip(roi.astype(np.float32)*F[:,:,None],0,255).astype(np.uint8)
 
 def oae_details(im,joints,rails,screen,m_per_px):
-    """Juntas de dilatação e guarda-corpos (vetoriais, nítidos em qualquer zoom)."""
-    w=max(1,round(.22/m_per_px))
+    """2.28: juntas de dilatação com chapa metálica e barreiras New Jersey vistas de cima (topo claro,
+    face lateral sombreada e sombra projetada no tabuleiro). Vetorial: nítido em qualquer zoom."""
+    m=max(m_per_px,1e-6)
     for seg in joints:
-        q=screen(seg).astype(np.int32);cv2.line(im,tuple(q[0]),tuple(q[1]),(98,100,98),w,cv2.LINE_AA)
+        q=screen(seg).astype(np.int32);p0,p1=q[0],q[1]
+        d=(p1-p0).astype(np.float32);L=float(np.hypot(*d))
+        w=max(1,round(.20/m));cv2.line(im,tuple(p0),tuple(p1),(38,40,40),w,cv2.LINE_AA)       # vão da junta
+        if L>0 and .5/m>=3:
+            n=((np.array([-d[1],d[0]])) / (L))*max(1.,.28/m);off=(n).astype(np.int32)
+            for sgn,col in ((1,(176,178,174)),(-1,(122,124,122))):                            # chapas metálicas nas bordas
+                cv2.line(im,tuple(p0+sgn*off),tuple(p1+sgn*off),col,max(1,round(.08/m)),cv2.LINE_AA)
     for rail in rails:
         q=screen(rail).astype(np.int32)
-        cv2.polylines(im,[q],False,(70,72,70),max(1,round(.55/m_per_px)),cv2.LINE_AA)
-        cv2.polylines(im,[q],False,(232,231,224),max(1,round(.32/m_per_px)),cv2.LINE_AA)
+        if len(q)<2:continue
+        sh=max(2,round(.9/m));x0,y0=np.maximum(q.min(0)-sh-3,0);x1,y1=q.max(0)+sh+4
+        H,W=im.shape[:2];x1=min(W,x1);y1=min(H,y1)
+        if x1>x0 and y1>y0:                                                                    # sombra projetada, suave
+            m_=np.zeros((y1-y0,x1-x0),np.uint8);cv2.polylines(m_,[q-[x0,y0]+[sh//2,sh//2]],False,255,max(2,round(.55/m)),cv2.LINE_AA)
+            m_=cv2.GaussianBlur(m_,(0,0),max(.8,.25/m));roi=im[y0:y1,x0:x1]
+            roi[:]=(roi*(1-.38*m_.astype(np.float32)/255)[:,:,None]).astype(np.uint8)
+        cv2.polylines(im,[q],False,(112,114,111),max(2,round(.62/m)),cv2.LINE_AA)               # base/face sombreada
+        cv2.polylines(im,[q],False,(196,196,190),max(1,round(.40/m)),cv2.LINE_AA)               # chanfro
+        cv2.polylines(im,[q],False,(228,227,220),max(1,round(.20/m)),cv2.LINE_AA)               # topo iluminado
 
 def cast_shadow(im,ring,level_m,screen,alpha=.32,dir=(.35,-.55)):
     """Sombra da OAE no terreno, deslocada pelo nível (sol fixo a noroeste)."""
@@ -239,10 +297,31 @@ TYPES={'car':{'L':4.5,'B':1.8,'H':1.5},'truck':{'L':12.,'B':3.0,'H':3.6},'bus':{
 
 TYPES.update({k:{**TYPES[style],'L':L,'B':B,'style':style} for k,style,L,B in [('car6','car',6.,2.),('moto2','moto',2.,.5),('truck18','truck',18.,3.),('long30','carreta',30.,3.)]})
 
+# 2.44: frota "Rodovia brasileira realista": classes com dimensões reais. 'view' = classe que o visualizador 3D já sabe desenhar.
+FROTA_BR=[('hatch','car',3.95,1.68,1.45,'car','Hatch'),('sedan','car',4.6,1.8,1.45,'car','Sedã'),('suv','car',4.7,1.9,1.7,'car','SUV'),
+          ('vuc','truck',6.3,2.2,2.8,'truck','Caminhão urbano (VUC)'),('toco','truck',9.0,2.5,3.4,'truck','Caminhão toco'),('cacamba','truck',8.4,2.5,3.2,'truck','Caminhão caçamba'),
+          ('onibus13','bus',13.2,2.6,3.4,'bus','Ônibus rodoviário'),('micro','bus',8.8,2.4,3.0,'bus','Micro-ônibus'),('bitrem','carreta',25.0,2.6,4.1,'carreta','Bitrem')]
+for _k,_s,_L,_B,_H,_v,_n in FROTA_BR:TYPES[_k]={**TYPES[_s],'L':_L,'B':_B,'H':_H,'style':_s,'view':_v,'label':_n}
+# participação por classe (% do fluxo), em ordem; o que sobra é "hatch". Proporções típicas de rodovia federal brasileira.
+MIX_BR_RODOVIA=[('moto',7),('hatch',19),('sedan',18),('suv',14),('pickup',10),('van',3),('vuc',3),('toco',3),('cacamba',2),('truck',4),('bus',2),('micro',1),('onibus13',2),('carreta',9),('bitrem',3)]
+MIX_BR_RAMO=[('moto',9),('hatch',24),('sedan',21),('suv',14),('pickup',12),('van',6),('vuc',5),('micro',3),('toco',2),('bus',2),('cacamba',2)]
+def _escolhe(tabela,h):
+    acc=0
+    for k,pct in tabela:
+        acc+=pct
+        if h<acc:return k
+    return 'hatch'
+# cores por classe, ponderadas como a frota brasileira (branco, prata, preto, cinza dominam)
+_PESOS_CARRO=[(236,236,232)]*28+[(196,199,200)]*21+[(58,60,64)]*19+[(118,122,126)]*13+[(142,30,34)]*6+[(36,62,112)]*5+[(214,206,186)]*3+[(28,92,74)]*2+[(132,183,205)]*2+[(232,192,115)]*1
+_LIVREA_BUS=[(226,226,214),(204,64,48),(38,104,170),(240,190,40),(236,236,230),(40,120,80),(20,60,120),(180,60,110)]
+_COR_CAMINHAO=[(238,238,232),(238,238,232),(176,40,36),(46,84,140),(220,220,210),(90,96,100),(230,160,40),(40,110,70)]
 def vehicle_type(path_kinds,identity,mix='classico'):
     if mix=='engenharia':
         base=vehicle_type(path_kinds,identity,'variado');return {'car':'car6','pickup':'car6','van':'car6','moto':'moto2','truck':'truck18','carreta':'long30'}.get(base,base)
     i,k,cycle=identity;h=(i*7919+k*104729+cycle*31)%100
+    if mix=='rodovia_br':
+        h2=((i*7919+k*104729+cycle*31)*2654435761>>7)%100   # mistura melhor que o resto simples (evita ciclos de 100 veículos)
+        return _escolhe(MIX_BR_RAMO if not set(path_kinds)&{'main','marginal'} else MIX_BR_RODOVIA,h2)
     if mix=='variado':
         # 1.37: frota variada (proporções típicas de rodovia; motos e vans também nos ramos).
         if not set(path_kinds)&{'main','marginal'}:return 'moto' if h<9 else 'van' if h<15 else 'pickup' if h<27 else 'car'
@@ -251,8 +330,14 @@ def vehicle_type(path_kinds,identity,mix='classico'):
     return 'truck' if h<16 else 'bus' if h<26 else 'car'
 
 def vehicle_color(identity,vtype):
+    br=vtype in {x[0] for x in FROTA_BR}
     vtype=TYPES[vtype].get('style',vtype)
     i,k,cycle=identity;h=(i*31+k*17+cycle*7)%len(CAR_COLORS)
+    if br:
+        hh=((i*31+k*17+cycle*7)*2246822519>>9)%1000
+        if vtype=='car':return _PESOS_CARRO[hh%len(_PESOS_CARRO)]
+        if vtype=='bus':return _LIVREA_BUS[hh%len(_LIVREA_BUS)]
+        if vtype=='truck':return _COR_CAMINHAO[hh%len(_COR_CAMINHAO)]
     if vtype=='bus':return [(226,226,214),(204,64,48),(38,104,170),(240,190,40)][h%4]
     if vtype=='carreta':return [(236,236,230),(30,90,160),(170,36,34),(60,120,70),(210,210,200)][h%5]
     if vtype=='van':return [(240,240,236),(220,220,214),(40,60,90),(170,170,170)][h%4]
@@ -265,11 +350,14 @@ def body(pt,tan,L,B,x0=None,x1=None):
     return np.array([pt+tan*a-n*B/2,pt+tan*b-n*B/2,pt+tan*b+n*B/2,pt+tan*a+n*B/2])
 
 def draw_vehicle(im,pt,tan,vtype,color,screen,m_per_px,shadow_layer=None):
-    T=TYPES[vtype];L,B=T['L'],T['B'];vtype=T.get('style',vtype);n=np.array([-tan[1],tan[0]])
+    T=TYPES[vtype];L,B=T['L'],T['B'];chave=vtype;vtype=T.get('style',vtype);n=np.array([-tan[1],tan[0]])
     def P(poly):return screen(poly).astype(np.int32)
     # Sombra suave projetada (sol a noroeste), proporcional à altura.
     sh=body(pt+np.array([.25,-.38])*T['H'],tan,L*1.02,B*1.05)
     cv2.fillPoly(shadow_layer if shadow_layer is not None else im,[P(sh)],(0,0,0) if shadow_layer is None else 255,cv2.LINE_AA)
+    try:
+        if __import__('app.sprites_veiculos',fromlist=['x']).blit(im,pt,tan,chave,vtype,color,screen,m_per_px,L,B):return
+    except Exception:pass   # qualquer falha no sprite cai no desenho simples, nunca interrompe o vídeo
     dark=tuple(int(c*.72) for c in color)
     if vtype=='car':
         cv2.fillPoly(im,[P(body(pt,tan,L,B))],dark,cv2.LINE_AA)
@@ -277,12 +365,21 @@ def draw_vehicle(im,pt,tan,vtype,color,screen,m_per_px,shadow_layer=None):
         cv2.fillPoly(im,[P(body(pt,tan,0,B-.42,.35,1.25))],(46,66,80),cv2.LINE_AA)   # para-brisa
         cv2.fillPoly(im,[P(body(pt,tan,0,B-.5,-1.75,-1.05))],(46,66,80),cv2.LINE_AA)  # vidro traseiro
         roof=tuple(min(255,int(c*1.06)+6) for c in color);cv2.fillPoly(im,[P(body(pt,tan,0,B-.55,-1.0,.3))],roof,cv2.LINE_AA)
+        if chave=='suv':   # rack de teto e vidro traseiro mais alto
+            for sd in (-1,1):
+                q=P(np.array([pt+tan*-1.3+n*sd*(B/2-.3),pt+tan*.9+n*sd*(B/2-.3)]));cv2.line(im,tuple(q[0]),tuple(q[1]),(34,34,36),max(1,round(.07/m_per_px)),cv2.LINE_AA)
+        elif chave=='sedan':   # porta-malas distinto: vidro traseiro recuado
+            cv2.fillPoly(im,[P(body(pt,tan,0,B-.5,-L/2+.15,-L/2+.62))],dark,cv2.LINE_AA)
+        elif chave=='hatch':   # traseira curta, sem porta-malas
+            cv2.fillPoly(im,[P(body(pt,tan,0,B-.55,-L/2+.1,-L/2+.3))],dark,cv2.LINE_AA)
     elif vtype=='truck':
         cv2.fillPoly(im,[P(body(pt,tan,0,B,-L/2,L/2-2.6))],(214,214,206) if color[0]<100 else color,cv2.LINE_AA)  # baú
         for f in np.arange(-L/2+1.2,L/2-2.8,1.2):
             q=P(np.array([pt+tan*f-n*B/2,pt+tan*f+n*B/2]));cv2.line(im,tuple(q[0]),tuple(q[1]),(170,170,162),1,cv2.LINE_AA)
         cv2.fillPoly(im,[P(body(pt,tan,0,B-.1,L/2-2.4,L/2))],color,cv2.LINE_AA)  # cabine
         cv2.fillPoly(im,[P(body(pt,tan,0,B-.45,L/2-.9,L/2-.35))],(46,66,80),cv2.LINE_AA)
+        if chave=='cacamba':   # caçamba aberta: interior escuro e bordas
+            cv2.fillPoly(im,[P(body(pt,tan,0,B-.35,-L/2+.25,L/2-2.8))],tuple(int(c*.45) for c in color),cv2.LINE_AA)
     elif vtype=='moto':
         cv2.fillPoly(im,[P(body(pt,tan,L,.34))],(30,30,32),cv2.LINE_AA)                                  # rodas e quadro
         cv2.fillPoly(im,[P(body(pt,tan,0,min(.62,B),-.55,.45))],color,cv2.LINE_AA)                                # tanque/carenagem
@@ -298,6 +395,8 @@ def draw_vehicle(im,pt,tan,vtype,color,screen,m_per_px,shadow_layer=None):
         for f in np.arange(-L/2+1.4,L/2-3.6,1.4):
             q=P(np.array([pt+tan*f-n*B/2,pt+tan*f+n*B/2]));cv2.line(im,tuple(q[0]),tuple(q[1]),tuple(int(c*.82) for c in color),1,cv2.LINE_AA)
         cv2.fillPoly(im,[P(body(pt,tan,0,B-.15,L/2-3.0,L/2))],(176,40,36) if color[0]>200 else (226,226,220),cv2.LINE_AA)   # cavalo
+        if chave=='bitrem':   # dois semirreboques: vão escuro entre eles
+            q=P(np.array([pt+tan*(-L/2+(L-3.4)/2)-n*B/2,pt+tan*(-L/2+(L-3.4)/2)+n*B/2]));cv2.line(im,tuple(q[0]),tuple(q[1]),(30,30,32),max(2,round(.5/m_per_px)),cv2.LINE_AA)
         cv2.fillPoly(im,[P(body(pt,tan,0,B-.5,L/2-.95,L/2-.35))],(46,66,80),cv2.LINE_AA)
     else:
         cv2.fillPoly(im,[P(body(pt,tan,L,B))],dark,cv2.LINE_AA);cv2.fillPoly(im,[P(body(pt,tan,L-.16,B-.16))],color,cv2.LINE_AA)
@@ -383,6 +482,7 @@ def draw_highlight(im,marker,label,h,font,scale,top,bottom,km_text=''):
 
 
 # ---------------- 1.26: caixas de chamada sem sobreposição e pórticos ----------------
+REF_CREAM=(236,218,168);REF_GOLD=(240,214,150);REF_RED=(226,60,40)
 _CARD_CACHE={}
 def callout_card(key,title,sub,desc,rgb,font,sc,style='cartao',ts=1.,image=None):
     """Cartão RGBA (numpy) da caixa de chamada. image: RGB numpy (opcional), mostrada abaixo do texto."""
@@ -390,7 +490,19 @@ def callout_card(key,title,sub,desc,rgb,font,sc,style='cartao',ts=1.,image=None)
     if k in _CARD_CACHE:return _CARD_CACHE[k]
     from PIL import Image,ImageDraw
     probe=ImageDraw.Draw(Image.new('RGB',(1,1)));z=sc*ts
-    if style=='etiqueta':
+    if style=='referencia':
+        # 1.42.40: caixa idêntica à referência: fundo azul-marinho, borda creme, título branco em caixa alta, subtítulo dourado.
+        f1=font(22*z,True);f2=font(16*z);pad=int(14*z);maxw=int(430*z)
+        lines=[(title.upper(),f1,(255,255,255))]
+        if sub:lines.append((sub,f2,REF_GOLD))
+        for l in _wrap(probe,desc or '',f2,maxw):lines.append((l,f2,(214,226,232)))
+        tw=int(max(probe.textlength(t,font=f) for t,f,_ in lines))+2*pad;lh=[int(f.size*1.36) for _,f,_ in lines];th=sum(lh)+2*pad-int(4*z)
+        img=Image.new('RGBA',(tw,th),(0,0,0,0));d=ImageDraw.Draw(img)
+        d.rounded_rectangle((0,0,tw-1,th-1),radius=int(9*z),fill=(8,15,30,236),outline=REF_CREAM+(255,),width=max(1,round(2*sc)))
+        y=pad-int(2*z)
+        for (t,f,c),hh in zip(lines,lh):d.text((pad,y),t,font=f,fill=c+(255,));y+=hh
+        arr=np.array(img)
+    elif style=='etiqueta':
         f=font(19*z,True);pad=int(9*z);tw=int(probe.textlength(title,font=f))+2*pad+int(10*z);th=int(f.size*1.5)+pad
         img=Image.new('RGBA',(tw,th),(0,0,0,0));d=ImageDraw.Draw(img)
         d.rounded_rectangle((0,0,tw-1,th-1),radius=th//2,fill=(8,22,35,236),outline=rgb+(255,),width=max(1,round(2*sc)))
@@ -451,6 +563,14 @@ def place_card(marker,size,W,top,bottom,placed,sc,label=None):
         if free:return free[1],free[2]
     return best[1],best[2]
 
+def _ref_arrow(layer,a,b,sc,t=.78):
+    """Ponta de seta creme sobre a linha de chamada (de a para b), a 78% do trajeto."""
+    a=np.asarray(a,float);b=np.asarray(b,float);v=b-a;L=float(np.linalg.norm(v))
+    if L<30*sc:return
+    u=(_sdiv(v, L));n=np.array([-u[1],u[0]]);tip=a+v*t;hl=16*sc;hw=6.5*sc
+    tri=np.int32([tip,tip-u*hl+n*hw,tip-u*hl-n*hw]);cv2.fillPoly(layer,[tri],(10,22,32),cv2.LINE_AA);cv2.fillPoly(layer,[tri],REF_CREAM,cv2.LINE_AA)
+
+
 def draw_callout(im,marker,card,rgb,sc,top,bottom,placed,label=None,leader='reta',alpha=1.,letter=None,font=None,marker_kind='circle'):
     """Marcador + linha de chamada + cartão, desenhados só na região afetada (mais rápido) e sem sobrepor outros cartões."""
     H,W=im.shape[:2];mx,my=marker;th,tw=card.shape[:2]
@@ -458,15 +578,21 @@ def draw_callout(im,marker,card,rgb,sc,top,bottom,placed,label=None,leader='reta
     if alpha<=.02:return None
     x,y=place_card(marker,(tw,th),W,top,bottom,placed,sc,label);x0,y0=int(x),int(y);placed.append((x0,y0,x0+tw,y0+th))
     cx=float(np.clip(mx,x0,x0+tw));cy=float(np.clip(my,y0,y0+th))
+    ref=leader=='referencia'
+    if ref and (my>y0+th or my<y0):cx=float(np.clip(mx,x0+.6*tw,x0+tw-12*sc));cy=float(y0+th if my>y0+th else y0)
     pts=[(mx,my),(cx,cy)] if leader!='cotovelo' else [(mx,my),(mx,cy) if not (x0<=mx<=x0+tw) else (cx,my),(cx,cy)]
     r=max(6,round(15*sc));pad=r+8
     X0=int(max(0,min(x0,mx-pad)));Y0=int(max(0,min(y0,my-pad)));X1=int(min(W,max(x0+tw,mx+pad)));Y1=int(min(H,max(y0+th,my+pad)))
     if X1<=X0 or Y1<=Y0:return None
     roi=im[Y0:Y1,X0:X1];layer=roi.copy();o=np.array([X0,Y0])
     P=np.int32([np.array(p)-o for p in pts])
-    cv2.polylines(layer,[P],False,(10,22,32),max(3,round(5*sc)),cv2.LINE_AA);cv2.polylines(layer,[P],False,rgb,max(1,round(2.5*sc)),cv2.LINE_AA)
+    lc=REF_CREAM if ref else rgb
+    cv2.polylines(layer,[P],False,(10,22,32),max(3,round(5*sc)) if not ref else max(3,round(4*sc)),cv2.LINE_AA);cv2.polylines(layer,[P],False,lc,max(1,round(2.5*sc)) if not ref else max(2,round(2.2*sc)),cv2.LINE_AA)
     m=(int(mx-X0),int(my-Y0))
-    if marker_kind=='circle':
+    if ref:
+        _ref_arrow(layer,P[1],P[0],sc);rr=max(4,round(6*sc))
+        cv2.circle(layer,m,rr+max(1,round(1.5*sc)),(255,240,210),-1,cv2.LINE_AA);cv2.circle(layer,m,rr,REF_RED,-1,cv2.LINE_AA)
+    elif marker_kind=='circle':
         cv2.circle(layer,m,r+max(1,round(3*sc)),(10,22,32),-1,cv2.LINE_AA);cv2.circle(layer,m,r,rgb,-1,cv2.LINE_AA)
         if letter and font is not None:
             from PIL import Image,ImageDraw
@@ -483,7 +609,7 @@ def draw_callout(im,marker,card,rgb,sc,top,bottom,placed,label=None,leader='reta
 
 def draw_gantry(im,g,scr,m,sc):
     """Pórtico em planta: sombra, pilares, viga treliçada e painel da placa."""
-    a=g['a'];b=g['b'];u=b-a;L=float(np.linalg.norm(u));u=u/L;n=np.array([-u[1],u[0]]);bw=g['beam_width_m'];H=g['height_m']
+    a=g['a'];b=g['b'];u=b-a;L=float(np.linalg.norm(u));u=(_sdiv(u, L));n=np.array([-u[1],u[0]]);bw=g['beam_width_m'];H=g['height_m']
     beam=np.array([a-n*bw/2,b-n*bw/2,b+n*bw/2,a+n*bw/2])
     posts=[a] if g['kind']!='portico' else [a,b];ps=.45
     post_rings=[np.array([p+(-ps,-ps),p+(ps,-ps),p+(ps,ps),p+(-ps,ps)]) for p in posts]
@@ -546,9 +672,9 @@ def surface_hatch(shape,x0,y1,px,role):
 
 
 # ---------------- 1.24: texturas editáveis ----------------
-DEFAULT_LUT={'spk':_R_SPK,'patch':_R_PATCH,'crack':_R_CRACK,'shift':_R_SHIFT,'grain':_LUT_GRAIN,'tone':_LUT_TONE,'conc':_LUT_CONC,'grass':.16,'bright':None}
+DEFAULT_LUT={'spk':_R_SPK,'patch':_R_PATCH,'crack':_R_CRACK,'shift':_R_SHIFT,'grain':_LUT_GRAIN,'tone':_LUT_TONE,'conc':_LUT_CONC,'grass':.12,'bright':None}
 # Superfície editável -> códigos da máscara de superfície.
-TEX_SURF={'pista_nova':[1],'pista_existente':[2],'concreto':[3],'acostamento':[4],'canteiro':[5],'trilhas':[8],'talude_corte':[6],'talude_aterro':[7]}
+TEX_SURF={'pista_nova':[1],'pista_existente':[2],'concreto':[3],'acostamento':[4],'canteiro':[5],'trilhas':[8],'talude_corte':[6],'talude_aterro':[7],'oae_nova':[9],'oae_existente':[10],'oae_alargada':[11]}
 
 def texture_lut(params,areas=None):
     """Intensidades por superfície (multiplicadores; 1 = padrão) e brilho (-0,3 a 0,3). None se tudo padrão.

@@ -1,7 +1,7 @@
 // Confirmações opcionais; abrir, salvar projeto e exportar sempre atualizam o modelo.
 (()=>{'use strict';
 let mode='manual',timer=null,waiting=null,suppress=0;
-try{mode=localStorage.getItem('rodovia_update_mode')==='automatic'?'automatic':'manual'}catch{}
+try{mode=localStorage.getItem('rodovia_update_mode')==='automatic'?'automatic':'manual'}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('politica_atualizacao',_e)}
 const current=(project,context)=>pid===project&&projectSession.context===context;
 function cancelWaiting(){clearTimeout(timer);timer=null;waiting=null}
 async function hasInputs(project){const data=await api('/api/projects/'+project);return !!(data.files?.dxf||data.files?.kmz||data.config?.route_alignments?.some(r=>r.enabled&&r.points?.length>1)||data.config?.custom_axis?.points?.length>1)}
@@ -23,7 +23,7 @@ function defer(project,context,automatic=true){
  };timer=setTimeout(run,350);
 }
 function committed(detail={}){if(suppress)return;const project=detail.project||pid,context=detail.context??projectSession.context;if(!project||!current(project,context))return;window.dispatchEvent(new CustomEvent('rodovia:update-state'));if(mode==='automatic')defer(project,context,true)}
-function setMode(value){mode=value==='automatic'?'automatic':'manual';try{localStorage.setItem('rodovia_update_mode',mode)}catch{}if(mode==='manual'&&waiting?.automatic)cancelWaiting();if($('rsUpdateMode'))$('rsUpdateMode').value=mode;msg(mode==='automatic'?'Automático: confirmar um formulário inicia a atualização completa.':'Manual: confirmações deixam atualização pendente. Abrir, Salvar projeto, Prévia e Vídeo sempre recalculam.')}
+function setMode(value){mode=value==='automatic'?'automatic':'manual';try{localStorage.setItem('rodovia_update_mode',mode)}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('politica_atualizacao',_e)}if(mode==='manual'&&waiting?.automatic)cancelWaiting();if($('rsUpdateMode'))$('rsUpdateMode').value=mode;msg(mode==='automatic'?'Automático: confirmar um formulário inicia a atualização completa.':'Manual: confirmações deixam atualização pendente. Abrir, Salvar projeto, Prévia e Vídeo sempre recalculam.')}
 async function saveProject(){requireProject();const project=pid,context=projectSession.context;cancelWaiting();suppress++;try{if(window.RodoviaPanels&&!await RodoviaPanels.close())return false;await save()}finally{suppress--}let result;try{result=await refresh('Salvar projeto')}catch(error){throw Error('Projeto salvo. Atualização não concluída: '+error.message)}if(!current(project,context))return false;if(result!==false)msg(result?.state==='no_input'?'Projeto salvo; importe os arquivos para calcular.':'Projeto salvo e atualizado.');return result}
 async function saveAs(){requireProject();cancelWaiting();const project=pid,context=projectSession.context;let held=true;suppress++;try{
  if(window.RodoviaPanels&&!await RodoviaPanels.close())return false;
@@ -34,7 +34,7 @@ async function saveAs(){requireProject();cancelWaiting();const project=pid,conte
 window.RodoviaUpdatePolicy=Object.freeze({refresh,committed,setMode,saveProject,saveAs,consumePending:cancelWaiting,snapshot:()=>({mode,waiting:!!waiting})});
 window.addEventListener('rodovia:form-committed',e=>committed(e.detail));
 const originalLoad=load;load=async function(id,options={}){const value=await originalLoad(id,options);if(value===false||pid!==id||options.resultsOnly)return value;const context=projectSession.context;
- let resume=false;try{const jid=localStorage.getItem('rodovia_job');if(jid){const job=await api('/api/jobs/'+jid);resume=job.project===id&&['queued','running','cancel_requested'].includes(job.state)}}catch{}
+ let resume=false;try{const jid=localStorage.getItem('rodovia_job');if(jid){const job=await api('/api/jobs/'+jid);resume=job.project===id&&['queued','running','cancel_requested'].includes(job.state)}}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('politica_atualizacao',_e)}
  if(resume||task||taskRequestPending||fileMutationPending||window.RodoviaPanels?.opened){defer(id,context,false);return value}
  await refresh('Abrir projeto');return value;
 };

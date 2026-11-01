@@ -1,4 +1,5 @@
 """Modo ilustrativo explícito: não é validação de segurança de tráfego."""
+from .seguro import sdiv as _sdiv
 import math
 import numpy as np
 from .vehicle_motion import prepare_points,axle_geometry_prepared,PROFILES
@@ -31,7 +32,7 @@ class ClassicTraffic:
         if not math.isfinite(float(t)) or speed<=0:return
         count_total=0
         for i,path in enumerate(self.net.paths):
-            length=float(path['length']);count=max(1,min(32,int(length/180*self.s.traffic_density)));period=length/speed+5
+            length=float(path['length']);count=max(1,min(32,int(length/180*self.s.traffic_density)));period=(_sdiv(length, speed))+5
             if i not in self.points:self.points[i]=prepare_points(path['p'])
             for k in range(count):
                 phase=float(t)+(k+.2)*period/count+i*1.37;cycle=math.floor(phase/period);position=(phase-cycle*period)*speed

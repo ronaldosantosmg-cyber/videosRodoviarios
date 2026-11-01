@@ -5,6 +5,7 @@ Arquivos (JSON por linha, com rotação simples em 2 MB):
   <projeto>/logs/execucao.jsonl  — início, etapas e fim de cada tarefa (análise, prévia, vídeo...)
   <projeto>/logs/erros.jsonl     — falhas com o rastreamento (traceback) e erros da tela (navegador)
 """
+from .falhas import registrar as _falha
 from .tempo import tempo
 import json,time,platform,sys,hashlib,os,threading,zipfile,io
 from pathlib import Path
@@ -32,7 +33,7 @@ def write(project_dir,kind,event,**data):
         with _lock:
             _rotate(f)
             with f.open('a',encoding='utf-8') as fo:fo.write(line+'\n')
-    except Exception:pass
+    except Exception as _e:_falha(__name__,_e)
 
 def read(project_dir,kind,limit=300):
     out=[];d=Path(project_dir)/'logs'

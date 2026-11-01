@@ -1,4 +1,6 @@
 """Distribuição por movimento validado; não cria ligações nem altera obstáculos."""
+from .seguro import sdiv as _sdiv
+from .seguro import sdiv as _sdiv
 import math
 import numpy as np
 from collections import defaultdict
@@ -7,14 +9,14 @@ from collections import defaultdict
 
 def category_defaults(network,i,children,main,secondary):
     incoming=network.edges[i];typed=any(e.get('flow_role','automatico')!='automatico' for e in [incoming]+[network.edges[j] for j in children])
-    if not typed:return {j:(1-secondary if j==main else secondary/(len(children)-1)) for j in children}
+    if not typed:return {j:(1-secondary if j==main else (_sdiv(secondary, len(children)-1))) for j in children}
     same=[j for j in children if incoming.get('route') and network.edges[j].get('route')==incoming['route'] or incoming.get('origin') is not None and network.edges[j].get('origin')==incoming['origin']]
     primary=same or [j for j in children if network.edges[j].get('flow_role')=='principal'] or [main]
     categories={'acesso':[],'ramais':[]}
     for j in children:
         if j not in primary:categories['acesso' if network.edges[j].get('flow_role')=='acesso' else 'ramais'].append(j)
     budget={'acesso':.05 if categories['acesso'] else 0.,'ramais':.20 if categories['ramais'] else 0.}
-    values={j:(1-sum(budget.values()))/len(primary) for j in primary}
+    values={j:(_sdiv(1-sum(budget.values()), len(primary))) for j in primary}
     for category,ids in categories.items():
         # O total é por categoria e por ramal; múltiplas faixas não recebem cotas extras.
         groups={}
@@ -22,7 +24,7 @@ def category_defaults(network,i,children,main,secondary):
             edge=network.edges[j];key=edge.get('route') or ('origem',edge.get('origin',j))
             groups.setdefault(key,[]).append(j)
         for lanes in groups.values():
-            for j in lanes:values[j]=budget[category]/len(groups)/len(lanes)
+            for j in lanes:values[j]=(_sdiv(_sdiv(budget[category], len(groups)), len(lanes)))
     return values
 
 def movement_weights(network,default_secondary=20.):
@@ -52,7 +54,7 @@ def movement_weights(network,default_secondary=20.):
         if total>1+1e-9 or not free and abs(total-1)>1e-9:raise ValueError('Percentuais das saídas de um mesmo ponto devem totalizar 100%. Revise as ligações do ramal.')
         denominator=sum(defaults[j] for j in free)
         for j in children:
-            value=fixed[j] if j in fixed else (1-total)*(defaults[j]/denominator if denominator>0 else 1/len(free))
+            value=fixed[j] if j in fixed else (1-total)*(defaults[j]/denominator if denominator>0 else (_sdiv(1, len(free))))
             weights[(i,j)]=value
         groups.append({'node':incoming.get('end'),'from_edge':i,'primary_edge':main,'rule':'categorias_5_20' if any(network.edges[j].get('flow_role','automatico')!='automatico' for j in [i]+children) else 'legado','outputs':[{'edge':j,'percent':round(weights[(i,j)]*100,6)} for j in children]})
     return weights,groups
@@ -73,7 +75,8 @@ def apply_distribution(sim):
         if total<=0:probabilities[entry]=[0.]*len(ids)
         else:probabilities[entry]=[v/total for v in scores]
         # Somente uma demanda física por entrada, repartida entre seus itinerários.
-        demand=getattr(settings,'traffic_demand_vphpl',None)
+        from .nivel_servico import demanda_efetiva
+        demand=demanda_efetiva(settings,sim)
         reference=ids[int(np.argmax(scores))]
         arrival=float(demand)/3600 if demand is not None else sim.rate[reference]
         for i,p in zip(ids,probabilities[entry]):sim.rate[i]=arrival*p
@@ -95,7 +98,7 @@ def apply_distribution(sim):
         forward_share=1. if not reverse else 0. if not forward else settings.traffic_forward_share_pct/100
         for entries,share in [(forward,forward_share),(reverse,1-forward_share)]:
             if not entries:continue
-            arrival=total*share/len(entries)/3600
+            arrival=(_sdiv(total*share, len(entries)))/3600
             for entry in entries:
                 for i,p in zip(sim.siblings[entry],probabilities[entry]):sim.rate[i]=arrival*p
         for row in rows:row['vehicles_h']=round(sum(sim.rate[i] for i in sim.siblings[next(e for e in sim.siblings if str(e)==row['entry'])])*3600,3)
@@ -119,5 +122,5 @@ def apply_distribution(sim):
             # Uma chegada sem origem desenhada exige quantidade explícita.
             for j in ids:sim.rate[j]=0.
     for row in rows:row['vehicles_h']=round(sum(sim.rate[i] for i in sim.siblings[next(e for e in sim.siblings if str(e)==row['entry'])])*3600,3)
-    effective='rotas' if getattr(settings,'traffic_route_only',False) else 'VDM' if vdm is not None else 'demanda_horaria' if getattr(settings,'traffic_demand_vphpl',None) is not None else 'densidade'
+    effective='rotas' if getattr(settings,'traffic_route_only',False) else 'VDM' if vdm is not None else 'demanda_horaria' if (getattr(settings,'traffic_demand_vphpl',None) is not None or getattr(settings,'service_level_target','manual')!='manual') else 'densidade'
     sim.distribution_report={'external_entries':external,'effective_mode':effective,'default_secondary_percent':getattr(settings,'traffic_branch_share_pct',20),'movements':groups,'entries':rows,'vdm':vdm,'mode':'VDM' if vdm is not None else 'demanda_horaria' if getattr(settings,'traffic_demand_vphpl',None) is not None else 'densidade','scope':'Percentuais de escolha dos itinerários disponíveis, não garantia de contagem em vídeo curto. VDM refere-se ao conjunto das entradas e à fração horária configurada; não certifica nível de serviço.'}

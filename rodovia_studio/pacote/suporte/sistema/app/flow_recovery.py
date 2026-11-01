@@ -1,4 +1,5 @@
 """Recuperação explícita de circulação; nunca altera nem une partes do eixo original."""
+from .geom_rapida import hausdorff as _hausdorff
 import numpy as np
 from shapely.geometry import LineString
 from shapely.ops import substring
@@ -35,14 +36,11 @@ def recover_sections(points,allowed,minimum=50.,reconstruct=False):
     if reconstruct:
         from .flow_reconstruction import reconstruct as rebuild
         candidate,reconstruction=rebuild(p,allowed,minimum)
-        reconstruction.setdefault('critical_point',audit.get('critical_center_xy'))
         report['reconstruction']=reconstruction
         if candidate is not None:
             report.update(status='reconstructed',strategy='reconstrucao_continua_validada',
                           retained=[[0.,total]],retained_geometry=[_preview(candidate)])
             return [candidate],report
-        report['message']='Reconstrução integral recusada: '+reconstruction.get('reason','sem ligação validada')+'. Use Recuperar trechos para uma recuperação parcial explícita.'
-        return [],report
     if total>100000 or len(p)>50000:
         report['message']='Extensão excessiva: divida a análise antes de recuperar.';return [],report
     # Primeiro tenta uma correção leve da trajetória derivada, limitada a 0,5 m.
@@ -52,7 +50,7 @@ def recover_sections(points,allowed,minimum=50.,reconstruct=False):
         from shapely import line_locate_point,points as make_points
         candidate,_=steady_path(p,allowed,sigma_m=.8)
         if candidate is not None and len(candidate)>=2:
-            deviation=LineString(candidate).hausdorff_distance(line)
+            deviation=_hausdorff(candidate,line)
             progress=line_locate_point(line,make_points(candidate))
             if deviation<=.5 and float(np.linalg.norm(np.diff(candidate,axis=0),axis=1).sum())>=minimum and np.all(np.diff(progress)>=-.1) and analyze_motion(candidate,allowed=allowed)['ok']:
                 report.update(status='smoothed',strategy='suavizacao_leve_validada',max_deviation_m=round(deviation,4),retained=[[0.,total]],retained_geometry=[_preview(candidate)])

@@ -21,7 +21,7 @@ def recover(pid,body:Recovery):
 def execution(pid):
     from ..artifacts import require_current
     import json
-    d=store.directory(pid);require_current(d,'editor');data=json.loads((d/'editor.json').read_text())
+    d=store.directory(pid);require_current(d,'editor');data=json.loads((d/'editor.json').read_text(encoding='utf-8'))
     return {'signature':E.signature(d),'segments':data['segments']}
 @router.post('/api/projects/{pid}/assisted_plan',status_code=202)
 def propose(pid,body:Proposal):
@@ -34,7 +34,7 @@ def propose(pid,body:Proposal):
 @router.get('/api/projects/{pid}/assistencia/execucao/proposta')
 def latest(pid):
     import json
-    d=store.directory(pid);key=json.loads((E.folder(d)/'ultima.json').read_text())['id'];return E.load(d,key)
+    d=store.directory(pid);key=json.loads((E.folder(d)/'ultima.json').read_text(encoding='utf-8'))['id'];return E.load(d,key)
 @router.post('/api/projects/{pid}/assistencia/execucao/{key}/aplicar')
 def apply(pid,key):
     with dispatch_lock:

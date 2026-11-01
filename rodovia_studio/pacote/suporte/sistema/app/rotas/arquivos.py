@@ -1,5 +1,7 @@
 """Arquivos do projeto: DXF/KMZ, imagens das chamadas, camadas extras, imagem local, ECW e elevação."""
+from ..falhas import registrar as _falha
 import asyncio,json,os,sys,uuid,shutil,subprocess,threading,time,zipfile,re
+from .. import caminhos
 from xml.etree.ElementTree import ParseError as ET_ERRORS
 from pathlib import Path
 from typing import List
@@ -14,8 +16,11 @@ from .comum import _config,_save_config,_receive,_files_meta,_files_info,_img_ty
 router=APIRouter()
 
 @router.post('/api/projects/{pid}/files')
-async def upload(pid,file:UploadFile=File(...)):
-    idle(pid);ext=Path(file.filename or '').suffix.lower()
+async def upload(pid,file:UploadFile=File(...),force:bool=False):
+    # 2.16: ?force=1 = pedido explícito do usuário para substituir o arquivo: o motor é solto (tarefas canceladas) antes da troca.
+    if force:await asyncio.to_thread(release_engine,pid,float(os.environ.get('RODOVIA_RELEASE_WAIT_S','40')))
+    else:idle(pid)
+    ext=Path(file.filename or '').suffix.lower()
     if ext not in ['.dxf','.dwg','.kmz','.kml']:raise HTTPException(415,'Envie DXF, DWG, KMZ ou KML.')
     orig=(file.filename or '')[-200:];kml=ext=='.kml';dwg=ext=='.dwg'
     if dwg:ext='.dxf'   # 1.37: DWG é convertido em DXF (ODA File Converter)
@@ -115,7 +120,7 @@ async def imagery_upload(pid,files:List[UploadFile]=File(...),crs:str=Form(''),m
     idle(pid);d,s=_config(pid);base=d/'imagem_local';base.mkdir(exist_ok=True)
     names={'image':None,'world':None,'prj':None,'convert':None}
     for f in files:
-        ext=Path(f.filename or '').suffix.lower();safe=re.sub(r'[^\w.\- ]','_',Path(f.filename or 'arquivo').name)[:120]
+        ext=Path(f.filename or '').suffix.lower();safe=caminhos.encurtar(base,re.sub(r'[^\w.\- ]','_',Path(f.filename or 'arquivo').name),extra=24,maximo=120)   # 1.42.38: cabe no limite de caminho do Windows (+ _convertido e .tmp)
         kind='image' if ext in IMAGE_EXT else 'convert' if ext in CONVERT_EXT else 'world' if ext in WORLD_EXT else 'prj' if ext=='.prj' else None
         if kind is None:raise HTTPException(415,f'Arquivo não suportado: {f.filename}. Use GeoTIFF/COG, JPEG2000 (.jp2), JPG/PNG + arquivo de mundo e .prj, ou ECW/MrSID (conversão com o QGIS).')
         await _receive(f,base/safe,4000*1024*1024 if kind=='convert' else 2500*1024*1024);names[kind]=safe
@@ -131,7 +136,7 @@ async def imagery_upload(pid,files:List[UploadFile]=File(...),crs:str=Form(''),m
     try:georef(base/li.image,base/li.world if li.world else None,base/li.prj if li.prj else None,li.crs);info=describe(d,li,s.crs)
     except ValueError as e:
         for k,n in names.items():
-            if n and k!='convert':(base/n).unlink(missing_ok=True)
+            if n and k!='convert':(((base) / (n))).unlink(missing_ok=True)
         raise HTTPException(422,str(e))
     if mode=='add' and s.local_imagery.image:
         s.local_imagery.others.append(LocalSource(**{k:getattr(li,k) for k in ('name','image','world','prj','crs')}))
@@ -169,13 +174,23 @@ def _li_rebuild(li,entries):
     return li.model_copy(update={**head,'others':[LocalSource(**e) for e in entries[1:]]})
 
 @router.delete('/api/projects/{pid}/imagery/{index}')
-def imagery_remove(pid,index:int):
+def imagery_remove(pid,index:int,arquivo:bool=False):
     """Retira uma imagem do mosaico (0 = principal; a próxima vira principal). O arquivo fica na pasta do projeto."""
     idle(pid);d,s=_config(pid);li=s.local_imagery;ent=_li_entries(li) if li.image else []
     if not 0<=index<len(ent):raise HTTPException(404,'Imagem não encontrada.')
-    ent.pop(index);s.local_imagery=_li_rebuild(li,ent)
+    gone=ent.pop(index);s.local_imagery=_li_rebuild(li,ent)
     if not ent and s.imagery=='local':s.imagery='esri'
-    _save_config(pid,s);_local_cache.pop(pid,None);return {'local_imagery':s.local_imagery.model_dump()}
+    _save_config(pid,s);_local_cache.pop(pid,None)
+    apagados=[]
+    if arquivo:      # purga o arquivo em disco (imagem, mundo, .prj), exceto o que outra imagem do mosaico ainda usa
+        pasta=d/'imagem_local';em_uso={Path(str(e.get(k) or '')).name for e in ent for k in ('image','world','prj') if e.get(k)}
+        for k in ('image','world','prj'):
+            n=Path(str(gone.get(k) or '')).name
+            f=((pasta) / (n))
+            if n and n not in em_uso and f.is_file() and not f.is_symlink():
+                try:caminhos.unlink(f);apagados.append(n)
+                except OSError as _e:_falha(__name__,_e)
+    return {'local_imagery':s.local_imagery.model_dump(),'arquivos_apagados':apagados}
 
 class ImageOrder(_BM):
     index:int
@@ -263,7 +278,7 @@ async def elevation_upload(pid,files:List[UploadFile]=File(...),crs:str=Form('')
     from ..local_imagery import IMAGE_EXT,WORLD_EXT,georef
     idle(pid);d,s=_config(pid);base=d/'elevacao';base.mkdir(exist_ok=True);names={'image':None,'world':None,'prj':None}
     for f in files:
-        ext=Path(f.filename or '').suffix.lower();safe=re.sub(r'[^\w.\- ]','_',Path(f.filename or 'mdt').name)[:120]
+        ext=Path(f.filename or '').suffix.lower();safe=caminhos.encurtar(base,re.sub(r'[^\w.\- ]','_',Path(f.filename or 'mdt').name),extra=24,maximo=120)   # 1.42.38: cabe no limite de caminho do Windows
         kind='image' if ext in IMAGE_EXT else 'world' if ext in WORLD_EXT else 'prj' if ext=='.prj' else None
         if kind is None:raise HTTPException(415,f'Arquivo não suportado: {f.filename}. Use GeoTIFF (ou TIF/PNG + arquivo de mundo) e .prj.')
         await _receive(f,base/safe,1500*1024*1024);names[kind]=safe
@@ -271,7 +286,7 @@ async def elevation_upload(pid,files:List[UploadFile]=File(...),crs:str=Form('')
     try:georef(base/names['image'],base/names['world'] if names['world'] else None,base/names['prj'] if names['prj'] else None,crs.strip() or None)
     except ValueError as e:
         for n in names.values():
-            if n:(base/n).unlink(missing_ok=True)
+            if n:(((base) / (n))).unlink(missing_ok=True)
         raise HTTPException(422,str(e))
     s.elevation=s.elevation.model_copy(update={'source':'local','file':names['image'],'world':names['world'],'prj':names['prj'],'crs':crs.strip() or None});_save_config(pid,s)
     return {'elevation':s.elevation.model_dump()}

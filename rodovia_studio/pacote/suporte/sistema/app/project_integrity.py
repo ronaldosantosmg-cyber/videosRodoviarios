@@ -1,4 +1,5 @@
 """Inspeção não destrutiva e recuperação explícita por cópia conferida."""
+from .falhas import registrar as _falha
 import hashlib,json,time,uuid,shutil,re
 from pathlib import Path
 from .project_state import locked,revision,_json,_write,Conflict
@@ -59,7 +60,7 @@ def recover(d,key,report_id):
         _write(d/'config.json',data)
         # A configuração válida é a fonte de verdade; falha no índice não apaga a restauração.
         try:_write(d/'.estado/config_atual.json',{'revision':key,'time':time.time()})
-        except OSError:pass
+        except OSError as _e:_falha(__name__,_e)
         _write(d/'.estado/recuperacao.json',{'revision':key,'time':time.time(),'message':'Configuração restaurada de cópia conferida; confira fontes e prévia.'})
         after=inspect(d)
         if not after['config_valid'] or revision(_json(d/'config.json'))!=key:raise ValueError('A conferência final da recuperação falhou.')

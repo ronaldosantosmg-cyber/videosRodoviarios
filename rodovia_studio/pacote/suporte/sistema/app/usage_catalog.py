@@ -1,4 +1,5 @@
 """Catálogo local de uso; sugestões baseadas em eventos, sem executar código de IA."""
+from .seguro import sdiv as _sdiv
 import math
 from collections import defaultdict,Counter
 
@@ -24,7 +25,7 @@ def summarize(events,errors):
             if v is not None:stages[str(event.get('mensagem') or 'etapa')].append(v)
     def metrics(values):
         if not values:return {'amostras':0,'media_s':None,'p95_s':None,'max_s':None}
-        s=sorted(values);return {'amostras':len(s),'media_s':round(sum(s)/len(s),3),'p95_s':round(s[max(0,math.ceil(len(s)*.95)-1)],3),'max_s':round(s[-1],3)}
+        s=sorted(values);return {'amostras':len(s),'media_s':round((_sdiv(sum(s), len(s))),3),'p95_s':round(s[max(0,math.ceil(len(s)*.95)-1)],3),'max_s':round(s[-1],3)}
     kinds={k:{'concluidas':g['concluidas'],'falhas':g['falhas'],'execucao':metrics(g['duracoes_s']),'espera':metrics(g['esperas_s'])} for k,g in groups.items()}
     errors_count=Counter(str(e.get('erro') or e.get('evento') or 'erro') for e in errors)
     recommendations=[]

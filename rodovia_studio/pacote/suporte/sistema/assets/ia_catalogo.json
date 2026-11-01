@@ -1,0 +1,8 @@
+{
+ "aviso": "Os endereços abaixo NÃO foram verificados pelo desenvolvedor (rede bloqueada no ambiente de criação). Confirme no site oficial e edite se o nome do arquivo mudou. Tudo é gratuito; o download acontece só no seu computador.",
+ "modelo": {"nome": "SmolLM3-3B Q4_K_M", "licenca": "Apache-2.0", "url": "https://huggingface.co/ggml-org/SmolLM3-3B-GGUF/resolve/main/SmolLM3-Q4_K_M.gguf", "tamanho_aprox_gb": 1.9},
+ "runtime": {
+  "windows": {"nome": "llama.cpp (CPU x64)", "licenca": "MIT", "url": "https://github.com/ggml-org/llama.cpp/releases/download/b6000/llama-b6000-bin-win-cpu-x64.zip"},
+  "linux": {"nome": "llama.cpp (CPU x64)", "licenca": "MIT", "url": "https://github.com/ggml-org/llama.cpp/releases/download/b6000/llama-b6000-bin-ubuntu-x64.zip"}
+ }
+}

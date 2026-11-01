@@ -44,7 +44,7 @@ def deck_geometry(points):
     for a,b in zip(ring[:-1],ring[1:]):
         d=b-a;L=np.linalg.norm(d)
         if L<1e-6:continue
-        if abs(float(np.dot(d/L,u)))>.7:
+        if abs(float(np.dot(((d) / (L)),u)))>.7:
             if not cur:cur=[a]
             cur.append(b)
         elif cur:rails.append(np.array(cur));cur=[]
@@ -53,7 +53,7 @@ def deck_geometry(points):
     heads=[]
     for a,b in zip(ring[:-1],ring[1:]):
         d=b-a;L=np.linalg.norm(d)
-        if L>1 and abs(float(np.dot(d/L,u)))<.5:heads.append(np.array([a,b]))
+        if L>1 and abs(float(np.dot(((d) / (L)),u)))<.5:heads.append(np.array([a,b]))
     return g,line,float(np.median(widths)),rails,heads
 
 def oae_items(settings,stationing):

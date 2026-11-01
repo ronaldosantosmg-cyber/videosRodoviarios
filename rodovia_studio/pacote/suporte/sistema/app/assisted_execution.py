@@ -48,14 +48,12 @@ def preview(d,request,status=lambda *a:None,cancel=lambda:False):
     require_current(d,'editor')
     doc=json.loads((d/'editor.json').read_text(encoding='utf-8-sig'));segment=next((s for s in doc['segments'] if s['id']==request['segment']),None)
     if not segment:raise ValueError('Segmento ausente no resultado atual.')
-    if segment['disabled'] or segment.get('technical_context',{}).get('origin_length_m',segment['length_m'])<read_config(d).get('min_route_segment_m',50):raise ValueError('Desligamento manual ou rota independente curta preservados.')
+    if segment['disabled'] or segment['length_m']<read_config(d).get('min_route_segment_m',50):raise ValueError('Desligamento manual ou rota independente curta preservados.')
     if segment['technical_status']=='ok':raise ValueError('O trecho já está validado; não há correção a aplicar.')
     action=request.get('action','auto')
-    if action=='auto':action='reconstruct'
+    if action=='auto':action='reconstruct' if any(x in (segment.get('technical_reasons') or []) for x in ('ziguezague','mudanca_brusca','esterco_excessivo','auto_intersecao')) else 'recover'
     if action not in ACTIONS:raise ValueError('Ação não cadastrada.')
-    before=read_config(d)
-    if before.get('traffic_classic'):raise ValueError('Desative o ensaio clássico antes de reconstruir e validar a rota.')
-    candidate=json.loads(json.dumps(before));origin=segment.get('origin_key')
+    before=read_config(d);candidate=json.loads(json.dumps(before));origin=segment.get('origin_key')
     if not origin or not re.fullmatch('[a-f0-9]{64}',origin):raise ValueError('Origem do trecho indisponível; recalcule.')
     existing=next((r for r in candidate.get('flow_recoveries',[]) if r.get('target_key')==origin and r.get('enabled',True)),None)
     mark=existing or {'id':uuid.uuid4().hex,'target_key':origin,'x':segment['mid'][0],'y':segment['mid'][1],'enabled':True}
@@ -80,9 +78,6 @@ def preview(d,request,status=lambda *a:None,cancel=lambda:False):
             status(.2+.65*p,message)
         scene=Scene.light(sandbox,settings,step);diagnostics=flow_diagnostics(scene.network)
         selected=[diag for raw,diag in zip(scene.network.raw_info,diagnostics) if raw.get('origin_key')==origin]
-        from .flow_reconstruction import continuity_evidence
-        reconstruction=continuity_evidence(scene.network,origin) if action=='reconstruct' else None
-        effective_repair=action!='reconstruct' or any(r.get('status')=='reconstructed' for r in reconstruction['reports']) or not segment.get('technical_circulation',{}).get('enabled',False) and reconstruction['complete']
         enabled=any(r.get('technical_circulation',{}).get('enabled') for r in selected)
         valid=all(analyze_motion(path['p'],allowed=scene.network.allowed)['ok'] for path in scene.network.paths)
         after=[{'status':r['technical_status'],'message':r['technical_message'],'circulation':r.get('technical_circulation',{})} for r in selected]
@@ -97,8 +92,7 @@ def preview(d,request,status=lambda *a:None,cancel=lambda:False):
     if cancel():raise InterruptedError('Proposta cancelada; projeto preservado.')
     if signature(d)!=initial:raise Conflict('O projeto mudou durante a prévia. Resultado descartado.')
     key=uuid.uuid4().hex
-    result={'id':key,'project':d.name,'signature':initial,'action':action,'segment':segment['id'],'origin_key':origin,'mark':mark,'before_revision':revision(before),'before':{'status':segment['technical_status'],'message':segment['technical_message'],'geometry':segment['points']},'after':after,'geometry':geometry,'can_apply':bool(enabled and valid and effective_repair and candidate!=before and (action!='reconstruct' or reconstruction['complete'])),'state':'proposta','created':time.time(),'checks':{'all_paths_motion_valid':valid,'circulation_available':enabled,'physical_rules_preserved':True,'full_route_continuity':action!='reconstruct' or reconstruction['complete'],'effective_repair':bool(effective_repair)},'reconstruction':reconstruction,'notice':'Reconstruir exige um itinerário completo por sentido, com extremidades preservadas. Recuperar trechos é uma ação parcial distinta. Barreiras, níveis, sentidos e desligamentos manuais são preservados. Revalide a simulação e a frota após aplicar.'}
-    if action=='reconstruct' and not effective_repair:result['notice']='A geometria já está contínua e nenhuma reparação efetiva foi produzida. Confira a frota, a seção e os avisos de configuração; não aplique uma marca sem correção.'
+    result={'id':key,'project':d.name,'signature':initial,'action':action,'segment':segment['id'],'origin_key':origin,'mark':mark,'before_revision':revision(before),'before':{'status':segment['technical_status'],'message':segment['technical_message'],'geometry':segment['points']},'after':after,'geometry':geometry,'can_apply':bool(enabled and valid and candidate!=before),'state':'proposta','created':time.time(),'checks':{'all_paths_motion_valid':valid,'circulation_available':enabled,'physical_rules_preserved':True},'notice':'A prévia valida trajetórias no motor real. Partes excluídas não são religadas. A simulação completa e o diagnóstico devem ser atualizados após aplicar.'}
     write_json(folder(d)/(key+'.json'),result);status(1,'Proposta pronta para revisão; nenhuma correção aplicada')
     return result
 
@@ -138,7 +132,7 @@ def outcome(d,key):
     if plan.get('applied_revision')!=revision(read_config(d)):raise Conflict('Há alterações posteriores; resultado da proposta não pode ser atribuído a esta revisão.')
     require_current(d,'editor');doc=json.loads((Path(d)/'editor.json').read_text(encoding='utf-8-sig'))
     rows=[r for r in doc['segments'] if r.get('origin_key')==plan['origin_key']]
-    resolved=bool(rows) and all(r['technical_status']=='ok' and r.get('technical_circulation',{}).get('enabled') and (plan['action']!='reconstruct' or r.get('technical_reconstruction',{}).get('complete')) for r in rows)
+    resolved=bool(rows) and all(r['technical_status']=='ok' and r.get('technical_circulation',{}).get('enabled') for r in rows)
     return {'resolved':resolved,'state':'resolvida' if resolved else 'aplicada_com_pendencias','segments':[{'id':r['id'],'status':r['technical_status'],'message':r['technical_message']} for r in rows]}
 
 def undo(d,key):

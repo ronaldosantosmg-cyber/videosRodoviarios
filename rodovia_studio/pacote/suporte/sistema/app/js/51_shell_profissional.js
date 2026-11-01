@@ -18,7 +18,7 @@ function psOpenHub(id){
   const more=$('psMore');if(more)more.hidden=true;PS.extraOpen=false;
   if(id==='props'){
     pnAbrir(null);
-    try{abrirAba('prop',true)}catch{}
+    try{abrirAba('prop',true)}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('shell_profissional',_e)}
     const p=$('propPanel');if(p?.hidden)msg('Propriedades: selecione um objeto no desenho para editar.');
     return;
   }
@@ -123,7 +123,7 @@ function psRibbon(){
       ]],
       ['Vista',[
         ['Enquadrar','⤧',()=>fitView(),1],['Regenerar','⟲',()=>regenScreen()],['Tela cheia','⛶',()=>toggleFullscreen()],
-        ['Snap','⌖',()=>{$('snapOn')?.click();statusBar()}],['Orto','⊥',()=>{$('orthoOn')?.click();statusBar()}]
+        ['Captura','⌖',()=>{$('snapOn')?.click();statusBar()}],['Orto','⊥',()=>{$('orthoOn')?.click();statusBar()}]
       ]]
     ]],
     ['Ajuda',[
@@ -137,7 +137,7 @@ function psRibbon(){
 function psInit(){
   psRibbon();
   for(const name of ['pnAplicar','aplicarDock'])estender(name,previous=>function(...args){const r=previous(...args);psUpdateHubState();return r},'Sincroniza o botão lateral com o painel aberto');
-  try{estender('pnEntrar',anterior=>function(){const r=anterior();queueMicrotask(()=>{psSyncActivities();psUpdateHubState()});return r},'1.40.1: quatro hubs principais no workspace')}catch{}
+  try{estender('pnEntrar',anterior=>function(){const r=anterior();queueMicrotask(()=>{psSyncActivities();psUpdateHubState()});return r},'1.40.1: quatro hubs principais no workspace')}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('shell_profissional',_e)}
   queueMicrotask(()=>{psSyncActivities();psUpdateHubState()});
   document.addEventListener('pointerdown',e=>{PS.moreWasOpen=!!e.target.closest('[data-psmore]')&&!!document.querySelector('.rsMoreCascade');const p=$('psMore');if(p&&!p.hidden&&!e.target.closest('#psMore,[data-psmore]')){p.hidden=true;PS.extraOpen=false;psUpdateHubState()}},true);
 }

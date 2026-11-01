@@ -21,7 +21,7 @@ function organize(){const section=$('secVista');if(!section||organized?.section=
  void (async()=>{try{if(!await RodoviaPanels.close())return;if(pid!==project||projectSession.context!==context)throw Error('O projeto mudou. Escolha a sessão novamente.');replaying=true;try{b.click()}finally{replaying=false}}catch(error){msg(error.message,true)}finally{restoringSession=false}})();},true)}
 }
 function capture(){return {baseMode,tileAlpha,vecAlpha,vecOn:{...vecOn},sessionAuto:!!$('sessAuto')?.checked}}
-function restore(s){baseMode=s.baseMode;tileAlpha=s.tileAlpha;vecAlpha=s.vecAlpha;Object.assign(vecOn,s.vecOn);if($('sessAuto'))$('sessAuto').checked=s.sessionAuto;try{localStorage.setItem('rodovia_sessauto',s.sessionAuto?'1':'0')}catch{}saveBasePrefs();baseUi();draw()}
+function restore(s){baseMode=s.baseMode;tileAlpha=s.tileAlpha;vecAlpha=s.vecAlpha;Object.assign(vecOn,s.vecOn);if($('sessAuto'))$('sessAuto').checked=s.sessionAuto;try{localStorage.setItem('rodovia_sessauto',s.sessionAuto?'1':'0')}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('vista_previa_sessoes',_e)}saveBasePrefs();baseUi();draw()}
 const enter=pnEntrar,leave=pnSair;pnEntrar=function(...a){const r=enter(...a);organize();return r};pnSair=function(...a){undoLayout();return leave(...a)};
 window.RodoviaViewPanel=Object.freeze({organize,capture,restore});queueMicrotask(()=>queueMicrotask(organize));
 })();

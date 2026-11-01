@@ -1,3 +1,4 @@
+from .seguro import sdiv as _sdiv
 import io,json,hashlib,time,urllib.request,urllib.parse
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
@@ -8,6 +9,7 @@ from pyproj import CRS
 
 ASSETS=Path(__file__).resolve().parents[1]/'assets'
 def enhance(a):
+    a=cv2.fastNlMeansDenoisingColored(a,None,2,2,5,15) if a.shape[0]*a.shape[1]<=4096*4096 else a
     lab=cv2.cvtColor(a,cv2.COLOR_RGB2LAB);l=lab[:,:,0];cl=cv2.createCLAHE(clipLimit=1.6,tileGridSize=(12,8)).apply(l)
     l=cv2.addWeighted(l,.45,cl,.55,0);blur=cv2.GaussianBlur(l,(0,0),1.4);lab[:,:,0]=cv2.addWeighted(l,1.55,blur,-.55,0)
     a=cv2.cvtColor(lab,cv2.COLOR_LAB2RGB);h=cv2.cvtColor(a,cv2.COLOR_RGB2HSV);s=h[:,:,1].astype(np.float32);h[:,:,1]=np.minimum(255,s*(1+.16*(1-s/255))).astype(np.uint8)
@@ -64,27 +66,40 @@ def _mosaic_base(directory,settings,bounds,status=lambda *a:None,warnings=None):
             sub=[lo[0]+i*span/tiles,hi[1]-(j+1)*span/tiles,lo[0]+(i+1)*span/tiles,hi[1]-j*span/tiles]
             args={'bbox':','.join(map(str,sub)),'bboxSR':epsg,'imageSR':epsg,'size':f'{tile},{tile}','format':'jpg','f':'image'}
             url='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?'+urllib.parse.urlencode(args)
-            # 1.20: tentativas controladas (3, com espera crescente) e conferência do conteúdo, não só do status HTTP.
-            err=None
-            for attempt in range(3):
-                try:
-                    req=urllib.request.Request(url,headers={'User-Agent':'RodoviaStudio/1.0'})
-                    with urllib.request.urlopen(req,timeout=60) as r:data=r.read()
-                    im=Image.open(io.BytesIO(data));im.verify();break
-                except Exception as e:
-                    err=e
-                    if attempt<2:time.sleep(1.5*(attempt+1))
-            else:raise err
+            data=baixar_bloco(url)
             tmp=file.with_suffix('.tmp');tmp.write_bytes(data);tmp.replace(file)
         return i,j,Image.open(file).convert('RGB')
     result=Image.new('RGB',(n,n));blank=0
-    with ThreadPoolExecutor(max_workers=4) as pool:
+    with ThreadPoolExecutor(max_workers=6) as pool:
         for k,(i,j,im) in enumerate(pool.map(fetch,[(i,j) for i in range(tiles) for j in range(tiles)])):
             if is_blank(np.asarray(im)):blank+=1
             result.paste(im,(i*tile,j*tile));status(.08+.12*(k+1)/(tiles*tiles),'Carregando imagem aérea')
     label='Esri, Vantor, Earthstar Geographics e GIS User Community'
     if blank and warnings is not None:warnings.append(f'{blank} bloco(s) da imagem aérea vieram sem imagem (área sem cobertura ou serviço indisponível). Confira o fundo nesses locais.')
     return enhance(np.array(result)),box,label
+
+def baixar_bloco(url,tentativas=5,abrir=None,espera=1.2):
+    """2.26: baixa um bloco de imagem aérea com espera crescente e confere o conteúdo.
+    Bloco em branco/ilegível conta como falha e é tentado de novo; a última resposta legível é usada
+    se o serviço insistir (o aviso de bloco sem imagem continua sendo dado a quem chama)."""
+    abrir=abrir or (lambda u:urllib.request.urlopen(urllib.request.Request(u,headers={'User-Agent':'RodoviaStudio/1.0'}),timeout=60).read())
+    erro=None;ultimo=None
+    for t in range(tentativas):
+        try:
+            data=abrir(url);im=Image.open(io.BytesIO(data));im.verify()
+            ultimo=data
+            if not is_blank(np.asarray(Image.open(io.BytesIO(data)).convert('RGB'))):return data
+            erro=ValueError('bloco sem imagem')
+        except Exception as e:erro=e
+        if t<tentativas-1:time.sleep(espera*(t+1))
+    if ultimo is not None:return ultimo
+    raise erro
+
+def ampliar(a,fator):
+    """Ampliação de boa qualidade (Lanczos + nitidez suave) para quando o fornecedor entrega menos detalhe."""
+    if fator<=1.001:return a
+    h,w=a.shape[:2];b=cv2.resize(a,(int(w*fator),int(h*fator)),interpolation=cv2.INTER_LANCZOS4)
+    g=cv2.GaussianBlur(b,(0,0),1.0);return cv2.addWeighted(b,1.35,g,-.35,0)
 
 def is_blank(a):
     """Bloco sem imagem: quase uniforme ou mensagem de indisponibilidade (fundo claro, pouca cor)."""
@@ -127,7 +142,7 @@ def mosaic_tiles(directory,settings,box,n,status=lambda *a:None,fetch=None,cache
     from .webmap import web_source,tile,MERC_HALF
     src=web_source(settings);root=Path(cache_root) if cache_root else Path(directory).resolve().parent/'_ladrilhos'
     x0,y0,x1,y1=box;tr=Transformer.from_crs(CRS.from_user_input(settings.crs),3857,always_xy=True)
-    res=(x1-x0)/n
+    res=((x1-x0) / (n))
     gy=gx=np.linspace(0,n-1,17);GX,GY=np.meshgrid(x0+(gx+.5)*res,y1-(gy+.5)*res)
     MX,MY=tr.transform(GX,GY);MX=np.asarray(MX);MY=np.asarray(MY)
     lat=math.degrees(2*math.atan(math.exp(float(MY.mean())/6378137))-math.pi/2)
@@ -152,7 +167,7 @@ def mosaic_tiles(directory,settings,box,n,status=lambda *a:None,fetch=None,cache
         for k,(tx,ty,a) in enumerate(pool.map(get,jobs)):
             if a is None:fails+=1;continue
             canvas[(ty-ty0)*256:(ty-ty0+1)*256,(tx-tx0)*256:(tx-tx0+1)*256]=a
-            if k%20==0:status(.08+.12*(k+1)/len(jobs),'Carregando imagem aérea ('+src.attribution+')')
+            if k%20==0:status(.08+(_sdiv(.12*(k+1), len(jobs))),'Carregando imagem aérea ('+src.attribution+')')
     if fails==len(jobs):raise ValueError('Nenhum ladrilho da fonte web escolhida pôde ser obtido (sem internet ou endereço incorreto). Volte para a Esri atual ou verifique o endereço.')
     from .local_tiles import _upsample
     mx=_upsample(px-tx0*256,gy,gx,n,n);my=_upsample(py-ty0*256,gy,gx,n,n)

@@ -1,4 +1,5 @@
 """Cache derivado de geometria, numérico/JSON, sem pickle nem mudança da fonte."""
+from .falhas import registrar as _falha
 import json,zlib,time,uuid
 from pathlib import Path
 import numpy as np
@@ -26,16 +27,16 @@ def _decode(data):
 
 
 def cached_analyze(original,directory,settings,preview=None,hatch_preview=None):
-    if preview is not None or hatch_preview is not None:return original(directory,settings,preview,hatch_preview)
-    from .dependencies import revisions,digest
+    wants_pv=preview is not None or hatch_preview is not None          # 2.59: a tarefa 'analyze' pede as prévias e antes ignorava o cache (relia o DXF a cada análise)
+    from .dependencies import geometry_cache_key
     d=Path(directory);folder=d/'_cache'/'geometry';started=time.monotonic()
     def cache_key():
-        return revisions(d,settings)['geometry']
-    key=cache_key();target=folder/(key+'.json.z')
-    safe=not any(p.is_symlink() for p in (d/'_cache',folder,target))
+        return geometry_cache_key(d,settings)
+    key=cache_key();target=folder/(key+'.json.z');pv_target=folder/(key+'.pv.z')
+    safe=not any(p.is_symlink() for p in (d/'_cache',folder,target,pv_target))
     from .full_update import required,rebuilt
     force=required('geometry',str(target))
-    if not force and safe and target.is_file() and target.stat().st_size<=MAX_COMPRESSED:
+    if not force and safe and target.is_file() and target.stat().st_size<=MAX_COMPRESSED and (not wants_pv or (pv_target.is_file() and pv_target.stat().st_size<=MAX_COMPRESSED)):
         try:
             decoder=zlib.decompressobj();raw=decoder.decompress(target.read_bytes(),MAX_RAW+1)
             if len(raw)>MAX_RAW or not decoder.eof or decoder.unconsumed_tail or decoder.unused_data:raise ValueError('Cache excede o limite de leitura.')
@@ -50,9 +51,18 @@ def cached_analyze(original,directory,settings,preview=None,hatch_preview=None):
                     if not isinstance(points,np.ndarray) or points.ndim!=2 or points.shape[1]!=2 or len(points)<1:raise ValueError('Coordenadas inválidas no cache.')
             from .pavement import tag_materials
             tag_materials(result[0],settings)
+            if wants_pv:
+                dec2=zlib.decompressobj();raw2=dec2.decompress(pv_target.read_bytes(),MAX_RAW+1)
+                if len(raw2)>MAX_RAW or not dec2.eof:raise ValueError('Cache de prévias excede o limite de leitura.')
+                pv=_decode(raw2)
+                if not isinstance(pv,dict) or not isinstance(pv.get('preview'),list) or not isinstance(pv.get('hatch'),dict):raise ValueError('Formato do cache de prévias inválido.')
+                if preview is not None:preview.extend(pv['preview'])
+                if hatch_preview is not None:hatch_preview.update(pv['hatch'])
             result[4]['geometry_cache']={'hit':True,'seconds':time.monotonic()-started}
             return tuple(result)
-        except (ValueError,TypeError,KeyError,zlib.error,OSError):pass
+        except (ValueError,TypeError,KeyError,zlib.error,OSError) as _e:_falha(__name__,_e)
+    if preview is not None:del preview[:]
+    if hatch_preview is not None:hatch_preview.clear()
     result=original(directory,settings,preview,hatch_preview)
     if safe:
         temp=None
@@ -61,10 +71,19 @@ def cached_analyze(original,directory,settings,preview=None,hatch_preview=None):
             if len(raw)<=MAX_RAW and cache_key()==key:
                 compressed=zlib.compress(raw,3)
                 if len(compressed)<=MAX_COMPRESSED:
-                    folder.mkdir(parents=True,exist_ok=True);temp=folder/('.'+uuid.uuid4().hex+'.tmp');temp.write_bytes(compressed);temp.replace(target);rebuilt('geometry',str(target))
+                    folder.mkdir(parents=True,exist_ok=True)
+                    if wants_pv:
+                        rawpv=json.dumps({'preview':list(preview or []),'hatch':dict(hatch_preview or {})},default=_encode,allow_nan=False,separators=(',',':')).encode()
+                        if len(rawpv)<=MAX_RAW:
+                            cpv=zlib.compress(rawpv,3)
+                            if len(cpv)<=MAX_COMPRESSED:
+                                tpv=folder/('.'+uuid.uuid4().hex+'.tmp');tpv.write_bytes(cpv);tpv.replace(pv_target)
+                    temp=folder/('.'+uuid.uuid4().hex+'.tmp');temp.write_bytes(compressed);temp.replace(target);rebuilt('geometry',str(target))
+                    for prev in sorted(folder.glob('*.pv.z'),key=lambda p:p.stat().st_mtime,reverse=True)[2:]:
+                        if not prev.is_symlink():prev.unlink(missing_ok=True)
                     for previous in sorted(folder.glob('*.json.z'),key=lambda p:p.stat().st_mtime,reverse=True)[2:]:
                         if not previous.is_symlink():previous.unlink(missing_ok=True)
-        except (ValueError,TypeError,OSError):pass
+        except (ValueError,TypeError,OSError) as _e:_falha(__name__,_e)
         finally:
             if temp is not None:temp.unlink(missing_ok=True)
     result[4]['geometry_cache']={'hit':False,'seconds':time.monotonic()-started}

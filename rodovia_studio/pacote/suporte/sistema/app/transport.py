@@ -1,7 +1,10 @@
 """Relógio compartilhado de trens, passagens em nível e semáforos. Sem estado de quadro."""
+from .seguro import sdiv as _sdiv
+from .seguro import sdiv as _sdiv
 import math,hashlib
 import numpy as np
 from shapely.geometry import LineString,Point
+from .signal_timing import can_stop
 
 AMBER=3.
 CLEARANCE=12.
@@ -25,33 +28,39 @@ def timings(s):
     extra=5 if s.phases==2 else 15
     greens=[2*s.lanes_a+extra,2*s.lanes_b+extra]
     walk=2*max(s.lanes_a,s.lanes_b)+15 if s.phases==3 else 0
-    return greens,walk,sum(greens)+2*(AMBER+s.clearance_s)+walk
+    amber=getattr(s,'amber_s',AMBER)
+    return greens,walk,sum(greens)+2*(amber+s.clearance_s)+walk
 
 def phase(s,t,offset=0):
-    greens,walk,cycle=timings(s);u=(float(t)-offset)%cycle
+    greens,walk,cycle=timings(s);u=(float(t)-offset)%cycle;amber=getattr(s,'amber_s',AMBER)
     for axis,duration in enumerate(greens):
         if u<duration:return ('green' if axis==0 else 'red','green' if axis==1 else 'red',False)
         u-=duration
-        if u<AMBER:return ('amber' if axis==0 else 'red','amber' if axis==1 else 'red',False)
-        u-=AMBER
+        if u<amber:return ('amber' if axis==0 else 'red','amber' if axis==1 else 'red',False)
+        u-=amber
         if u<s.clearance_s:return ('red','red',False)
         u-=s.clearance_s
     return ('red','red',bool(walk))
 
 class Transport:
     def __init__(self,settings,network=None):
-        self.s=settings;self.rails=[];self.signals=list(getattr(settings,'traffic_signals',[]));self.offsets={s.id:float(s.offset_s) for s in self.signals};self.by_id={s.id:s for s in self.signals}
+        self.s=settings;self.rails=[];self.signals=list(getattr(settings,'traffic_signals',[]))
+        if getattr(settings,'signal_amber_auto',True):
+            from .signal_timing import amber_s as _amber
+            need=_amber(float(getattr(settings,'traffic_speed_kmh',60))/3.6)
+            self.signals=[x.model_copy(update={'amber_s':max(x.amber_s,need)}) if x.amber_s<need else x for x in self.signals]
+        self.offsets={s.id:float(s.offset_s) for s in self.signals};self.by_id={s.id:s for s in self.signals}
         links={l.target:l for l in getattr(settings,'signal_links',[]) if l.enabled and self.by_id[l.source].enabled and self.by_id[l.target].enabled}
         def offset(node):
             if node not in links:return self.offsets[node]
             link=links[node];a,b=self.by_id[link.source],self.by_id[node]
-            return offset(a.id)+math.hypot(a.point.x-b.point.x,a.point.y-b.point.y)/(link.speed_kmh/3.6)
+            return offset(a.id)+(_sdiv(math.hypot(a.point.x-b.point.x,a.point.y-b.point.y), link.speed_kmh/3.6))
         for node in self.offsets:self.offsets[node]=offset(node)
         for r in getattr(settings,'railways',[]):
             p=xy(r.points);d=stations(p);t=np.gradient(p,axis=0);t/=np.maximum(np.linalg.norm(t,axis=1)[:,None],1e-9);normal=np.column_stack([-t[:,1],t[:,0]])
             for track in range(r.tracks):
                 points=p+normal*((track-.5)*4.5 if r.tracks==2 else 0);dd=stations(points)
-                self.rails.append({'config':r,'track':track,'p':points,'d':dd,'line':LineString(points),'corridor':LineString(points).buffer(3.3,cap_style=2),'length':float(dd[-1]),'period':float(max(r.interval_s,(dd[-1]+20+r.max_wagons*15)/(r.speed_kmh/3.6)+2*RAIL_WARNING+15))})
+                self.rails.append({'config':r,'track':track,'p':points,'d':dd,'line':LineString(points),'corridor':LineString(points).buffer(3.3,cap_style=2),'length':float(dd[-1]),'period':float(max(r.interval_s,(_sdiv(dd[-1]+20+r.max_wagons*15, r.speed_kmh/3.6))+2*RAIL_WARNING+15))})
         self.stops=[];self.path_lines=[]
         if network is not None:self.prepare(network)
     def event(self,rail,t):
@@ -117,7 +126,7 @@ class Transport:
                     if envelope is not None:
                         mask=np.abs(path['d']-d)<(6/max(sine,.15)+60)
                         if mask.any():speed=min(speed,max(.1,float(np.min(envelope[mask]))*.7*.8))
-                    warning=max(RAIL_WARNING,(6/max(sine,.15)+25)/speed+5)
+                    warning=max(RAIL_WARNING,(_sdiv(6/max(sine,.15)+25, speed))+5)
                     stops.append({'kind':'rail','s':max(0.,d-9),'cross':d,'rail':rail,'rail_s':rs,'warning_s':warning,'clear_after_m':max(12.,3/max(sine,.15)+5),'permanent':permanent})
             for signal in self.signals:
                 if not signal.enabled:continue
@@ -144,7 +153,9 @@ class Transport:
                 if stop['kind']=='signal':
                     if not getattr(self.s,'traffic_respect_signals',True):continue
                     signal=stop['signal'];other=signal.lanes_a if stop['axis']==0 else signal.lanes_b
-                    closed=self.signal_state(signal,t)[stop['axis']]!='green' or leader_gap<stop['s']+stop.get('clear_span',other*signal.lane_width_m+16)+v['L']/2-station
+                    state=self.signal_state(signal,t)[stop['axis']]
+                    # Amarelo: quem consegue parar com frenagem aceitável freia; quem já não consegue (zona de dilema) atravessa.
+                    closed=(state!='green' and not (state=='amber' and not can_stop(v.get('v',0.),gap))) or leader_gap<stop['s']+stop.get('clear_span',other*signal.lane_width_m+16)+v['L']/2-station
                 else:closed=self.rail_stop_closed(stop,t) or leader_gap<stop['cross']+stop.get('clear_after_m',12)+v['L']/2-station
                 if closed:best=min(best,max(0.,gap))
         return best
@@ -164,7 +175,7 @@ class Transport:
                 if not 0<=s<=rail['length']:continue
                 original_s=rail['length']-s if e['reverse'] else s;p,h=at(rail['p'],rail['d'],original_s)
                 half=10. if j==0 else 7.;front,_=at(rail['p'],rail['d'],original_s+half);rear,_=at(rail['p'],rail['d'],original_s-half);heading=front-rear
-                if np.linalg.norm(heading)>1e-8:h=heading/np.linalg.norm(heading)
+                if np.linalg.norm(heading)>1e-8:h=(_sdiv(heading, np.linalg.norm(heading)))
                 if e['reverse']:h=-h
                 out.append({'id':f'{i}:{e["cycle"]}:{j}','p':p,'heading':h,'length':20. if j==0 else 14.,'width':3.,'locomotive':j==0,'level':float(rail['config'].level),'speed_mps':float(rail['config'].speed_kmh)/3.6,'model':rail['config'].model,'wagons':e['wagons']})
         return out

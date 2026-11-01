@@ -1,0 +1,69 @@
+{
+  "inputs": [
+    {
+      "file": "RodoviaStudio_2_60_atualizacao.zip",
+      "version": "2.60",
+      "sha256": "bb4607a6daceaf55c0ec93ff1502abc516695ed5d9e51673ba8142bbb100e642",
+      "bytes": 5136122
+    },
+    {
+      "file": "RodoviaStudio_2_61_atualizacao_leve.zip",
+      "version": "2.61",
+      "sha256": "a94d610b69072e45836e66b24a89cf4de40f356afd136cf21f6e77a5e88d9293",
+      "bytes": 65907
+    },
+    {
+      "file": "RodoviaStudio_2_62_atualizacao_leve.zip",
+      "version": "2.62",
+      "sha256": "7d3538f726b986c132811162bcb1ca2f02c9ca1d9039215cffd3d02dd87ad02a",
+      "bytes": 35696
+    }
+  ],
+  "archived_from_2_02": [
+    "ATUALIZACAO_1_42_18.md",
+    "AUDITORIA_1_42_5.md",
+    "ATUALIZACAO_1_42_33.md",
+    "ATUALIZACAO_2_02.md",
+    "ATUALIZACAO_1_42_32.md",
+    "ATUALIZACAO_2_01.md",
+    "ATUALIZACAO_1_42_37.md",
+    "ATUALIZACAO_1_42_5.md",
+    "ATUALIZACAO_1_42_22.md",
+    "ATUALIZACAO_1_42_23.md",
+    "ATUALIZACAO_1_42_17.md",
+    "ATUALIZACAO_1_42_15.md",
+    "ATUALIZACAO_1_42_3.md",
+    "ATUALIZACAO_1_42_6.md",
+    "ATUALIZACAO_1_42_8.md",
+    "ATUALIZACAO_1_42_27.md",
+    "ATUALIZACAO_1_42_4.md",
+    "MODO_IA_1_42_32.md",
+    "ATUALIZACAO_1_42_16.md",
+    "ATUALIZACAO_1_42_28.md",
+    "ATUALIZACAO_1_42_21.md",
+    "ATUALIZACAO_1_42_29.md",
+    "ATUALIZACAO_1_42_34.md",
+    "ATUALIZACAO_1_42_19.md",
+    "ATUALIZACAO_1_42_35.md",
+    "ATUALIZACAO_1_42_31.md",
+    "ATUALIZACAO_1_42_7.md",
+    "ATUALIZACAO_1_42_25.md",
+    "ATUALIZACAO_1_42_20.md",
+    "AUDITORIA_1_42_6.md",
+    "AUDITORIA_1_42_4.md",
+    "ATUALIZACAO_1_42_30.md",
+    "ATUALIZACAO_1_42_36.md",
+    "ATUALIZACAO_1_42_38.md",
+    "ATUALIZACAO_1_42_24.md",
+    "ATUALIZACAO_1_42_26.md",
+    "suporte/sistema/tests/test_v202_reconstruction.py",
+    "suporte/sistema/tests/test_release_gate_resume.py",
+    "suporte/sistema/tests/ui_release_helpers.py",
+    "suporte/sistema/tests/rotas_api_1_30.json",
+    "suporte/sistema/tests/test_v201_operation.py",
+    "suporte/sistema/tests/SplashValidation.cs",
+    "suporte/sistema/tests/test_tracking_reconnect.py",
+    "suporte/sistema/tests/fixtures/interface_14225.json"
+  ],
+  "note": "Base completa 2.60 + patches 2.61/2.62 recebidos do usuário. Não é uma restauração da 2.02."
+}

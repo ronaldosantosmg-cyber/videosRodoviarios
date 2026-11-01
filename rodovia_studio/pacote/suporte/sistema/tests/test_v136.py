@@ -22,7 +22,8 @@ def test_clima(junction):
     from app.render import Scene
     v=((500200,7800000),120);base=Scene(junction,S()).frame(3,view=v)[0].astype(float)
     nub=Scene(junction,S(weather='nublado')).frame(3,view=v)[0].astype(float)
-    sat=lambda a:float((a.max(2)-a.min(2))[200:500].mean())
+    def sat(a):
+        m=(a.max(2)-a.min(2))[200:500];return float(m[m>12].mean())   # 2.28: só pixels coloridos (asfalto agora é neutro)
     assert sat(nub)<sat(base) and nub[200:500].mean()<base[200:500].mean()
     nev=Scene(junction,S(weather='neblina',weather_intensity=1)).frame(3,view=v)[0].astype(float);assert nev[200:500].std()<base[200:500].std()*.8
     sc=Scene(junction,S(weather='chuva',weather_intensity=1));c1=sc.frame(3,view=v)[0];c2=sc.frame(3.5,view=v)[0];c1b=sc.frame(3,view=v)[0]

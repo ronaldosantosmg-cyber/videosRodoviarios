@@ -5,6 +5,7 @@ direção. Limitação: não há modelo digital de elevação — o terreno é p
 altura vem das cotas informadas nas OAE marcadas (nível): ao passar por elas, a câmera sobe e o
 restante da cena continua no plano.
 """
+from .seguro import sdiv as _sdiv
 import math
 import numpy as np
 import cv2
@@ -48,7 +49,7 @@ class CabinView:
         self.f=(W/2)/math.tan(math.radians(c.fov_deg)/2);self.cx=W/2;self.cy=(self.y0+self.y1)/2
         self.levels=[(sc.map,np.ascontiguousarray(sc.overlay),1)]
         for k in (4,16):
-            n=max(64,sc.n//k);self.levels.append((cv2.resize(sc.map,(n,n),interpolation=cv2.INTER_AREA),cv2.resize(np.asarray(sc.overlay),(n,n),interpolation=cv2.INTER_AREA),sc.n/n))
+            n=max(64,sc.n//k);self.levels.append((cv2.resize(sc.map,(n,n),interpolation=cv2.INTER_AREA),cv2.resize(np.asarray(sc.overlay),(n,n),interpolation=cv2.INTER_AREA),(_sdiv(sc.n, n))))
         self.hood=self._hood() if c.hood else None
         self.vehicle_ids=set()
         from .transport_cabin import prepare_camera
@@ -168,7 +169,7 @@ class CabinView:
             if k==0:w=np.where(foot<0,1,w)
             if k==len(self.levels)-1:w=np.where(foot>k,1,w)
             if not w.any():continue
-            uu=u/scale-.5;vv=v/scale-.5
+            uu=(_sdiv(u, scale))-.5;vv=(_sdiv(v, scale))-.5
             g=cv2.remap(mp,uu,vv,cv2.INTER_LINEAR,borderMode=cv2.BORDER_REPLICATE).astype(np.float32)
             o=cv2.remap(np.ascontiguousarray(ov),uu,vv,cv2.INTER_LINEAR,borderMode=cv2.BORDER_CONSTANT,borderValue=0).astype(np.float32)
             a=o[:,:,3:]/255;col+=(g*(1-a)+o[:,:,:3]*a)*w[:,None,None];acc+=w

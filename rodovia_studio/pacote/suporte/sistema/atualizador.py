@@ -413,7 +413,10 @@ def validate_package(pacote,say=print):
     Um pacote defeituoso é recusado antes de criar/substituir qualquer arquivo.
     """
     pacote=Path(pacote);errors=[]
-    required=[pacote/'manifest.json',pacote/'suporte/sistema/app/server.py',pacote/'suporte/sistema/VERSAO.json']
+    try:_leve=bool(json.loads((pacote/'manifest.json').read_text(encoding='utf-8')).get('base_version'))
+    except Exception:_leve=False
+    # 2.60: pacote LEVE (só os arquivos alterados desde base_version) não precisa trazer o servidor; o completo precisa.
+    required=[pacote/'manifest.json',pacote/'suporte/sistema/VERSAO.json']+([] if _leve else [pacote/'suporte/sistema/app/server.py'])
     for f in required:
         if not f.is_file():errors.append('ausente: '+str(f.relative_to(pacote)))
     for f in [pacote/'manifest.json',pacote/'suporte/sistema/VERSAO.json']:
@@ -474,6 +477,9 @@ def _apply(pacote,raiz,say=print,check_running=True):
     if check_running and (port:=app_running()):
         raise RuntimeError(f'O Rodovia Studio está aberto (porta {port}). Feche a janela do aplicativo e tente de novo.')
     stamp=time.strftime('%Y%m%d_%H%M%S')+'_'+uuid.uuid4().hex[:8];old=installed_version(raiz)
+    _base=json.loads((pacote/'manifest.json').read_text(encoding='utf-8')).get('base_version')
+    if _base and version_tuple(old)<version_tuple(_base):
+        raise PackageError(f'Este pacote LEVE exige a versão {_base} ou maior já instalada (a instalada é {old}). Use o pacote COMPLETO desta versão.')
     say(f'Rodovia Studio {old} -> {new} em {raiz}')
     if layout=='antiga':migrate(raiz,stamp,say);layout_now='nova'
     else:layout_now=layout
@@ -590,7 +596,8 @@ def search_and_apply(raiz,say=print,check_running=True):
         if dst.exists():dst=dest/(z.stem+'_'+time.strftime('%Y%m%d_%H%M%S')+z.suffix)
         try:os.replace(z,dst)
         except OSError:pass
-        say(f'Já está atualizado ({".".join(map(str,cur))}). O pacote {z.name} foi arquivado em atualizacoes/aplicadas.');return None
+        extra='' if ver==cur else f' A versão do pacote ({".".join(map(str,ver))}) é MENOR que a instalada: um pacote só é aplicado se tiver versão maior. Para voltar a uma versão menor use "RESTAURAR VERSAO ANTERIOR".'
+        say(f'Já está atualizado ({".".join(map(str,cur))}). O pacote {z.name} foi arquivado em atualizacoes/aplicadas SEM ser aplicado.'+extra);return None
     # 1.19: extrai numa pasta temporária curta (antes, dentro do OneDrive, o caminho passava de 260 caracteres).
     tmp=Path(tempfile.mkdtemp(prefix='rs_'))
     try:

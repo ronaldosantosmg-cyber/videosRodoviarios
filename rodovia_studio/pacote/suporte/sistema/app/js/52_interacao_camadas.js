@@ -11,19 +11,19 @@ const S={client:null,inside:false,lastHits:[],hitIndex:-1,restoring:false};
 function safeObj(s){try{return s&&typeof objOf==='function'&&objOf(s)?{key:s.key,i:s.i}:null}catch{return null}}
 function capture(){
   const st={pid:typeof pid==='string'?pid:null,sel:safeObj(typeof sel!=='undefined'?sel:null),selSet:[],center:null,ppm:null,pointer:null};
-  try{if(Array.isArray(selSet))st.selSet=selSet.map(safeObj).filter(Boolean)}catch{}
+  try{if(Array.isArray(selSet))st.selSet=selSet.map(safeObj).filter(Boolean)}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('interacao_camadas',_e)}
   try{if(typeof ready==='function'&&ready()&&canvas){st.center=C2W(canvas.width/2,canvas.height/2);st.ppm=pxPerM()}}
-  catch{}
+  catch(_e){window.RodoviaErros&&RodoviaErros.avisar('interacao_camadas',_e)}
   try{if(S.inside&&S.client&&canvas&&typeof canvasPt==='function'){
     const r=canvas.getBoundingClientRect();const ev={clientX:S.client.x,clientY:S.client.y};
     const c=canvasPt(ev);if(c?.w)st.pointer={world:{x:c.w.x,y:c.w.y},nx:(S.client.x-r.left)/Math.max(1,r.width),ny:(S.client.y-r.top)/Math.max(1,r.height)};
-  }}catch{}
+  }}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('interacao_camadas',_e)}
   return st;
 }
-function restore(st,{selection=true,anchor=true,properties=false}={}){
+function restore(st,{selection=true,anchor=true,properties=false,vista=true}={}){
   if(!st||S.restoring)return;S.restoring=true;
   try{
-    if(typeof ready==='function'&&ready()&&canvas&&st.ppm&&st.center){
+    if(vista&&typeof ready==='function'&&ready()&&canvas&&st.ppm&&st.center){
       const p=worldToImg(st.center);view.s=st.ppm*mpp();view.ox=canvas.width/2-p[0]*view.s;view.oy=canvas.height/2-p[1]*view.s;
       if(anchor&&st.pointer?.world&&S.inside){
         const r=canvas.getBoundingClientRect();const cx=st.pointer.nx*canvas.width,cy=st.pointer.ny*canvas.height;
@@ -43,9 +43,9 @@ function restore(st,{selection=true,anchor=true,properties=false}={}){
         else if(typeof selSeg!=='undefined'&&selSeg&&segById(selSeg.id))showSegProps();
         else if(typeof dxfSel!=='undefined'&&dxfSel&&typeof showDxfProps==='function')showDxfProps();
         else showProps();
-      }catch{}
+      }catch(_e){window.RodoviaErros&&RodoviaErros.avisar('interacao_camadas',_e)}
     }
-    try{draw()}catch{}
+    try{draw()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('interacao_camadas',_e)}
   }finally{S.restoring=false}
 }
 function trackPointer(){
@@ -57,7 +57,7 @@ function trackPointer(){
 function wrapAsyncReload(){
   if(typeof load==='function'&&!load.__rs1403){const prev=load;const fn=async function(id,...args){const st=capture(),same=st.pid&&String(st.pid)===String(id);const r=await prev(id,...args);if(r!==false&&same&&pid===id&&!args[0]?.resultsOnly)requestAnimationFrame(()=>{if(pid===id)restore(st)});return r};fn.__rs1403=true;load=fn}
   if(typeof regenScreen==='function'&&!regenScreen.__rs1403){const prev=regenScreen;const fn=function(...a){const st=capture();const r=prev(...a);requestAnimationFrame(()=>restore(st,{selection:true,anchor:true}));return r};fn.__rs1403=true;regenScreen=fn}
-  if(typeof resizeCanvas==='function'&&!resizeCanvas.__rs1403){const prev=resizeCanvas;const fn=function(...a){const st=capture();const r=prev(...a);requestAnimationFrame(()=>restore(st,{selection:true,anchor:true}));return r};fn.__rs1403=true;resizeCanvas=fn}
+  if(typeof resizeCanvas==='function'&&!resizeCanvas.__rs1403){const prev=resizeCanvas;const fn=function(...a){const st=capture();const r=prev(...a);requestAnimationFrame(()=>restore(st,{selection:true,anchor:false,vista:false}));return r};fn.__rs1403=true;resizeCanvas=fn}
 }
 function hitListAtEvent(e){try{return typeof hitObjects==='function'?hitObjects(canvasPt(e)):[]}catch{return []}}
 function chooseHit(h,why='Selecionado'){
@@ -66,6 +66,8 @@ function chooseHit(h,why='Selecionado'){
 }
 function installOverlapSelection(){
   if(!window.canvas)return;
+  // 2.62: nos 350 ms seguintes a uma mudança de layout o mapa ainda está se assentando; um clique aí atingiria outro objeto.
+  canvas.addEventListener('pointerdown',e=>{if(performance.now()<(window.__rsAssentaAte||0)){e.preventDefault();e.stopImmediatePropagation()}},true);
   canvas.addEventListener('pointerdown',e=>{
     if(e.button!==0||!e.altKey||e.shiftKey||typeof tool==='undefined'||tool!=='pan'||typeof ready!=='function'||!ready())return;
     const L=hitListAtEvent(e);if(L.length<2)return;
@@ -76,15 +78,15 @@ function installOverlapSelection(){
   document.addEventListener('keydown',e=>{
     if(e.key!=='Tab'||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey||!S.inside||!S.client)return;
     if(e.target?.matches?.('input,textarea,select,[contenteditable=true]'))return;
-    try{const L=hitListAtEvent({clientX:S.client.x,clientY:S.client.y});if(L.length<2)return;e.preventDefault();const cur=sel?L.findIndex(h=>h.key===sel.key&&h.i===sel.i):-1;const k=(cur+1+L.length)%L.length;S.lastHits=L;S.hitIndex=k;chooseHit(L[k],`Sobreposição (${k+1}/${L.length})`)}catch{}
+    try{const L=hitListAtEvent({clientX:S.client.x,clientY:S.client.y});if(L.length<2)return;e.preventDefault();const cur=sel?L.findIndex(h=>h.key===sel.key&&h.i===sel.i):-1;const k=(cur+1+L.length)%L.length;S.lastHits=L;S.hitIndex=k;chooseHit(L[k],`Sobreposição (${k+1}/${L.length})`)}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('interacao_camadas',_e)}
   },true);
 }
 function installSelectionPersistence(){
   // Seleção só é limpa por Esc/Desmarcar/apagar; terminar uma edição preserva o contexto do usuário.
-  try{window.RodoviaSelectionPolicy=Object.freeze({preserveAfterCommand:true,overlap:'Alt+clique ou Tab'})}catch{}
+  try{window.RodoviaSelectionPolicy=Object.freeze({preserveAfterCommand:true,overlap:'Alt+clique ou Tab'})}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('interacao_camadas',_e)}
 }
 function init(){trackPointer();wrapAsyncReload();installOverlapSelection();installSelectionPersistence();
-  window.addEventListener('rodovia:workspace-resize',()=>{const st=capture();requestAnimationFrame(()=>restore(st,{selection:true,anchor:true}))});
+  window.addEventListener('rodovia:workspace-resize',()=>{const st=capture();window.__rsAssentaAte=performance.now()+350;requestAnimationFrame(()=>restore(st,{selection:true,anchor:false,vista:false}))});
   window.RodoviaViewport=Object.freeze({capture,restore});
 }
 queueMicrotask(init);

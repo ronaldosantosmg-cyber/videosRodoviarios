@@ -16,6 +16,8 @@ router=APIRouter()
 class RoutesBody(_BM):
     route_alignments:list=[]
     alternating_zones:list=[]
+    route_directions:dict[str,str]={}
+    km_signs:dict[str,int]={}   # 2.39: +1/-1 por rota: o km cresce no sentido do desenho? (calculado pela tela com o estaqueamento atual)   # 2.36: a prévia usa o MESMO sentido de eixo/layer do cálculo (antes ignorava)
 
 @router.post('/api/rotas_previa')
 def routes_preview(body:RoutesBody):
@@ -26,7 +28,10 @@ def routes_preview(body:RoutesBody):
     s=_S();s.route_alignments=[RouteAlignment.model_validate(r) for r in body.route_alignments]
     from ..road_sections import AlternatingZone
     s.alternating_zones=[AlternatingZone.model_validate(z) for z in body.alternating_zones]
-    return {'lanes':preview(s)}
+    s.route_directions={k:v for k,v in body.route_directions.items() if v in ('forward','reverse','off','auto')}
+    from ..routes import km_context
+    with km_context(None,{k:(1 if v>=0 else -1) for k,v in body.km_signs.items()}):
+        return {'lanes':preview(s)}
 
 
 @router.get('/api/projects/{pid}/editor.json')
@@ -54,7 +59,7 @@ def validate_path(pid,body:dict):
     if not (d/'allowed.wkb').exists():raise HTTPException(409,'Gere a prévia antes de incluir fluxos.')
     try:points=[Point.model_validate(p) for p in body.get('points',[])]
     except Exception:raise HTTPException(422,'Pontos inválidos.')
-    g={n:shapely.from_wkb((d/(n+'.wkb')).read_bytes()) for n in ['roads','obstacles','allowed']}
+    g={n:shapely.from_wkb((((d) / (n+'.wkb'))).read_bytes()) for n in ['roads','obstacles','allowed']}
     cfg=Settings.model_validate(json.loads((store.directory(pid)/'config.json').read_text(encoding='utf-8')))
     ex=unary_union([Polygon([(p.x,p.y) for p in a]).buffer(0) for a in cfg.exclusions]) if cfg.exclusions else Polygon()
     allowed=g['allowed'].difference(ex) if not ex.is_empty else g['allowed']
@@ -79,7 +84,7 @@ def texture_preview(surface:str='pista_nova',p:str='{}',m_px:float=.02,realistic
     except Exception as e:raise HTTPException(422,'Parâmetros inválidos: '+str(e)[:200])
     m_px=min(max(m_px,.005),.5)
     base={'pista_nova':COLORS['pavement'],'pista_existente':COLORS['existing_pavement'],'concreto':COLORS['oae'],'acostamento':COLORS['shoulder'],
-          'canteiro':COLORS['median'],'trilhas':COLORS['existing_pavement'],'talude_corte':'#8a6a4e','talude_aterro':'#6f8a55'}[surface]
+          'canteiro':COLORS['median'],'trilhas':COLORS['existing_pavement'],'talude_corte':'#a85642','talude_aterro':'#54803e',**{f'oae_{k}':'#%02x%02x%02x'%visual.OAE_KIND_RGB[k] for k in visual.OAE_KIND_SURF}}[surface]
     H,W=200,360;im=np.zeros((H,W,3),np.uint8);im[:]=[int(base[i:i+2],16) for i in (1,3,5)]
     code=visual.TEX_SURF[surface][0];surf=np.full((H,W),2 if surface=='trilhas' else code,np.uint8)
     if surface=='trilhas':surf[:,int(W*.3):int(W*.42)]=8;surf[:,int(W*.58):int(W*.7)]=8

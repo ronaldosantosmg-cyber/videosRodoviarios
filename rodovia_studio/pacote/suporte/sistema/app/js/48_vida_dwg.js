@@ -12,8 +12,8 @@ OBJ_SPECS.push(['vegetation_areas','Vegetação','area',o=>o.points.map((_,i)=>[
 ENUMS.kind.vegetation_areas=VEG_LABEL;ENUMS.kind.vegetation_points=VEG_LABEL;
 Object.assign(PROP_LABEL,{density:['Densidade (plantas por 1000 m²)','Quantas plantas a cada 1000 m² da área (6 = mata rala; 20 = bosque fechado).'],size_m:['Tamanho (m)','Diâmetro da copa em metros.'],
  seed:['Sorteio','Muda a posição das plantas na área (o mesmo número dá sempre o mesmo arranjo).'],people_per_100m:['Pessoas a cada 100 m','Quantas pessoas andam neste caminho.']});
-let vegOpt={kind:'arvore',modo:'pincel',size:8,dens:8,passo:10};try{Object.assign(vegOpt,JSON.parse(localStorage.getItem('rodovia_veg')||'{}'))}catch{}
-function vegSalvar(){try{localStorage.setItem('rodovia_veg',JSON.stringify(vegOpt))}catch{}}
+let vegOpt={kind:'arvore',modo:'pincel',size:8,dens:8,passo:10};try{Object.assign(vegOpt,JSON.parse(localStorage.getItem('rodovia_veg')||'{}'))}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('vida_dwg',_e)}
+function vegSalvar(){try{localStorage.setItem('rodovia_veg',JSON.stringify(vegOpt))}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('vida_dwg',_e)}}
 function novaPlanta(w,esp=0){const a=Math.random()*2*Math.PI,r=Math.random()*esp;return {x:+(w.x+Math.cos(a)*r).toFixed(2),y:+(w.y+Math.sin(a)*r).toFixed(2),kind:vegOpt.kind,size_m:+(vegOpt.size*(.85+Math.random()*.3)).toFixed(2)}}
 ferramenta('veg',{rotulo:'🌳 Vegetação',dica:'Árvore avulsa (clique), pincel (arraste para plantar ao longo do caminho) ou área (clique os vértices e Enter). Escolha o tipo e o tamanho nas opções. Esc encerra.',
  antesDe:'linkforce',icone:'M12 21v-6M7 15a5 5 0 1 1 3.5-8.6A5 5 0 1 1 17 15z',
@@ -34,7 +34,7 @@ ferramenta('veg',{rotulo:'🌳 Vegetação',dica:'Árvore avulsa (clique), pince
 // Pincel: arrastar planta ao longo do caminho, com espaçamento e leve dispersão.
 let pincelVeg=null;
 canvas.addEventListener('pointerdown',e=>{if(tool!=='veg'||vegOpt.modo!=='pincel'||e.button!==0||!ready()||spaceDown)return;e.stopImmediatePropagation();e.preventDefault();
- try{canvas.setPointerCapture(e.pointerId)}catch{};const c=canvasPt(e);checkpoint();M.vegetation_points.push(novaPlanta(c.w));pincelVeg={ult:c.w,n:1};draw()},true);
+ try{canvas.setPointerCapture(e.pointerId)}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('vida_dwg',_e)};const c=canvasPt(e);checkpoint();M.vegetation_points.push(novaPlanta(c.w));pincelVeg={ult:c.w,n:1};draw()},true);
 canvas.addEventListener('pointermove',e=>{if(!pincelVeg)return;e.stopImmediatePropagation();const c=canvasPt(e);if(!c.w)return;const d=Math.hypot(c.w.x-pincelVeg.ult.x,c.w.y-pincelVeg.ult.y);
  if(d>=vegOpt.passo){const k=Math.floor(d/vegOpt.passo);for(let i=1;i<=k;i++){const f=i*vegOpt.passo/d;M.vegetation_points.push(novaPlanta({x:pincelVeg.ult.x+(c.w.x-pincelVeg.ult.x)*f,y:pincelVeg.ult.y+(c.w.y-pincelVeg.ult.y)*f},vegOpt.passo*.35));pincelVeg.n++}
   pincelVeg.ult={x:pincelVeg.ult.x+(c.w.x-pincelVeg.ult.x)*k*vegOpt.passo/d,y:pincelVeg.ult.y+(c.w.y-pincelVeg.ult.y)*k*vegOpt.passo/d};draw()}},true);
@@ -57,7 +57,7 @@ estender('draw',anterior=>function(){anterior();if(!ready()||vecOn?.vegetacao===
   ctx.restore()}catch(e){ctx.restore()}},'vegetação e pedestres no editor');
 // ---------- abrir DWG ----------
 estender('filesUi',anterior=>function(info){anterior(info);const f=(info||filesInfo||{}).dxf;const tr=document.querySelector('.fileTable tr[data-fk="dxf"] .fn small');if(f&&f.convertido&&tr&&!tr.dataset.dwg){tr.dataset.dwg='1';tr.insertAdjacentHTML('beforeend',' · convertido do DWG')}},'DWG: indicação de conversão');
-estender('sendFiles',anterior=>async function(list){const fs=[...list];if(fs.some(f=>/\.dwg$/i.test(f.name))){let r={ok:true};try{r=await api('/api/dwg')}catch{}
+estender('sendFiles',anterior=>async function(list){const fs=[...list];if(fs.some(f=>/\.dwg$/i.test(f.name))){let r={ok:true};try{r=await api('/api/dwg')}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('vida_dwg',_e)}
   if(!r.ok){await confirmBox(r.ajuda||'Instale o ODA File Converter para abrir DWG.','Entendi','Fechar');const resto=fs.filter(f=>!/\.dwg$/i.test(f.name));if(!resto.length)return;return anterior(resto)}
   msg('Convertendo o DWG em DXF (ODA File Converter)… pode levar alguns segundos.')}return anterior(fs)},'DWG: conversão para DXF');
 {const G=RIBBON.find(t=>t[0]==='Início')[1].find(g=>g[0]==='Arquivos');const it=G&&G[1].find(i=>i[0]==='DXF…');if(it)it[0]='DXF/DWG…'}

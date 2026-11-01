@@ -1,4 +1,5 @@
 """1.10: anotações do vídeo — marcos de km inicial/final, seta de sentido do estaqueamento e cidades próximas."""
+from .seguro import sdiv as _sdiv
 import math
 import numpy as np
 import cv2
@@ -61,7 +62,7 @@ def direction_badge(im,scene,cam,width,font,top):
     v=(b-a)*(st.direction if scene.km_active else 1)
     n=float(np.linalg.norm(v))
     if n<1e-6:return
-    q=scene.screen(np.array([cam,cam+v/n*width*.05]),cam,width);d=q[1]-q[0];L=float(np.linalg.norm(d))
+    q=scene.screen(np.array([cam,cam+(_sdiv(v, n))*width*.05]),cam,width);d=q[1]-q[0];L=float(np.linalg.norm(d))
     if L<1e-6:return
     d/=L
     cx=scene.W/2;cy=top+int(44*sc)

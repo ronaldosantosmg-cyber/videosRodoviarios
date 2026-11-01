@@ -1,4 +1,5 @@
 """1.32: vídeos guardados (um por geração), abrir pastas no Explorer e limpeza de resíduos (Arquivo › Limpar memória)."""
+from ..falhas import registrar as _falha
 import os,sys,subprocess
 from fastapi import APIRouter,HTTPException
 from fastapi.responses import FileResponse
@@ -41,17 +42,18 @@ def open_folder(body:Pasta):
         try:
             import json
             s=json.loads((store.directory(body.pid)/'config.json').read_text(encoding='utf-8')).get('name')
-        except Exception:pass
+        except Exception as _e:_falha(__name__,_e)
         d=find_folder(body.pid) or project_folder(body.pid,s or 'Projeto')
     d.mkdir(parents=True,exist_ok=True)
     opened=False
     if os.name=='nt' and not os.environ.get('RODOVIA_SEM_EXPLORER'):
         try:os.startfile(str(d));opened=True
-        except OSError:pass
+        except OSError as _e:_falha(__name__,_e)
     return {'pasta':str(d),'aberta':opened}
 
 class Limpeza(_BM):
     categorias:list[str]=Field(min_length=1)
+    cancelar_pendentes:bool=False
 
 def _paths():
     from ..store import INSTALL,videos_root
@@ -68,7 +70,16 @@ def cleanup_run(body:Limpeza):
     with dispatch_lock:
         with store.connect() as c:
             row=c.execute("SELECT id FROM jobs WHERE state IN ('queued','running','cancel_requested') LIMIT 1").fetchone()
-        if row:raise HTTPException(409,'Termine ou cancele a tarefa em andamento antes de limpar.')
+        if row and body.cancelar_pendentes:
+            import time
+            with store.connect() as c:
+                c.execute("UPDATE jobs SET state='cancelled',message='Cancelada para limpar a memória.' WHERE state='queued'")
+                c.execute("UPDATE jobs SET state='cancel_requested' WHERE state='running'")
+            for _ in range(40):
+                with store.connect() as c:row=c.execute("SELECT id FROM jobs WHERE state IN ('queued','running','cancel_requested') LIMIT 1").fetchone()
+                if not row:break
+                time.sleep(.25)
+        if row:raise HTTPException(409,'Há tarefa em andamento. Marque “cancelar tarefas pendentes” ou aguarde terminar antes de limpar.')
         inst,vid=_paths()
         try:return clean_categories(store.ROOT,body.categorias,inst,vid)
         except ValueError as e:raise HTTPException(422,str(e))

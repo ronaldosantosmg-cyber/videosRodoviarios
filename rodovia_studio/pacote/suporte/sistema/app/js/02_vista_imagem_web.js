@@ -1,10 +1,11 @@
 /* ---------- Vista: imagem <-> canvas <-> mundo ---------- */
 let view={s:1,ox:0,oy:0};
-let canvasResizeFrame=0,canvasPixelRatio=window.devicePixelRatio||1;
+let canvasResizeFrame=0;
 function scheduleCanvasResize(){if(canvasResizeFrame)return;canvasResizeFrame=requestAnimationFrame(()=>{canvasResizeFrame=0;resizeCanvas()})}
-function resizeCanvas(){const r=canvas.getBoundingClientRect(),d=window.devicePixelRatio||1;const w=Math.max(320,Math.round(r.width*d)),h=Math.max(180,Math.round(r.height*d));if(canvas.width!==w||canvas.height!==h){const k=d/canvasPixelRatio;
- // Preservar centro e escala em pixels CSS; abrir painéis não equivale a zoom.
- const cx=(canvas.width/2-view.ox)/view.s,cy=(canvas.height/2-view.oy)/view.s;canvas.width=w;canvas.height=h;view.s*=k;view.ox=w/2-cx*view.s;view.oy=h/2-cy*view.s}canvasPixelRatio=d;draw()}
+function resizeCanvas(){const r=canvas.getBoundingClientRect(),d=window.devicePixelRatio||1;const w=Math.max(320,Math.round(r.width*d)),h=Math.max(180,Math.round(r.height*d));if(canvas.width!==w||canvas.height!==h){// 2.62: abrir/fechar painéis só recorta ou amplia a área visível; zoom e posição do mapa NÃO mudam (antes o mapa reescalava e deslizava, e o clique seguinte pegava outro objeto).
+ // Só a densidade de pixels do monitor (devicePixelRatio) reescala, para o mapa manter o mesmo tamanho na tela.
+ if(!canvas._rsOk){/* primeiro dimensionamento (tela ainda no tamanho padrão): mantém o comportamento original de centro fixo */canvas._rsOk=1;canvas._dprAnt=d;const k0=w/canvas.width,cx=(canvas.width/2-view.ox)/view.s,cy=(canvas.height/2-view.oy)/view.s;canvas.width=w;canvas.height=h;view.s*=k0;view.ox=w/2-cx*view.s;view.oy=h/2-cy*view.s;draw();return}
+ const k=canvas._dprAnt?d/canvas._dprAnt:1;canvas._dprAnt=d;canvas.width=w;canvas.height=h;if(k!==1){view.s*=k;view.ox*=k;view.oy*=k}window.__rsAssentaAte=performance.now()+350}else{canvas._rsOk=1;canvas._dprAnt=canvas._dprAnt||d}draw()}
 // O espaço de imagem pode mudar após recalcular rotas; conservar a vista em CRS.
 function captureProjectView(){
  if(!ready())return null;
@@ -23,7 +24,7 @@ function fitView(){if(!ready()){draw();return}let x0=0,y0=0,x1,y1;[x1,y1]=imgSiz
  if(![x0,y0,x1,y1].every(Number.isFinite)||x1<=x0||y1<=y0)return msg('Não foi possível enquadrar: limites da geometria inválidos.',true);
  const s=Math.min(canvas.width/(x1-x0),canvas.height/(y1-y0));view={s,ox:(canvas.width-(x1-x0)*s)/2-x0*s,oy:(canvas.height-(y1-y0)*s)/2-y0*s};draw()}
 const mpp=()=>useGeo()?geo.mpp_crs:meta.width_m/meta.screen_width; // metros (CRS) por pixel do espaço de imagem
-function worldToImg(p){if(useGeo()){const [mx,my]=toMerc(p.x,p.y);return [(mx-geo.m0x)/geo.R0,(geo.m0y-my)/geo.R0]}const dx=p.x-meta.camera[0],dy=p.y-meta.camera[1],m=mpp();return [(dx*meta.right[0]+dy*meta.right[1])/m+meta.screen_width/2,meta.screen_height/2-(dx*meta.up[0]+dy*meta.up[1])/m]}
+function worldToImg(p){if(!p||(!useGeo()&&(typeof meta==='undefined'||!meta||!meta.camera)))return [0,0];if(useGeo()){const [mx,my]=toMerc(p.x,p.y);return [(mx-geo.m0x)/geo.R0,(geo.m0y-my)/geo.R0]}const dx=p.x-meta.camera[0],dy=p.y-meta.camera[1],m=mpp();return [(dx*meta.right[0]+dy*meta.right[1])/m+meta.screen_width/2,meta.screen_height/2-(dx*meta.up[0]+dy*meta.up[1])/m]}
 function imgToWorld(x,y){if(useGeo()){const [X,Y]=toCrs(geo.m0x+x*geo.R0,geo.m0y-y*geo.R0);return {x:X,y:Y}}const m=mpp(),a=(x-meta.screen_width/2)*m,b=-(y-meta.screen_height/2)*m;return {x:meta.camera[0]+a*meta.right[0]+b*meta.up[0],y:meta.camera[1]+a*meta.right[1]+b*meta.up[1]}}
 const W2C=p=>{const [x,y]=worldToImg(p);return [x*view.s+view.ox,y*view.s+view.oy]};
 const C2W=(x,y)=>imgToWorld((x-view.ox)/view.s,(y-view.oy)/view.s);
@@ -38,8 +39,8 @@ const VSTYLE={water:['#4aa8ff',1.6,[],.25],edge_line:['#f4f2e2',1.2,[],0],cut:['
 const VNAME={water:'Hidrografia (DXF)',edge_line:'Bordos (DXF)',pavement:'Pavimento',existing_pavement:'Pavimento existente',shoulder:'Acostamento',median:'Canteiro',barrier:'Barreira',oae:'OAE',cut:'Corte',fill:'Aterro',domain:'Faixa de domínio',axis:'Eixos',overlay:'DXF adicionais',kmz:'KMZ'};
 const SIGN={signage:['Sinalização do vídeo','#f4f2e2'],arrows:['Setas de fluxo do vídeo','#ffffff'],flows:['Trajetórias e sentidos','#61e6d7']};
 let vecOn={},vecAlpha=.9,tileAlpha=1;
-try{const v=JSON.parse(localStorage.getItem('rodovia_base')||'{}');if(v.mode)baseMode=v.mode;if(v.on)vecOn=v.on;if(v.va!=null)vecAlpha=v.va;if(v.ta!=null)tileAlpha=v.ta}catch{}
-function saveBasePrefs(){try{localStorage.setItem('rodovia_base',JSON.stringify({mode:baseMode,on:vecOn,va:vecAlpha,ta:tileAlpha}))}catch{}}
+try{const v=JSON.parse(localStorage.getItem('rodovia_base')||'{}');if(v.mode)baseMode=v.mode;if(v.on)vecOn=v.on;if(v.va!=null)vecAlpha=v.va;if(v.ta!=null)tileAlpha=v.ta}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('vista_imagem_web',_e)}
+function saveBasePrefs(){try{localStorage.setItem('rodovia_base',JSON.stringify({mode:baseMode,on:vecOn,va:vecAlpha,ta:tileAlpha}))}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('vista_imagem_web',_e)}}
 const useGeo=()=>!!geo&&(baseMode!=='preview'||!baseImage||!meta);
 const ready=()=>useGeo()||!!(baseImage&&meta);
 const imgSize=()=>useGeo()?[geo.img_w,geo.img_h]:[baseImage.width,baseImage.height];
@@ -51,14 +52,14 @@ function toCrs(mx,my){const t=T10((mx-geo.mc[0])/geo.ms[0],(my-geo.mc[1])/geo.ms
 async function loadGeo(){const id=pid,context=projectSession.context,keep=geoPid===id&&geo,current=()=>pid===id&&projectSession.context===context;let nextGeo=null,nextVec=null,nextLocal=null;
  if(analysis){try{nextGeo=await api('/api/projects/'+id+'/geo')}catch(e){if(keep){nextGeo=geo;nextVec=vec;nextLocal=localInfo}if(current()&&$('baseInfo'))$('baseInfo').textContent='Imagem web indisponível: '+e.message}
  if(nextGeo){try{nextVec=await api('/api/projects/'+id+'/vectors.json')}catch{if(keep)nextVec=vec}}
- if(nextGeo&&cfg?.local_imagery?.image){try{nextLocal=await api(`/api/projects/${id}/local/info`)}catch{}}}
+ if(nextGeo&&cfg?.local_imagery?.image){try{nextLocal=await api(`/api/projects/${id}/local/info`)}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('vista_imagem_web',_e)}}}
  if(!current())return;geo=nextGeo;vec=nextVec;vecPaths=null;axisCache=null;localInfo=nextLocal;localTiles.clear();if(geo)buildVectorPaths();
- try{await localUi()}catch{}if(!current())return;if(!keep&&geoPid!==id)tileState={ok:0,fail:0};geoPid=id}
+ try{await localUi()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('vista_imagem_web',_e)}if(!current())return;if(!keep&&geoPid!==id)tileState={ok:0,fail:0};geoPid=id}
 
 function buildVectorPaths(){vecPaths={};if(!vec||!geo)return;const L=vec.layers||{};
- for(const [role,list] of Object.entries(L)){if(!list.length)continue;const path=new Path2D(),fill=new Path2D(),surfaces=new Map();let nf=0;
-  for(const r of list){r.p.forEach((q,i)=>{const [x,y]=worldToImg({x:q[0],y:q[1]});if(i){path.lineTo(x,y);if(r.c)fill.lineTo(x,y)}else{path.moveTo(x,y);if(r.c){fill.moveTo(x,y);nf++}}});if(r.c){path.closePath();fill.closePath();const layer=vec.layer_names?.[r.l]||'',key=String(r.l??'');let surface=surfaces.get(key);if(!surface){surface={layer,path:new Path2D(),anchor:r.p[0]};surfaces.set(key,surface)}r.p.forEach((q,i)=>{const a=worldToImg({x:q[0],y:q[1]});i?surface.path.lineTo(...a):surface.path.moveTo(...a)});surface.path.closePath()}}
-  const col=role==='overlay'&&list[0].color?list[0].color:VSTYLE[role]?.[0];vecPaths[role]={path,fill:nf?fill:null,surfaces,n:list.length,color:col};if(vecOn[role]===undefined)vecOn[role]=true}
+ for(const [role,list] of Object.entries(L)){if(!list.length)continue;const path=new Path2D(),fill=new Path2D();let nf=0;
+  for(const r of list){const sk=r.k?new Set(r.k):null;r.p.forEach((q,i)=>{const [x,y]=worldToImg({x:q[0],y:q[1]});if(i){if(sk&&sk.has(i-1))path.moveTo(x,y);else path.lineTo(x,y);if(r.c)fill.lineTo(x,y)}else{path.moveTo(x,y);if(r.c){fill.moveTo(x,y);nf++}}});if(r.c){if(!(sk&&sk.has(r.p.length-1)))path.closePath();fill.closePath()}}
+  const col=role==='overlay'&&list[0].color?list[0].color:VSTYLE[role]?.[0];vecPaths[role]={path,fill:nf?fill:null,n:list.length,color:col};if(vecOn[role]===undefined)vecOn[role]=true}
  buildSignage()}
 function buildSignage(){if(!vecPaths||!geo)return;delete vecPaths.signage;delete vecPaths.signage_y;delete vecPaths.arrows;if(!editor)return;
  const w={signage:new Path2D(),signage_y:new Path2D()};let n=0;
@@ -73,9 +74,14 @@ const webSrc=()=>cfg?.web_imagery?.source||'esri';
 const webKey=()=>{const w=cfg?.web_imagery||{};return w.source&&w.source!=='esri'?[w.source,w.wayback_release||'',w.url||'',w.wms_layers||'',w.wms_version||'',w.wms_format||''].join('|'):'esri'};
 const tileMaxZ=()=>webSrc()==='esri'?TILE_MAX_Z:Math.min(22,cfg.web_imagery.max_zoom||19);
 let tileDrawPending=false;function tileRedraw(){if(tileDrawPending)return;tileDrawPending=true;requestAnimationFrame(()=>{tileDrawPending=false;draw()})}
+function tilePlaceholder(img){try{const c=document.createElement('canvas');c.width=c.height=16;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(img,0,0,16,16);const d=g.getImageData(0,0,16,16).data;let r=0,gg=0,b=0,n=d.length/4;for(let i=0;i<d.length;i+=4){r+=d[i];gg+=d[i+1];b+=d[i+2]}r/=n;gg/=n;b/=n;
+  if(Math.abs(r-gg)>4||Math.abs(gg-b)>4||r<190||r>215)return false;let v=0;for(let i=0;i<d.length;i+=4)v+=(d[i]-r)**2;return Math.sqrt(v/n)<12}catch{return false}}
 function getTile(z,x,y){const k=tileKey(z,x,y);let t=tiles.get(k);if(t&&t.fail&&performance.now()-t.failAt>30000){tiles.delete(k);t=null}if(t){t.used=performance.now();return t}
  t={img:new Image(),ok:false,fail:false,used:performance.now()};t.img.decoding='async';const current=()=>tileKey(z,x,y)===k;
- t.img.onload=()=>{t.ok=true;if(current()){tileState.ok++;if(t.direct)tileState.direct=(tileState.direct||0)+1;tileRedraw()}};
+ t.img.onload=()=>{
+  // 1.42.43: a Esri devolve um ladrilho cinza “Map data not yet available” onde não há imagem naquele nível. Não é imagem: usa o nível acima ampliado.
+  if(tilePlaceholder(t.img)){t.ok=false;t.placeholder=true;if(z>8)getTile(z-1,x>>1,y>>1);if(current())tileRedraw();return}
+  t.ok=true;if(current()){tileState.ok++;if(t.direct)tileState.direct=(tileState.direct||0)+1;tileRedraw()}};
  t.img.onerror=()=>{if(!current()){t.fail=true;t.failAt=performance.now();return}if(!t.direct&&directTiles!==false){t.direct=true;t.img.src=ESRI_DIRECT(z,y,x);return}t.fail=true;t.failAt=performance.now();tileState.fail++;tileRedraw()};
  t.img.src=webSrc()==='esri'?`/tiles/esri/${z}/${y}/${x}`:`/api/projects/${pid}/web_tiles/${z}/${y}/${x}?k=${encodeURIComponent(webKey())}`;if(webSrc()!=='esri')t.direct=true;tiles.set(k,t);
  if(tiles.size>700){const old=[...tiles.entries()].sort((a,b)=>a[1].used-b[1].used).slice(0,200);for(const [kk] of old)tiles.delete(kk)}return t}
@@ -114,31 +120,11 @@ function drawTiles(){const z=tileZoom(),n=2**z,size=2*MERC/n;
   if(!retained)for(let cy=0;cy<2;cy++)for(let cx=0;cx<2;cx++){const child=peekTile(z+1,tx*2+cx,ty*2+cy);if(child)ctx.drawImage(child.img,ix+cx*px/2,iy+cy*px/2,px/2+pad,px/2+pad)}
  }
  ctx.restore()}
-// Amostra local dos materiais do catálogo; o render final conserva seu próprio nível de detalhe.
-const vectorMaterials=new Map();
-const vectorDefaults={pavement:'asphalt',existing_pavement:'asphalt_old',shoulder:'asphalt_old',median:'grass',oae:'concrete',cut:'earth',fill:'earth',water:'water'};
-function drawVectorMaterials(role,vector){
- if(!$('natural_materials_only')?.checked)return false;
- const fallback=vectorDefaults[role];if(!fallback||!vector.surfaces?.size)return false;
- for(const surface of vector.surfaces.values()){
-  let material=cfg.layer_materials?.[surface.layer]||fallback;
-  if(!cfg.layer_materials?.[surface.layer]&&['pavement','existing_pavement','shoulder'].includes(role)){
-   const field={pavement:'pavement_material',existing_pavement:'existing_material',shoulder:'shoulder_material'}[role];if($(field)?.value==='rigido')material='concrete';
-  }
-  let image=vectorMaterials.get(material);
-  if(!image){image=new Image();image.onload=()=>{window.RodoviaLayers?.invalidate('technical');draw()};image.onerror=()=>{if(!image.rsReported){image.rsReported=true;msg('Não foi possível apresentar o material '+material+'. Confira o catálogo antes de exportar.',true)}};image.src='/api/materials/'+encodeURIComponent(material)+'.png';vectorMaterials.set(material,image)}
-  if(!image.complete||!image.naturalWidth)continue;
-  const pattern=ctx.createPattern(image,'repeat');if(!pattern)continue;
-  const anchor=worldToImg({x:surface.anchor[0],y:surface.anchor[1]});
-  pattern.setTransform(new DOMMatrix().translate(anchor[0],anchor[1]).scale(4/mpp()/image.naturalWidth));
-  ctx.save();ctx.globalAlpha=1;ctx.fillStyle=pattern;ctx.fill(surface.path,'evenodd');ctx.restore();
- }
- return true;
-}
 function drawVectors(){if(!vecPaths)return;ctx.save();ctx.setTransform(view.s,0,0,view.s,view.ox,view.oy);ctx.lineJoin='round';ctx.lineCap='round';ctx.globalAlpha=vecAlpha;const k=1/view.s;
  for(const role of [...Object.keys(VSTYLE)]){const v=vecPaths[role];if(!v||vecOn[role]===false)continue;const st=VSTYLE[role];
-  const artistic=drawVectorMaterials(role,v);if(!artistic&&v.fill&&st[3]){ctx.fillStyle=v.color+Math.round(st[3]*255).toString(16).padStart(2,'0');ctx.fill(v.fill,'evenodd')}
-  if(artistic)continue;ctx.setLineDash([]);ctx.strokeStyle='#05101a';ctx.globalAlpha=vecAlpha*.55;ctx.lineWidth=(st[1]+2)*k;ctx.stroke(v.path);ctx.globalAlpha=vecAlpha;
+  if(v.fill&&st[3]){ctx.fillStyle=v.color+Math.round(st[3]*255).toString(16).padStart(2,'0');ctx.fill(v.fill,'evenodd')}
+  try{window.RodoviaTexturasVivas?.pintarRole?.(ctx,role,v)}catch(e){window.RodoviaErros?.avisar('textura 2D',e)}
+  ctx.setLineDash([]);ctx.strokeStyle='#05101a';ctx.globalAlpha=vecAlpha*.55;ctx.lineWidth=(st[1]+2)*k;ctx.stroke(v.path);ctx.globalAlpha=vecAlpha;
   ctx.setLineDash(st[2].map(d=>d*k));ctx.strokeStyle=v.color;ctx.lineWidth=st[1]*k;ctx.stroke(v.path)}
  ctx.setLineDash([]);const mpx=geo.R0/geo.k;// metros por pixel do espaço de imagem
  // Sinalização e setas como no vídeo: largura real (0,15 m / 0,16 m) com mínimo de 1 px na tela.

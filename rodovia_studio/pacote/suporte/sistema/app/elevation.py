@@ -42,7 +42,7 @@ def web_dem(directory,crs,box,n,fetcher=None,status=lambda *a:None):
     cache=Path(directory)/'elevacao';cache.mkdir(exist_ok=True)
     tr=Transformer.from_crs(CRS.from_user_input(crs),4326,always_xy=True)
     x0,y0,x1,y1=box;lon0,lat0,lon1,lat1=tr.transform_bounds(x0,y0,x1,y1,densify_pts=21)
-    span_m=x1-x0;z=int(np.clip(round(math.log2(40075016*math.cos(math.radians((lat0+lat1)/2))/256/max(span_m/n,15))),8,14))
+    span_m=x1-x0;z=int(np.clip(round(math.log2(40075016*math.cos(math.radians((lat0+lat1)/2))/256/max(((span_m) / (n)),15))),8,14))
     tx0,ty0=lonlat_to_tile(lon0,lat1,z);tx1,ty1=lonlat_to_tile(lon1,lat0,z)
     xs=range(int(tx0),int(tx1)+1);ys=range(int(ty0),int(ty1)+1)
     if len(xs)*len(ys)>64:raise ValueError('Área grande demais para a base de elevação web (mais de 64 ladrilhos).')
@@ -51,7 +51,7 @@ def web_dem(directory,crs,box,n,fetcher=None,status=lambda *a:None):
         for i,tx in enumerate(xs):
             mos[j*256:(j+1)*256,i*256:(i+1)*256]=decode_terrarium(fetch_tile(cache,z,tx,ty,fetcher))
         status(.04,'Carregando elevação web')
-    span=(x1-x0)/n;out=np.empty((n,n),np.float32);xs_w=x0+np.arange(n)*span
+    span=((x1-x0) / (n));out=np.empty((n,n),np.float32);xs_w=x0+np.arange(n)*span
     for r0 in range(0,n,256):
         r1=min(n,r0+256);X,Y=np.meshgrid(xs_w,y1-np.arange(r0,r1)*span);lon,lat=tr.transform(X,Y)
         px,py=lonlat_to_tile(np.asarray(lon),np.asarray(lat),z)
@@ -79,7 +79,7 @@ def local_dem(directory,el,crs,box,n):
     if bad.any():
         idx=distance_transform_edt(bad,return_distances=False,return_indices=True);a=a[tuple(idx)]
     gt=info['gt'];target=CRS.from_user_input(crs);tr=None if info['crs']==target else Transformer.from_crs(target,info['crs'],always_xy=True)
-    det=gt[1]*gt[5]-gt[2]*gt[4];x0,y0,x1,y1=box;span=(x1-x0)/n;out=np.empty((n,n),np.float32);xs=x0+np.arange(n)*span
+    det=gt[1]*gt[5]-gt[2]*gt[4];x0,y0,x1,y1=box;span=((x1-x0) / (n));out=np.empty((n,n),np.float32);xs=x0+np.arange(n)*span
     for r0 in range(0,n,256):
         r1=min(n,r0+256);X,Y=np.meshgrid(xs,y1-np.arange(r0,r1)*span)
         if tr is not None:X,Y=tr.transform(X,Y)
@@ -105,7 +105,7 @@ def shade_map(image,dem,cell_m,opacity,exaggeration=1.):
 def contours(image,dem,interval,box,worldpx):
     """Curvas de nível (mestras a cada 5 intervalos) desenhadas sobre o mosaico."""
     from skimage.measure import find_contours
-    lo=math.ceil(float(dem.min())/interval)*interval;hi=float(dem.max());n=dem.shape[0];x0,y0,x1,y1=box;cell=(x1-x0)/n
+    lo=math.ceil(float(dem.min())/interval)*interval;hi=float(dem.max());n=dem.shape[0];x0,y0,x1,y1=box;cell=((x1-x0) / (n))
     k=0
     for level in np.arange(lo,hi,interval):
         master=abs(round(level/interval))%5==0
@@ -119,11 +119,11 @@ def contours(image,dem,interval,box,worldpx):
 class Terrain:
     """Grade de elevação alinhada ao mosaico, com pista nivelada pelo perfil suavizado do eixo."""
     def __init__(self,dem,box,label,surface=None,stations=None,length=1.,level_road=True,exaggeration=1.,oae=()):
-        self.raw=dem.astype(np.float32);self.box=box;self.n=dem.shape[0];self.cell=(box[2]-box[0])/self.n;self.label=label;self.exaggeration=exaggeration
+        self.raw=dem.astype(np.float32);self.box=box;self.n=dem.shape[0];self.cell=((box[2]-box[0]) / (self.n));self.label=label;self.exaggeration=exaggeration
         h=self.raw.copy()
         if level_road and surface is not None and stations is not None:
             # Superfície de rolamento: perfil longitudinal suavizado (≈150 m) do terreno sob o eixo.
-            k=surface.shape[0]/self.n
+            k=((surface.shape[0]) / (self.n))
             surf=cv2.resize(((np.asarray(surface)>0)&(np.asarray(surface)<6)).astype(np.uint8),(self.n,self.n),interpolation=cv2.INTER_NEAREST)>0
             st=cv2.resize(np.asarray(stations),(self.n,self.n),interpolation=cv2.INTER_NEAREST)
             ok=surf&(st<65535)
@@ -160,7 +160,7 @@ def save_cache(directory,terrain):
 def value_at(directory,x,y):
     d=Path(directory)/'elevacao'
     if not (d/'grade.npy').exists():return None
-    meta=json.loads((d/'grade.json').read_text(encoding='utf-8'));g=np.load(d/'grade.npy',mmap_mode='r');n=g.shape[0];b=meta['box'];cell=(b[2]-b[0])/n
+    meta=json.loads((d/'grade.json').read_text(encoding='utf-8'));g=np.load(d/'grade.npy',mmap_mode='r');n=g.shape[0];b=meta['box'];cell=((b[2]-b[0]) / (n))
     u=(x-b[0])/cell;v=(b[3]-y)/cell
     if not(0<=u<n-1 and 0<=v<n-1):return None
     i,j=int(v),int(u);fu,fv=u-j,v-i

@@ -49,12 +49,17 @@ def test_roundabout_rotation_explicit_at_large_cad_coordinates(rotation,area_sig
 
 @pytest.mark.parametrize('kwargs',[
  dict(flow_start='entrada',flow_end='entrada'),dict(flow_start='entrada',flow_end='saida',flow_direction='decrescente'),
- dict(flow_role='rotatoria',roundabout_rotation='horario'),dict(roundabout_rotation='horario'),
+ dict(flow_role='rotatoria',roundabout_rotation='horario'),
  dict(flow_role='acesso',flow_direction='ambos'),dict(flow_role='acesso',external_demand_vph=100),
  dict(flow_role='acesso',flow_start='entrada',external_demand_vph=100,external_vdm=1000),
  dict(flow_role='acesso',flow_start='entrada',external_demand_vph=float('nan'))])
 def test_invalid_contradictory_nodes_never_silently_reverse_or_invent_geometry(kwargs):
     with pytest.raises(ValidationError):route(**kwargs)
+
+
+def test_giro_esquecido_fora_de_rotatoria_e_zerado_sem_bloquear_o_salvar():
+    r=route(roundabout_rotation='horario')
+    assert r.roundabout_rotation=='cadastro'
 
 
 def fork():

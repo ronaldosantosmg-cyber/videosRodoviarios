@@ -33,7 +33,7 @@ async function open(phase='general',segment=null){
  provider.append(new Option('Modelo local 3B','local'),new Option('API online opcional','online'));
  const connection=el('button','Conectar API online');connection.type='button';
  const prepare=el('button','Preparar mini prompt'),run=el('button','Consultar IA'),cancel=el('button','Cancelar consulta'),close=el('button','Fechar');for(const b of [prepare,run,cancel,close])b.type='button';run.disabled=true;cancel.hidden=true;
- const layersInput=el('textarea');layersInput.rows=2;layersInput.maxLength=2400;layersInput.setAttribute('aria-label','Camadas para consultar');layersInput.placeholder='Até 8 nomes de layers, um por linha. Em branco: até 3 camadas por consulta.';layersInput.value=dxfSel?.layer||'';layersInput.hidden=phase!=='textures';
+ const layersInput=el('textarea');layersInput.rows=2;layersInput.maxLength=2400;layersInput.setAttribute('aria-label','Camadas para consultar');layersInput.placeholder='Até 8 nomes de camadas, um por linha. Em branco: até 3 camadas por consulta.';layersInput.value=dxfSel?.layer||'';layersInput.hidden=phase!=='textures';
  const agree=el('label'),checkbox=el('input');checkbox.type='checkbox';agree.append(checkbox,document.createTextNode(' Autorizo enviar somente o mini prompt exibido à API online configurada.'));agree.hidden=true;
  const previewBox=el('details');previewBox.append(el('summary','Conferir mini prompt e dados compartilhados'),preview);
  preview.className='rsMiniPrompt';preview.setAttribute('aria-label','Mini prompt que será enviado');actions.className='row';actions.append(connection,prepare,run,cancel,close);d.append(state,choice,provider,taskInput,layersInput,agree,previewBox,output,actions);document.body.append(d);d.showModal();

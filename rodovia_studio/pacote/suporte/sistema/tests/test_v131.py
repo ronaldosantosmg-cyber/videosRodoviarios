@@ -51,7 +51,7 @@ def test_no_duplicate_globals_and_valid_extensions():
         assert not re.search(r"\{const (_[\w$]+)=([\w$]+);\2=(async\s+)?(function|\()",nocom(f.read_text(encoding='utf-8'))),f.name
 
 ESLINT='/opt/node-tools/node_modules/.bin/eslint'
-GLOBALS=['window','document','localStorage','sessionStorage','console','fetch','setTimeout','clearTimeout','setInterval','clearInterval','requestAnimationFrame',
+GLOBALS=['RodoviaAparencia','window','module','RodoviaErros','RodoviaPanels','RodoviaModelDialog','RodoviaIcones','RodoviaTrim','document','localStorage','sessionStorage','console','fetch','setTimeout','clearTimeout','setInterval','clearInterval','requestAnimationFrame',
  'cancelAnimationFrame','Image','FormData','Blob','URL','URLSearchParams','navigator','location','crypto','ResizeObserver','MutationObserver','Event','KeyboardEvent',
  'MouseEvent','HTMLElement','Path2D','DOMParser','performance','getComputedStyle','alert','confirm','prompt','globalThis','history','OffscreenCanvas','createImageBitmap',
  'ImageData','TextEncoder','TextDecoder','AbortController','structuredClone','matchMedia','innerWidth','innerHeight','devicePixelRatio','open','screen','Node',

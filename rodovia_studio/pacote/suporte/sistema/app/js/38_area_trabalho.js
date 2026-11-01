@@ -14,7 +14,7 @@ function tempo(s){s=Number(s);if(!isFinite(s))return '—';s=Math.max(0,Math.rou
 function tempoTexto(t){return String(t??'').replace(/(\d+(?:[.,]\d+)?)\s?s\b(?! *\/)/g,(m,n)=>{const v=Number(String(n).replace(',','.'));return v>=60?tempo(v):m})}
 
 // ---------- preferências ----------
-const AREA={get(k,d){try{const v=localStorage.getItem('rodovia_area_'+k);return v==null?d:JSON.parse(v)}catch{return d}},set(k,v){try{localStorage.setItem('rodovia_area_'+k,JSON.stringify(v))}catch{}}};
+const AREA={get(k,d){try{const v=localStorage.getItem('rodovia_area_'+k);return v==null?d:JSON.parse(v)}catch{return d}},set(k,v){try{localStorage.setItem('rodovia_area_'+k,JSON.stringify(v))}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('area_trabalho',_e)}}};
 
 // ---------- painel da direita com abas ----------
 const DOCK_ITENS=[{id:'prop',t:'Propriedades',ico:'☰'},{id:'marc',t:'Marcações do projeto',ico:'📌'},{id:'ajuste',t:'Ajuste DXF × imagem',ico:'⌖'},{id:'fluxos',t:'Conexões de tráfego',ico:'⤳'},{id:'avisos',t:'Avisos da análise',ico:'⚠'}];
@@ -52,7 +52,7 @@ function aplicarDock(salvar=true){const side=document.querySelector('.editorSide
  side.querySelectorAll('.dockItem').forEach(d=>d.hidden=d.dataset.dock!==dockState.aba);
  const c=side.querySelector('[data-dk="col"]');if(c){c.textContent=dockState.recolhida?'⯇':'⯈';c.title=dockState.recolhida?'Expandir a barra':'Recolher a barra (mais área para o desenho)'}
  if(salvar){AREA.set('aba',dockState.aba);AREA.set('recolhida',!!dockState.recolhida);AREA.set('fixada',!!dockState.fixada)}
- setTimeout(()=>{try{resizeCanvas()}catch{}},40)}
+ setTimeout(()=>{try{resizeCanvas()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('area_trabalho',_e)}},40)}
 function abrirAba(id,clique){const solta=document.querySelector(`.floatWin[data-dock="${id}"]`);if(solta){frente(solta);return}
  if(clique&&dockState.aba===id&&!dockState.recolhida){recolherDock(true);return}dockClosedSelection=null;dockState.aba=id;dockState.recolhida=false;dockAuto=false;aplicarDock()}
 function recolherDock(v){dockClosedSelection=v?dockSelectionKey():null;dockState.recolhida=v;dockAuto=false;aplicarDock()}
@@ -89,12 +89,12 @@ document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest
 // ---------- área máxima para o desenho ----------
 let areaMax=AREA.get('max',false);
 function aplicarAreaMax(){document.body.classList.toggle('areaMax',!!areaMax);if(areaMax&&!dockAuto){dockState.recolhida=true;aplicarDock(false)}
- const b=document.querySelector('[data-area="max"]');if(b)b.classList.toggle('on',!!areaMax);setTimeout(()=>{try{resizeCanvas()}catch{}},60)}
+ const b=document.querySelector('[data-area="max"]');if(b)b.classList.toggle('on',!!areaMax);setTimeout(()=>{try{resizeCanvas()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('area_trabalho',_e)}},60)}
 function alternarAreaMax(v){areaMax=v??!areaMax;AREA.set('max',areaMax);if(!areaMax){dockState.recolhida=AREA.get('recolhida_antes',false);aplicarDock()}else AREA.set('recolhida_antes',!!dockState.recolhida);aplicarAreaMax();
  msg(areaMax?'Área máxima: a coluna da esquerda e a barra lateral saem da frente. Ao editar, as propriedades aparecem; os menus continuam na faixa de opções. F10 volta.':'Colunas laterais de volta.')}
 // Abrir uma seção pela faixa de opções mostra a coluna da esquerda (só enquanto for preciso).
-estender('openSection',anterior=>function(title){if(areaMax){document.body.classList.add('areaMaxTemp');setTimeout(()=>{try{resizeCanvas()}catch{}},60)}return anterior(title)},'área máxima: seção abre a coluna da esquerda');
-canvas.addEventListener('pointerdown',()=>{if(document.body.classList.contains('areaMaxTemp')){document.body.classList.remove('areaMaxTemp');setTimeout(()=>{try{resizeCanvas()}catch{}},60)}});
+estender('openSection',anterior=>function(title){if(areaMax){document.body.classList.add('areaMaxTemp');setTimeout(()=>{try{resizeCanvas()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('area_trabalho',_e)}},60)}return anterior(title)},'área máxima: seção abre a coluna da esquerda');
+canvas.addEventListener('pointerdown',()=>{if(document.body.classList.contains('areaMaxTemp')){document.body.classList.remove('areaMaxTemp');setTimeout(()=>{try{resizeCanvas()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('area_trabalho',_e)}},60)}});
 document.addEventListener('keydown',e=>{if(e.key==='F10'&&!e.ctrlKey&&!e.altKey){e.preventDefault();alternarAreaMax()}});
 
 // ---------- rodapé: mensagens, progresso, tempo e Cancelar ----------
@@ -134,4 +134,4 @@ comando(['VIDEO','GERAR'],()=>gerarVideo(),'Gera um novo vídeo (fica guardado e
 
 montarDock();montarRodape();aplicarAreaMax();
 // Ao concluir um vídeo, a lista de vídeos gerados abre sozinha (assistir, baixar, abrir a pasta).
-estender('poll',anterior=>async function(jid){const r=await anterior(jid);try{const j=r;if(j.kind==='render'&&j.state==='done'&&pid)await openVideos()}catch{}return r},'vídeo pronto: abre a lista de vídeos gerados');
+estender('poll',anterior=>async function(jid){const r=await anterior(jid);try{const j=await api('/api/jobs/'+jid);if(j.kind==='render'&&j.state==='done'&&pid)await openVideos()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('area_trabalho',_e)}return r},'vídeo pronto: abre a lista de vídeos gerados');

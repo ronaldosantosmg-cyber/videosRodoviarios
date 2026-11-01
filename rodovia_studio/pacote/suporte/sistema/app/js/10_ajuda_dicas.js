@@ -10,7 +10,7 @@ const HELP={
  crs:'Sistema de coordenadas projetado do DXF, em metros (ex.: EPSG:31983 = SIRGAS 2000 / UTM 23S). Errado = desenho fora da imagem.',
  units_to_m:'Multiplicador para converter a unidade do DXF em metros: 1 para metros, 0,001 para milímetros.',
  imagery:'Fundo do vídeo: Esri online (baixa e guarda), imagem guardada no pacote, fundo neutro (teste rápido) ou imagem local georreferenciada.',
- reverse_axis:'Inverte início e fim do eixo principal (sentido da câmera e do km automático).',
+ reverse_axis:'Inverte início e fim do eixo principal: muda o sentido da câmera, o km e o que Crescente/Decrescente significam em TODOS os eixos de uma vez. Para inverter só um eixo use Sentido de cada eixo (SENTIDOEIXO).',
  coordinates_confirmed:'Confirme depois de conferir na prévia que o desenho está sobre a imagem. É exigido para gerar o vídeo.',
  preview_mode:'Vista geral: todo o trecho. Câmera do vídeo: o quadro no instante escolhido. Vista do editor: detalhe do enquadramento atual.',
  preview_time_s:'Instante do vídeo usado por “Abrir neste instante”.',
@@ -52,8 +52,8 @@ function initHelp(){for(const [id,text] of Object.entries(HELP)){const el=$(id);
  const tip=$('tip');const show=e=>{const t=e.target.closest('.help');if(!t)return;tip.textContent=t.dataset.help;tip.hidden=false;const r=t.getBoundingClientRect();tip.style.left=Math.min(window.innerWidth-380,Math.max(8,r.left-10))+'px';tip.style.top=(r.bottom+8+tip.offsetHeight>window.innerHeight?r.top-tip.offsetHeight-8:r.bottom+8)+'px'};
  document.addEventListener('mouseover',show);document.addEventListener('focusin',show);document.addEventListener('mouseout',e=>{if(e.target.closest('.help'))tip.hidden=true});document.addEventListener('focusout',e=>{if(e.target.closest('.help'))tip.hidden=true});
  document.addEventListener('click',e=>{if(e.target.closest('.help'))e.preventDefault()},true);
- let on=true;try{on=localStorage.getItem('rodovia_help')!=='0'}catch{}$('helpToggle').checked=on;document.body.classList.toggle('nohelp',!on);
- $('helpToggle').onchange=()=>{document.body.classList.toggle('nohelp',!$('helpToggle').checked);try{localStorage.setItem('rodovia_help',$('helpToggle').checked?'1':'0')}catch{}}}
+ let on=true;try{on=localStorage.getItem('rodovia_help')!=='0'}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('ajuda_dicas',_e)}$('helpToggle').checked=on;document.body.classList.toggle('nohelp',!on);
+ $('helpToggle').onchange=()=>{document.body.classList.toggle('nohelp',!$('helpToggle').checked);try{localStorage.setItem('rodovia_help',$('helpToggle').checked?'1':'0')}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('ajuda_dicas',_e)}}}
 $('helpBtn').onclick=guard(async()=>{if(!$('helpBody').innerHTML){const r=await fetch('/ajuda');$('helpBody').innerHTML=await r.text()}$('helpDialog').showModal()});
 initHelp();
 

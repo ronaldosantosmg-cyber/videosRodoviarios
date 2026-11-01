@@ -13,7 +13,7 @@ def compatibility(sim,network,settings,cancel=lambda:False,status=lambda *a:None
         for vehicle in classes:
             checked=complete or (i,vehicle) in sim.motion_cache
             ok=sim.motion_valid(i,vehicle) if checked else None;audit=sim.motion_cache.get((i,vehicle),{})
-            label={'car':'Leve','car6':'Leve 6 m','moto':'Moto','moto2':'Moto 2 m','pickup':'Picape','van':'Van','bus':'Ônibus','truck':'Caminhão','truck18':'Pesado 18 m','carreta':'Carreta','long30':'Longo rígido 30 m'}[vehicle]
+            label={'car':'Leve','car6':'Leve 6 m','moto':'Moto','moto2':'Moto 2 m','pickup':'Picape','van':'Van','bus':'Ônibus','truck':'Caminhão','truck18':'Pesado 18 m','carreta':'Carreta','long30':'Longo rígido 30 m'}.get(vehicle) or visual.TYPES[vehicle].get('label',vehicle)
             point=(audit.get('critical_center_xy') or path['p'][len(path['p'])//2].tolist()) if checked and not ok else None
             vehicles.append({'label':label,'explanation':[REASONS.get(reason,{'sem_espaco_nos_portais':'Corpo sem espaço nas extremidades','veiculo_mais_largo_que_faixa':'Veículo mais largo que a faixa'}.get(reason,reason)) for reason in audit.get('reasons',[])],'type':vehicle,'ok':bool(ok) if checked else None,'checked':checked,'reasons':audit.get('reasons',[]),'point':point,'length_m':visual.TYPES[vehicle]['L'],'width_m':visual.TYPES[vehicle]['B']})
         bases=sorted({network.edges[e]['base'] for e in path.get('edges',[])})

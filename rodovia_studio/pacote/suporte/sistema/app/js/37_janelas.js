@@ -17,4 +17,4 @@ function arrumarJanela(d){if(d.dataset.arrumada)return;d.dataset.arrumada='1';
   if(b)b.click();else d.close()})}
 document.querySelectorAll('dialog.winDlg').forEach(arrumarJanela);
 // A mini-barra da seleção some ao trocar para outra ferramenta (não fica por cima das opções da ferramenta).
-estender('setTool',anterior=>function(t){anterior(t);try{placeSelBar()}catch{}},'janelas: mini-barra acompanha a ferramenta');
+estender('setTool',anterior=>function(t){anterior(t);try{placeSelBar()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('janelas',_e)}},'janelas: mini-barra acompanha a ferramenta');

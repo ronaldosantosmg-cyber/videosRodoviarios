@@ -21,8 +21,8 @@ function restore(base){
 function dialog(){
  let d=$('rsPanelPopup');if(d)return d;
  d=document.createElement('dialog');d.id='rsPanelPopup';d.setAttribute('aria-labelledby','rsPanelTitle');
- d.innerHTML='<header><h2 id="rsPanelTitle"></h2><button type="button" id="rsPanelClose" aria-label="Fechar janela">×</button></header><div id="rsPanelBody"></div><footer><span id="rsPanelStatus" data-rs-edit-status role="status">Alterações de configuração serão confirmadas ao salvar.</span><button type="button" id="rsPanelCancel">Cancelar</button><button type="button" id="rsPanelDiscard">Descartar alterações</button><button type="button" id="rsPanelApply">Aplicar</button><button type="button" id="rsPanelSave" class="primary">Salvar e fechar</button></footer>';
- document.body.appendChild(d);$('rsPanelClose').onclick=()=>void requestClose();$('rsPanelCancel').onclick=()=>void requestClose();$('rsPanelSave').onclick=()=>void commitClose();$('rsPanelApply').onclick=()=>void commitClose(true);$('rsPanelDiscard').onclick=discardClose;
+ d.innerHTML='<header><h2 id="rsPanelTitle"></h2><button type="button" id="rsPanelClose" aria-label="Fechar janela">×</button></header><div id="rsPanelBody"></div><footer><span id="rsPanelStatus" data-rs-edit-status role="status">Alterações de configuração serão confirmadas ao salvar.</span><button type="button" id="rsPanelCancel">Cancelar</button><button type="button" id="rsPanelDiscard">Descartar alterações</button><button type="button" id="rsPanelSave" class="primary">Salvar e fechar</button></footer>';
+ document.body.appendChild(d);$('rsPanelClose').onclick=()=>void requestClose();$('rsPanelCancel').onclick=()=>void requestClose();$('rsPanelSave').onclick=()=>void commitClose();$('rsPanelDiscard').onclick=discardClose;
  d.addEventListener('cancel',e=>{e.preventDefault();void requestClose()});
  d.addEventListener('input',e=>{if(e.target.matches('[data-rs-transient]'))return;scheduleSave();panelStatus('Alterações pendentes — salve ou descarte antes de fechar.')});return d;
 }
@@ -34,7 +34,11 @@ function open(node,title,key){
  node.classList.remove('pnOculta','vazia');node.hidden=false;$('rsPanelBody')||dialog();$('rsPanelBody').appendChild(node);$('rsPanelTitle').textContent=title;
  panelStatus('Alterações de configuração serão confirmadas ao salvar.');
  dialog().show();document.body.classList.add('rsPanelOpen');
+ // 1.42.40: o conteúdo mudou para a janela; a casca vazia do painel/aba não pode ficar ocupando a área do desenho.
+ try{if(key.startsWith('dock:'))recolherDock(true);else document.body.classList.remove('pnAberto')}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('paineis_destacados',_e)}
+ setTimeout(()=>{try{resizeCanvas()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('paineis_destacados',_e)}},60);
 }
+const oldPnAplicar=pnAplicar;pnAplicar=function(...args){const r=oldPnAplicar.apply(this,args);if(active&&!active.key.startsWith('dock:')){document.body.classList.remove('pnAberto');setTimeout(()=>{try{resizeCanvas()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('paineis_destacados',_e)}},60)}return r};
 function finish(discard){
  if(!active)return;const base=active;closing=true;active=null;
  let refreshError=null;
@@ -52,13 +56,13 @@ function finish(discard){
  if(discard&&base.project&&!savePending)void oldApi('/api/projects/'+base.project).then(r=>{if(pid===base.project&&!savePending&&projectSession.revision===r.config_revision)window.dispatchEvent(new CustomEvent('rodovia:project-state',{detail:{project:base.project,...r}}))}).catch(()=>{});
  if(savePending){clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{try{await originalSave();refresh()}catch(e){msg(e.message,true)}},900)}else setTimeout(refresh,350)
 }
-async function commitClose(keepOpen=false){
+async function commitClose(){
  if(!active||committing)return false;
  const pane=active;
  if(pane.project!==pid){msg('O projeto mudou. Feche e reabra esta janela.',true);return false}
  if(!pid){msg('Crie ou abra um projeto antes de salvar.',true);return false}
  committing=true;
- try{flushPropertyInputs(pane.node);surface().querySelectorAll('button,input,select,textarea').forEach(e=>{e.dataset.rsWasDisabled=String(e.disabled);e.disabled=true});if(!String($('name')?.value||'').trim())throw Error('Informe o nome do projeto antes de salvar.');await originalSave();if(savePending)throw Error('Há novas alterações pendentes. Revise e salve novamente.');if(keepOpen){Object.assign(pane,state(pane.node));panelStatus('Alterações aplicadas. Você pode continuar editando ou fechar.')}else finish(false);window.dispatchEvent(new CustomEvent('rodovia:form-committed',{detail:{project:pane.project,context:projectSession.context}}));return true}
+ try{flushPropertyInputs(pane.node);surface().querySelectorAll('button,input,select,textarea').forEach(e=>{e.dataset.rsWasDisabled=String(e.disabled);e.disabled=true});if(!String($('name')?.value||'').trim())throw Error('Informe o nome do projeto antes de salvar.');await originalSave();if(savePending)throw Error('Há novas alterações pendentes. Revise e salve novamente.');finish(false);window.dispatchEvent(new CustomEvent('rodovia:form-committed',{detail:{project:pane.project,context:projectSession.context}}));return true}
  catch(e){panelStatus('Não foi salvo: '+e.message);msg(e.message,true);return false}
  finally{document.querySelectorAll('[data-rs-was-disabled]').forEach(e=>{e.disabled=e.dataset.rsWasDisabled==='true';delete e.dataset.rsWasDisabled});committing=false}
 }
@@ -122,8 +126,11 @@ const oldApi=api;api=async function(url,options={}){
  const mutating=options.method&&!['GET','HEAD'].includes(options.method.toUpperCase());
  if(active&&!committing&&mutating&&/^\/api\/projects\/[^/]+\/(analyze|preview|refresh|render|scene3d|frames|export)(\/|$)/.test(url)){if(!await requestClose())throw Error('Processamento cancelado; a janela continua em edição.');}
  if(active&&!committing&&/\/config$/.test(url)&&options.headers?.['If-Match'])return oldApi(url,options);
- if(active&&!committing&&mutating&&/^\/api\/projects\/[^/]+\//.test(url)&&!/^\/api\/projects\/[^/]+\/(validate_path|sessoes|client_error|client_log)(\/|$)/.test(url)){if(!await requestClose())throw Error('Operação cancelada; a janela continua em edição.')}
- return oldApi(url,options);
+ if(active&&!committing&&mutating&&/^\/api\/projects\/[^/]+\//.test(url)&&!/^\/api\/projects\/[^/]+\/(validate_path|sessoes|client_error|client_log|imagery\/(\d+|order))(\/|$)/.test(url)){if(!await requestClose())throw Error('Operação cancelada; a janela continua em edição.')}
+ // 1.42.38: retirar, reordenar e ajustar imagem são ações do próprio painel de camadas; não fecham nem pedem para salvar a janela.
+ const r=await oldApi(url,options);
+ if(active&&r&&r.local_imagery&&/^\/api\/projects\/[^/]+\/imagery\//.test(url)){active.cfg={...active.cfg,local_imagery:clone(r.local_imagery)};cfg.local_imagery=clone(r.local_imagery)};   // a base de Descartar acompanha o que já foi gravado no servidor
+ return r;
 };
 document.addEventListener('click',e=>{const button=e.target.closest('[data-pspn]');if(!button)return;e.preventDefault();e.stopImmediatePropagation();const show=()=>{const id=button.dataset.pspn;pnAbrir(id);if($('psMore'))$('psMore').hidden=true;PS.extraOpen=false;const item=pnItens.find(i=>i.id===id);if(item)open(item.el,item.t,'more:'+id);psUpdateHubState()};if(active)void requestClose().then(ok=>{if(ok)show()});else show()},true);
 // Os cliques fora da janela precisam resolver a edição antes de voltar ao desenho.
@@ -155,5 +162,5 @@ function installImagery(){
  });syncImagery();
 }
 window.addEventListener('rodovia:project-state',syncImagery);queueMicrotask(()=>{for(const w of document.querySelectorAll('.floatWin[data-dock]'))encaixar(w.dataset.dock);installImagery()});
-window.RodoviaPanels=Object.freeze({openDock:id=>abrirAba(id,false),openDialog,saveAndClose:()=>commitClose(),apply:()=>commitClose(true),discard:discardClose,close:requestClose,get pending(){return differs()},get opened(){return active?.key||null}});
+window.RodoviaPanels=Object.freeze({openDock:id=>abrirAba(id,false),openDialog,saveAndClose:commitClose,discard:discardClose,close:requestClose,get pending(){return differs()},get opened(){return active?.key||null}});
 })();

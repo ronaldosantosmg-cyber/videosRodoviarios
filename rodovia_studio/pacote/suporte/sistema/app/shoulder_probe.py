@@ -1,4 +1,5 @@
 """Sondagem excepcional de pesados; não cria faixa nem muda o pavimento cadastrado."""
+from .seguro import sdiv as _sdiv
 import math
 from collections import Counter
 import numpy as np
@@ -8,7 +9,7 @@ from .vehicle_motion import PROFILES,interpolate,analyze_motion
 from .vehicle_safety import body,LATERAL_BUFFER
 
 MAX_EDGE_EXTENSION=1.
-HEAVY=frozenset(('truck','bus','carreta','truck18','long30'))
+HEAVY=frozenset(('truck','bus','carreta','truck18','long30','toco','cacamba','onibus13','bitrem'))
 
 
 def envelope(pavement,obstacles,exclusions=(),bridges=None):
@@ -31,7 +32,7 @@ class ShoulderProbe:
         self.base=getattr(sim.net,'allowed',Polygon());self.area=getattr(sim.net,'shoulder_envelope',Polygon())
         self.pavement=getattr(sim.net,'operational_pavement',self.base)
         self.events={};self.curve_paths=set();self.counts=Counter();self.last_probe={}
-    def enabled_for(self,vt):return self.enabled and vt in HEAVY and not self.area.is_empty
+    def enabled_for(self,vt):return self.enabled and (vt in HEAVY or getattr(self.sim.s,'shoulder_vehicles','pesados')=='todos') and not self.area.is_empty
     def curve_fallback(self,i,vt,audit):
         if not self.enabled_for(vt) or set(audit.get('reasons',[]))!={'corpo_fora_da_pista'}:return None
         check=analyze_motion(self.sim.paths[i]['p'],vt,self.area)
@@ -93,7 +94,7 @@ class ShoulderProbe:
         ramp=max(16.,wb*3);hold=max(20.,L*2,float(np.linalg.norm(c-oc))*.6)
         start=float(v['s']);end=start+2*ramp+hold
         if end+L/2>=self.sim.paths[v['p']]['length']:return False
-        ss=np.linspace(start,end,max(33,int((end-start)/.5)+1));dt=(ss-start)/speed
+        ss=np.linspace(start,end,max(33,int((end-start)/.5)+1));dt=(_sdiv(ss-start, speed))
         future=np.clip(other['s']+dt*ospeed,0,self.sim.paths[other['p']]['length'])
         # Sem contato previsto, não usar o acostamento só por proximidade.
         others=[self.geometry(other,q) for q in future]
@@ -130,7 +131,7 @@ class ShoulderProbe:
         L,B,wb,_=PROFILES[v['t']];speed=min(12.,float(v['v0']));ospeed=max(0.,float(other['v']))
         if speed-ospeed<2 or v['v']>speed*1.1:return False
         distance=other['s']-v['s'];gap=distance-(L+other['L'])/2;ramp=max(24.,wb*4)
-        if gap<max(4.,(speed-ospeed)*ramp/speed+3) or gap>80:return False
+        if gap<max(4.,(_sdiv((speed-ospeed)*ramp, speed))+3) or gap>80:return False
         a,h=self.sim.polygon_safety.pose(v);b,k=self.sim.polygon_safety.pose(other)
         if float(h@k)<.98:return False
         # Não atravessar outra faixa cadastrada para alcançar o acostamento.
@@ -140,10 +141,10 @@ class ShoulderProbe:
             near=points[int(np.argmin(np.linalg.norm(points-a,axis=1)))]
             if float((near-a)@right)>.5:return False
         start=float(v['s']);back_clear=(L+other['L'])/2+4
-        return_at=start+speed*(distance+back_clear+ospeed*ramp/speed)/(speed-ospeed)
+        return_at=start+(_sdiv(speed*(distance+back_clear+ospeed*ramp/speed), speed-ospeed))
         return_at=max(start+ramp+10,return_at);end=return_at+ramp
         if end+L/2+5>=self.sim.paths[v['p']]['length'] or end-start>500:return False
-        ss=np.linspace(start,end,max(65,int((end-start)/.5)+1));dt=(ss-start)/speed
+        ss=np.linspace(start,end,max(65,int((end-start)/.5)+1));dt=(_sdiv(ss-start, speed))
         for offset in np.arange((B+PROFILES[other['t']][1])/2+2*LATERAL_BUFFER+.05,4.01,.1):
             e=dict(path=v['p'],vehicle=v['t'],stations=(start,start+ramp,return_at,end),offset=float(offset),created_s=now,kind='ultrapassagem',target=int(other['id']))
             points=np.array([self.center(v['p'],s,e) for s in ss])
@@ -161,15 +162,93 @@ class ShoulderProbe:
             # A reserva espacial por passo continua protegendo pessoas/trens e o retorno.
             self.events.setdefault(key,[]).append(e);self.counts['ultrapassagens_aceitas']+=1;return True
         self.counts['ultrapassagens_sem_espaco']+=1;return False
+    # ---- 2.14: ultrapassagem pela pista contrária (pista simples) ----
+    def is_passer(self,v):
+        """Sorteio determinístico (sem consumir o gerador da simulação): só uma fração dos veículos tem perfil de ultrapassador."""
+        share=float(getattr(self.sim.s,'opposite_overtake_share',.25));r=((int(v['id'])*40503+17)%1009)/1009.
+        return r<share and v.get('prof') in (None,'convencional','rapido') and v.get('t') not in HEAVY
+    def oncoming_lane(self,v,a,h):
+        """(índice, distância lateral à esquerda) da faixa de sentido oposto ao lado do veículo, ou None."""
+        from shapely.geometry import LineString
+        left=np.array([-h[1],h[0]]);cache=self.__dict__.setdefault('_lines',{});best=None
+        for j,(points,_) in enumerate(self.sim.motion_points):
+            if j==v['p']:continue
+            line=cache.get(j)
+            if line is None:line=cache[j]=LineString(points)
+            d=line.project(Point(a));near=np.array(line.interpolate(d).coords[0])
+            lat=float((near-a)@left)
+            if not 1.5<=lat<=8.:continue
+            t=np.array(line.interpolate(min(line.length,d+1)).coords[0])-np.array(line.interpolate(max(0.,d-1)).coords[0]);n=float(np.linalg.norm(t))
+            if n<1e-9 or float(((_sdiv(t, n)))@h)>-.7:continue
+            if best is None or lat<best[1]:best=(j,lat)
+        return best
+    def pass_window_allowed(self,v,start,end):
+        from .passing_zones import window_allowed
+        sim=self.sim;path=sim.paths[v['p']];secs=path.get('lane_change_sections') or []
+        if path.get('lane_change','marked')=='off':return False
+        lo,hi=sorted((sim.route_station(v['p'],start),sim.route_station(v['p'],end)))
+        val=sim._sec_value
+        if any(val(x,'mode')=='deny' and max(lo,min(val(x,'start_m',0),val(x,'end_m',0)))<=min(hi,max(val(x,'start_m',0),val(x,'end_m',0))) for x in secs):return False
+        allow=[x for x in secs if val(x,'mode')=='allow']
+        if allow and not any(min(val(x,'start_m',0),val(x,'end_m',0))-1e-6<=lo and hi<=max(val(x,'start_m',0),val(x,'end_m',0))+1e-6 for x in allow):return False
+        points=sim.motion_points[v['p']][0]
+        return window_allowed(points,start,end)
+    def try_pass_oncoming(self,v,other,vehicles):
+        S=self.sim.s
+        if not getattr(S,'opposite_overtake',True) or getattr(S,'traffic_route_only',False) or not getattr(S,'traffic_prevent_collisions',True) or self.area.is_empty:return False
+        if v.get('lc') or other.get('lc') or self.event(v) or v['p']!=other['p'] or other['s']<=v['s'] or not self.is_passer(v):return False
+        key=(int(v['id']),int(v['p']));now=float(getattr(self.sim,'time',0))
+        if now-self.last_probe.get(('c',*key),-1e9)<2 or self.counts['ultrapassagens_contrarias']>=4096:return False
+        self.last_probe[('c',*key)]=now
+        if len(self.last_probe)>8192:self.last_probe.pop(next(iter(self.last_probe)))
+        L,B,wb,_=PROFILES[v['t']];speed=min(float(v['v0']),22.);ospeed=max(0.,float(other['v']))
+        if speed-ospeed<3. or v['v']>speed*1.1:return False
+        distance=other['s']-v['s'];gap=distance-(L+other['L'])/2
+        if not 2.<=gap<=45.:return False          # só depois de seguir de perto o veículo lento
+        a,h=self.sim.polygon_safety.pose(v);b,k=self.sim.polygon_safety.pose(other)
+        if float(h@k)<.98:return False
+        lane=self.oncoming_lane(v,a,h)
+        if lane is None:self.counts['ultrapassagens_sem_pista_contraria']+=1;return False
+        ramp=max(24.,wb*5);start=float(v['s']);back_clear=(L+other['L'])/2+6
+        return_at=max(start+ramp+10,start+(_sdiv(speed*(distance+back_clear+ospeed*ramp/speed), speed-ospeed)));end=return_at+ramp
+        if end+L/2+5>=self.sim.paths[v['p']]['length'] or end-start>600:return False
+        total_t=(_sdiv(end-start, speed))
+        if not self.pass_window_allowed(v,start,end):self.counts['ultrapassagens_trecho_proibido']+=1;return False
+        # Tráfego em sentido oposto: nada à frente dentro da distância que será percorrida por ambos durante a manobra (+ folga de 60 m).
+        for w in vehicles:
+            if w['id']==v['id'] or w['p']==v['p']:continue
+            c,k2=self.sim.polygon_safety.pose(w)
+            if float(h@k2)>-.3:continue
+            ahead=float((c-a)@h)
+            if ahead>-20 and ahead<(speed+max(0.,float(w['v'])))*total_t+60.:self.counts['ultrapassagens_com_veiculo_oposto']+=1;return False
+        ss=np.linspace(start,end,max(65,int((end-start)/.5)+1));dt=(_sdiv(ss-start, speed))
+        lateral=lane[1]
+        for off in np.arange((B+PROFILES[other['t']][1])/2+2*LATERAL_BUFFER+.05,lateral+.6,.1):
+            e=dict(path=v['p'],vehicle=v['t'],stations=(start,start+ramp,return_at,end),offset=-float(off),created_s=now,kind='ultrapassagem_contraria',target=int(other['id']))
+            points=np.array([self.center(v['p'],q,e) for q in ss])
+            if not analyze_motion(points,v['t'],self.area)['ok']:continue
+            bodies=[self.geometry(v,q,e,False) for q in ss]
+            if any(not self.area.covers(p) for p in bodies):continue
+            if any(not self.area.covers(MultiPoint([*x.exterior.coords,*y.exterior.coords]).convex_hull) for x,y in zip(bodies,bodies[1:])):continue
+            padded=[self.geometry(v,q,e) for q in ss];blocked=False
+            for w in vehicles:
+                if w['id']==v['id']:continue
+                future=np.clip(w['s']+dt*max(0.,w['v']),0,self.sim.paths[w['p']]['length'])
+                if any(p.intersection(self.geometry(w,q)).area>1e-7 for p,q in zip(padded,future)):blocked=True;break
+            if blocked:continue
+            if any(any(bl.active(now+tau) and bl.poly.intersects(p) for tau,p in zip(dt,bodies)) for bl in self.sim.blocks):continue
+            self.events.setdefault(key,[]).append(e);self.counts['ultrapassagens_contrarias']+=1;return True
+        self.counts['ultrapassagens_sem_espaco']+=1;return False
     def prepare(self,vehicles):
-        if not self.enabled:return
+        if not (self.enabled or getattr(self.sim.s,'opposite_overtake',True)):return
         # A seleção espacial evita comparar toda a frota; trabalho e memória limitados.
         from scipy.spatial import cKDTree
         if len(vehicles)<2:return
         centers=np.array([self.sim.polygon_safety.pose(v)[0] for v in vehicles]);tree=cKDTree(centers)
         for i,v in enumerate(vehicles):
-            if not self.enabled_for(v.get('t')) or self.event(v):continue
+            if self.event(v):continue
+            shoulder=self.enabled_for(v.get('t'))
             for j in sorted(tree.query_ball_point(centers[i],100))[:16]:
-                if i!=j and (self.try_overtake(v,vehicles[j],vehicles) or self.try_pair(v,vehicles[j])):break
+                if i!=j and ((shoulder and self.try_overtake(v,vehicles[j],vehicles)) or self.try_pass_oncoming(v,vehicles[j],vehicles) or (shoulder and self.try_pair(v,vehicles[j]))):break
     def report(self):
         return {'enabled':self.enabled,'overtake_requested':bool(getattr(self.sim.s,'heavy_shoulder_overtake',False)),'overtake_scope':'Ensaio opcional; o próprio pesado passa à direita e retorna. Somente com reserva entre veículos ativa, espaço integral e sem faixa cadastrada à direita. Não autoriza circulação normativa pelo acostamento.','maximum_beyond_pavement_m':MAX_EDGE_EXTENSION,'counts':dict(self.counts),'maneuvers':sum(map(len,self.events.values())),'curve_profiles':len(self.curve_paths),'scope':'Sondagem local de pesados com corpo rígido conservador e reserva espacial; não é certificação de veículo articulado nem autorização normativa de uso do acostamento.'}

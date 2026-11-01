@@ -5,12 +5,12 @@
 // desafixado, o painel abre por cima do desenho e o desenho fica do mesmo tamanho. Os campos são os mesmos (só
 // mudam de lugar) — fechar um painel não interrompe cálculos, tarefas nem a edição.
 // =====================================================================================================
-const PNPREF={get(k,d){try{const v=localStorage.getItem('rodovia_pn_'+k);return v==null?d:JSON.parse(v)}catch{return d}},set(k,v){try{localStorage.setItem('rodovia_pn_'+k,JSON.stringify(v))}catch{}}};
+const PNPREF={get(k,d){try{const v=localStorage.getItem('rodovia_pn_'+k);return v==null?d:JSON.parse(v)}catch{return d}},set(k,v){try{localStorage.setItem('rodovia_pn_'+k,JSON.stringify(v))}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('paineis_menu',_e)}}};
 let pnEstado={aberto:PNPREF.get('aberto',null),fixado:PNPREF.get('fixado',false)},pnItens=[],pnLugares=[];
 function pnCurto(t){const M=[[/^Projeto/,'Projeto'],[/^Configura/,'Config.'],[/^Camadas/,'Camadas'],[/^Exportar/,'Vídeo'],[/^Manuten/,'Manut.'],[/^Interven/,'Interv.'],[/^Vista/,'Vista']];return (M.find(([r])=>r.test(t))||[0,t.split(/[ ,]/)[0]])[1]}
 function pnModoPaineis(){try{return localStorage.getItem('rodovia_paineis')!=='0'}catch{return true}}
 function pnAtivo(){return document.body.classList.contains('wide')&&JANELA==='unica'&&pnModoPaineis()}
-function pnColunaClassica(v){try{localStorage.setItem('rodovia_paineis',v?'0':'1')}catch{}pnSincronizar();msg(v?'Coluna clássica: as seções ficam todas na coluna da esquerda.':'Painéis por menu: clique nos ícones da esquerda para abrir cada painel.')}
+function pnColunaClassica(v){try{localStorage.setItem('rodovia_paineis',v?'0':'1')}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('paineis_menu',_e)}pnSincronizar();msg(v?'Coluna clássica: as seções ficam todas na coluna da esquerda.':'Painéis por menu: clique nos ícones da esquerda para abrir cada painel.')}
 // Vista, prévia e sessões: as linhas de cima do editor viram um painel também (mais altura para o desenho).
 function pnSecaoVista(){let s=$('secVista');if(s)return s;s=document.createElement('section');s.id='secVista';
  s.innerHTML='<h2><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 100 6 3 3 0 000-6z"/></svg></span>Vista, prévia e sessões</h2>';return s}
@@ -34,7 +34,7 @@ function pnEntrar(){if(document.body.classList.contains('paineis'))return;const 
 function pnSair(){if(!document.body.classList.contains('paineis'))return;document.body.classList.remove('paineis','pnAberto','pnFixado');
  for(const [el,marca] of pnLugares.reverse()){marca.parentNode?.insertBefore(el,marca);marca.remove()}pnLugares=[];
  $('secVista')?.remove();$('pnHead')?.remove();$('atividades')?.remove();
- document.querySelectorAll('main section').forEach(s=>s.classList.remove('pnOculta'));setTimeout(()=>{try{resizeCanvas()}catch{}},40)}
+ document.querySelectorAll('main section').forEach(s=>s.classList.remove('pnOculta'));setTimeout(()=>{try{resizeCanvas()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('paineis_menu',_e)}},40)}
 function pnPosicao(){const main=document.querySelector('main'),bar=$('atividades');if(!main||!bar)return;const r=bar.getBoundingClientRect();
  document.documentElement.style.setProperty('--pnL',Math.round(r.right+4)+'px');document.documentElement.style.setProperty('--pnT',Math.round(r.top)+'px')}
 function pnAplicar(salvar=true){if(!document.body.classList.contains('paineis'))return;const id=pnItens.some(i=>i.id===pnEstado.aberto)?pnEstado.aberto:null;
@@ -44,7 +44,7 @@ function pnAplicar(salvar=true){if(!document.body.classList.contains('paineis'))
  const it=pnItens.find(i=>i.id===id);if($('pnTitulo'))$('pnTitulo').textContent=it?it.t:'';
  if($('pnFixar')){$('pnFixar').classList.toggle('on',!!pnEstado.fixado);$('pnFixar').title=pnEstado.fixado?'Desafixar: o painel abre por cima do desenho e fecha ao voltar a desenhar':'Fixar: o painel fica encaixado e o desenho se ajusta'}
  pnPosicao();if(salvar){PNPREF.set('aberto',id);PNPREF.set('fixado',!!pnEstado.fixado)}
- if(id)document.querySelector('main>div.pnArea')?.scrollTo({top:0});setTimeout(()=>{try{resizeCanvas()}catch{}},40)}
+ if(id)document.querySelector('main>div.pnArea')?.scrollTo({top:0});setTimeout(()=>{try{resizeCanvas()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('paineis_menu',_e)}},40)}
 function pnAbrir(id){pnEstado.aberto=id;pnAplicar()}
 function pnFixar(v){pnEstado.fixado=v;pnAplicar();msg(v?'Painel fixado: fica ao lado do desenho.':'Painel desafixado: abre por cima do desenho e fecha ao voltar a desenhar.')}
 // Desafixado: voltar a navegar no desenho fecha o painel (como “ocultar automaticamente” do Windows).

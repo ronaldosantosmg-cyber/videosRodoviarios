@@ -43,7 +43,7 @@ def test_gantry_and_callouts_in_frame(junction):
     im=sc.frame(5,view=view)[0];d=np.abs(im.astype(int)-base.astype(int)).sum(2)>30
     q=sc.screen(np.array([[500200,7800000.]]),np.array(view[0],float),view[1])[0].astype(int)
     assert d[q[1]-5:q[1]+5,q[0]-5:q[0]+5].mean()>.5            # viga desenhada no meio do vão
-    assert d.sum()>20000                                         # cartões com a imagem da placa
+    assert d.sum()>15000                                         # cartões com a imagem da placa (estilo referência 1.42.40)
     # Janela de tempo: antes do início o pórtico continua, mas a chamada não aparece.
     sc2=Scene(junction,S(traffic=False,gantries=[{**g,'start_s':8}]));sc3=Scene(junction,S(traffic=False,gantries=[{**g,'callout':False}]))
     assert np.array_equal(sc2.frame(5,view=view)[0],sc3.frame(5,view=view)[0])

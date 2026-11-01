@@ -13,14 +13,14 @@ def file_hash(p):
 def sign(folder,names):
     folder=Path(folder)
     if folder.is_symlink():raise ValueError('Pasta de snapshot inválida.')
-    key=secrets.token_bytes(32);rows={n:file_hash(folder/n) for n in names};raw=json.dumps(rows,sort_keys=True,separators=(',',':')).encode()
-    (folder/'autenticacao.json').write_text(json.dumps({'files':rows,'mac':hmac.new(key,raw,'sha256').hexdigest()}));return key.hex()
+    key=secrets.token_bytes(32);rows={n:file_hash(((folder) / (n))) for n in names};raw=json.dumps(rows,sort_keys=True,separators=(',',':')).encode()
+    (folder/'autenticacao.json').write_text(json.dumps({'files':rows,'mac':hmac.new(key,raw,'sha256').hexdigest()}),encoding='utf-8');return key.hex()
 
 def verify(folder,key,allowed):
     if not isinstance(key,str) or len(key)!=64:raise ValueError('Snapshot sem chave da sessão atual; gere novamente.')
     folder=Path(folder);manifest=folder/'autenticacao.json'
     if folder.is_symlink() or manifest.is_symlink() or manifest.stat().st_size>10000:raise ValueError('Manifesto de snapshot inválido.')
-    data=json.loads(manifest.read_text());rows=data['files']
+    data=json.loads(manifest.read_text(encoding='utf-8'));rows=data['files']
     if not isinstance(rows,dict) or 'scene.pkl' not in rows or not set(rows)<=set(allowed):raise ValueError('Arquivos de snapshot inválidos.')
     raw=json.dumps(rows,sort_keys=True,separators=(',',':')).encode()
     if not hmac.compare_digest(hmac.new(bytes.fromhex(key),raw,'sha256').hexdigest(),data['mac']):raise ValueError('Snapshot alterado; autenticação recusada.')

@@ -38,7 +38,7 @@ def test_applying_texture_keeps_implicit_axis_and_changes_real_material(sample):
     d,s=sample;r=report(sample);before=(d/'input.dxf').read_bytes()
     apply(d,body(r,'texture','PAVIMENTO','pavement','concrete'))
     config=read_config(d)
-    assert config['layers']['axis']==['EIXO'] and config['layer_materials']['PAVIMENTO']=='concrete'
+    assert config['layers']['axis']==['EIXO','EIXO_HACHURA'] and config['layer_materials']['PAVIMENTO']=='concrete'
     items,*_=analyze(d,Settings.model_validate(config))
     assert all(e['material']=='rigido' for e in items if e['role']=='pavement')
     assert (d/'input.dxf').read_bytes()==before and len(history(d))>=2
@@ -101,7 +101,7 @@ def test_profile_save_as_never_overwrites_and_save_uses_revision_guard(tmp_path)
 
 def test_normal_manual_and_ai_ui_show_reviewable_layers_without_hidden_application(gl_page,live):
     p=gl_page;before=p.request.get(live[0]+'/api/projects/'+live[1]).json()['config']
-    p.get_by_role('tab',name='Projeto',exact=True).click();p.get_by_role('button',name='Analisar layers / IA',exact=True).click()
+    p.get_by_role('tab',name='Projeto',exact=True).click();p.get_by_role('button',name='Analisar camadas / IA',exact=True).click()
     p.wait_for_selector('#rsIALayers [data-ia-layer="PAVIMENTO"]',timeout=30000)
     assert p.locator('#rsIAStudio').is_visible() and p.locator('#rsIAIssues').is_hidden()
     p.locator('#rsIAMode').select_option('manual')

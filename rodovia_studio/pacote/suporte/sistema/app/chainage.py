@@ -7,6 +7,7 @@ até a projeção de P. Modos:
 Com ponto final e “ajuste proporcional”, o fator distribui a diferença entre o km final informado
 e a distância medida (ex.: marcos oficiais). Sem ajuste, fator = 1 (distância pura).
 """
+from .seguro import sdiv as _sdiv
 import numpy as np
 import shapely
 from shapely.geometry import LineString,Point
@@ -44,7 +45,7 @@ class Stationing:
         p=np.atleast_2d(np.asarray(points,float));return np.asarray(shapely.distance(self.line,shapely.points(p[:,0],p[:,1])),float)
     def chain(self,km_m):
         """Distância geométrica desde o início da polilinha correspondente a um km."""
-        return float(np.clip(self.s0+self.direction*(float(km_m)-self.km_start)/self.scale,0,self.length))
+        return float(np.clip(self.s0+(_sdiv(self.direction*(float(km_m)-self.km_start), self.scale)),0,self.length))
     def point(self,km_m):return np.array(self.line.interpolate(self.chain(km_m)).coords[0])
     def km_range(self):
         a=self.km([*self.axis[0]]);b=self.km([*self.axis[-1]]);return min(a,b),max(a,b)

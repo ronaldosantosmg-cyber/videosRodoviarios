@@ -18,6 +18,8 @@ def vetor_sombra(hora):
 # ---------------- clima ----------------
 def clima(scene,im,t,header,footer,via=None):
     """Aplica o clima à área do mapa (entre o cabeçalho e o rodapé). via: máscara da pista na tela (opcional)."""
+    if getattr(scene.s,'photo_atmosphere',False):
+        from .fotorrealismo import aplicar;return aplicar(scene,im,t,header,scene.H-footer,via)    # 2.46: atmosfera fotográfica
     tipo=getattr(scene.s,'weather','limpo')
     if tipo=='limpo':return
     k=float(getattr(scene.s,'weather_intensity',.6));y0,y1=header,scene.H-footer;roi=im[y0:y1].astype(np.float32)

@@ -1,4 +1,5 @@
 """Tarefas de exportação (processo separado, como a renderização)."""
+from .seguro import sdiv as _sdiv
 import json,time
 from pathlib import Path
 import numpy as np
@@ -43,7 +44,7 @@ def run_frames(d,s,status,cancel):
             im,_=sc.frame(t);Image.fromarray(im).save(out/f'quadro_{k:06d}.png',compress_level=3)
             if pe.rgba_layers:
                 layer=sc.layer_rgba(t);Image.fromarray(layer,'RGBA').save(rgba/f'camada_{k:06d}.png',compress_level=3)
-            done+=1;status(.25+.74*done/len(wanted),f'Quadro {k+1} · {done}/{len(wanted)} salvos')
+            done+=1;status(.25+(_sdiv(.74*done, len(wanted))),f'Quadro {k+1} · {done}/{len(wanted)} salvos')
         else:sc.advance_state(t)
     (out/'sequencia.json').write_text(json.dumps({'fps':fps,'first_frame':first,'last_frame':last,'every_n_frames':pe.every_n_frames,'count':len(wanted),'width':sc.W,'height':sc.H,'rgba_layers':pe.rgba_layers,
         'note':'camadas_rgba: pavimento, sinalização, veículos, símbolos e textos sobre fundo transparente; sem imagem aérea e sem textura de água.'},ensure_ascii=False,indent=2),encoding='utf-8')

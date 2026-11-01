@@ -1,0 +1,7 @@
+$ Instalando GDAL + plugin ECW da pasta pacotes_ecw (sem internet)
+
+ERROR: proxy
+
+$ Baixando GDAL para Python (Geospatial Wheels Index)
+
+ERROR: proxy

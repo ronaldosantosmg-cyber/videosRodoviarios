@@ -15,19 +15,19 @@ const RIBBON=[
   ['Câmera',[['Avanço por trecho','⏱',()=>setTool('advzone'),1],['Velocidade de avanço','⏲',()=>openSection('Perfil de apresentação')]]]]],
  ['Vídeo',[['Gerar',[['Gerar vídeo','🎬',()=>$('render')?.click(),1],['Prévia no instante','▶',()=>$('openAtTime')?.click(),1]]],['Suporte',[['Ver registros','📋',()=>openLogs('execucao')],['Exportar prompt para IA','🤖',()=>promptIA()]]]]],
  ['Exibir',[['Janela',[['Tela cheia','⛶',()=>toggleFullscreen(),1],['Painel lateral','◧',()=>$('toggleSide')?.click()],['Tela ampla','▭',()=>$('layoutWide').click()],['Compacto','▤',()=>$('layoutCompact').click()]]],
-  ['Desenho',[['Enquadrar','⤧',()=>fitView(),1],['Regenerar tela','⟲',()=>regenScreen()],['Snap','⌖',()=>{$('snapOn').click();statusBar()}],['Orto','⊥',()=>{$('orthoOn').click();statusBar()}]]]]],
+  ['Desenho',[['Enquadrar','⤧',()=>fitView(),1],['Regenerar tela','⟲',()=>regenScreen()],['Captura','⌖',()=>{$('snapOn').click();statusBar()}],['Orto','⊥',()=>{$('orthoOn').click();statusBar()}]]]]],
  ['Ajuda',[['Ajuda',[['Como usar','❔',()=>$('helpBtn')?.click(),1],['Comandos','⌨',()=>runCommand('?'),1],['Sobre','ⓘ',()=>openAbout(),1]]]]]];
 function ribbonInsertGroups(){const out=[];let g=0,cur=[];for(const t of TOOLS){if(t==='|'){if(cur.length)out.push([TOOL_GROUPS[g]||'',cur]);cur=[];g++;continue}if(t[0]==='pan'||t[0]==='move')continue;cur.push([toolLabel(t).replace(/^[^\p{L}\p{N}]+/u,''),{tool:t[0]},()=>setTool(t[0]),0,t[0]])}if(cur.length)out.push([TOOL_GROUPS[g]||'',cur]);return out}
-function buildRibbon(){const old=$('menuBar');if(!old)return;const bar=old.cloneNode(false);old.replaceWith(bar);let cur=1;try{cur=Number(localStorage.getItem('rodovia_ribbon_tab')||1)}catch{}let mini=false;try{mini=localStorage.getItem('rodovia_ribbon_min')==='1'}catch{}
+function buildRibbon(){const old=$('menuBar');if(!old)return;const bar=old.cloneNode(false);old.replaceWith(bar);let cur=1;try{cur=Number(localStorage.getItem('rodovia_ribbon_tab')||1)}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('faixa_opcoes',_e)}let mini=false;try{mini=localStorage.getItem('rodovia_ribbon_min')==='1'}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('faixa_opcoes',_e)}
  const tabs=[['Arquivo']].concat(RIBBON);
  const render=()=>{const T=RIBBON[cur-1];const groups=T?(T[1]||ribbonInsertGroups()):[];
   bar.innerHTML=`<div class="rbTabs">${tabs.map(([n],i)=>`<button type="button" class="mb${i===0?' file':''}${i===cur?' on':''}" data-mb="${i}">${esc(n)}</button>`).join('')}<span class="grow"></span><button type="button" class="rbMin" title="Recolher/expandir a faixa (Ctrl+F1)">${mini?'▾':'▴'}</button></div>`+
   (mini?'':`<div class="rbPanel">${groups.map(([gn,items],gi)=>`<div class="rbGroup"><div class="rbItems">${items.map((it,ii)=>`<button type="button" class="rb${it[3]?' big':''}" data-rb="${gi}:${ii}" title="${esc(it[0])}">${typeof it[1]==='object'?toolIcon(it[1].tool):`<span class="ri">${it[1]}</span>`}<span class="rl">${esc(it[0])}</span></button>`).join('')}</div><div class="rbName">${esc(gn)}</div></div>`).join('')}</div>`);bar._groups=groups};
  render();
- bar.onclick=e=>{const t=e.target.closest('.mb');if(t){const i=Number(t.dataset.mb);if(i===0){fileMenu(t);return}cur=i;try{localStorage.setItem('rodovia_ribbon_tab',i)}catch{}if(mini){mini=false;try{localStorage.setItem('rodovia_ribbon_min','0')}catch{}}render();return}
-  if(e.target.closest('.rbMin')){mini=!mini;try{localStorage.setItem('rodovia_ribbon_min',mini?'1':'0')}catch{}render();return}
+ bar.onclick=e=>{const t=e.target.closest('.mb');if(t){const i=Number(t.dataset.mb);if(i===0){fileMenu(t);return}cur=i;try{localStorage.setItem('rodovia_ribbon_tab',i)}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('faixa_opcoes',_e)}if(mini){mini=false;try{localStorage.setItem('rodovia_ribbon_min','0')}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('faixa_opcoes',_e)}}render();return}
+  if(e.target.closest('.rbMin')){mini=!mini;try{localStorage.setItem('rodovia_ribbon_min',mini?'1':'0')}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('faixa_opcoes',_e)}render();return}
   const b=e.target.closest('[data-rb]');if(!b)return;const [gi,ii]=b.dataset.rb.split(':').map(Number);const it=bar._groups[gi][1][ii];try{const r=it[2]();if(r&&r.catch)r.catch(err=>msg(err.message,true))}catch(err){msg(err.message,true)}};
- bar.ondblclick=e=>{if(e.target.closest('.mb')&&!e.target.closest('.file')){mini=!mini;try{localStorage.setItem('rodovia_ribbon_min',mini?'1':'0')}catch{}render()}};
+ bar.ondblclick=e=>{if(e.target.closest('.mb')&&!e.target.closest('.file')){mini=!mini;try{localStorage.setItem('rodovia_ribbon_min',mini?'1':'0')}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('faixa_opcoes',_e)}render()}};
  document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='F1'){e.preventDefault();mini=!mini;render()}});
  window.ribbonRender=render}
 function fileMenu(anchor){const dd=$('menuDrop');const items=MENUBAR[0][1];dd.innerHTML=items.map((it,k)=>it?`<div class="it" data-mi="${k}"><span>${esc(it[0])}</span><span class="k">${typeof it[1]==='string'?esc(it[1]):''}</span></div>`:'<div class="sep"></div>').join('');const r=anchor.getBoundingClientRect();dd.style.left=r.left+'px';dd.style.top=r.bottom+'px';dd.hidden=false;
@@ -35,7 +35,7 @@ function fileMenu(anchor){const dd=$('menuDrop');const items=MENUBAR[0][1];dd.in
 document.addEventListener('pointerdown',e=>{const dd=$('menuDrop');if(dd&&!dd.hidden&&!e.target.closest('#menuDrop,#menuBar .file'))dd.hidden=true},true);
 buildRibbon();
 // Título da janela com o nome do projeto (como num programa do Windows).
-estender('fill',_f=>function(s){_f(s);try{document.title=`${s.name||'Projeto'} — Rodovia Studio`}catch{}},'Título da janela com o nome do projeto (como num programa do Windows).');
+estender('fill',_f=>function(s){_f(s);try{document.title=`${s.name||'Projeto'} — Rodovia Studio`}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('faixa_opcoes',_e)}},'Título da janela com o nome do projeto (como num programa do Windows).');
 if(cfg&&cfg.name)document.title=`${cfg.name} — Rodovia Studio`;
 // Campos que não são listas de opções no esquema (ex.: cor #rrggbb) não podem virar uma lista fixa.
 estender('propInput',_pi2=>function(path,v,key,listKey){if(SCHEMA&&SCHEMA[listKey]!==undefined&&!enumFor(listKey,key)&&ENUMS[key]&&(key==='color'))
@@ -46,5 +46,5 @@ estender('commitProp',_cp=>function(el){if(el.dataset&&el.dataset.pp==='color'&&
 // 1.29: opções da ferramenta flutuando sobre a tela (a área de desenho não muda de tamanho ao trocar de ferramenta).
 {const to=$('toolOptions'),wrap=document.querySelector('.canvasWrap');if(to&&wrap&&to.parentElement!==wrap)wrap.appendChild(to)}
 // Mudança de tamanho da tela: só redesenha quando o tamanho realmente muda (evita saltos).
-try{new ResizeObserver(()=>{const r=canvas.getBoundingClientRect(),d=window.devicePixelRatio||1;if(Math.round(r.width*d)!==canvas.width||Math.round(r.height*d)!==canvas.height)scheduleCanvasResize()}).observe(canvas)}catch{}
+try{new ResizeObserver(()=>{const r=canvas.getBoundingClientRect(),d=window.devicePixelRatio||1;if(Math.round(r.width*d)!==canvas.width||Math.round(r.height*d)!==canvas.height)scheduleCanvasResize()}).observe(canvas)}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('faixa_opcoes',_e)}
 

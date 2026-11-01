@@ -1,4 +1,6 @@
 """Segmentação local por semelhança, amostras e referências CAD; sugestões exigem revisão."""
+from .seguro import sdiv as _sdiv
+from .falhas import registrar as _falha
 import hashlib,json
 from pathlib import Path
 import cv2
@@ -55,7 +57,7 @@ def segment(rgb,bounds,*,clusters=12,min_area_m2=4.,samples=(),hints=(),limit=50
     for cluster in range(len(centers)):
         if cancel():raise InterruptedError('Análise da imagem cancelada.')
         if semantic is not None and semantic['classes'][cluster]=='unclassified':continue
-        status(.45+.45*cluster/len(centers),'Agrupando contornos por cor e textura')
+        status(.45+(_sdiv(.45*cluster, len(centers))),'Agrupando contornos por cor e textura')
         mask=(labels==cluster).astype(np.uint8)
         count,components,stats,_=cv2.connectedComponentsWithStats(mask,8)
         for index in np.argsort(stats[1:,cv2.CC_STAT_AREA])[::-1]+1:
@@ -145,7 +147,7 @@ def run(directory,settings,request,status,cancel,jid=None):
             if item['closed'] and item['role'] in LABELS:
                 poly=Polygon(item['points'],holes=item.get('holes',[]))
                 if poly.is_valid:hints.append(dict(role=item['role'],geometry=poly))
-    except (ValueError,FileNotFoundError):pass
+    except (ValueError,FileNotFoundError) as _e:_falha(__name__,_e)
     semantic=None
     if request.get('method')=='semantic':
         from .image_semantic import predict

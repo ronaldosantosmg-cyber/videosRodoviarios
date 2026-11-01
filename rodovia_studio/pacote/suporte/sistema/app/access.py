@@ -4,6 +4,7 @@ O operador marca o eixo do acesso a partir do bordo da pista. O programa gera o 
 tapers ao longo do bordo da pista principal, como áreas de 'pavimento' do projeto. Assim, sinalização,
 bordos e fluxos de veículos saem pelo mesmo cálculo das demais pistas. O DXF não é alterado.
 """
+from .seguro import sdiv as _sdiv
 import numpy as np
 from shapely.geometry import Polygon,LineString,Point
 from shapely.ops import unary_union,nearest_points
@@ -37,7 +38,7 @@ def build(a,paved,axis):
         ss=np.linspace(0,L,max(3,int(L/4)+1));inner=[];outer=[]
         for s in ss:
             e=np.array(nearest_points(edge,Point(*(q+d*sign*s)))[0].coords[0])
-            w=lw*(1-s/L)+.0;inner.append(e-n_out*.3);outer.append(e+n_out*max(w,.05))
+            w=lw*(1-(_sdiv(s, L)))+.0;inner.append(e-n_out*.3);outer.append(e+n_out*max(w,.05))
         return Polygon(np.vstack([inner,outer[::-1]])).buffer(0)
     if a.mode in ('both','in') and a.taper_in_m>0:parts.append(taper(-1,float(a.taper_in_m)))
     if a.mode in ('both','out') and a.taper_out_m>0:parts.append(taper(1,float(a.taper_out_m)))

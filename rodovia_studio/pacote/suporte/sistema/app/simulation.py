@@ -10,6 +10,8 @@ número de processos.
 Limitações: uma trajetória por sentido em cada pista (sem troca de faixa); ilustrativo, não é um
 modelo de tráfego calibrado.
 """
+from .seguro import sdiv as _sdiv
+from .seguro import sdiv as _sdiv
 from .tempo import tempo
 from .vehicle_motion import analyze_motion,axle_geometry_prepared,prepare_points,interpolate,PROFILES
 import math,bisect,collections
@@ -33,8 +35,13 @@ TYPE_DYN={
  'carreta':{'a':.58,'b':1.25,'T':2.3,'s0':4.2,'pcu':2.5,'heavy':True},
 }
 
-for _alias,_base in [('car6','car'),('moto2','moto'),('truck18','truck'),('long30','carreta')]:
+for _alias,_base in [('car6','car'),('moto2','moto'),('truck18','truck'),('long30','carreta'),('hatch','car'),('sedan','car'),('suv','pickup'),('vuc','van'),('toco','truck'),('cacamba','truck'),('onibus13','bus'),('micro','van'),('bitrem','carreta')]:
     SPEED_FACTOR[_alias]=SPEED_FACTOR[_base];TYPE_DYN[_alias]=dict(TYPE_DYN[_base])
+# 2.44: ajustes finos das novas classes (hatch ágil; VUC/toco/caçamba/micro entre leve e pesado; bitrem mais lento que carreta)
+SPEED_FACTOR.update(hatch=1.0,sedan=1.0,suv=1.0,vuc=.9,toco=.8,cacamba=.78,onibus13=.9,micro=.92,bitrem=.74)
+TYPE_DYN['hatch'].update(a=1.4,T=1.3,s0=2.2);TYPE_DYN['vuc'].update(a=.95,T=1.6,s0=3.0,pcu=1.4)
+TYPE_DYN['toco'].update(a=.68,T=2.1,s0=3.6,pcu=2.0);TYPE_DYN['cacamba'].update(a=.62,T=2.2,s0=3.8,pcu=2.2)
+TYPE_DYN['micro'].update(a=.9,T=1.7,s0=3.0,pcu=1.5,heavy=False);TYPE_DYN['bitrem'].update(a=.5,b=1.2,T=2.5,s0=4.6,pcu=3.0)
 
 def _xy(p):return (p.x,p.y) if hasattr(p,'x') else (p['x'],p['y'])
 
@@ -86,12 +93,15 @@ class TrafficSim:
         self.capacity_model=bool(getattr(s,'queue_capacity_model',True))
         self.heavy_reaction=bool(getattr(s,'heavy_vehicle_reaction',True))
         self.blocks=[Block(b) for b in getattr(s,'lane_blocks',[]) if len(b.points)>=3]
+        self.stability=bool(getattr(settings,'traffic_stability',True));self.stop_seconds={};self.stop_by_path={};self.stop_samples=[];self._stop_seen=set();self.profile_counts={'convencional':0,'lento':0,'rapido':0};self.lc_blocked_hysteresis=0;self.lc_blocked_window=0;self.forced_merges=0
         self.prepare();
         from .transport import Transport
         self.transport=Transport(settings,network);self.control_stops=0;self.node_routing=any(e.get('flow_role','automatico')!='automatico' for e in network.edges);self.dynamic_reroutes=0
         from .alternating_traffic import AlternatingTraffic
         from .vehicle_safety import PolygonSafety
         self.alternating=AlternatingTraffic(settings,network);self.polygon_safety=PolygonSafety(self)
+        from .conflict_guard import ConflictGuard
+        self.conflict_guard=ConflictGuard(self);self.conflict_guard.enabled=bool(getattr(settings,'traffic_conflict_guard',True))
         from .shoulder_probe import ShoulderProbe
         self.shoulder_probe=ShoulderProbe(self)
         from .pedestrian_traffic import PedestrianTraffic
@@ -136,9 +146,10 @@ class TrafficSim:
                     if sp:z.append((a,b,float(sp)))
             self.speedz.append(z);self.curve_env.append(curve_envelope(path['p'],path['d'],lateral_acc=LAT_ACC if curve else 4.0))
         self.rate=[];self.capacity_rate=[]
-        explicit_demand=getattr(self.s,'traffic_demand_vphpl',None)
+        from .nivel_servico import demanda_efetiva
+        explicit_demand=demanda_efetiva(self.s,self)   # 2.45: nível de serviço-alvo vira demanda por faixa
         for path in P:
-            L=float(path['length']);count=max(1,min(16,int(L/350)));self.rate.append(self.density*count/(L/self.v0+5) if explicit_demand is None else float(explicit_demand)/3600/len(self.siblings[self.entry[len(self.rate)]]))
+            L=float(path['length']);count=max(1,min(16,int(L/350)));self.rate.append((_sdiv(self.density*count, L/self.v0+5)) if explicit_demand is None else (_sdiv(float(explicit_demand)/3600, len(self.siblings[self.entry[len(self.rate)]]))))
             # Cada path explícito representa uma faixa. A capacidade é por faixa e não altera a geometria.
             # Ramos/dispositivos recebem capacidade um pouco menor que a pista principal.
             k=str(path.get('kind') or (path.get('kinds') or ['main'])[0]).lower()
@@ -217,7 +228,7 @@ class TrafficSim:
             chosen=self._entry_choices.get(entry)
             if chosen not in available:
                 weights=np.array([self.rate[i] for i in available],float)
-                chosen=available[0] if len(available)==1 else int(rng.choice(available,p=weights/weights.sum() if weights.sum()>0 else None))
+                chosen=available[0] if len(available)==1 else int(rng.choice(available,p=(_sdiv(weights, weights.sum())) if weights.sum()>0 else None))
                 self._entry_choices[entry]=chosen
             out.append(chosen)
         return out
@@ -324,8 +335,132 @@ class TrafficSim:
                 if gap<best[0] and gap<look:best=(gap,w['v'],w['L'])
         return best
 
+    # ---------- estabilidade (1.42.41) ----------
+    def dyn_of(self,vt):
+        """Dinâmica da classe com a calibração do projeto (vazia = idêntica ao padrão)."""
+        cal=getattr(self,'_cal_cache',None)
+        if cal is None:
+            cal=self._cal_cache={};over=getattr(self.s,'traffic_calibration',None) or {}
+            for cls,values in over.items():
+                if cls in TYPE_DYN:cal[cls]={**TYPE_DYN[cls],**{k:float(v) for k,v in values.items()}}
+        return cal.get(vt) or TYPE_DYN.get(vt,TYPE_DYN['car'])
+    @staticmethod
+    def vehicle_profile(vid,vt):
+        """Perfil estático e determinístico (70/15/15) sem consumir o gerador aleatório da simulação."""
+        r=((int(vid)*2654435761)%10007)/10007.
+        if TYPE_DYN.get(vt,TYPE_DYN['car']).get('heavy') or r>=.70 and r<.85:return 'lento',.7
+        if r>=.85:return 'rapido',1.1
+        return 'convencional',1.0
+    @staticmethod
+    def cooldown_for(vid):return 4.0+2.0*(((int(vid)*40503)%1009)/1009.)
+    @staticmethod
+    def driver_variety(v,vid,vt):
+        """2.44 (frota “Rodovia brasileira realista”): cada motorista tem uma agressividade contínua (0 prudente … 1 apressado), determinística pelo id,
+        que muda velocidade desejada, intervalo de seguimento (T) e aceleração. Pesados variam menos e nunca passam do limite da própria classe."""
+        u=((int(vid)*2654435761+97)%100003)/100003.;a=u**1.5          # maioria prudente/média, minoria apressada
+        heavy=bool(TYPE_DYN.get(vt,{}).get('heavy'))
+        k=.5 if heavy else 1.
+        v['v0']*= 1+k*(-.08+.22*a)
+        v['T_k']=1.25-k*.55*a if not heavy else 1.12-.3*a
+        v['acc_k']=v.get('acc_k',1.)*(.88+.34*a if not heavy else .94+.14*a)
+        v['driver']=round(a,3)
+    def idm_acc(self,v,gap,vl):
+        dyn=self.dyn_of(v.get('t'));a_c=float(dyn['a'])*v.get('acc_k',1.);b_c=float(dyn['b']);vv=v['v'];v0=max(v['v0'],.1)
+        free=1-(vv/v0)**4
+        if not math.isfinite(gap):return a_c*free
+        star=float(dyn['s0'])+max(0.,vv*float(dyn['T'])*v.get('T_k',1.)+vv*(vv-vl)/(2*math.sqrt(max(a_c*b_c,1e-6))))
+        return a_c*(free-(star/max(gap,.1))**2)
+    def is_left_move(self,src,dst):
+        a=self.paths[src].get('route_lane');b=self.paths[dst].get('route_lane')
+        return a is not None and b is not None and b<a
+    def block_ahead(self,v,t,horizon=120.):
+        """Primeiro bloqueio total ativo à frente na faixa atual (início da zona) dentro do horizonte, ou None."""
+        best=None
+        for bi,a,b in self.zones[v['p']]:
+            bl=self.blocks[bi]
+            if bl.mode=='total' and bl.active(t) and v['s']<a and a-v['s']<=horizon:
+                best=a if best is None else min(best,a)
+        return best
+    def target_blocked(self,target,st,travel,t):
+        for bi,a,b in self.zones[target]:
+            bl=self.blocks[bi]
+            if bl.mode in ('total','partial') and bl.active(t) and a-60<=st+travel and b>=st-10:return True
+        return False
+    def stable_lane_changes(self,V,t,occ):
+        for v in sorted(V,key=lambda x:x['id']):
+            if getattr(self.s,'traffic_route_only',False):continue
+            if v.get('lc') is not None:continue
+            if getattr(self,'shoulder_probe',None) and self.shoulder_probe.event(v):continue
+            cand=[c for c in self.adjacent.get(v['p'],()) if c!=v['p'] and 0<=c<len(self.paths)]
+            if not cand:continue
+            home=v.get('home');returning=home is not None and v['p']!=home and home in cand
+            if home is not None and v['p']==home:v['home']=None;home=None
+            block_a=self.block_ahead(v,t);forced=block_a is not None and not returning
+            if t<v.get('lc_cooldown',-math.inf) and not forced:continue
+            gap,lv,lead=self.leader_state(v,occ,look=120.)
+            if not forced and not returning:
+                if v['v']>.92*v['v0'] or gap>55 or lead is None:continue
+                if v.get('prof')=='convencional' and lead['v']>.85*v['v0']:continue
+            travel=max(18.,6*PROFILES.get(v.get('t','car'),PROFILES['car'])[2],v['v']*self.LC_DURATION+8.)
+            if forced and v['s']+travel>block_a-1.5:travel=max(12.,block_a-1.5-v['s'])
+            if forced:
+                ok=self.lane_change_window_allowed(v['p'],v['s'],travel) or self.forced_window_allowed(v['p'],v['s'],travel)
+            else:ok=self.lane_change_window_allowed(v['p'],v['s'],travel)
+            if not ok:self.lc_blocked_rules+=1;continue
+            a_now=self.idm_acc(v,gap if math.isfinite(gap) else math.inf,lv)
+            best=None
+            for target in ([home] if returning else cand):
+                if not forced and not returning and v.get('prof')=='lento' and self.is_left_move(v['p'],target):continue
+                if not self.pedestrians.lane_change_allowed(v,target,travel):continue
+                st=self.map_s(v['p'],target,v['s'])
+                if self.target_blocked(target,st,travel,t):continue
+                fg,fv=self.leader(v,occ,look=180.,path_i=target,s=st)
+                rg,rv,rL=self.follower_on_path(v,V,target,st)
+                front_need=max(8.,IDM['s0']+v['v']*1.5)
+                rear_need=max(8.,IDM['s0']+rv*.8)
+                if returning:front_need=max(front_need,35.);rear_need=max(rear_need,35.)
+                if fg<front_need or rg<rear_need:self.lc_blocked_window+=1;continue
+                if math.isfinite(rg):
+                    fol={'v':rv,'v0':max(self.v0,rv),'t':'car'}
+                    if self.idm_acc(fol,rg,v['v'])<-1.5:self.lc_blocked_window+=1;continue
+                a_new=self.idm_acc(v,fg if math.isfinite(fg) else math.inf,fv)
+                da=a_new-a_now
+                if not returning and not forced and da<=0.4:self.lc_blocked_hysteresis+=1;continue
+                if not self.maneuver_valid(v,target,travel):self.lc_blocked_geometry+=1;continue
+                score=da+(fg if math.isfinite(fg) else 250)/1000.
+                if best is None or score>best[0]:best=(score,target)
+            if best is None:self.lc_blocked_safety+=1;continue
+            self.lane_events.append(dict(id=v['id'],time=t,source=v['p'],target=best[1],travel=travel,returning=bool(returning),forced=bool(forced)))
+            v['lc']={'from':v['p'],'to':best[1],'elapsed':0.,'duration':self.LC_DURATION,'travel_m':travel}
+            if not self.polygon_safety.admission(v,V):
+                v['lc']=None;self.lc_blocked_safety+=1;self.lane_events.pop();continue
+            self.lane_changes+=1
+            if forced:self.forced_merges+=1
+            if returning:self.lane_returns+=1;v['home']=None
+            else:v['home']=home if home is not None else v['p']
+            occ=self.occupancy(V)
+        return occ
+    def tally_stop(self,v,t):
+        """Diagnóstico (só contabilidade): por que o veículo está parado/muito lento."""
+        why=v.get('_why','livre')
+        if why=='livre' and self.paths[v['p']].get('terminal_inset_applied') and v['s']>self.paths[v['p']]['length']-8:why='fim_da_via'
+        self.stop_seconds[why]=self.stop_seconds.get(why,0.)+DT
+        k=(v['p'],why);self.stop_by_path[k]=self.stop_by_path.get(k,0.)+DT
+        if len(self.stop_samples)<60 and (v['id'],why) not in self._stop_seen:
+            self._stop_seen.add((v['id'],why));self.stop_samples.append({'t':round(float(t),1),'vehicle':int(v['id']),'path':int(v['p']),'s_m':round(float(v['s']),1),'reason':why})
+    def forced_window_allowed(self,path_i,s,travel_m):
+        """Merge forçado antes de bloqueio: ignora apenas a exigência de janela 'allow' do modo marked; 'off' e 'deny' continuam valendo."""
+        p=self.paths[path_i]
+        if p.get('lane_change','marked')=='off':return False
+        a=self.route_station(path_i,s);b=self.route_station(path_i,min(float(p['length']),s+max(0.,travel_m)));lo,hi=sorted((a,b))
+        for sec in p.get('lane_change_sections') or []:
+            x,y=sorted((float(self._sec_value(sec,'start_m',0)),float(self._sec_value(sec,'end_m',0))))
+            if self._sec_value(sec,'mode')=='deny' and max(lo,x)<=min(hi,y)+1e-6:return False
+        return True
+
     # ---------- mudança de faixa ----------
     def consider_lane_changes(self,V,t,occ):
+        if getattr(self,'stability',False):return self.stable_lane_changes(V,t,occ)
         for v in sorted(V,key=lambda x:x['id']):
             if getattr(self.s,'traffic_route_only',False):continue
             if v.get('lc') is not None or t<v.get('lc_cooldown',-math.inf):continue
@@ -333,43 +468,49 @@ class TrafficSim:
             cand=self.adjacent.get(v['p'],())
             if not cand:continue
             gap,_,lead=self.leader_state(v,occ,look=120.)
-            if gap>55 or v['v']>.92*v['v0']:continue
+            # 1.42.40: quem ultrapassou volta à faixa de origem assim que houver folga segura à frente e atrás nela.
+            home=v.get('home');returning=home is not None and v['p']!=home and home in cand
+            if home is not None and v['p']==home:v['home']=None
+            if not returning and (gap>55 or v['v']>.92*v['v0']):continue
             travel=max(18.,6*PROFILES.get(v.get('t','car'),PROFILES['car'])[2],v['v']*self.LC_DURATION+8.)
             if not self.lane_change_window_allowed(v['p'],v['s'],travel):
                 self.lc_blocked_rules+=1;continue
             best=None
-            for target in cand:
+            for target in ([home] if returning else cand):
                 if not self.pedestrians.lane_change_allowed(v,target,travel):continue
                 st=self.map_s(v['p'],target,v['s'])
                 fg,fv=self.leader(v,occ,look=180.,path_i=target,s=st)
                 rg,rv,rL=self.follower_on_path(v,V,target,st)
                 front_need=max(8.,IDM['s0']+v['v']*1.1)
                 rear_need=max(8.,IDM['s0']+rv*1.1)
+                if returning:rear_need=max(rear_need,6.+v['v']*1.2)
                 if fg<front_need or rg<rear_need:continue
                 gain=(fg if math.isfinite(fg) else 250)-(gap if math.isfinite(gap) else 250)
                 need=self.LC_GAIN*(.55 if getattr(self,'heavy_reaction',True) and lead is not None and TYPE_DYN.get(lead.get('t'),{}).get('heavy') else 1.0)
-                if gain<need:continue
+                if gain<need and not returning:continue
                 if not self.maneuver_valid(v,target,travel):self.lc_blocked_geometry+=1;continue
                 if best is None or gain>best[0]:best=(gain,target)
             if best is None:
                 self.lc_blocked_safety+=1;continue
-            self.lane_events.append(dict(id=v['id'],time=t,source=v['p'],target=best[1],travel=travel))
+            self.lane_events.append(dict(id=v['id'],time=t,source=v['p'],target=best[1],travel=travel,returning=bool(returning)))
             v['lc']={'from':v['p'],'to':best[1],'elapsed':0.,'duration':self.LC_DURATION,'travel_m':travel}
             if not self.polygon_safety.admission(v,V):
                 v['lc']=None;self.lc_blocked_safety+=1;self.lane_events.pop();continue
             self.lane_changes+=1
+            if returning:self.lane_returns+=1;v['home']=None
+            else:v['home']=home if home is not None else v['p']
             # A partir daqui o veículo passa a reservar também a faixa de destino.
             occ=self.occupancy(V)
         return occ
 
     # ---------- simulação ----------
     def run(self,status):
-        rng=np.random.default_rng(1729);n=len(self.paths);t0=0. if getattr(self.s,'traffic_route_only',False) else -WARMUP;steps=int(math.ceil((self.duration-t0)/DT))+2
+        rng=np.random.default_rng(int(getattr(self.s,'traffic_seed',1729)));n=len(self.paths);t0=0. if getattr(self.s,'traffic_route_only',False) else -WARMUP;steps=int(math.ceil((self.duration-t0)/DT))+2
         nextspawn=[t0 if r>0 and getattr(self.s,'traffic_route_only',False) else t0+rng.exponential(1/max(r,1e-6)) if r>0 else math.inf for r in self.rate];pending=[0]*n;V=[]
         last_admit=collections.defaultdict(lambda:-math.inf);queue_area=[0.0]*n;max_queue_lane=[0]*n;queue_discharged=[0]*n
         self.info={};self.exited_by_path=[0]*n;self.node_transfers=collections.Counter();self.spawned_by_path=[0]*n;frames=[];self.warning_frames=[];vid=0;first=int(round(-t0/DT))
         self.collisions=0;self.side_collisions=0;self.min_gap=math.inf;self.max_queue=0;self.rerouted=0;self.spawned=0
-        self.safety_interventions=0;self.lane_changes=0;self.lc_blocked_rules=0;self.lc_blocked_safety=0
+        self.safety_interventions=0;self.lane_changes=0;self.lane_returns=0;self.lc_blocked_rules=0;self.lc_blocked_safety=0
         for k in range(steps):
             t=t0+k*DT;self.time=t
             for i in range(n):
@@ -385,8 +526,11 @@ class TrafficSim:
                 if not self.motion_valid(j,vt):
                     self.motion_blocked+=1;pending[i]-=1;vid+=1;self._entry_choices.pop(self.entry[i],None);continue
                 if getattr(self.s,'traffic_route_only',False) and any(w['p']==j for w in V):continue
-                Lv=_LEN[vt];v0=self.v0*SPEED_FACTOR[vt]*(.92+.16*rng.random())
-                new={'id':vid,'p':j,'s':self.terminal_padding(j,vt) if self.paths[j].get('terminal_inset_applied') else min(float(getattr(self.s,'traffic_entry_inset_m',5)),max(0.,self.paths[j]['length']-Lv/2-1)), 'v':0.,'L':Lv,'v0':v0,'t':vt,'li':0,'lc':None,'lc_cooldown':-math.inf,'entered_s':t}
+                Lv=_LEN[vt];_u=rng.random();v0=self.v0*SPEED_FACTOR[vt]*(.92+.16*_u);_prof=None;_acc_k=1.
+                if self.stability:
+                    _prof,_pf=self.vehicle_profile(vid,vt);v0=self.v0*(_pf if not TYPE_DYN.get(vt,{}).get('heavy') else min(_pf,SPEED_FACTOR[vt]))*(.97+.06*_u);_acc_k=.6 if _prof=='lento' else 1.
+                new={'id':vid,'p':j,'s':self.terminal_padding(j,vt) if self.paths[j].get('terminal_inset_applied') else min(float(getattr(self.s,'traffic_entry_inset_m',5)),max(0.,self.paths[j]['length']-Lv/2-1)), 'v':0.,'L':Lv,'v0':v0,'t':vt,'li':0,'lc':None,'lc_cooldown':-math.inf,'entered_s':t,'prof':_prof,'acc_k':_acc_k}
+                if getattr(self.s,'vehicle_mix','')=='rodovia_br':self.driver_variety(new,vid,vt)
                 dyn=TYPE_DYN.get(vt,TYPE_DYN['car'])
                 if not self.polygon_safety.admission(new,V,vehicle_check=getattr(self.s,'traffic_prevent_collisions',True)):continue
                 if not self.transport.admission_allowed(j,t,Lv+2*new['s']) or not self.pedestrians.admission_allowed(j,Lv+2*new['s']):continue
@@ -398,7 +542,7 @@ class TrafficSim:
                 behind=[w for o,w,wp,ws in occ.get(self.link_of[j][0][0],[]) if o<Lv+IDM['s0']]
                 if gap<IDM['s0']+1 or behind:continue
                 new['v']=min(.9*v0,math.sqrt(max(0.,2*IDM['b']*(gap-IDM['s0'])))+vl*.5) if gap<math.inf else .9*v0
-                V.append(new);self.polygon_safety.admitted(new);self.info[vid]=(j,vt,ident);vid+=1;pending[i]-=1;self.spawned+=1;self.spawned_by_path[j]+=1;self._entry_choices.pop(self.entry[i],None);last_admit[self.entry[j]]=t;queue_discharged[j]+=1;occ=self.occupancy(V)
+                V.append(new);self.profile_counts[_prof or 'convencional']+=1;self.polygon_safety.admitted(new);self.info[vid]=(j,vt,ident);vid+=1;pending[i]-=1;self.spawned+=1;self.spawned_by_path[j]+=1;self._entry_choices.pop(self.entry[i],None);last_admit[self.entry[j]]=t;queue_discharged[j]+=1;occ=self.occupancy(V)
             self.max_queue=max(self.max_queue,sum(pending))
             for qi,q in enumerate(pending):
                 queue_area[qi]+=q*DT;max_queue_lane[qi]=max(max_queue_lane[qi],q)
@@ -426,15 +570,17 @@ class TrafficSim:
                 planned.append((nv,ds))
             planned=self.polygon_safety.resolve(V,planned,vehicle_check=getattr(self.s,'traffic_prevent_collisions',True))
             alive=[]
+            from .conflict_guard import snapshot as _snap
             for v,(nv,ds) in zip(V,planned):
-                v['_previous_s']=v['s'];v['v']=nv;v['s']+=ds
+                v['_snap']=_snap(v);v['_previous_s']=v['s'];v['v']=nv;v['s']+=ds
+                if nv<.3 and t>=0:self.tally_stop(v,t)
                 for link,a,b in self.link_of[v['p']]:
                     if link[0]=='c' and v['_previous_s']<b<=v['s']:self.node_transfers[(link[1],link[2])]+=1
                 lc=v.get('lc')
                 if lc is not None:
                     self.advance_maneuver(lc,ds,DT)
                     if lc['elapsed']>=lc['duration']:
-                        target=lc['to'];v['s']=self.map_s(v['p'],target,v['s']);v['p']=target;v['lc']=None;v['lc_cooldown']=t+self.LC_COOLDOWN
+                        target=lc['to'];v['s']=self.map_s(v['p'],target,v['s']);v['p']=target;v['lc']=None;v['lc_cooldown']=t+(self.cooldown_for(v['id']) if self.stability else self.LC_COOLDOWN)
                 if v['s']<self.paths[v['p']]['length']-.5-self.terminal_padding(v['p'],v.get('t','car'))-1e-6:alive.append(v)
                 else:self.exited_by_path[v['p']]+=1
             V=alive
@@ -444,6 +590,7 @@ class TrafficSim:
                     if self.rate[i]>0 and i not in occupied_paths and not pending[i]:pending[i]=1
             # Última barreira numérica: qualquer eventual sobreposição é resolvida antes de gravar o quadro.
             if getattr(self.s,'traffic_prevent_collisions',True):self.enforce_hard_separation(V)
+            if getattr(self.s,'traffic_prevent_collisions',True):self.conflict_guard.apply(V)
             self.pedestrians.check(V,t)
             if k>=first:
                 ids=np.array([v['id'] for v in V],np.int32);ss=np.array([v['s'] for v in V],np.float64);ps=np.array([v['p'] for v in V],np.int32)
@@ -509,7 +656,7 @@ class TrafficSim:
         return category+min(max(length,0.),200000.)/1000000.
 
     def accel(self,v,occ,t):
-        dyn=TYPE_DYN.get(v.get('t'),TYPE_DYN['car']);v0=v['v0'];T=float(dyn['T']);s0=float(dyn['s0']);a_comf=float(dyn['a']);b_comf=float(dyn['b']);s=v['s'];k0=v0/max(self.v0,.1)
+        dyn=self.dyn_of(v.get('t'));v0=v['v0'];T=float(dyn['T']);s0=float(dyn['s0']);a_comf=float(dyn['a'])*v.get('acc_k',1.);b_comf=float(dyn['b']);s=v['s'];k0=v0/max(self.v0,.1)
         for a,b,sp in self.speedz[v['p']]:
             if a-30<=s<=b:v0=min(v0,sp*k0)
         env=self.curve_env[v['p']]
@@ -520,7 +667,10 @@ class TrafficSim:
             if not bl.active(t):continue
             if bl.mode=='partial' and a-40<=s<=b:v0=min(v0,bl.speed);T=max(T,2.4)
             elif bl.mode=='total' and s<a:v['_stop']=a-2-v['L']/2-s
-        gap,vl,lead=self.leader_state(v,occ);stop=min(v.pop('_stop',math.inf),self.transport.stop_gap(v,t,gap),self.alternating.stop_gap(v),self.pedestrians.stop_gap(v))
+        gap,vl,lead=self.leader_state(v,occ)
+        _src=(('bloqueio',v.pop('_stop',math.inf)),('semaforo',self.transport.stop_gap(v,t,gap)),('pare_e_siga',self.alternating.stop_gap(v)),('pedestres',self.pedestrians.stop_gap(v)))
+        _why=min(_src,key=lambda x:x[1]);stop=_why[1]
+        v['_why']=_why[0] if stop<gap and stop<math.inf else ('lider' if math.isfinite(gap) else 'livre')
         if self.heavy_reaction and lead is not None and TYPE_DYN.get(lead.get('t'),{}).get('heavy'):
             # Reação a pesados: seguidor abre headway e aceita menor velocidade até existir ultrapassagem segura.
             T=max(T,2.05 if not TYPE_DYN.get(v.get('t'),TYPE_DYN['car'])['heavy'] else 2.35);s0=max(s0,3.2)
@@ -584,7 +734,7 @@ class TrafficSim:
                 if event:
                     wb=PROFILES.get(vt,PROFILES['car'])[2];travel=event['travel']
                     left=self._center(i,s-wb/2,to,max(0,a-wb/2/travel));right=self._center(i,s+wb/2,to,min(1,a+wb/2/travel));delta=right-left
-                    if np.linalg.norm(delta)>1e-5:tan=delta/np.linalg.norm(delta)
+                    if np.linalg.norm(delta)>1e-5:tan=(_sdiv(delta, np.linalg.norm(delta)))
             j=min(len(path['p'])-1,int(np.searchsorted(path['d'],s)))
             yield pos,tan,vid,self.info[vid][2],j
     def vehicle_body_state(self,t):
@@ -602,22 +752,32 @@ class TrafficSim:
             code=3 if vid in hazards else 0
             if to>=0 and not code:
                 c,h,_=self._sample_pose(i,s);delta=self._center(to,self.map_s(i,to,s),-1,0)-c
-                code=1 if np.array([-h[1],h[0]])@delta>0 else 2
+                lat=np.array([-h[1],h[0]])@delta
+                code=0 if (getattr(self,'stability',False) and abs(lat)<.10) else (1 if lat>0 else 2)
             probe=getattr(self,'shoulder_probe',None);event=probe.event({'id':vid,'p':i,'s':s}) if probe else None
             if event and not code:
                 code=2 if s<event['stations'][1] else 1 if s>event['stations'][2] else 0
             out[int(vid)]=code
         return out
 
+    def articulated_tracking(self):
+        """2.46: off-tracking das carretas nos percursos em que circulam (cálculo; não altera desenho nem trajetória)."""
+        try:
+            from .articulado import rastro
+            idx=sorted({pj for (pj,vt,_) in self.info.values() if vt in ('carreta','bitrem','long30')});out=[]
+            for i in idx:
+                r=rastro(self.paths[i]['p'],'carreta',allowed=getattr(self.net,'allowed',None));out.append({'percurso':i,**{k:r.get(k) for k in ('offtracking_max_m','largura_varrida_m','angulo_articulacao_max_graus','fora_da_pista_m','aviso')}})
+            return out
+        except Exception as exc:return [{'erro':str(exc)}]
     def report(self):
         ratio=max([row['ratio'] for row in self.entry_demand_study],default=None)
         from .vehicle_safety import LATERAL_CLEARANCE,LATERAL_BUFFER
-        return {'model':'microssimulacao','flow_balance':{'entered':self.spawned,'exited':sum(self.exited_by_path),'active_end':self.active_end,'conserved':self.spawned==sum(self.exited_by_path)+self.active_end,'scope':'Contagem inclui o aquecimento; veículos derivados mantêm identidade.'},'rerouted_at_nodes':self.dynamic_reroutes,'node_movements':[{'from_edge':a,'to_edge':b,'count':n,'from_route':self.net.edges[a].get('route'),'to_route':self.net.edges[b].get('route')} for (a,b),n in sorted(self.node_transfers.items())],'distribution':{**self.distribution_report,'actual_spawned_by_path':self.spawned_by_path,'count_scope':'Contagem inclui o aquecimento quando ativo.'},'entry_inset_m':getattr(self.s,'traffic_entry_inset_m',5),'route_only':getattr(self.s,'traffic_route_only',False),'collision_prevention':getattr(self.s,'traffic_prevent_collisions',True),'signals_respected':getattr(self.s,'traffic_respect_signals',True),'shoulder_probe':self.shoulder_probe.report(),'lateral_clearance_m':LATERAL_CLEARANCE,'lateral_buffer_per_vehicle_m':LATERAL_BUFFER,'narrow_corridor_admission_holds':self.polygon_safety.narrow_holds,'minimum_following_gap_m':self.HARD_GAP,'polygon_safety_interventions':self.polygon_safety.interventions,'alternating_traffic':self.alternating.report(),'pedestrians':self.pedestrians.report(),'vehicles':self.spawned,'rear_collisions':self.collisions,'side_collisions':self.side_collisions,
+        return {'model':'microssimulacao','flow_balance':{'entered':self.spawned,'exited':sum(self.exited_by_path),'active_end':self.active_end,'conserved':self.spawned==sum(self.exited_by_path)+self.active_end,'scope':'Contagem inclui o aquecimento; veículos derivados mantêm identidade.'},'rerouted_at_nodes':self.dynamic_reroutes,'node_movements':[{'from_edge':a,'to_edge':b,'count':n,'from_route':self.net.edges[a].get('route'),'to_route':self.net.edges[b].get('route')} for (a,b),n in sorted(self.node_transfers.items())],'distribution':{**self.distribution_report,'actual_spawned_by_path':self.spawned_by_path,'count_scope':'Contagem inclui o aquecimento quando ativo.'},'entry_inset_m':getattr(self.s,'traffic_entry_inset_m',5),'route_only':getattr(self.s,'traffic_route_only',False),'collision_prevention':getattr(self.s,'traffic_prevent_collisions',True),'signals_respected':getattr(self.s,'traffic_respect_signals',True),'shoulder_probe':self.shoulder_probe.report(),'lateral_clearance_m':LATERAL_CLEARANCE,'lateral_buffer_per_vehicle_m':LATERAL_BUFFER,'narrow_corridor_admission_holds':self.polygon_safety.narrow_holds,'minimum_following_gap_m':self.HARD_GAP,'polygon_safety_interventions':self.polygon_safety.interventions,'conflict_guard':self.conflict_guard.report(),'alternating_traffic':self.alternating.report(),'pedestrians':self.pedestrians.report(),'vehicles':self.spawned,'rear_collisions':self.collisions,'side_collisions':self.side_collisions,
                 'min_gap_m':None if self.min_gap==math.inf else round(self.min_gap,2),'max_waiting_at_entries':self.max_queue,
-                'transport_controls':self.transport.report(),'control_stop_interventions':self.control_stops,'rerouted':self.rerouted,'rerouted_at_nodes':self.dynamic_reroutes,'blocks':len(self.blocks),'density':self.density,'lane_changes':self.lane_changes,
-                'lane_change_blocked_rule':self.lc_blocked_rules,'lane_change_blocked_safety':self.lc_blocked_safety,
+                'transport_controls':self.transport.report(),'control_stop_interventions':self.control_stops,'rerouted':self.rerouted,'rerouted_at_nodes':self.dynamic_reroutes,'blocks':len(self.blocks),'density':self.density,'lane_changes':self.lane_changes,'lane_returns':self.lane_returns,
+                'stop_diagnostics':{'seconds_by_reason':{k:round(v,1) for k,v in sorted(self.stop_seconds.items())},'by_path':[{'path':p,'reason':r,'seconds':round(sec,1)} for (p,r),sec in sorted(self.stop_by_path.items(),key=lambda kv:-kv[1])[:20]],'samples':self.stop_samples,'scope':'Veículo com v<0,3 m/s após o aquecimento; motivo = restrição ativa mais próxima (bloqueio, semáforo, pare e siga, pedestres, líder).'},'traffic_stability':{'enabled':bool(self.stability),'profiles':dict(self.profile_counts),'blocked_hysteresis':self.lc_blocked_hysteresis,'blocked_window':self.lc_blocked_window,'forced_merges':self.forced_merges},'lane_change_blocked_rule':self.lc_blocked_rules,'lane_change_blocked_safety':self.lc_blocked_safety,
                 'safety_interventions':self.safety_interventions,'collision_free':(self.collisions==0 and self.side_collisions==0) if getattr(self.s,'traffic_prevent_collisions',True) else None,
-                'demand_vph_per_lane':getattr(self.s,'traffic_demand_vphpl',None),'capacity_vph_per_lane':round(self.capacity_vphpl),'entry_demand_study':self.entry_demand_study,'saturation_indicator':{'status':'sobressaturado — indicativo de F' if ratio is not None and ratio>1 else 'nível de serviço não determinado','demand_capacity_ratio':ratio,'scope':'Estimativa com fatores de equivalência internos; não é classificação DNIT/HCM. Depende de tipo de via, velocidade, densidade, atrasos e método aplicável.'},'motion_blocked_vehicles':self.motion_blocked,'lane_change_blocked_geometry':self.lc_blocked_geometry,'motion_profiles':{f'{p}:{v}':a for (p,v),a in self.motion_cache.items()},
+                'demand_vph_per_lane':__import__('app.nivel_servico',fromlist=['x']).demanda_efetiva(self.s,self),'capacity_vph_per_lane':round(self.capacity_vphpl),'entry_demand_study':self.entry_demand_study,'level_of_service':__import__('app.nivel_servico',fromlist=['x']).analisar(self),'articulated_tracking':self.articulated_tracking(),'saturation_indicator':{'status':'sobressaturado — indicativo de F' if ratio is not None and ratio>1 else 'nível de serviço não determinado','demand_capacity_ratio':ratio,'scope':'Estimativa com fatores de equivalência internos; não é classificação DNIT/HCM. Depende de tipo de via, velocidade, densidade, atrasos e método aplicável.'},'motion_blocked_vehicles':self.motion_blocked,'lane_change_blocked_geometry':self.lc_blocked_geometry,'motion_profiles':{f'{p}:{v}':a for (p,v),a in self.motion_cache.items()},
                 'max_queue_by_lane':list(getattr(self,'max_queue_lane',[])),
                 'current_queue_by_lane':list(getattr(self,'current_queue',[])),
                 'queue_vehicle_seconds_by_lane':[round(x,1) for x in getattr(self,'queue_area_vehicle_s',[])],

@@ -17,7 +17,7 @@ function marcarGrupos(){const tb=$('toolbar');if(!tb)return;tb.querySelectorAll(
  const t=g.querySelector('.tgTxt');if(t){const a=g.querySelector('.tbtns button.active span');t.textContent=a?a.textContent:(g.querySelector('.tgname')?.textContent||'')}})}
 document.addEventListener('pointerdown',e=>{if(!e.target.closest('#toolbar .tgroup.aberto'))document.querySelectorAll('#toolbar .tgroup.aberto').forEach(x=>x.classList.remove('aberto'))},true);
 document.addEventListener('click',e=>{if(e.target.closest('#toolbar .tgroup.aberto .tbtns button'))setTimeout(()=>document.querySelectorAll('#toolbar .tgroup.aberto').forEach(x=>x.classList.remove('aberto')),0)});
-estender('setTool',anterior=>function(t){const r=anterior(t);try{marcarGrupos()}catch{}return r},'tela simplificada: grupo mostra a ferramenta ativa');
+estender('setTool',anterior=>function(t){const r=anterior(t);try{marcarGrupos()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('simplificar',_e)}return r},'tela simplificada: grupo mostra a ferramenta ativa');
 {const tb=$('toolbar');if(tb)new MutationObserver(()=>{if(!tb.querySelector('.tgBtn'))simplificarFerramentas()}).observe(tb,{childList:true})}
 // Manutenção: fica só em Arquivo › Limpar memória (a seção continua na coluna clássica).
 function simplificarPaineis(){if(!document.body.classList.contains('paineis'))return;

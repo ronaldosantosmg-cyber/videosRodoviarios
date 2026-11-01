@@ -7,10 +7,38 @@ from shapely.geometry import LineString
 from .vehicle_motion import prepare_points
 
 
+ROLE_KIND={'acesso':'access','retorno':'return','dispositivo':'device'}   # tipologia → papel no fluxo (igual ao dos alinhamentos cadastrados)
+
+
 def axis_fingerprint(points,layer='',level=0):
     q=np.round(np.asarray(points,float),3).astype('<f8')
     if q.ndim!=2 or q.shape[1]!=2 or len(q)<2 or not np.isfinite(q).all():raise ValueError('Eixo inválido.')
     return hashlib.sha256((str(layer)+'|'+str(level)+'|').encode()+min(q.tobytes(),q[::-1].tobytes())).hexdigest()
+
+
+def direction_for(route_directions,key,layer=''):
+    """Sentido do eixo: a escolha feita para o eixo (impressão digital) vale mais que a escolha para o layer inteiro
+    ('layer:NOME'). A do layer sobrevive a trocas de DXF, em que a impressão digital do eixo muda."""
+    rd=route_directions or {}
+    v=rd.get(key)
+    if v in ('forward','reverse','off'):return v
+    lv=rd.get('layer:'+str(layer))
+    if lv in ('forward','reverse','off'):return lv
+    return v or 'auto'
+
+def direction_diagnostics(axes,settings):
+    """Eixos sem escolha aplicada e chaves salvas que não casam com nenhum eixo (sentido que não chega ao motor)."""
+    rd=getattr(settings,'route_directions',{}) or {}
+    atuais={}
+    for a in axes:
+        try:atuais['axis:'+axis_fingerprint(a['points'],a.get('layer',''),a.get('level',0))]=a
+        except (ValueError,TypeError,KeyError,OverflowError):continue
+    orfas=[k for k,v in rd.items() if k.startswith('axis:') and k not in atuais and v!='auto']
+    sem=[]
+    for k,a in atuais.items():
+        if a.get('role') not in (None,'axis') or a.get('reference_only'):continue
+        if k not in rd and ('layer:'+str(a.get('layer',''))) not in rd:sem.append(str(a.get('layer','')))
+    return dict(orphan_keys=len(orfas),axes_without_choice=sorted(set(sem)))
 
 
 def needs_direction_review(axes,settings):
@@ -33,8 +61,8 @@ def native_paths(axes, settings, allowed, tolerance=.25):
         except (ValueError,TypeError,KeyError,OverflowError):invalid+=1;continue
         if fingerprint in replaced:continue
         key='axis:'+fingerprint
-        if legacy and key not in settings.route_directions:pending_directions+=1;continue
-        direction=settings.route_directions.get(key,'auto')
+        if legacy and key not in settings.route_directions and ('layer:'+str(axis.get('layer',''))) not in settings.route_directions:pending_directions+=1;continue
+        direction=direction_for(settings.route_directions,key,axis.get('layer',''))   # 2.28: chave do eixo, senão a do layer
         if direction=='off':manually_disabled+=1;continue
         if axis.get('reference_only') and direction not in ('forward','reverse'):ignored_sources+=1;continue
         if axis.get('role') not in (None,'axis'):ignored_sources+=1;continue
@@ -52,7 +80,8 @@ def native_paths(axes, settings, allowed, tolerance=.25):
             try:cleaned,_=prepare_points(cleaned)
             except ValueError:cleaned=p
             removed_nodes+=len(p)-len(cleaned);p=cleaned
-        rows.append(dict(points=p.copy(),identity=identity,protected=bool(bound.intersection(keys)),ids=[i],fingerprints=[fingerprint],layer=str(axis.get('layer','')),
+        axis_type=getattr(settings,'axis_types',{}).get(key,'auto')
+        rows.append(dict(axis_type=axis_type,points=p.copy(),identity=identity,protected=bool(bound.intersection(keys)),ids=[i],fingerprints=[fingerprint],layer=str(axis.get('layer','')),
                          level=level,direction=direction))
     if not rows:return [],dict(joined=0,invalid=invalid,max_gap_m=0.,removed_nodes=removed_nodes,ignored_sources=ignored_sources,pending_directions=pending_directions,manually_disabled=manually_disabled)
     endpoints=np.array([p for row in rows for p in row['points'][[0,-1]]])
@@ -69,7 +98,7 @@ def native_paths(axes, settings, allowed, tolerance=.25):
             if other//2==e//2:continue
             peer=rows[other//2]
             if peer['protected']:continue
-            if any(row[k]!=peer[k] for k in ('layer','level','direction')):continue
+            if any(row[k]!=peer[k] for k in ('layer','level','direction','axis_type')):continue
             if float(outward[e]@outward[other])>-cosine:continue
             gap=float(np.linalg.norm(point-endpoints[other]))
             # A pequena ponte só existe na derivação e precisa caber na pista.
@@ -98,5 +127,6 @@ def native_paths(axes, settings, allowed, tolerance=.25):
                 break
         out.append(dict(points=np.vstack(parts),identity_points=np.vstack(identities),halfwidth=3.5,source=('Eixo KMZ · ' if base['layer']=='KMZ' else 'Eixo DXF · ')+','.join(str(v) for v in sorted(ids)),
                         source_id='axis:'+('|'.join(sorted(fingerprints))),level=base['level'],native_id=','.join(map(str,sorted(ids))),
-                        native_axis=True,native_direction=base['direction'],native_joined=len(ids)-1))
+                        native_axis=True,native_direction=base['direction'],native_joined=len(ids)-1,axis_type=base['axis_type'],
+                        **({'flow_role':base['axis_type'],'kind':ROLE_KIND[base['axis_type']]} if base['axis_type'] in ROLE_KIND else {})))
     return out,dict(joined=joined,invalid=invalid,max_gap_m=round(max_gap,6),removed_nodes=removed_nodes,ignored_sources=ignored_sources,pending_directions=pending_directions,manually_disabled=manually_disabled)

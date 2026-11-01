@@ -6,7 +6,7 @@
   if(interrupted&&['grip','objmove','mmove','rot','label','move'].includes(interrupted.type)&&undoStack.length){
    undo();msg('Arraste interrompido. A geometria anterior foi restaurada.');
   }
-  if(e?.pointerId!=null)try{if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId)}catch{}
+  if(e?.pointerId!=null)try{if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId)}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('recuperacao_mouse',_e)}
   cursor();draw();
  }
  canvas.addEventListener('pointercancel',cancelDrag);

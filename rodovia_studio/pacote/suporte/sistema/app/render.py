@@ -1,3 +1,5 @@
+from .seguro import sdiv as _sdiv
+from .falhas import registrar as _falha
 from .traffic import TrafficNetwork
 from .hydrography import Hydrography
 from .earthworks import earthwork_style
@@ -113,6 +115,20 @@ def sharpen_imagery(im,quality):
     m=np.clip((np.abs(d).max(2,keepdims=True)-2.)/4.,0,1)   # diferenças < 2 níveis (ruído) ficam como estão
     return np.clip(f+amount*d*m,0,255).astype(np.uint8)
 
+def passing_zone_rows(network):
+    """2.14: trechos onde a ultrapassagem pela pista contrária é possível (só estudo técnico; não entra no vídeo)."""
+    try:
+        from .passing_zones import zones,has_oncoming,slice_polyline
+        paths=[np.asarray(p['p'],float) for p in getattr(network,'paths',[]) if len(p.get('p',[]))>=3]
+        rows=[]
+        for i,pts in enumerate(paths):
+            if len(rows)>=200:break
+            if not has_oncoming(pts,[q for j,q in enumerate(paths) if j!=i]):continue
+            for a,b in zones(pts):rows.append({'path':i,'start_m':round(a,1),'end_m':round(b,1),'p':slice_polyline(pts,a,b)})
+        return rows[:200]
+    except Exception:return []
+
+
 class Scene:
     def __init__(self,directory,s,status=lambda *a:None):
         self.directory=Path(directory);self.s=s;self.W=s.width;self.H=s.width*9//16;self.scale=self.W/2560
@@ -120,7 +136,7 @@ class Scene:
         from .image_context import accepted_items
         self.image_context_items=accepted_items(s,self.items,directory)
         self.map,self.box,self.attribution=mosaic(directory,s,self.report['bounds'],status,warnings=self.report.setdefault('warnings',[]))
-        self.n=self.map.shape[0];self.px=(self.box[2]-self.box[0])/self.n
+        self.n=self.map.shape[0];self.px=((self.box[2]-self.box[0]) / (self.n))
         self.hydro=Hydrography(directory,s,[self.report['bounds'][0][0]-250,self.report['bounds'][0][1]-250,self.report['bounds'][1][0]+250,self.report['bounds'][1][1]+250],status)
         self.enhanced=s.visual_quality=='enhanced';self.water_mask=None
         # 1.14: camadas do DXF mapeadas como Hidrografia somam-se à base pública (ou a substituem, se ela estiver desligada).
@@ -143,7 +159,7 @@ class Scene:
         if np.linalg.norm(delta)<1e-6:
             # Eixo fechado (início = fim): usa a direção principal dos pontos (evita divisão por zero).
             c=self.axis-self.axis.mean(0);delta=np.linalg.svd(c,full_matrices=False)[2][0] if np.ptp(c,axis=0).max()>1e-6 else np.array([1.,0.])
-        self.right=delta/np.linalg.norm(delta);self.up=np.array([-self.right[1],self.right[0]])
+        self.right=(_sdiv(delta, np.linalg.norm(delta)));self.up=np.array([-self.right[1],self.right[0]])
         self.R=np.column_stack([self.right,self.up]);self.length=self.ds[-1]
         ch=np.arange(0,self.length+2,2);p=np.column_stack([np.interp(ch,self.ds,self.axis[:,k]) for k in range(2)]);self.ch=ch;self.dense=p;self.tree=cKDTree(p);self.smooth=gaussian_filter1d(p,12,axis=0,mode='nearest')
         # Estaqueamento: km = km inicial + distância ao longo do eixo a partir do ponto clicado.
@@ -279,10 +295,13 @@ class Scene:
             cache_dir=None
         n=self.n;self.overlay=np.zeros((n,n,4),np.uint8);roadmask=np.zeros((n,n),np.uint8);stationmask=np.zeros((n,n),np.uint8);self.surface=np.zeros((n,n),np.uint8)
         from .pavement import paint_rigid,JointField
-        for role in ['cut','fill','existing_pavement','pavement','shoulder','median','barrier','oae']:
-            mask=np.zeros((n,n),np.uint8);lines=np.zeros_like(mask);rmask=None
+        for role in ['cut','fill','terrain','existing_pavement','pavement','shoulder','median','barrier','oae']:
+            mask=np.zeros((n,n),np.uint8);lines=np.zeros_like(mask);rmask=None;kmasks={}
             for e in self.items:
                 if e['role']!=role:continue
+                if role=='oae' and e.get('oae_kind') in visual.OAE_KIND_SURF and e['closed']:
+                    km_=kmasks.setdefault(e['oae_kind'],np.zeros_like(mask));cv2.fillPoly(km_,[np.rint(self.worldpx(e['points'])).astype(np.int32)],255)
+                    for hole in e.get('holes',[]):cv2.fillPoly(km_,[np.rint(self.worldpx(hole)).astype(np.int32)],0)
                 if role in ('pavement','existing_pavement','shoulder','oae') and e.get('material')=='rigido' and e['closed']:
                     # 1.21: pavimento rígido (placas de concreto).
                     if rmask is None:rmask=np.zeros_like(mask)
@@ -296,9 +315,12 @@ class Scene:
                 for p in paths:
                     q=np.rint(self.worldpx(p)).astype(np.int32)
                     if e['closed']:
-                        temp=np.zeros_like(mask);cv2.fillPoly(temp,[q],255)
-                        for hole in e.get('holes',[]):cv2.fillPoly(temp,[np.rint(self.worldpx(hole)).astype(np.int32)],0)
-                        mask=cv2.bitwise_or(mask,temp)
+                        # 2.59: só o retângulo do polígono (antes: 2 matrizes do tamanho do mapa por polígono — dezenas de segundos num mapa 8192²)
+                        bx0,by0=max(0,int(q[:,0].min())),max(0,int(q[:,1].min()));bx1,by1=min(n,int(q[:,0].max())+1),min(n,int(q[:,1].max())+1)
+                        if bx1>bx0 and by1>by0:
+                            temp=np.zeros((by1-by0,bx1-bx0),np.uint8);off=(-bx0,-by0);cv2.fillPoly(temp,[q],255,offset=off)
+                            for hole in e.get('holes',[]):cv2.fillPoly(temp,[np.rint(self.worldpx(hole)).astype(np.int32)],0,offset=off)
+                            np.bitwise_or(mask[by0:by1,bx0:bx1],temp,out=mask[by0:by1,bx0:bx1])
                     else:cv2.polylines(lines,[q],False,255,1,cv2.LINE_AA)
             if role in ['cut','fill']:
                 earth_color,alpha=earthwork_style(mask,lines,role,self.px,look=getattr(self.s,'earthwork_look','hatch'))
@@ -330,6 +352,9 @@ class Scene:
             from .pavement import chosen,paint_style
             st=chosen(self.s,role) if role in ('pavement','existing_pavement','shoulder') else None
             if st is not None:color=paint_style(color,mask>0,role,self.box[0],self.box[3],self.px,st,getattr(self,'joint_field',None) or JointField(self.axes),float(getattr(self.s,'joint_spacing_m',5)))  # 1.21: representação escolhida pelo usuário
+            if getattr(self.s,'texture_relief',True) and getattr(self.s,'texture_style','artistico')!='anterior' and getattr(self.s,'style_profile','padrao')!='tecnico' and (role not in ('cut','fill') or getattr(self.s,'earthwork_look','hatch') in ('natural','textura')):
+                from . import relevo   # 2.48/2.49: relevo iluminado por material (flexível/rígido; novo/existente)
+                if role in relevo.MATERIAIS or role in relevo.RIGIDOS:color=relevo.acabar_misto(color,mask>0,rmask,role,self.box[0],self.box[3],self.px)
             select=alpha>0;old=self.overlay[select,:3].astype(np.float32);a=alpha[select,None]/255
             c=color[select] if getattr(color,'ndim',1)==3 else color
             self.overlay[select,:3]=(old*(1-a)+c*a).astype(np.uint8);self.overlay[:,:,3]=np.maximum(self.overlay[:,:,3],alpha)
@@ -337,9 +362,13 @@ class Scene:
             if role in ['cut','fill']:self.overlay[select,:3]=earth_color[select]
             stationmask=np.maximum(stationmask,alpha)
             if role in visual.SURF:self.surface[mask>0]=visual.SURF[role]
-            elif role in visual.EARTH_SURF and getattr(self.s,'earthwork_look','hatch')=='natural':self.surface[mask>0]=visual.EARTH_SURF[role]
+            elif role in visual.EARTH_SURF and getattr(self.s,'earthwork_look','hatch') in ('natural','textura'):self.surface[mask>0]=visual.EARTH_SURF[role]
             elif role in ['median','barrier']:self.surface[mask>0]=0
             if rmask is not None:self.surface[(mask>0)&(rmask>0)]=visual.SURF['oae']   # textura de concreto
+            for kind,km_ in kmasks.items():                                              # 1.42.40: OAE nova / existente / alargada
+                sel_=(mask>0)&(km_>0);self.surface[sel_]=visual.OAE_KIND_SURF[kind];self.overlay[sel_,:3]=visual.OAE_KIND_RGB[kind]
+                if getattr(self.s,'texture_relief',True) and getattr(self.s,'texture_style','artistico')!='anterior' and getattr(self.s,'style_profile','padrao')!='tecnico' and sel_.any():
+                    from . import relevo;self.overlay[:,:,:3]=np.where(sel_[...,None],relevo.acabar_oae(self.overlay[:,:,:3],sel_,kind,self.box[0],self.box[3],self.px),self.overlay[:,:,:3])   # 2.50
             if role in ['pavement','existing_pavement','shoulder','oae']:roadmask=np.maximum(roadmask,mask)
         for e in self.items:
             if e.get('tex_code'):
@@ -373,7 +402,7 @@ class Scene:
         self.stations=np.full((n,n),65535,np.uint16)
         ys,xs=np.nonzero(stationmask)
         for start in range(0,len(xs),250000):
-            xx=xs[start:start+250000];yy=ys[start:start+250000];pts=np.column_stack([self.box[0]+xx*self.px,self.box[3]-yy*self.px]);ids=self.tree.query(pts)[1];self.stations[yy,xx]=np.minimum(65534,self.ch[ids]/self.length*65534).astype(np.uint16)
+            xx=xs[start:start+250000];yy=ys[start:start+250000];pts=np.column_stack([self.box[0]+xx*self.px,self.box[3]-yy*self.px]);ids=self.tree.query(pts)[1];self.stations[yy,xx]=np.minimum(65534,(_sdiv(self.ch[ids], self.length))*65534).astype(np.uint16)
         if any(e.get('frozen') for e in self.items):
             # 1.26: camada congelada aparece pronta desde o início do vídeo (sem a construção progressiva).
             fz=np.zeros((n,n),np.uint8)
@@ -405,7 +434,7 @@ class Scene:
         roads=[poly(e) for e in self.items if e['closed'] and e['role'] in ['pavement','oae']]
         roads.extend(poly(e) for e in self.items if e['closed'] and e['role']=='existing_pavement')
         from .flow_fit import physical_obstacles
-        obstacles=physical_obstacles(self.items)
+        obstacles=physical_obstacles(self.items,getattr(self,'axes',None))
         decks=[o['deck'] for o in self.oae]
         roads.extend(decks)
         from .markup import oae_direction_marks,deck_geometry
@@ -415,7 +444,7 @@ class Scene:
             try:
                 deck,line,_,_,_=deck_geometry(item['points']);oae_info.append({'id':item.get('layer','OAE'),'deck':deck,'line':line,'level_m':float(item.get('elevation_m') or 0),'elevation_valid':item.get('elevation_valid',True),'grade_confirmed':False})
             except ValueError:continue
-        self.network=TrafficNetwork(roads,obstacles,self.axes,self.axis,self.ds,self.s,[poly(e) for e in self.items if e['closed'] and e['role']=='oae']+decks,oae_direction_marks(self.oae,self.stationing),[e['points'] for e in self.items if e['role']=='edge_line' and len(e['points'])>=2],[e for e in self.items if e['role']=='sign_h'],[e for e in self.items if e['role']=='sign_v'],directory=self.directory,oae_info=oae_info,median_obstacles=[poly(e) for e in self.items if e['closed'] and e['role']=='median'])
+        self.network=TrafficNetwork(roads,obstacles,self.axes,self.axis,self.ds,self.s,[poly(e) for e in self.items if e['closed'] and e['role']=='oae']+decks,oae_direction_marks(self.oae,self.stationing),[e['points'] for e in self.items if e['role']=='edge_line' and len(e['points'])>=2],[e for e in self.items if e['role']=='sign_h'],[e for e in self.items if e['role']=='sign_v'],directory=self.directory,oae_info=oae_info,median_obstacles=[poly(e) for e in self.items if e['closed'] and e['role']=='median'],virtual_chords=[c for e in self.items for c in (e.get('virtual') or []) if e['role'] in ('pavement','existing_pavement','shoulder')])
         self.allowed=self.network.allowed
         self.save_editor_geometry(roads,obstacles)
         self.routes=[(e['p'],e['t'],np.ones(len(e['p']),bool),e['length'],i) for i,e in enumerate(self.network.edges)]
@@ -441,6 +470,8 @@ class Scene:
             controls=Transport(self.s,self.network).report();self.report['transport_controls']=controls;self.report['warnings'].extend(controls['warnings'])
         self.report['traffic_network']=self.network.report
         self.report['warnings'].extend(self.network.warnings)
+        try:self.report['warnings'].extend(self.network.coverage_warnings())
+        except Exception:pass
         (self.directory/'traffic_network.json').write_text(json.dumps(self.network.report,ensure_ascii=False,indent=2),encoding='utf-8')
     def prepare_terrain(self,status=lambda *a:None):
         # Elevação: a ortofoto não é deformada; o relevo vira sombreamento/curvas e superfície 3D na cabine.
@@ -472,7 +503,7 @@ class Scene:
                 d=b-a;L=np.linalg.norm(d)
                 if L<1e-6:continue
                 t=tan[self.tree.query((a+b)/2)[1]]
-                if abs(np.dot(d/L,t))>.75:
+                if abs(np.dot(((d) / (L)),t))>.75:
                     if not cur:cur=[a]
                     cur.append(b)
                 elif cur:keep.append(np.array(cur));cur=[]
@@ -516,7 +547,7 @@ class Scene:
             d=self.directory/'editor';d.mkdir(exist_ok=True)
             for name,g in [('roads',unary_union(roads) if roads else Polygon()),('obstacles',unary_union(obstacles) if obstacles else Polygon()),('allowed',self.allowed)]:
                 tmp=d/(name+'.wkb.tmp');tmp.write_bytes(shapely.to_wkb(g));tmp.replace(d/(name+'.wkb'))
-        except OSError:pass
+        except OSError as _e:_falha(__name__,_e)
     def editor_data(self):
         st=self.stationing;step=max(1,len(self.axis)//6000)
         def pts(p,stride=1):return np.round(np.asarray(p)[::stride],3).tolist()
@@ -538,10 +569,12 @@ class Scene:
         from .dependencies import revisions
         return {'engine_revision':revisions(self.directory,self.s)['editor'],'crs':self.s.crs,'axis':pts(self.axis,step) if step==1 else pts(np.vstack([self.axis[::step],self.axis[-1:]])),'axis_length_m':self.length,
                 'stationing':{**st.info(),'mode':self.s.chainage.mode},
+                'section_lane_coverage':getattr(self.network,'lane_coverage',[]),
+                'reverse_axis':bool(self.s.reverse_axis),   # 2.41: com qual “inverter eixo” o eixo deste editor foi calculado (a tela compara com a caixa marcada)
                 'alignment':self.report.get('alignment'),'segments':segments,'source_registration':self.network.report.get('source_registration',{}),
                 'pois':[{'id':p.get('id'),'title':p.get('title'),'kind':p.get('kind'),'x':p['x'],'y':p['y'],'km_m':p.get('km_m'),'km_auto_m':p.get('km_auto_m'),'km_mode':p.get('km_mode','auto'),'anchor':p.get('anchor'),'source':p.get('source','')} for p in self.pois],
                 'oae':[{'id':o['id'],'name':o['name'],'km_start_m':o['km_start_m'],'km_end_m':o['km_end_m'],'km_auto':o['km_auto'],'line':pts(o['line']),'level_m':o['level_m'],'width_m':o['width_m'],'direction':o.get('direction','both'),'polygon':bool(o.get('polygon'))} for o in self.oae],
-                'oae_traffic':getattr(self.network,'oae_report',[]),'connection_report':getattr(self.network,'rule_report',[]),'itineraries':len(self.network.paths),'section_continuity':self.network.report.get('section_continuity',[]),'route_lane_cache':self.network.route_lane_cache.report(),'warnings':self.report['warnings'][-20:],
+                'oae_traffic':getattr(self.network,'oae_report',[]),'connection_report':getattr(self.network,'rule_report',[]),'passing_zones':passing_zone_rows(self.network),'ghost_zones':[{'ring':np.round(np.asarray(g.exterior.coords),2).tolist(),**(getattr(self.network,'ghost_info',[])[k] if k<len(getattr(self.network,'ghost_info',[])) else {})} for k,g in enumerate(getattr(self.network,'ghost_zones',[])) if g.geom_type=='Polygon'][:300],'itineraries':len(self.network.paths),'section_continuity':self.network.report.get('section_continuity',[]),'route_lane_cache':self.network.route_lane_cache.report(),'warnings':self.report['warnings'][-20:],
                 # 1.11: sinalização e setas como no vídeo (vetores nítidos no editor).
                 'markings':[[round(float(a[0]),2),round(float(a[1]),2),round(float(b[0]),2),round(float(b[1]),2),1 if tuple(c)==(244,200,70) else 0] for a,b,c in self.network.markings],
                 'arrows':[[round(float(p[0]),2),round(float(p[1]),2),round(float(t[0]),4),round(float(t[1]),4)]+([round(float(c[0]),2),round(float(c[1]),2)] if c is not None else []) for (p,t),c in zip(self.network.arrows,list(getattr(self.network,'arrow_anchors',[]) or [])+[None]*len(self.network.arrows))],
@@ -563,7 +596,7 @@ class Scene:
                 w=np.ones(len(self.ch))
                 for z in zones:
                     a=float(self.ch[self.tree.query([z.start.x,z.start.y])[1]]);b=float(self.ch[self.tree.query([z.end.x,z.end.y])[1]]);lo,hi=min(a,b),max(a,b)
-                    w[(self.ch>=lo)&(self.ch<=hi)]=100./z.speed_pct
+                    w[(self.ch>=lo)&(self.ch<=hi)]=((100.) / (z.speed_pct))
                 W=np.r_[0,np.cumsum((w[1:]+w[:-1])/2*np.diff(self.ch))];self._adv=(W/max(W[-1],1e-9),self.ch/max(self.length,1e-9))
         if self._adv is None:return u
         return float(np.interp(u,self._adv[0],self._adv[1]))
@@ -607,10 +640,15 @@ class Scene:
     def sombra_veiculo(self):
         """1.36: sombra pela hora do sol (desligado: sol fixo a noroeste, como antes)."""
         return ambiente.vetor_sombra(self.s.sun_hour) if getattr(self.s,'sun_shadows',False) else ambiente.SOMBRA_VEICULO
+    def sol_ambiente(self):
+        """2.28: sol e clima para texturas de superfície (canteiro). Sol desligado = noroeste fixo, como nas sombras antigas."""
+        on=bool(getattr(self.s,'sun_shadows',False))
+        az,el=ambiente.sol(getattr(self.s,'sun_hour',15)) if on else (315.,52.)
+        return {'az':az,'el':el,'weather':getattr(self.s,'weather','limpo'),'k':float(getattr(self.s,'weather_intensity',.6)),'sun':on}
     @property
     def sombra_oae(self):return ambiente.vetor_sombra(self.s.sun_hour)*1.45 if getattr(self.s,'sun_shadows',False) else ambiente.SOMBRA_OAE
     def screen(self,p,cam,width):
-        q=(np.asarray(p)-cam)@self.R/(width/self.W);return np.column_stack([q[:,0]+self.W/2,self.H/2-q[:,1]])
+        q=(((np.asarray(p)-cam)@self.R) / (width/self.W));return np.column_stack([q[:,0]+self.W/2,self.H/2-q[:,1]])
     def draw_base(self,cam,width,progress):
         m=width/self.W;cp=self.worldpx(cam[None])[0];dx=np.array([self.right[0],-self.right[1]])*m/self.px;dy=np.array([-self.up[0],self.up[1]])*m/self.px;org=cp-dx*self.W/2-dy*self.H/2;mat=np.column_stack([dx,dy,org]).astype(np.float32)
         # Supersample each camera crop and reduce with Lanczos.
@@ -673,9 +711,9 @@ class Scene:
             # 1.21: no vídeo técnico as hachuras ficam limpas (sem texturas por cima), salvo pedido em contrário.
             if not(getattr(self.s,'style_profile','padrao')=='tecnico' and not getattr(self.s,'technical_textures',False)):
                 if not hasattr(self,'tex_lut'):self.tex_lut=visual.texture_lut(getattr(self.s,'texture_params',None),[(e['tex_code'],e['tex_base'],e['tex_p']) for e in {e['tex_code']:e for e in self.items if e.get('tex_code')}.values()]+[(c,b,p) for c,b,p,_ in self.texture_areas()])
-                visual.shade_surface(view,surf,Av,m,alpha>.5,self.s.median_grass,lut=self.tex_lut,arte=getattr(self.s,'texture_style','')=='artistico')
+                visual.shade_surface(view,surf,Av,m,alpha>.5,self.s.median_grass,lut=self.tex_lut,arte=getattr(self.s,'texture_style','')=='artistico',sol=self.sol_ambiente())
                 ts=getattr(self.s,'texture_style','anterior')
-                if ts in ('realistic','artistico'):visual.shade_realistic(view,surf,Av,m,alpha>.5,lut=self.tex_lut)
+                if ts in ('realistic','artistico'):visual.shade_realistic(view,surf,Av,m,alpha>.5,lut=self.tex_lut,earth_grass=getattr(self.s,'earthwork_look','')=='textura')
                 if ts=='artistico':visual.shade_artistic(view,surf,Av,m,alpha>.5,lut=self.tex_lut)   # 1.34
             if self.water_mask is not None:
                 wm=cv2.warpAffine(self.water_mask,mat,(self.W,self.H),flags=cv2.INTER_LINEAR|cv2.WARP_INVERSE_MAP)[y0:y1]
@@ -688,7 +726,7 @@ class Scene:
         if self.enhanced:self.draw_enhanced_structures(im,cam,width,progress)
         else:self.draw_oae_marks(im,cam,width,progress)
         sp=getattr(self.s,'signage_paint',None);wear=sp is not None and (sp.wear>0 or sp.opacity<1) and width<3000
-        pre=im.copy() if wear else None
+        pre=im.copy() if (wear or self._tinta_on()) else None
         # Draw vector lane paint to preserve detail at close range.
         if width<3000 and len(self.markings):
             
@@ -699,7 +737,9 @@ class Scene:
                 if not hasattr(self,'marking_chains'):self.marking_chains=self.ch[self.tree.query(self.marking_centers)[1]]
                 for seg,ch,color in zip(coords,self.marking_chains[near],self.marking_colors[near]):
                     if ch<=progress*self.length:cv2.line(im,tuple(seg[0].astype(int)),tuple(seg[1].astype(int)),tuple(map(int,color)),max(1,round(.13/m)),cv2.LINE_AA)
+        if pre is not None and self._tinta_on() and width<3000:im=self.tinta_real(im,pre,mat,m)
         if wear:im=self.paint_wear(im,pre,mat,m,sp);pre=None
+        pre=None
         if width>3000:
             for pts in self.domain:
                 q=self.screen(pts,cam,width).astype(np.int32);cv2.polylines(im,[q],False,(30,27,20),max(2,round(4*self.scale)),cv2.LINE_AA);cv2.polylines(im,[q],False,(255,214,107),max(1,round(2*self.scale)),cv2.LINE_AA)
@@ -712,8 +752,9 @@ class Scene:
                 cv2.polylines(im,coords,False,(30,27,20),max(3,round(6*self.scale)),cv2.LINE_AA);cv2.polylines(im,coords,False,(255,214,107),max(1,round(3*self.scale)),cv2.LINE_AA)
         if width<3000 and getattr(self,'paint_items',None):
             from .signage import draw_paint
-            pre=im.copy() if wear else None
+            pre=im.copy() if (wear or self._tinta_on()) else None
             draw_paint(im,self.paint_items,self.paint_centers,self.paint_chains,lambda p:self.screen(p,cam,width),cam,width,progress*self.length,m)
+            if pre is not None and self._tinta_on():im=self.tinta_real(im,pre,mat,m)
             if wear:im=self.paint_wear(im,pre,mat,m,sp)
         if width<1700 and not self.network.full:
             for pt,tan in self.network.arrows:
@@ -725,6 +766,11 @@ class Scene:
                 cv2.polylines(im,[self.screen(pts,cam,width).astype(np.int32)],False,(242,239,220),max(1,round(.16/m)),cv2.LINE_AA)
         if before_vectors is not None:im=cv2.addWeighted(im,opacity,before_vectors,1-opacity,0)
         return im
+    def tinta_real(self,im,pre,mat,m):
+        """2.51: tinta de sinalização horizontal realista (desgaste em manchas, microbrilho, espessura)."""
+        A=np.array([[self.px,0,self.box[0]],[0,-self.px,self.box[3]]])@np.vstack([mat.astype(np.float64),[0,0,1]])
+        from . import relevo;return relevo.tinta(im,pre,A,m)
+    def _tinta_on(self):return getattr(self.s,'texture_relief',True) and getattr(self.s,'texture_style','artistico')!='anterior' and getattr(self.s,'style_profile','padrao')!='tecnico'
     def paint_wear(self,im,pre,mat,m,sp):
         """1.29: tinta gasta/transparente: mistura a pintura com o que havia antes, com manchas fixas no terreno."""
         diff=np.any(im!=pre,axis=2)
@@ -757,7 +803,7 @@ class Scene:
             if o['chain_max']>progress*self.length+20 or b[2]<lo[0] or b[0]>hi[0] or b[3]<lo[1] or b[1]>hi[1]:continue
             visual.cast_shadow(im,o['ring'],o['level'],scr,dir=self.sombra_oae)
             if o.get('mark'):
-                q=scr(o['ring']).astype(np.int32);cv2.fillPoly(im,[q],(196,198,192),cv2.LINE_AA);cv2.polylines(im,[q],True,(92,96,94),max(1,round(.35/m)),cv2.LINE_AA)
+                q=scr(o['ring']).astype(np.int32);cv2.fillPoly(im,[q],(138,139,136),cv2.LINE_AA);cv2.polylines(im,[q],True,(92,96,94),max(1,round(.35/m)),cv2.LINE_AA)
                 x0,y0=q.min(0);x1,y1=q.max(0);H,W=im.shape[:2];x0=max(0,x0);y0=max(0,y0);x1=min(W,x1+1);y1=min(H,y1+1)
                 if x1>x0 and y1>y0:
                     sel=np.zeros((y1-y0,x1-x0),np.uint8);cv2.fillPoly(sel,[q-[x0,y0]],1)
@@ -924,12 +970,12 @@ class Scene:
             image=Image.new('RGB',(self.W,header+1),'#081623');dr=ImageDraw.Draw(image)
             tx,ft=fit(dr,f'{self.s.name} | km {km(self.s.km_start_m)} → km {km(self.s.km_end_m)}',38*sc,self.W*.56,True);dr.text((58*sc,25*sc),tx,font=ft,fill='white')
             tx,ft=fit(dr,f'{self.s.origin} → {self.s.destination} • Faixa de domínio em amarelo',22*sc,self.W*.56);dr.text((58*sc,86*sc),tx,font=ft,fill='#c1d5df')
-            labels={'existing_pavement':'Existente'+(' (rígido)' if 'existing_pavement' in (getattr(self,'_rigid_roles',None) or ()) else ''),'pavement':'Projetado'+(' (rígido)' if 'pavement' in (getattr(self,'_rigid_roles',None) or ()) else ''),'median':'Canteiro','barrier':'Barreira','oae':'OAE','cut':'Corte','fill':'Aterro','domain':'Domínio','water':'Água'}
+            labels={'existing_pavement':'Existente'+(' (rígido)' if 'existing_pavement' in (getattr(self,'_rigid_roles',None) or ()) else ''),'pavement':'Projetado'+(' (rígido)' if 'pavement' in (getattr(self,'_rigid_roles',None) or ()) else ''),'median':'Canteiro','barrier':'Barreira','oae':'OAE','cut':'Corte','fill':'Aterro','domain':'Domínio','water':'Água','terrain':'Terreno'}
             lx=58*sc
             for role in legend:
                 color='#2a80b9' if role=='water' else self.color(role)
                 dr.rectangle((lx,118*sc,lx+14*sc,128*sc),fill=color)
-                text=labels[role];ft=font(13*sc);dr.text((lx+20*sc,114*sc),text,font=ft,fill='#d6e0e3')
+                text=labels.get(role,str(role).replace('_',' ').capitalize());ft=font(13*sc);dr.text((lx+20*sc,114*sc),text,font=ft,fill='#d6e0e3')
                 lx+=dr.textlength(text,font=ft)+38*sc
             tx,ft=fit(dr,'Imagem: '+self.attribution,10*sc,self.W*.56);dr.text((58*sc,140*sc),tx,font=ft,fill='#9cb3bf')
             for yy,text,size,color in [(31,title,27,'#86dce9'),(85,sub,22,'#c3d6df')]:
@@ -1044,7 +1090,7 @@ class Scene:
         draw_indicators(self,im,t,cam,width)
         transport_render.draw_dynamic(self,im,t,cam,width)
         if getattr(self,'_matte',None) is None and getattr(self.s,'pedestrians',False):vida.draw_pedestrians(self,im,t,cam,width,progress,hv,fv)
-        if getattr(self.s,'weather','limpo')!='limpo' and getattr(self,'_matte',None) is None:   # 1.36: clima
+        if (getattr(self.s,'weather','limpo')!='limpo' or getattr(self.s,'photo_atmosphere',False)) and getattr(self,'_matte',None) is None:   # 1.36: clima
             v=getattr(self,'_via',None) if not (key and key in self.static) else getattr(self,'_via_static',None);via=None
             if v is not None:via=np.zeros((self.H,self.W),bool);y0v,sv,av=v;via[y0v:y0v+sv.shape[0]]=(sv>0)&(sv!=6)&(sv!=7)&av
             ambiente.clima(self,im,t,int(157*self.scale),int(154*self.scale),via)
@@ -1072,9 +1118,9 @@ class Scene:
                 if not(0<q[0]<self.W and hdr<q[1]<ftr):continue
                 rgb=visual._rgb(g['color']) if g.get('color') else (255,214,107)
                 sub=('Pórtico' if g['kind']=='portico' else 'Semipórtico' if g['kind']=='semiportico' else 'Bandeira')+(f' • km {fmt_km(g["km"])}' if g.get('km') is not None else '')
-                card=visual.callout_card(('g',g.get('id'),g.get('image')),g['name'],sub,g.get('description',''),rgb,font,self.scale,'cartao',g.get('text_scale',1),g['pic'])
+                card=visual.callout_card(('g',g.get('id'),g.get('image')),g['name'],sub,g.get('description',''),rgb,font,self.scale,'referencia' if self.s.callout_style=='referencia' else 'cartao',g.get('text_scale',1),g['pic'])
                 lab=self.screen(np.array([[g['label']['x'],g['label']['y']]]),cam,width)[0] if g.get('label') else None
-                visual.draw_callout(im,q,card,rgb,self.scale,hdr,ftr,placed,lab,'reta',f,marker_kind='diamond')
+                visual.draw_callout(im,q,card,rgb,self.scale,hdr,ftr,placed,lab,'referencia' if self.s.callout_style=='referencia' else 'reta',f,marker_kind='diamond')
         # Symbols are tied to structures; one fixed information slot stays in the header.
         if self.highlights and width<3000 and newc:
             hdr=int(157*self.scale);ftr=self.H-int(154*self.scale)
@@ -1087,8 +1133,8 @@ class Scene:
                 lab=self.screen(np.array([[h['label']['x'],h['label']['y']]]),cam,width)[0] if h.get('label') else None
                 color,letter,cat=visual.HIGHLIGHT_STYLE.get(h['category'],visual.HIGHLIGHT_STYLE['outro']);rgb=visual._rgb(h.get('color') or color)
                 km_text=fmt_km(h['km']) if h.get('show_km') and h.get('km') is not None else ''
-                card=visual.callout_card(('h',h.get('id'),h.get('image')),h['name'],cat+(f' • km {km_text}' if km_text else ''),h.get('description',''),rgb,font,self.scale,h.get('style','cartao'),h.get('text_scale',1),h.get('pic'))
-                visual.draw_callout(im,q,card,rgb,self.scale,hdr,ftr,placed,lab,h.get('leader','reta'),f,letter,font)
+                card=visual.callout_card(('h',h.get('id'),h.get('image')),h['name'],cat+(f' • km {km_text}' if km_text else ''),h.get('description',''),rgb,font,self.scale,'referencia' if self.s.callout_style=='referencia' else h.get('style','cartao'),h.get('text_scale',1),h.get('pic'))
+                visual.draw_callout(im,q,card,rgb,self.scale,hdr,ftr,placed,lab,'referencia' if self.s.callout_style=='referencia' else h.get('leader','reta'),f,letter,font)
         elif self.highlights and width<3000:
             hdr=int(157*self.scale);ftr=self.H-int(154*self.scale)
             for h in sorted(self.highlights,key=lambda h:-np.linalg.norm(h['xy']-cam)):
@@ -1113,7 +1159,7 @@ class Scene:
             if p['kind'] in ('passarela','onibus') and width<3000:
                 idx=self.tree.query([p['x'],p['y']])[1]
                 tan=self.dense[min(len(self.dense)-1,idx+2)]-self.dense[max(0,idx-2)]
-                anchor=draw_structure(im,p,tan,lambda points:self.screen(points,cam,width),self.W/width)
+                anchor=draw_structure(im,p,tan,lambda points:self.screen(points,cam,width),((self.W) / (width)),realista=self._tinta_on())
                 q=self.screen(anchor[None],cam,width)[0]
             x,y=np.rint(q).astype(int);rad=max(5,round((8 if width>3000 else 22)*self.scale));cv2.circle(im,(x,y),rad,(10,28,43),-1,cv2.LINE_AA);cv2.circle(im,(x,y),rad,(145,219,232),max(1,round(3*self.scale)),cv2.LINE_AA)
             if width<3000:
@@ -1148,7 +1194,7 @@ class Scene:
             qs=self.screen(points,cam,width)
             if qs[:,0].max()>0 and qs[:,0].min()<self.W and qs[:,1].max()>header and qs[:,1].min()<self.H-footer:
                 visible.add('water');break
-        legend=tuple(role for role in ['existing_pavement','pavement','median','barrier','oae','cut','fill','domain','water'] if role in visible)
+        legend=tuple(role for role in ['existing_pavement','pavement','median','terrain','barrier','oae','cut','fill','domain','water'] if role in visible)
         self.chrome(im,title,sub,legend)
         if getattr(self.s,'progress_indicator',False):self.draw_progress(im,progress)
         if sched:obras_video.date_box(self,im,sched[0],sched[1],header,font)
@@ -1158,8 +1204,13 @@ class Scene:
         if poi is not None and poi.get('id') in anchors:
             x,y=anchors[poi['id']];x0=int(1530*sc)
             if 0<x<self.W and header<y<self.H-footer:
-                pts=np.array([[x0,header],[x0,header+int(18*sc)],[x,y]],np.int32)
-                cv2.polylines(im,[pts],False,(10,28,43),max(2,round(5*sc)),cv2.LINE_AA);cv2.polylines(im,[pts],False,(134,220,233),max(1,round(2*sc)),cv2.LINE_AA)
+                if getattr(self.s,'callout_style','referencia')=='referencia':
+                    pts=np.array([[x0,header],[x,y]],np.int32)
+                    cv2.polylines(im,[pts],False,(10,28,43),max(3,round(4*sc)),cv2.LINE_AA);cv2.polylines(im,[pts],False,visual.REF_CREAM,max(2,round(2.2*sc)),cv2.LINE_AA)
+                    visual._ref_arrow(im,pts[0],pts[1],sc);rr=max(4,round(6*sc));cv2.circle(im,(int(x),int(y)),rr+max(1,round(1.5*sc)),(255,240,210),-1,cv2.LINE_AA);cv2.circle(im,(int(x),int(y)),rr,visual.REF_RED,-1,cv2.LINE_AA)
+                else:
+                    pts=np.array([[x0,header],[x0,header+int(18*sc)],[x,y]],np.int32)
+                    cv2.polylines(im,[pts],False,(10,28,43),max(2,round(5*sc)),cv2.LINE_AA);cv2.polylines(im,[pts],False,(134,220,233),max(1,round(2*sc)),cv2.LINE_AA)
         from .traffic_presentation import operation_notice
         self.report['traffic_operation_notice']=operation_notice(self.s)
         self.report['traffic_visibility']=self._vehicle_visibility
@@ -1236,7 +1287,7 @@ def render(directory,s,status=lambda *a:None,cancel=lambda:False):
                 if os.environ.get('RODOVIA_FRAME_LOG'):
                     with open(os.environ['RODOVIA_FRAME_LOG'],'a') as fl:fl.write(f'{k} {hashlib.sha256(im.tobytes()).hexdigest()[:12]}\n')
                 if k%max(1,s.fps)==0:
-                    elapsed=max(.001,time.monotonic()-run_start);speed=(k+1)/elapsed;remaining=(frames-k-1)/speed
+                    elapsed=max(.001,time.monotonic()-run_start);speed=(k+1)/elapsed;remaining=((frames-k-1) / (speed))
                     status(.25+.74*(k+1)/frames,f"{profile['label']}{tag}{' · cabine' if cabin else ''} · {k+1}/{frames} quadros · {speed:.1f} q/s · falta ~{tempo(remaining)}")
             writer.finish()
             if enc.wait(timeout=120)!=0:raise RuntimeError('FFmpeg falhou. Consulte ffmpeg.log do projeto.')

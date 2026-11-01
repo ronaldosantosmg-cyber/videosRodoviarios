@@ -26,11 +26,12 @@ def test_section_rejects_invalid_width(bad):
 
 
 def test_sections_cannot_overlap_or_run_past_axis_or_drive_on_nonroad_bands():
-    with pytest.raises(ValueError):route(cross_sections=[section(),section()])
+    assert len(route(cross_sections=[section(),section()]).cross_sections)==1   # 2.31: a seção mais recente substitui/recorta a anterior
     s=section();s['end_m']=601
     with pytest.raises(ValueError):route(cross_sections=[s])
+    # 2.19: eixo no bordo é válido (todas as faixas de um lado); acostamento nunca vira faixa de tráfego.
     s=section();s['left'][0]['kind']='acostamento'
-    with pytest.raises(ValueError):route(cross_sections=[s])
+    assert len(build_lanes(route(cross_sections=[s])))==1
 
 
 def test_shared_work_lane_has_opposite_directions_without_changing_source():

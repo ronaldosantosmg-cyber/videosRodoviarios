@@ -250,6 +250,8 @@ namespace RodoviaStudioLauncher
         public bool Start()
         {
             try { icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { icon = SystemIcons.Application; }
+            // 2.59: o logo do aplicativo vem do rodovia.ico da pasta do programa (o .exe pode ter sido compilado sem ícone).
+            try { string ico = Path.Combine(Sys, "rodovia.ico"); if (File.Exists(ico)) icon = new Icon(ico); } catch { }
             splash = new Splash(icon, InstalledAppVersion());
             splash.Show();
             try

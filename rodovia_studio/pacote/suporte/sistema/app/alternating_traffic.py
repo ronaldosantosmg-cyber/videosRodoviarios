@@ -3,10 +3,13 @@ import math
 import numpy as np
 from shapely.geometry import LineString,Point
 from shapely.ops import substring
+from .signal_timing import alternating_switch,zone_clearance_s
+
+APPROACH_M=120.   # veículos até esta distância antes do portão contam como demanda
 
 class AlternatingTraffic:
     def __init__(self,settings,network):
-        self.zones=[];self.gates=[[] for _ in network.paths];self.history=[];self.stops=0
+        self.zones=[];self.adaptive_switches=0;self.gates=[[] for _ in network.paths];self.history=[];self.stops=0
         for config in getattr(settings,'alternating_zones',[]):
             if not config.enabled:continue
             route=next(r for r in settings.route_alignments if r.id==config.route_id)
@@ -29,10 +32,23 @@ class AlternatingTraffic:
                     if abs(sb-sa)<max(5,(b-a)*.5):continue
                     spans.append(dict(zone=zone,a=lo,b=hi,direction='f' if sb>sa else 'r'))
                 self.gates[i].extend(spans)
+    def demand(self,zone,vehicles):
+        out={'f':0,'r':0}
+        for vehicle in vehicles:
+            for g in self.gates[vehicle['p']]:
+                if g['zone'] is not zone:continue
+                front=vehicle['s']+vehicle['L']/2
+                if front<=g['a']+.01 and g['a']-front<=APPROACH_M:out[g['direction']]+=1
+        return out
     def update(self,vehicles,t):
         for zone in self.zones:
+            cfg=zone['config'];adaptive=getattr(cfg,'adaptive',False)
             if zone['since'] is None:zone['since']=t
-            if not zone['clearing'] and t-zone['since']>=zone['config'].release_s-1e-8:zone['clearing']=True
+            if not zone['clearing']:
+                if adaptive:
+                    d=self.demand(zone,vehicles);other='r' if zone['phase']=='f' else 'f'
+                    if alternating_switch(t-zone['since'],getattr(cfg,'min_release_s',5.),cfg.release_s,d[zone['phase']],d[other]):zone['clearing']=True;zone['empty_since']=None
+                elif t-zone['since']>=cfg.release_s-1e-8:zone['clearing']=True
             occupied=False
             if zone['clearing']:
                 for vehicle in vehicles:
@@ -41,8 +57,12 @@ class AlternatingTraffic:
                     for path_i,s in paths:
                         if any(g['zone'] is zone and s+vehicle['L']/2>g['a'] and s-vehicle['L']/2<g['b'] for g in self.gates[path_i]):occupied=True;break
                     if occupied:break
-                if not occupied:
-                    zone['phase']='r' if zone['phase']=='f' else 'f';zone['clearing']=False;zone['since']=t
+                if occupied:zone['empty_since']=None
+                else:
+                    if zone.get('empty_since') is None:zone['empty_since']=t
+                    # Vermelho geral: espera a margem após o último veículo sair antes de liberar o sentido oposto.
+                    if not adaptive or t-zone['empty_since']>=getattr(cfg,'margin_s',0.)-1e-8:
+                        zone['phase']='r' if zone['phase']=='f' else 'f';zone['clearing']=False;zone['since']=t;zone['empty_since']=None;self.adaptive_switches+=1
         states=[(z['phase'],z['clearing']) for z in self.zones]
         if not self.history or self.history[-1][1]!=states:self.history.append((float(t),states))
     def stop_gap(self,v):
@@ -54,4 +74,4 @@ class AlternatingTraffic:
             if z['clearing'] or z['phase']!=gate['direction']:gap=min(gap,gate['a']-front)
         return gap
     def report(self):
-        return {'zones':len(self.zones),'release_s':[z['config'].release_s for z in self.zones],'clearance':'até o último veículo desocupar; sem inversão forçada','phase_changes':len(self.history)}
+        return {'zones':len(self.zones),'release_s':[z['config'].release_s for z in self.zones],'clearance':'até o último veículo desocupar; sem inversão forçada','phase_changes':len(self.history),'adaptive':[bool(getattr(z['config'],'adaptive',False)) for z in self.zones],'switches':self.adaptive_switches}

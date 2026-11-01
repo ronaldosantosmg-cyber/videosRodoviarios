@@ -8,6 +8,27 @@ REASONS={'canteiro_ou_limite_do_corredor':'interferência com canteiro ou limite
          'geometria_invalida':'coordenadas ou comprimento inválidos','rota_excessiva':'extensão excessiva'}
 
 
+CUT_CATEGORIES={
+ 'impedimento_real':('Impedimento real','Há canteiro, barreira ou obstáculo físico neste ponto; o fluxo para aqui de propósito.','Se o impedimento for falso (contorno decorativo), corrija a classe da layer; se for real, crie um acesso/retorno ou desvio cadastrado.'),
+ 'sem_pavimento':('Vão sem pavimento','Não há pavimento desenhado em volta deste ponto (vão, túnel, obra ou hachura ausente) e o vão é maior que o limite de ocultação.','Desenhe ou classifique a hachura de pavimento no vão, ou aumente o limite “Ocultar fluxo sem pavimento”.'),
+ 'fora_da_pista':('Veículo não cabe na pista','Há pavimento, mas o corpo do veículo sai da área permitida (pista estreita, fresta ou eixo muito próximo da borda).','Reposicione a faixa/eixo para dentro da pista ou revise a hachura; não libere a rota só para tirar o aviso.')}
+def classify_cut(network,point,reasons=()):
+    """2.12: motivo geométrico do corte, para marcar no mapa e explicar ao usuário."""
+    from shapely.geometry import Point
+    try:
+        pt=Point(float(point[0]),float(point[1]))
+        med=getattr(network,'medians',None)
+        if med is not None and not med.is_empty and pt.distance(med)<1.0:key='impedimento_real'
+        else:
+            pav=getattr(network,'operational_pavement',None)
+            if 'corpo_fora_da_pista' in reasons and pav is not None and not pav.is_empty and pt.distance(pav)>3.0:key='sem_pavimento'
+            elif 'corpo_fora_da_pista' in reasons:key='fora_da_pista'
+            else:return {}
+    except (TypeError,ValueError,IndexError):return {}
+    label,explain,fix=CUT_CATEGORIES[key]
+    return {'category':key,'label':label,'explain':explain,'fix':fix}
+
+
 def flow_diagnostics(network):
     minimum=float(getattr(network,'min_route',50))
     used={int(e) for p in network.paths for e in p.get('edges',[])}
@@ -80,25 +101,13 @@ def flow_diagnostics(network):
             automatic='Excluir os movimentos inválidos da simulação; preservar o traçado original para revisão.'
             manual='Editar os pontos, o sentido e as ligações; recalcular e conferir o diagnóstico antes de circular.'
         if 'corpo_fora_da_pista' in reasons:
-            manual='Localize o ponto e confira a seção e a superfície operacional. Cadastre uma seção no eixo ou ajuste o afastamento da faixa. Se não houver pavimento, confirme por eixo a opção de apresentação fora dele. Contornos decorativos e bordos não são barreiras; canteiros, barreiras físicas e interdições continuam restringindo o movimento.'
+            manual='Confira a área de pavimento no ponto indicado: corrija a classificação/hachura ou reposicione a faixa dentro da pista. Linhas de bordo não são barreiras; canteiros, obstáculos e cortes continuam bloqueando.'
         elif status=='adjustment' and effective_length>=minimum:
             manual='Confira as pontas, o sentido e a camada Eixo. Para escolha explícita, use Rota de veículos → Selecionar uma linha / Seleção contínua, confirme o sentido e recalcule.'
         if getattr(network,'classic',False) and circulating:
             status='adjustment';message='ENSAIO CLÁSSICO: veículos ilustrativos; somente canteiros e integridade numérica conferidos.'
             automatic='Manter o ensaio explicitamente identificado; não considerar circulação validada.'
             manual='Desative o modo clássico para validar colisões, semáforos e demais restrições.'
-        reconstruction=None
-        if raw.get('reconstruction_requested'):
-            from .flow_reconstruction import continuity_evidence
-            reconstruction=continuity_evidence(network,raw.get('origin_key'))
-            if reconstruction['complete']:
-                message+=' Reconstrução integral conferida: itinerário completo em cada sentido solicitado.'
-            else:
-                status='adjustment' if circulating else 'problem'
-                message='Reconstrução integral não aprovada: '+reconstruction['message']+' Não foi declarada resolvida por recuperar apenas partes.'
-                for report in reconstruction['reports']:
-                    point=report.get('reconstruction',{}).get('critical_point')
-                    if point:critical.append({'point':point,'reasons':[report['reconstruction']['reason']]})
         fleet=getattr(network,'fleet_compatibility',{})
         path_rows=[r for r in fleet.get('paths',[]) if raw['base'] in r['bases']]
         details=[v for row in path_rows for v in row['vehicles'] if v.get('checked',True)]
@@ -111,8 +120,8 @@ def flow_diagnostics(network):
         assistant=guidance(status,reasons,disabled=bool(raw.get('disabled')),length=effective_length,minimum=minimum,points=critical)
         out.append({'technical_status':status,'technical_message':message,'technical_assistant':assistant,
                     'technical_fleet':{'checked':bool(path_rows),'compatible':compatible,'blocked':blocked},
-                    'technical_context':{'source':raw.get('source'),'route_id':raw.get('route'),'origin_key':raw.get('origin_key'),'direction':'crescente' if raw.get('forward') else 'decrescente','level':raw.get('level',0),'origin_length_m':effective_length,'base_registered':bool(raw.get('native_axis') or raw.get('route') or raw.get('manual'))},
+                    'technical_context':{'source':raw.get('source'),'route_id':raw.get('route'),'origin_key':raw.get('origin_key'),'direction':'crescente' if raw.get('forward') else 'decrescente','level':raw.get('level',0),'base_registered':bool(raw.get('native_axis') or raw.get('route') or raw.get('manual'))},
                     'technical_exclusion':('manual' if raw.get('disabled') else 'length_limit' if finite and length>0 and effective_length<minimum else None),
                     'technical_circulation':{'enabled':bool(circulating),'used_edges':len(circulating),'active_edges':len(active),'blocked_edges':sum(bool(e.get('disabled')) for _,e in edges)},
-                    'technical_reconstruction':({k:v for k,v in reconstruction.items() if k!='reports'} if reconstruction else None),'technical_lateral_fits':raw.get('lateral_fits',[]),'technical_automatic':automatic,'technical_manual':manual,'technical_recovery':recovery_info,'technical_points':critical[:20],'technical_reasons':reasons})
+                    'technical_lateral_fits':raw.get('lateral_fits',[]),'technical_automatic':automatic,'technical_manual':manual,'technical_recovery':recovery_info,'technical_points':[{**c,**classify_cut(network,c.get('point'),c.get('reasons') or [])} for c in critical[:20]],'technical_reasons':reasons})
     return out

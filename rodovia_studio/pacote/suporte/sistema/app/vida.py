@@ -1,5 +1,6 @@
 """1.37: vegetação (árvores, ipês, eucaliptos, palmeiras, arbustos, cerca-viva) e pedestres (faixas de pedestre,
 passarelas e caminhos marcados). Vistos de cima, ancorados em metros, com sombra pelo sol do projeto."""
+from .seguro import sdiv as _sdiv
 import math
 import numpy as np,cv2
 from shapely.geometry import Polygon,Point as SPoint
@@ -47,7 +48,7 @@ def draw_vegetation(scene,im,cam,width,progress,header,footer):
     if not hasattr(scene,'_veg'):scene._veg=prepare(scene)
     V=scene._veg
     if V is None or width>4000:return
-    m=scene.W/width   # px por metro
+    m=(_sdiv(scene.W, width))   # px por metro
     vis=V['chain']<=progress*scene.length+25
     if not vis.any():return
     Q=scene.screen(V['xy'],cam,width);r=V['size']*m/2
@@ -78,9 +79,14 @@ def draw_vegetation(scene,im,cam,width,progress,header,footer):
         if rx<6:   # longe: copa simples (rápido)
             if rx>=2.5:cv2.circle(im,(int(q[0]),int(q[1])),max(1,int(rx*.7)),cor,-1,cv2.LINE_AA)
             continue
+        try:   # 2.50: copa com volume e luz (sprite em cache); qualquer falha cai nos tufos simples
+            from . import relevo
+            if getattr(scene.s,'texture_relief',True) and getattr(scene.s,'texture_style','artistico')!='anterior' and rx>=6:
+                relevo.blit_copa(im,q[0],q[1],relevo.copa_cache(rx,ry,cor,esc,bri,h,math.atan2(sol[1],sol[0])));continue
+        except Exception:pass
         n=6 if forma!='estreita' else 4
         for j in range(n):   # copa em tufos (folhagem), iluminada do lado do sol
-            a=h*6.28+j*2*math.pi/n;d=.42+.12*math.sin(h*40+j)
+            a=h*6.28+(_sdiv(j*2*math.pi, n));d=.42+.12*math.sin(h*40+j)
             c=q+np.array([math.cos(a)*rx*d,math.sin(a)*ry*d]);rj=max(1,int(rx*(.5+.1*math.cos(h*30+j))))
             lado=float(np.dot([math.cos(a),math.sin(a)],sol))
             tom=tuple(int(min(255,cc*(1+.10*lado))) for cc in cor)
@@ -102,7 +108,7 @@ def draw_pedestrians(scene,im,t,cam,width,progress,header,footer):
         control=scene._ped_control
     rows=control.state(t)
     if not rows:return
-    m=scene.W/width;rcab=max(1.2,.2*m);rcorpo=max(1.8,.3*m)
+    m=(_sdiv(scene.W, width));rcab=max(1.2,.2*m);rcorpo=max(1.8,.3*m)
     for row in rows:
         p=np.array(row['p']);u=np.array(row['heading']);identity=row['id'];h=(identity*977)%1000/1000;vel=1.3
         ch=scene.ch[scene.tree.query(p)[1]]

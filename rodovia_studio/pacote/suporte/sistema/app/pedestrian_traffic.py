@@ -1,4 +1,6 @@
 """Agentes locais determinísticos com espera, travessia e reservas de espaço."""
+from .geom_rapida import hausdorff as _hausdorff
+from .seguro import sdiv as _sdiv
 import math
 import numpy as np
 from shapely.geometry import LineString,Point
@@ -68,7 +70,7 @@ class PedestrianTraffic:
             elif timings(signal)[1]<d[-1]/1.6+1:self.warnings.append('Fase de pedestres curta para a extensão da faixa; confira a quantidade de faixas atravessadas e o desenho da travessia.')
         line=LineString(p)
         if not line.is_simple:self.rejected+=1;return
-        if any(abs(r['height']-height)<2.5 and line.hausdorff_distance(r['line'])<1.8 for r in self.routes):return
+        if any(abs(r['height']-height)<2.5 and _hausdorff(line,r['line'])<1.8 for r in self.routes):return
         if kind=='calcada' and (line.buffer(.9).intersects(self.net.allowed) or any(line.buffer(.9).intersects(r['corridor']) for r in self.transport.rails)):
             self.warnings.append('Caminho informal intercepta pista/ferrovia: use faixa ou passarela; pedestres não gerados.');self.rejected+=1;return
         if kind=='faixa' and any(abs(float(rail['config'].level)-height)<4.8 and any(Point(end).buffer(.6).intersects(rail['corridor']) for end in (p[0],p[-1])) for rail in self.transport.rails):
@@ -100,16 +102,16 @@ class PedestrianTraffic:
             for geom in getattr(overlap,'geoms',[overlap]):
                 coords=list(getattr(geom,'coords',[]))
                 for q in coords:
-                    if self.transport.rail_closed(rail,rail['line'].project(Point(q)),t,warning_s=max(20.,horizon+3,50/(rail['config'].speed_kmh/3.6))):return False
+                    if self.transport.rail_closed(rail,rail['line'].project(Point(q)),t,warning_s=max(20.,horizon+3,(_sdiv(50, rail['config'].speed_kmh/3.6)))):return False
         return True
 
     def can_enter(self,r,vehicles,t,speed):
         if t<r['release_after'] or r['burst'] is not None and t-r['burst']>10:return False
-        if not self.railway_clear(r,t,r['d'][-1]/speed):return False
+        if not self.railway_clear(r,t,((r['d'][-1]) / (speed))):return False
         if r['signal'] is not None:
             from .transport import timings
-            if r['d'][-1]/speed+1>timings(r['signal'])[1]:return False
-            if not self.transport.signal_state(r['signal'],t)[2] or not self.transport.signal_state(r['signal'],t+r['d'][-1]/speed+1)[2]:return False
+            if ((r['d'][-1]) / (speed))+1>timings(r['signal'])[1]:return False
+            if not self.transport.signal_state(r['signal'],t)[2] or not self.transport.signal_state(r['signal'],t+((r['d'][-1]) / (speed))+1)[2]:return False
         for c in r['conflicts']:
             for v in vehicles:
                 paths={v['p']}

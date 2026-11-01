@@ -1,4 +1,5 @@
 """1.10: cidades próximas (OpenStreetMap via Overpass, com cache local) para nomes no vídeo."""
+from .falhas import registrar as _falha
 import json,math,urllib.request,urllib.parse,hashlib
 from pathlib import Path
 import numpy as np
@@ -37,7 +38,7 @@ def nearby(directory,crs,bounds,radius_km=25,limit=12,fetch=None):
     if raw is None:
         raw=fetch(q) if fetch else _download(q)
         try:cache.write_text(json.dumps({'key':key,'data':raw},ensure_ascii=False),encoding='utf-8')
-        except OSError:pass
+        except OSError as _e:_falha(__name__,_e)
     out=[];seen=set()
     cx=(x0+x1)/2;cy=(y0+y1)/2
     for el in (raw or {}).get('elements',[]):

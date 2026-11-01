@@ -25,8 +25,8 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
     from . import visual
     from functools import partial
     settings=Settings.model_validate(settings.model_dump())
-    d=Path(directory);key=revision(d,settings)
-    if (d/'config.json').exists() and Settings.model_validate_json((d/'config.json').read_text()).model_dump()!=settings.model_dump():raise ValueError('A configuração mudou. Gere a cena novamente.')
+    d=Path(directory);rev0=revision(d,settings)
+    if (d/'config.json').exists() and Settings.model_validate_json((d/'config.json').read_text(encoding='utf-8')).model_dump()!=settings.model_dump():raise ValueError('A configuração mudou. Gere a cena novamente.')
     def progress(p,text):
         if cancel():raise InterruptedError('Construção 3D cancelada.')
         status(p,text)
@@ -58,7 +58,7 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
             elevation_available=True;origin[2]=float(np.median(dem))
         except (ValueError,OSError,RuntimeError) as exc:
             warnings.append('MDT não aplicado: '+str(exc)[:220]);dem=np.zeros((n,n),np.float32)
-    cell=(box[2]-box[0])/n
+    cell=((box[2]-box[0]) / (n))
     def height(points):
         p=np.asarray(points,float);u=np.clip((p[:,0]-box[0])/cell,0,n-1);v=np.clip((box[3]-p[:,1])/cell,0,n-1)
         i=u.astype(int);j=v.astype(int);i1=np.minimum(i+1,n-1);j1=np.minimum(j+1,n-1);a=u-i;b=v-j
@@ -112,20 +112,24 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
     if settings.traffic_classic:
         from .classic_traffic import ClassicTraffic as TrafficSim
     sim=TrafficSim(scene.network,settings,partial(visual.vehicle_type,mix=settings.vehicle_mix),duration=duration,status=lambda p,m:progress(.55+.25*p,m)) if settings.traffic and scene.network.paths else None
-    tracks={};samples=0
+    tracks={};samples=0;ghost_hidden={};ghost_segment={}
     if sim:
         for t in np.r_[np.arange(0,duration,.2),duration]:
             progress(.82,'Preparando animação de veículos 3D')
             indicators=sim.indicators(float(t))
             for pos,heading,vid,identity,_ in sim.vehicles_ex(float(t)):
+                ghost=getattr(sim.net,'is_ghost',None)
+                if ghost is not None and ghost(pos):ghost_hidden[vid]=True;continue   # 1.42.43: vazio de pavimento — veículo oculto
+                if ghost_hidden.pop(vid,False):ghost_segment[vid]=ghost_segment.get(vid,0)+1
+                key=vid if not ghost_segment.get(vid) else vid+ghost_segment[vid]*5000000
                 vt=sim.info[vid][1]
-                if vid not in tracks:
+                if key not in tracks:
                     L,W,wb,_=PROFILES.get(vt,PROFILES['car']);color=visual.vehicle_color(identity,vt)
-                    tracks[vid]={'id':int(vid),'type':vt,'length':L,'width':W,'wheelbase':wb,'color':'#'+''.join(f'{int(v):02x}' for v in color),'samples':[],'indicators':[]}
+                    tracks[key]={'id':int(key),'type':visual.TYPES.get(vt,{}).get('view',vt),'length':L,'width':W,'wheelbase':wb,'color':'#'+''.join(f'{int(v):02x}' for v in color),'samples':[],'indicators':[]}
                 q=local(np.array([pos]),.07)[0];samples+=1
                 if samples>MAX_TRAFFIC_SAMPLES:raise ValueError('Tráfego excede o orçamento da prévia 3D. Reduza a densidade ou a duração.')
-                tracks[vid]['samples'].append([round(float(t),4),*q.tolist(),float(heading[0]),0.,-float(heading[1])])
-                tracks[vid]['indicators'].append([round(float(t),4),int(indicators.get(int(vid),0))])
+                tracks[key]['samples'].append([round(float(t),4),*q.tolist(),float(heading[0]),0.,-float(heading[1])])
+                tracks[key]['indicators'].append([round(float(t),4),int(indicators.get(int(vid),0))])
     from .rail_smoke import seed as smoke_seed
     from .transport import Transport,timings,AMBER,CLEARANCE,at
     from .transport_render import geometry as transport_geometry
@@ -182,8 +186,8 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
             seen.add(key_stop);rail_stops.append(stop);heads.append({'p':local(np.array([point+np.array([4.,4.])]),.25)[0].tolist(),'kind':'rail','rail_index':len(rail_stops)-1})
     clock=set(np.round(np.arange(0,duration,.1),6).tolist()+[duration])
     for signal in transport.signals:
-        greens,walk,cycle=timings(signal);offset=transport.offsets[signal.id];clearance=signal.clearance_s
-        boundaries=[0,greens[0],greens[0]+AMBER,greens[0]+AMBER+clearance,greens[0]+AMBER+clearance+greens[1],sum(greens)+2*AMBER+clearance,sum(greens)+2*(AMBER+clearance)]
+        greens,walk,cycle=timings(signal);offset=transport.offsets[signal.id];clearance=signal.clearance_s;amber=getattr(signal,'amber_s',AMBER)
+        boundaries=[0,greens[0],greens[0]+amber,greens[0]+amber+clearance,greens[0]+amber+clearance+greens[1],sum(greens)+2*amber+clearance,sum(greens)+2*(amber+clearance)]
         for k in range(math.floor(-offset/cycle)-1,math.ceil((duration-offset)/cycle)+1):
             for boundary in boundaries:
                 t=offset+k*cycle+boundary
@@ -200,9 +204,9 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
     if cancel():raise InterruptedError('Construção 3D cancelada.')
     if sum(len(mesh['positions'])//3 for mesh in context_meshes+meshes)>MAX_VERTICES:raise ValueError('Cena e objetos da imagem excedem o orçamento 3D. Reduza a área.')
     if not settings.traffic_prevent_collisions or not settings.traffic_respect_signals:warnings.append('Ensaio: verificação de colisões ou respeito aos semáforos desativado; não interpretar como circulação validada.')
-    data={'simulation_mode':'protegido' if not settings.traffic_classic and settings.traffic_prevent_collisions and settings.traffic_respect_signals and not settings.heavy_shoulder_overtake else 'ensaio','format':'rodovia-scene3d-1','revision':key,'origin_crs':origin.tolist(),'crs':settings.crs,'coordinates_confirmed':settings.coordinates_confirmed,'span_m':span,'meshes':context_meshes+meshes,'terrain':terrain,'markings':markings,'diagnostics':diagnostics,'vehicles':list(tracks.values())+list(train_tracks.values()),'pedestrians':list(person_tracks.values()),'pedestrian_report':people.report(),'rail_smoke':settings.rail_smoke,'transport':transport_data,'duration_s':duration,'source_duration_s':settings.duration_s,'simulation_report':sim.report() if sim else None,'warnings':warnings[-25:],'scope':'Visualização de projeto e tráfego. Diagnósticos técnicos não integram a captura de apresentação.'}
+    data={'simulation_mode':'protegido' if not settings.traffic_classic and settings.traffic_prevent_collisions and settings.traffic_respect_signals and not settings.heavy_shoulder_overtake else 'ensaio','format':'rodovia-scene3d-1','revision':rev0,'origin_crs':origin.tolist(),'crs':settings.crs,'coordinates_confirmed':settings.coordinates_confirmed,'span_m':span,'meshes':context_meshes+meshes,'terrain':terrain,'markings':markings,'diagnostics':diagnostics,'vehicles':list(tracks.values())+list(train_tracks.values()),'pedestrians':list(person_tracks.values()),'pedestrian_report':people.report(),'rail_smoke':settings.rail_smoke,'transport':transport_data,'duration_s':duration,'source_duration_s':settings.duration_s,'simulation_report':sim.report() if sim else None,'warnings':warnings[-25:],'scope':'Visualização de projeto e tráfego. Diagnósticos técnicos não integram a captura de apresentação.'}
     if not np.isfinite(origin).all():raise ValueError('Origem 3D inválida.')
-    if key!=revision(d):raise ValueError('O projeto mudou durante o processamento. Reconstrua o 3D.')
+    if rev0!=revision(d):raise ValueError('O projeto mudou durante o processamento. Reconstrua o 3D.')
     encoded=json.dumps(data,ensure_ascii=False,allow_nan=False,separators=(',',':')).encode()
     if len(encoded)>32*1024*1024:raise ValueError('Cena acima de 32 MB. Divida o projeto para a vista 3D.')
     write_json(d/'analysis.json',scene.report)

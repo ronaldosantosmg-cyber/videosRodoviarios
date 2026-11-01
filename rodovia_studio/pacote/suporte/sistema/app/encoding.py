@@ -1,4 +1,5 @@
 """Test the encoder, not merely its presence in the FFmpeg build."""
+from .falhas import registrar as _falha
 import os,subprocess,time,copy
 
 _ENCODER_FAILURES={}
@@ -38,7 +39,7 @@ def select_encoder(ff,width,height,fps,mode='auto',cpu_preset='veryfast',runner=
             f=Path(ff);st=f.stat();cache_key=(str(f.resolve()),st.st_mtime_ns,st.st_size,width,height,fps,mode,cpu_preset,quality)
             cached=_ENCODER_FAILURES.get(cache_key)
             if cached and time.monotonic()-cached[0]<60:return copy.deepcopy(cached[1])
-        except OSError:pass
+        except OSError as _e:_falha(__name__,_e)
     q=QUALITY.get(quality,QUALITY['padrao'])
     reason='CPU selecionada na configuração.'
     if mode!='cpu':
@@ -69,7 +70,7 @@ def validate_mp4(ff,path,frames,width,height,fps,timeout=3600):
          'fps':float(r.group(1)) if r else None,'frames_decoded':counted[-1] if counted else None,'frames_expected':int(frames),'decode_errors':dec.stderr.strip()[:500],'faststart':None}
     try:
         head=open(path,'rb').read(1<<20);out['faststart']=0<=head.find(b'moov')<head.find(b'mdat') if b'mdat' in head else b'moov' in head
-    except OSError:pass
+    except OSError as _e:_falha(__name__,_e)
     problems=[]
     if dec.returncode!=0 or out['decode_errors']:problems.append('erros ao decodificar')
     if out['frames_decoded']!=int(frames):problems.append(f"quadros {out['frames_decoded']} de {frames}")

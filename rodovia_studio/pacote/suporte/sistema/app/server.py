@@ -3,6 +3,7 @@
 Aqui ficam só a criação do aplicativo, o despachante de tarefas, a segurança (somente local) e o tratamento
 de erros. As rotas da API estão em app/rotas/<assunto>.py (1.31). Veja ARQUITETURA.md.
 """
+from .falhas import registrar as _falha
 import asyncio,json,os,sys,uuid,shutil,subprocess,threading,time,zipfile,re
 from xml.etree.ElementTree import ParseError as ET_ERRORS
 from pathlib import Path
@@ -36,7 +37,7 @@ def dispatcher():
             try:
                 from .execlog import write
                 write(store.ROOT/j['project'],'erros','worker_nao_iniciado',erro=type(e).__name__,mensagem=str(e)[:2000])
-            except Exception:pass
+            except Exception as _e:_falha(__name__,_e)
             continue
         finally:
             if wlog is not subprocess.DEVNULL:wlog.close()
@@ -76,7 +77,7 @@ async def lifespan(app):
             from .execlog import write
             system=store.ROOT/'_sistema';system.mkdir(exist_ok=True)
             write(system,'execucao','inicializacao',duracao_s=app.state.startup_seconds,versao=VERSION)
-    except (ValueError,OSError):pass
+    except (ValueError,OSError) as _e:_falha(__name__,_e)
     try:
         yield
     finally:
@@ -89,7 +90,7 @@ async def lifespan(app):
         try:
             from .maintenance import clean_categories
             clean_categories(store.ROOT,['temporarios'],install=store.INSTALL,videos=store.videos_root())
-        except Exception:pass
+        except Exception as _e:_falha(__name__,_e)
         cleanup_session()
 app=FastAPI(title='Rodovia Studio',version=VERSION,lifespan=lifespan)
 app.add_middleware(TrustedHostMiddleware,allowed_hosts=['127.0.0.1','localhost','testserver'])
@@ -111,17 +112,36 @@ async def unexpected(request,e):
         try:
             from .execlog import write
             write(store.directory(m.group(1)),'erros','erro_servidor',rota=request.url.path,metodo=request.method,erro=type(e).__name__,mensagem=str(e)[:2000],rastreamento=traceback.format_exc()[-12000:])
-        except Exception:pass
+        except Exception as _e:_falha(__name__,_e)
     return JSONResponse({'detail':f'Erro interno ({type(e).__name__}): {str(e)[:300]}'},500)
+@app.exception_handler(PermissionError)
+async def permission_error(request,e):
+    """2.32: arquivo em uso no Windows (WinError 32: player, OneDrive, antivírus) vira aviso claro, não erro interno."""
+    return JSONResponse({'detail':'Arquivo em uso por outro programa: '+str(e)[:240]+' Feche o arquivo (player de vídeo, OneDrive) e tente de novo; nada foi perdido.'},423)
 @app.exception_handler(ValueError)
 async def value_error(request,e):return JSONResponse({'detail':str(e)},422)
+@app.exception_handler(ZeroDivisionError)
+async def zero_div(request,e):
+    """2.29: divisão por zero vira mensagem clara de entrada inválida (e vai ao registro de erros), não um erro 500 genérico."""
+    await unexpected(request,e)
+    return JSONResponse({'detail':'Cálculo interrompido: alguma entrada está zerada ou vazia (por exemplo comprimento, largura, velocidade ou quantidade igual a zero). Confira os valores e tente de novo.'},422)
+@app.exception_handler(FloatingPointError)
+async def fp_error(request,e):
+    await unexpected(request,e)
+    return JSONResponse({'detail':'Cálculo interrompido: resultado indefinido ou infinito. Confira as entradas (zeros, vazios ou unidades).'},422)
+@app.exception_handler(OSError)
+async def os_error(request,e):
+    """1.42.38: nome ou caminho longo demais vira mensagem clara; os demais erros seguem para o registro de erros."""
+    from . import caminhos
+    m=caminhos.traduzir(e)
+    return JSONResponse({'detail':m},422) if m else await unexpected(request,e)
 @app.exception_handler(FileNotFoundError)
 async def not_found(request,e):return JSONResponse({'detail':str(e)},404)
 
 # 1.31: as rotas ficam em app/rotas/<assunto>.py; aqui só a criação do aplicativo, o despachante de tarefas,
 # a segurança (somente local) e o tratamento de erros.
-from .rotas import paginas,projetos,modelos,editor,tarefas,arquivos,web,suporte,camadas,videos,sistema,obras,modelagem,assistencia,protecao
-for _m in (paginas,projetos,modelos,editor,tarefas,arquivos,web,suporte,camadas,videos,sistema,obras,modelagem,assistencia,protecao):app.include_router(_m.router)
+from .rotas import paginas,projetos,modelos,editor,tarefas,arquivos,web,suporte,camadas,videos,sistema,obras,modelagem,assistencia,protecao,higiene,ia_correcoes,componentes
+for _m in (paginas,projetos,modelos,editor,tarefas,arquivos,web,suporte,camadas,videos,sistema,obras,modelagem,assistencia,protecao,higiene,ia_correcoes,componentes):app.include_router(_m.router)
 
 from starlette.staticfiles import StaticFiles
 app.mount('/vendor',StaticFiles(directory=BASE/'app/vendor'),name='vendor-local')

@@ -64,6 +64,7 @@ def test_pare_siga_never_reverses_while_tail_is_in_shared_corridor():
                 if station+length/2>gate['a']+.03 and station-length/2<gate['b']-.03:occupants.add(gate['direction'])
         assert len(occupants)<=1,(t,occupants)
     # Estado isolado demonstra que 10 s não significam inverter com uma cauda presente.
+    s.alternating_zones[0].adaptive=False   # modo por tempo fixo; o adaptativo (padrão desde 1.42.43) só troca com demanda contrária
     controller=AlternatingTraffic(s,net);gate=controller.gates[0][0];direction=gate['direction'];z=controller.zones[0];z['phase']=direction
     v=dict(id=1,p=0,s=gate['b']+1,L=18.6,lc=None)
     controller.update([v],0);controller.update([v],10)

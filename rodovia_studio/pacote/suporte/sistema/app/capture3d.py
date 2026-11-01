@@ -1,4 +1,5 @@
 """Exportação WebGL por quadros: fila limitada, FFmpeg local e publicação só após validar."""
+from .falhas import registrar as _falha
 from pathlib import Path
 import io,json,math,secrets,subprocess,threading,time,uuid
 from PIL import Image
@@ -99,14 +100,14 @@ class Capture:
             try:
                 if proc.poll() is None:proc.kill()
                 proc.wait(timeout=10)
-            except (OSError,subprocess.TimeoutExpired):pass
+            except (OSError,subprocess.TimeoutExpired) as _e:_falha(__name__,_e)
             try:proc.stdin.close()
-            except (OSError,ValueError):pass
+            except (OSError,ValueError) as _e:_falha(__name__,_e)
         if self.logfile:
             try:self.logfile.close()
-            except OSError:pass
+            except OSError as _e:_falha(__name__,_e)
         try:self.output.unlink(missing_ok=True)
-        except OSError:pass
+        except OSError as _e:_falha(__name__,_e)
         store.update(self.jid,state='cancelled' if cancelled else 'failed',message=message[:400])
         if cancelled:self.log.done('Cancelado: '+message)
         else:self.log.failed(ValueError(message),message)

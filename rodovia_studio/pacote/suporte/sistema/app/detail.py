@@ -9,6 +9,8 @@ Os ladrilhos são gerados sob demanda, guardados em disco (cache por assinatura)
 o que funciona também com vários processos de montagem. Sem internet, a imagem detalhada é desligada
 na hora (sem esperar) e o vídeo segue com o mosaico base.
 """
+from .seguro import sdiv as _sdiv
+from .falhas import registrar as _falha
 import json,math,os,uuid,threading,collections,hashlib
 from pathlib import Path
 import numpy as np
@@ -120,7 +122,7 @@ class Detail:
         sc=self.sc;out=[]
         for e in sc.items:
             role=e['role']
-            if role not in ('cut','fill','existing_pavement','pavement','shoulder','median','barrier','oae','overlay'):continue
+            if role not in ('cut','fill','terrain','existing_pavement','pavement','shoulder','median','barrier','oae','overlay'):continue
             if role in ('cut','fill') and not sc.exclusion.is_empty:
                 try:
                     g=(Polygon(e['points'],holes=e.get('holes',[])).buffer(0) if e['closed'] else LineString(e['points'])).difference(sc.exclusion)
@@ -153,16 +155,17 @@ class Detail:
                     cv2.fillPoly(excl,[np.rint(wp(np.asarray(a.exterior.coords))*16).astype(np.int32)],255,cv2.LINE_8,4)
                     for h in a.interiors:cv2.fillPoly(excl,[np.rint(wp(np.asarray(h.coords))*16).astype(np.int32)],0,cv2.LINE_8,4)
         q=lambda p:np.rint(wp(p)*16).astype(np.int32)  # subpixel (shift=4)
-        for role in ['cut','fill','existing_pavement','pavement','shoulder','median','barrier','oae']:
+        for role in ['cut','fill','terrain','existing_pavement','pavement','shoulder','median','barrier','oae']:
             items=[o for o in near if o['role']==role]
             if not items:continue
-            mask=np.zeros((n,n),np.uint8);lines=np.zeros_like(mask);rmask=None
+            mask=np.zeros((n,n),np.uint8);lines=np.zeros_like(mask);rmask=None;kmasks={}
             for o in items:
                 if o['closed']:
                     tmp=np.zeros_like(mask);cv2.fillPoly(tmp,[q(o['p'])],255,cv2.LINE_AA,4)
                     for h in o['holes']:cv2.fillPoly(tmp,[q(np.asarray(h))],0,cv2.LINE_AA,4)
                     mask=np.maximum(mask,tmp)
                     if o['e'].get('material')=='rigido':rmask=tmp if rmask is None else np.maximum(rmask,tmp)
+                    if role=='oae' and o['e'].get('oae_kind') in visual.OAE_KIND_SURF:kmasks[o['e']['oae_kind']]=tmp if o['e']['oae_kind'] not in kmasks else np.maximum(kmasks[o['e']['oae_kind']],tmp)
                 else:cv2.polylines(lines,[q(o['p'])],False,255,max(1,round(.25/self.R)),cv2.LINE_AA,4)
             if role in ('cut','fill'):
                 hard=(mask>127).astype(np.uint8)*255
@@ -191,15 +194,22 @@ class Detail:
                 net=getattr(sc,'network',None);f=JointField.from_network(net) if net is not None else None
                 sc.joint_field_net=f if f is not None and f.ok else JointField(sc.axes)
             if st is not None:color=paint_style(color,mask>127,role,x0,y1,self.R,st,getattr(sc,'joint_field_net',None),float(getattr(sc.s,'joint_spacing_m',5)))  # 1.21: representação escolhida pelo usuário
+            if getattr(sc.s,'texture_relief',True) and getattr(sc.s,'texture_style','artistico')!='anterior' and getattr(sc.s,'style_profile','padrao')!='tecnico' and (role not in ('cut','fill') or getattr(sc.s,'earthwork_look','hatch') in ('natural','textura')):
+                from . import relevo   # 2.48/2.49: relevo iluminado por material (flexível/rígido; novo/existente)
+                if role in relevo.MATERIAIS or role in relevo.RIGIDOS:color=relevo.acabar_misto(color,mask>127,rmask,role,x0,y1,self.R)
             sel=alpha>0;a=alpha[sel,None].astype(np.float32)/255;old=ov[sel,:3].astype(np.float32)
             c=color[sel] if getattr(color,'ndim',1)==3 else color
             ov[sel,:3]=(old*(1-a)+c*a).astype(np.uint8);ov[:,:,3]=np.maximum(ov[:,:,3],alpha)
             if role in ('cut','fill'):ov[sel,:3]=color[sel]
             m=mask>127
             if role in visual.SURF:surf[m]=visual.SURF[role]
-            elif role in visual.EARTH_SURF and getattr(sc.s,'earthwork_look','hatch')=='natural':surf[m]=visual.EARTH_SURF[role]
+            elif role in visual.EARTH_SURF and getattr(sc.s,'earthwork_look','hatch') in ('natural','textura'):surf[m]=visual.EARTH_SURF[role]
             elif role in ('median','barrier'):surf[m]=0
             if rmask is not None:surf[m&(rmask>127)]=visual.SURF['oae']
+            for kind,km_ in kmasks.items():
+                sel_=m&(km_>127);surf[sel_]=visual.OAE_KIND_SURF[kind];ov[sel_,:3]=visual.OAE_KIND_RGB[kind]
+                if getattr(sc.s,'texture_relief',True) and getattr(sc.s,'texture_style','artistico')!='anterior' and getattr(sc.s,'style_profile','padrao')!='tecnico' and sel_.any():
+                    from . import relevo;ov[:,:,:3]=np.where(sel_[...,None],relevo.acabar_oae(ov[:,:,:3],sel_,kind,x0,y1,self.R),ov[:,:,:3])   # 2.50: OAE com concreto novo/existente/alargado
             if role in ('pavement','existing_pavement','shoulder','oae'):road=np.maximum(road,mask)
         for o in near:
             if o['closed'] and o['e'].get('tex_code'):
@@ -269,7 +279,7 @@ class Detail:
         sc=self.sc
         if getattr(sc,'hydro',None) is not None and sc.s.water_texture and (sc.hydro.lines or sc.hydro.polygons):
             try:sc.hydro.paint_map(out,self.worldpx(i,j),self.R,sc.s.water_texture_opacity,sc.enhanced)
-            except Exception:pass
+            except Exception as _e:_falha(__name__,_e)
         return out
     def esri_tile(self,i,j):
         """Reprojeta os ladrilhos Esri para o ladrilho de detalhe (afim local; erro << 1 cm em 205 m)."""
@@ -307,7 +317,7 @@ class Detail:
             sc=self.sc
             if getattr(sc,'hydro',None) is not None and sc.s.water_texture and (sc.hydro.lines or sc.hydro.polygons):
                 try:sc.hydro.paint_map(out,self.worldpx(i,j),self.R,sc.s.water_texture_opacity,sc.enhanced)
-                except Exception:pass
+                except Exception as _e:_falha(__name__,_e)
             return out
         return None
     def match_base(self,img,i,j):
@@ -354,7 +364,7 @@ class Detail:
                 elif img is not None:self._save(fi,cv2.cvtColor(img,cv2.COLOR_RGB2BGR),[cv2.IMWRITE_JPEG_QUALITY,92])
                 elif not self.offline:
                     try:fn.write_bytes(b'')
-                    except OSError:pass
+                    except OSError as _e:_falha(__name__,_e)
         val=(img,ov,surf)
         with self.lock:
             self.mem[k]=val
@@ -365,11 +375,11 @@ class Detail:
         tmp=path.with_name(path.stem+'_'+uuid.uuid4().hex[:8]+path.suffix)
         try:
             if cv2.imwrite(str(tmp),arr,list(params)):os.replace(tmp,path)
-        except OSError:pass
+        except OSError as _e:_falha(__name__,_e)
         finally:
             if tmp.exists():
                 try:tmp.unlink()
-                except OSError:pass
+                except OSError as _e:_falha(__name__,_e)
     # ---------- composição no quadro ----------
     def compose(self,cam,width,want_imagery,want_overlay):
         """Retorna (imagem, máscara da imagem, overlay RGBA, superfície) no tamanho do quadro, ou None."""
@@ -420,10 +430,18 @@ class Detail:
         todo=[k for k in sorted(need) if not (self.dir/f'im_{k[0]}_{k[1]}.jpg').exists() and not (self.dir/f'im_{k[0]}_{k[1]}.png').exists() and not (self.dir/f'im_{k[0]}_{k[1]}.none').exists()]
         if not todo:return 0
         done=[0]
+        import time as _t
+        start=_t.monotonic();last=[0.]
+        # 2.17: orçamento de tempo; sem rede rápida a atualização segue sem a imagem detalhada em vez de ficar parada.
+        budget=float(getattr(sc.s,'tile_budget_s',0) or 120)
         def job(k):
             if (self.offline and self.local is None) or cancel():return
+            if _t.monotonic()-start>budget:
+                self.offline=True;return
             self.get(*k);done[0]+=1
-            if done[0]%8==0:status(.25+.04*done[0]/len(todo),f'Imagem detalhada: {done[0]}/{len(todo)} ladrilhos')
+            now=_t.monotonic()
+            if now-last[0]>=.4 or done[0]==len(todo):
+                last[0]=now;status(.25+(_sdiv(.04*done[0], len(todo))),f'Imagem detalhada: {done[0]}/{len(todo)} ladrilhos')
         # Primeiro um ladrilho sozinho: se não houver internet, desiste logo.
         job(todo[0])
         if (not self.offline or self.local is not None) and len(todo)>1:

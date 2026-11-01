@@ -5,8 +5,6 @@ from visual_harness import screenshot
 
 def test_legacy_empty_origin_does_not_trap_hatch_editor(gl_page,live):
     p=gl_page
-    # Esta regressão verifica salvar/fechar, após concluir o cálculo inicial da fixture.
-    p.wait_for_function('!task&&!taskRequestPending&&!RodoviaUpdates.snapshot().requests',timeout=180000)
     p.evaluate("async()=>{fill({...cfg,origin:'',destination:''});await save();await start('analyze');openSection('Configuração')}")
     box=p.locator('#hatchBox');box.locator('summary').click()
     role=p.locator('#hatchList select[data-hk=role]').first;role.wait_for();sig=role.locator('..').locator('..').get_attribute('data-sig')
@@ -96,7 +94,7 @@ def test_online_ui_contract_reply_reaches_review_and_confirmed_engine_apply(gl_p
     assert len(seen)==1 and read_config(d)==before
     screenshot(p,'14228_api_resposta_estruturada_revisavel')
     dialog.get_by_role('button',name='Revisar nas ferramentas do motor').click()
-    p.locator('#rsIAStudio').wait_for();p.locator('#rsIAStudio [data-ia-layer="PAVIMENTO"]').wait_for(state='visible')
+    p.locator('#rsIAStudio').wait_for();assert p.locator('#rsIAStudio [data-ia-layer="PAVIMENTO"]').is_visible()
     assert read_config(d)==before
     p.locator('#rsIAStudio [data-ia-layer="PAVIMENTO"] input[type=checkbox]').check()
     p.get_by_role('button',name='Aplicar textura',exact=True).click()

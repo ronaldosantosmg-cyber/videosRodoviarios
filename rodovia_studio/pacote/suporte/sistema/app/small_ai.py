@@ -1,4 +1,5 @@
 """Adaptador 3B sob demanda. Respostas são propostas tipadas, nunca código executável."""
+from .falhas import registrar as _falha
 import hashlib,json,os,secrets,socket,subprocess,threading,time,urllib.request,urllib.error
 from pathlib import Path
 from typing import Literal,Annotated
@@ -75,7 +76,7 @@ def cancel(project=None):
     if connection is not None:
         def close_connection():
             try:connection.close()
-            except (OSError,ValueError):pass
+            except (OSError,ValueError) as _e:_falha(__name__,_e)
         threading.Thread(target=close_connection,daemon=True).start()
     p=_state.get('process')
     if p is not None and p.poll() is None:p.terminate()
@@ -147,7 +148,7 @@ def prepare(d,q):
         from .artifacts import require_current
         require_current(d,'editor');f=d/'editor.json'
         if f.is_symlink() or f.stat().st_size>32*1024*1024:raise ValueError('Diagnóstico de fluxos inválido.')
-        editor=json.loads(f.read_text());s=next((s for s in editor['segments'] if s['id']==q.segment),None)
+        editor=json.loads(f.read_text(encoding='utf-8'));s=next((s for s in editor['segments'] if s['id']==q.segment),None)
         if not s:raise ValueError('Selecione um segmento atual para consultar.')
         if s.get('disabled') or s.get('technical_exclusion')=='length_limit':raise ValueError('Desligamento manual ou limite de comprimento preservado.')
         editor_revision=editor.get('engine_revision');evidence['flow']={k:s.get(k) for k in ('id','technical_status','technical_message','technical_reasons','technical_points','technical_context','technical_circulation','length_m')}
@@ -178,13 +179,13 @@ def _saved(d,key):
     if len(key)!=24 or any(c not in '0123456789abcdef' for c in key):raise ValueError('Mini prompt inválido.')
     f=Path(d)/'ia/mini_prompts'/(key+'.json')
     if any(p.is_symlink() for p in [f,f.parent,f.parent.parent]) or not f.is_file() or f.stat().st_size>65536:raise ValueError('Mini prompt indisponível.')
-    data=json.loads(f.read_text());
+    data=json.loads(f.read_text(encoding='utf-8'));
     if data['project']!=Path(d).name:raise Conflict('Mini prompt de outro projeto.')
     A.snapshot(d,data['report_id'])
     if data['editor_revision'] is not None:
         from .artifacts import require_current
         require_current(d,'editor')
-        if json.loads((Path(d)/'editor.json').read_text()).get('engine_revision')!=data['editor_revision']:raise Conflict('Fluxos atualizados; gere outro mini prompt.')
+        if json.loads((Path(d)/'editor.json').read_text(encoding='utf-8')).get('engine_revision')!=data['editor_revision']:raise Conflict('Fluxos atualizados; gere outro mini prompt.')
     return data
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -205,7 +206,7 @@ def _http(url,body=None,token=None,local=False,timeout=15):
         if len(raw)>256*1024:raise ValueError('Resposta da IA excedeu 256 KiB.')
         return json.loads(raw,parse_constant=lambda _:(_ for _ in ()).throw(ValueError('Resposta não finita.')))
 
-def _local(messages):
+def _local(messages,schema=None):
     from .parallel import available_memory
     if available_memory()<3.5*1024**3:raise ValueError('Memória disponível abaixo de 3,5 GiB. Feche aplicações ou use as regras locais; nenhum modelo foi carregado.')
     exe,model=_verify();token=secrets.token_urlsafe(32)
@@ -222,10 +223,10 @@ def _local(messages):
             try:
                 health=_http(f'http://127.0.0.1:{port}/health',token=token,local=True,timeout=1)
                 if isinstance(health,dict) and health.get('status')=='ok':break
-            except (OSError,ValueError):pass
+            except (OSError,ValueError) as _e:_falha(__name__,_e)
             time.sleep(.15)
         else:raise TimeoutError('Modelo não ficou pronto em 120 s.')
-        return _http(f'http://127.0.0.1:{port}/v1/chat/completions',{'model':'rodovia-3b','messages':messages,'max_tokens':512,'temperature':0,'stream':False,'tools':[],'tool_choice':'none','chat_template_kwargs':{'enable_thinking':False},'response_format':{'type':'json_object','schema':Reply.model_json_schema()}},token,True,180)
+        return _http(f'http://127.0.0.1:{port}/v1/chat/completions',{'model':'rodovia-3b','messages':messages,'max_tokens':512,'temperature':0,'stream':False,'tools':[],'tool_choice':'none','chat_template_kwargs':{'enable_thinking':False},'response_format':{'type':'json_object','schema':schema or Reply.model_json_schema()}},token,True,180)
     finally:
         if p.poll() is None:p.terminate()
         try:p.wait(timeout=5)

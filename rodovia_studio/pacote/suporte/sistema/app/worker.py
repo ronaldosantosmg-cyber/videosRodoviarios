@@ -1,4 +1,6 @@
+from .falhas import registrar as _falha
 import json,sys,traceback,shutil
+from . import caminhos
 import numpy as np
 from pathlib import Path
 from . import store
@@ -32,7 +34,7 @@ def run(jid):
                 wait=max(0,(datetime.now(timezone.utc)-datetime.fromisoformat(j['created']).replace(tzinfo=timezone.utc)).total_seconds())
                 from .execlog import write
                 write(d,'execucao','inicio',tarefa=jid,tipo=j['kind'],espera_s=round(wait,3))
-            except (ValueError,TypeError):pass
+            except (ValueError,TypeError) as _e:_falha(__name__,_e)
         if reusable:
             end_message='Fluxos e geometria já estão atualizados; nenhum recálculo necessário'
             status(1,end_message)
@@ -56,7 +58,7 @@ def run(jid):
             unmapped=[];hp={};geometry=analyze(d,s,preview=unmapped,hatch_preview=hp)
             items,axis,_,_,r=geometry;status(.35,'Geometria lida; preparando o editor');store.write_json(d/'analysis.json',r)
             try:(d/'hachuras_previa.json').write_text(json.dumps({k:v['p'] for k,v in hp.items()},separators=(',',':')),encoding='utf-8')
-            except Exception:pass
+            except Exception as _e:_falha(__name__,_e)
             try:
                 from .geometry import write_layer_preview
                 write_layer_preview(d,items,unmapped)
@@ -74,6 +76,8 @@ def run(jid):
             status(1,'Análise concluída')
         elif j['kind'] in ('preview','refresh','rebuild'):
             sc=Scene(d,s,status);s=sc.s
+            from .progress_pulse import Pulse
+            pulse=Pulse(status,cancel,.26,.92);pulse.start('Montando a imagem da prévia')
             view=None
             if s.preview_mode=='custom' and s.preview_center is not None:view=((s.preview_center.x,s.preview_center.y),s.preview_width_m or s.view_width_m)
             if s.cabin.enabled and s.preview_mode=='video':
@@ -88,7 +92,7 @@ def run(jid):
                     if s.preview_mode!='overview' and getattr(sc,'detail',None) is not None:
                         cw=(np.asarray(view[0],float),float(view[1])) if view else sc.pose(min(s.duration_s-1/s.fps,s.preview_time_s))[:2]
                         try:sc.detail.prefetch([cw],status)
-                        except Exception:pass
+                        except Exception as _e:_falha(__name__,_e)
                     im,meta=sc.frame(min(s.duration_s-1/s.fps,s.preview_time_s),overview=s.preview_mode=='overview',view=view)
                 except TrafficViewUnavailable as exc:
                     # A ausência de alvo não pode impedir publicar editor e diagnóstico.
@@ -99,11 +103,12 @@ def run(jid):
                     sc.report['warnings'].append('Prévia técnica em vista geral: '+str(exc))
                     from .traffic_presentation import preflight
                     sc.report['traffic_presentation']=preflight(sc)
+            pulse.stop();status(.93,'Gravando prévia e dados do editor')
             tmp=d/'preview.tmp.png';Image.fromarray(im).save(tmp);store.replace(tmp,d/'preview.png')
             store.write_json(d/'preview.json',meta);store.write_json(d/'analysis.json',sc.report);store.write_json(d/'editor.json',sc.editor_data())
             from .webmap import write_vectors
             try:write_vectors(d,sc.items,sc.axis,s.crs)
-            except Exception:pass
+            except Exception as _e:_falha(__name__,_e)
             status(1,'Prévia pronta')
         elif j['kind']=='reference':
             source=ASSETS/'th57/referencia.mp4';tmp=d/'video.partial.mp4'
@@ -207,16 +212,19 @@ def run(jid):
                     end_message+=f' · guardado em videos\\{saved.parent.name}\\{saved.name}'
             except Exception as exc:
                 end_message+=' · aviso: o vídeo não foi copiado para a pasta de vídeos ('+str(exc)[:120]+')'
-        finish(d,ticket)
+        from .progress_pulse import stop_all
+        stop_all();finish(d,ticket)
         store.update(jid,state='done',progress=1,message=end_message);jl.done(end_message)
     except BaseException as e:
+        from .progress_pulse import stop_all
+        stop_all()
         from .artifacts import finish
         finish(d,ticket,False)
         (d/'video.partial.mp4').unlink(missing_ok=True)
         tb=traceback.format_exc();(d/'error.log').write_text(tb,encoding='utf-8')
         if isinstance(e,InterruptedError):jl.done('Cancelado: '+str(e))
         else:jl.failed(e,tb)
-        store.update(jid,state='cancelled' if isinstance(e,InterruptedError) else 'failed',message=str(e)[:400],error=type(e).__name__)
+        store.update(jid,state='cancelled' if isinstance(e,InterruptedError) else 'failed',message=(caminhos.traduzir(e) or str(e))[:400],error=type(e).__name__)
         if not isinstance(e,InterruptedError):return 1
     return 0
 _run_job=run
@@ -224,6 +232,9 @@ def run(jid):
     from .full_update import complete_update
     with complete_update(store.job(jid)['kind']=='rebuild'):
         from .process_supervision import Heartbeat
-        with Heartbeat(store.directory(store.job(jid)['project']),jid):return _run_job(jid)
+        from .progress_pulse import stop_all
+        try:
+            with Heartbeat(store.directory(store.job(jid)['project']),jid):return _run_job(jid)
+        finally:stop_all()
 
 if __name__=='__main__':raise SystemExit(run(sys.argv[1]))

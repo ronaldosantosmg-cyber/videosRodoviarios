@@ -8,6 +8,7 @@ formatos convertidos uma vez para GeoTIFF em blocos.
 Várias imagens formam um mosaico (a primeira da lista tem prioridade). A amostragem gera ladrilhos no CRS do
 projeto (camada de detalhe do vídeo e mosaico base) e em Web Mercator (editor, igual ao Google Earth).
 """
+from .falhas import registrar as _falha
 import io,os,re,json,math,shutil,hashlib,threading,subprocess,collections
 from pathlib import Path
 import numpy as np
@@ -117,7 +118,7 @@ class TiffReader:
         return out
     def close(self):
         try:self.tf.close()
-        except Exception:pass
+        except Exception as _e:_falha(__name__,_e)
 
 class ArrayReader:
     """Imagem carregada inteira (JPG/PNG/JP2/TIF comprimido sem 'imagecodecs'), com pirâmide sob demanda."""
@@ -136,7 +137,7 @@ class ArrayReader:
                 with Image.open(path) as im:
                     if im.size[0]*im.size[1]>MAX_FULL_PIXELS:raise ValueError('Imagem grande demais para leitura completa: converta para GeoTIFF em blocos (Deflate) ou COG.')
             except ValueError:raise
-            except Exception:pass
+            except Exception as _e:_falha(__name__,_e)
             try:a=read_pixels(path)
             except ValueError:
                 Image.MAX_IMAGE_PIXELS=MAX_FULL_PIXELS
@@ -161,7 +162,7 @@ def open_reader(path):
             r=TiffReader(path)
             if r.windowed:return r
             r.close()
-        except Exception:pass
+        except Exception as _e:_falha(__name__,_e)
     return ArrayReader(path)
 
 def to_rgb8(a):
@@ -269,13 +270,13 @@ class Source:
             st=self.path.stat();cache=self.path.with_name(f'.{self.path.name}.borda_v2_{st.st_size}_{st.st_mtime_ns}.npz')
             try:
                 z=np.load(cache);self._collar=(z['m'],tuple(float(v) for v in z['s']));return self._collar
-            except Exception:pass
+            except Exception as _e:_falha(__name__,_e)
             try:self._collar=collar_mask(self.reader)
             except Exception:self._collar=None
             if self._collar is not None:
                 try:
                     tmp=cache.with_name(cache.name+f'.{os.getpid()}.tmp.npz');np.savez_compressed(tmp,m=self._collar[0],s=np.array(self._collar[1]));os.replace(tmp,cache)
-                except Exception:pass
+                except Exception as _e:_falha(__name__,_e)
         return self._collar
     def to_px(self,X,Y):
         gt=self.gt;dx=np.asarray(X)-gt[0];dy=np.asarray(Y)-gt[3]
@@ -391,16 +392,16 @@ class LocalMosaic:
         X,Y=np.meshgrid(xs,ys);return self.sample(X,Y)
     def render_base(self,box,n,status=lambda *a:None,chunk=512):
         """Mosaico base n×n (em faixas, sem carregar a imagem inteira quando ela é em blocos)."""
-        out=np.zeros((n,n,4),np.uint8);x0,y0,x1,y1=box;span=(y1-y0)/n
+        out=np.zeros((n,n,4),np.uint8);x0,y0,x1,y1=box;span=((y1-y0) / (n))
         for r in range(0,n,chunk):
             rb=min(n,r+chunk);out[r:rb]=self.sample_box([x0,y1-rb*span,x1,y1-r*span],n,rb-r)
-            status(.1+.1*rb/n,'Montando imagem local')
+            status(.1+((.1*rb) / (n)),'Montando imagem local')
         return out
 
 # ---------------- Web Mercator (editor) ----------------
 MERC=20037508.342789244
 def web_tile(mosaic,z,x,y,size=256):
-    n=2**z;s=2*MERC/n;mx0=-MERC+x*s;my1=MERC-y*s
+    n=2**z;s=((2*MERC) / (n));mx0=-MERC+x*s;my1=MERC-y*s
     xs=mx0+(np.arange(size)+.5)*s/size;ys=my1-(np.arange(size)+.5)*s/size;X,Y=np.meshgrid(xs,ys)
     return mosaic.sample(X,Y,CRS.from_epsg(3857))
 

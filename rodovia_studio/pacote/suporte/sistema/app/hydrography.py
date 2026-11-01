@@ -116,7 +116,10 @@ class Hydrography:
         # Blue tint and ripples are anchored to world coordinates (no animated shimmer).
         from .visual import water_paint
         mask=self.water_mask(image.shape[:2],worldpx)
-        water_paint(image,mask,meters_per_pixel,opacity,enhanced and bool(self.polygons))
+        if enhanced and bool(self.polygons) and mask.any():
+            from .relevo import agua
+            agua(image,mask,worldpx,meters_per_pixel,opacity)      # 2.50: água com ondas, reflexo e espuma, ancorada no mundo
+        else:water_paint(image,mask,meters_per_pixel,opacity,enhanced and bool(self.polygons))
         return mask
     def draw_labels(self,image,screen,font,scale,opacity=1.):
         if not self.labels or opacity<=0:return image

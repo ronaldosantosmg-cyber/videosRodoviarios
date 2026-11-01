@@ -8,6 +8,7 @@
 - Resíduos de processamento ficam em projetos/_temp e são descartáveis.
 """
 from __future__ import annotations
+from .falhas import registrar as _falha
 import hashlib, json, os, shutil, time, uuid
 from pathlib import Path
 from . import store
@@ -88,7 +89,7 @@ def materialize(entry, project_dir: Path, filename: str):
     if dst.exists():
         try:
             if os.path.samefile(dst,entry['tif']):return dst,False
-        except OSError:pass
+        except OSError as _e:_falha(__name__,_e)
         dst.unlink()
     linked=False
     try:os.link(entry['tif'],dst);linked=True
@@ -96,8 +97,8 @@ def materialize(entry, project_dir: Path, filename: str):
     meta=entry.get('meta') or {}
     for field,ext in [('world','.tfw'),('prj','.prj')]:
         n=meta.get(field)
-        if n and (Path(entry['dir'])/n).is_file():
-            target=base/(Path(filename).stem+ext);shutil.copy2(Path(entry['dir'])/n,target)
+        if n and (((Path(entry['dir'])) / (n))).is_file():
+            target=base/(Path(filename).stem+ext);shutil.copy2(((Path(entry['dir'])) / (n)),target)
     return dst,linked
 
 
@@ -110,7 +111,7 @@ def prune_orphan_temps(max_age_seconds=0):
         try:
             if max_age_seconds<=0 or now-p.stat().st_mtime>=max_age_seconds:
                 shutil.rmtree(p,ignore_errors=False);removed.append(p.name)
-        except OSError:pass
+        except OSError as _e:_falha(__name__,_e)
     return removed
 
 
@@ -120,4 +121,4 @@ def cleanup_session():
         shutil.rmtree(temp_root()/token,ignore_errors=True)
     try:
         if temp_root().exists() and not any(temp_root().iterdir()):temp_root().rmdir()
-    except OSError:pass
+    except OSError as _e:_falha(__name__,_e)

@@ -13,7 +13,7 @@ from .project_state import locked,revision
 from .store import write_json
 
 ROLE_LABELS={'axis':'Eixo','pavement':'Pista projetada','existing_pavement':'Pista existente','shoulder':'Acostamento',
-             'edge_line':'Bordo (linha de borda)','median':'Canteiro','barrier':'Barreira','oae':'OAE','cut':'Corte','fill':'Aterro',
+             'edge_line':'Bordo (linha de borda)','median':'Canteiro','terrain':'Terrapleno em grama','barrier':'Barreira','oae':'OAE','cut':'Corte','fill':'Aterro',
              'earthwork':'Talude (corte/aterro pela proximidade)','domain':'Faixa de domínio','water':'Hidrografia',
              'sign_h':'Sinalização horizontal (pintura)','sign_v':'Sinalização vertical (placas)'}
 
@@ -27,7 +27,7 @@ BUILTIN={'name':'Padrão (nomes comuns)','builtin':True,'rules':[
     {'pattern':'*DOMIN*','role':'domain'},{'pattern':'*FAIXA*FD*','role':'domain'},{'pattern':'FD_*','role':'domain'},
     {'pattern':'*EIXO*','role':'axis'},{'pattern':'*AXIS*','role':'axis'},{'pattern':'*CENTERLINE*','role':'axis'},
     {'pattern':'*NEWJERSEY*','role':'barrier'},{'pattern':'*NEW*JERSEY*','role':'barrier'},{'pattern':'*BARREIRA*','role':'barrier'},{'pattern':'*DEFENSA*','role':'barrier'},
-    {'pattern':'*CANTEIRO*','role':'median'},{'pattern':'*MEDIAN*','role':'median'},
+    {'pattern':'*GRAMADO*','role':'terrain'},{'pattern':'*AREA*VERDE*','role':'terrain'},{'pattern':'*CANTEIRO*','role':'median'},{'pattern':'*MEDIAN*','role':'median'},
     {'pattern':'*ACOST*','role':'shoulder'},{'pattern':'*SHOULDER*','role':'shoulder'},
     {'pattern':'*BORDO*','role':'edge_line'},{'pattern':'*LBO*','role':'edge_line'},{'pattern':'*EDGE*LINE*','role':'edge_line'},
     {'pattern':'*HOAE*','role':'oae'},{'pattern':'OAE','role':'oae'},{'pattern':'*OAE*','role':'oae'},{'pattern':'*PONTE*','role':'oae'},{'pattern':'*VIADUTO*','role':'oae'},
@@ -56,8 +56,15 @@ def norm(s):
 def matches(pattern,name):
     return fnmatch.fnmatchcase(norm(name),norm(pattern))
 
+# 1.42.43: layers que o nome denuncia como NÃO operacionais (eixo descomissionado, estacas/marcações de estaca, juntas de corte) nunca
+# viram eixo, corte etc. por um padrão genérico como *EIXO* ou *CORTE*; ficam sem papel até o usuário decidir.
+NOT_OPERATIONAL=('*DESCOMIS*','*DESATIV*','*DEMOLID*','*A RETIRAR*','*ESTACAS*','*JUNTA*')
+def not_operational(name):
+    n=norm(name);return any(fnmatch.fnmatchcase(n,norm(p)) for p in NOT_OPERATIONAL)
+
 def role_for(name,rules):
     normalized=norm(name)
+    if not_operational(name):return None
     for r in rules:
         if r.get('role') in ROLE_LABELS and fnmatch.fnmatchcase(normalized,norm(r.get('pattern',''))):return r['role']
     return None

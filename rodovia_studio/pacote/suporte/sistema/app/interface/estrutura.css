@@ -108,3 +108,9 @@ body.rsInterface26 #rsToolRibbon [data-activity="Tráfego"]>.rsPrimaryAction{wid
 body.rsInterface26 #rsToolRibbon [data-activity="Tráfego"]>.rsPrimaryAction>svg{width:18px!important;height:18px!important;flex:none}
 body.rsInterface26.rsCadMode #rsToolRibbon [data-activity="Tráfego"]>.rsPrimaryAction{width:32px!important;min-width:32px!important;max-width:32px!important}
 body.rsInterface26.rsCadMode #rsToolRibbon [data-activity="Tráfego"]>.rsPrimaryAction>span{display:none!important}
+
+/* 2.12: motivo do corte pela forma e cor (não só cor): impedimento = quadrado vermelho; vão sem pavimento = losango âmbar; veículo não cabe = círculo laranja. */
+.rsFlowProblemPoint[data-cat="impedimento_real"] { background: #e5484d; border-color: #5c0b10; border-radius: 3px; }
+.rsFlowProblemPoint[data-cat="sem_pavimento"] { background: #ffb020; border-color: #6b4200; border-radius: 2px; transform: translate(-50%,-50%) rotate(45deg); }
+.rsFlowProblemPoint[data-cat="fora_da_pista"] { background: #ff8a3d; border-color: #6b2c00; }
+.rsCutCat { padding: 6px 8px; border-left: 4px solid #ffb020; background: #fff8e6; color: #3a2a00; }

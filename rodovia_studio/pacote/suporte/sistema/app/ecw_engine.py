@@ -9,6 +9,7 @@ A conversão roda dentro do aplicativo (osgeo.gdal) e confere, antes de aceitar 
 a geotransformação (origem e pixel), o sistema de coordenadas e os quatro cantos são os mesmos do original.
 Além das etiquetas GeoTIFF, grava .tfw e .prj ao lado (dupla garantia da georreferência).
 """
+from .falhas import registrar as _falha
 import os,sys,glob,json,math,subprocess
 from pathlib import Path
 
@@ -35,9 +36,9 @@ def py_gdal():
     except Exception:
         return None
     try:gdal.UseExceptions()
-    except Exception:pass
+    except Exception as _e:_falha(__name__,_e)
     try:gdal.AllRegister()
-    except Exception:pass
+    except Exception as _e:_falha(__name__,_e)
     return gdal
 
 def status():
@@ -140,7 +141,7 @@ def install(status_cb=lambda *a:None,run=subprocess.run,fetch=None,fetch_json=No
     if not ok:
         tag,plat=_tags()
         try:(BASE/'pacotes_ecw_log.txt').write_text('\n\n'.join(log),encoding='utf-8')
-        except OSError:pass
+        except OSError as _e:_falha(__name__,_e)
         raise ValueError('A instalação do leitor ECW falhou.\nMotivo: '+' | '.join(erros[-3:])+
             f'\n\nComo resolver sem depender da rede do aplicativo: baixe no navegador os 2 arquivos abaixo e copie-os para a pasta\n{OFFLINE}\n'
             f'(crie a pasta se não existir) e clique de novo em “Instalar leitor ECW interno”:\n'
@@ -168,7 +169,7 @@ def convert_py(src,dst,status=lambda *a:None,gdal=None,tol_m=1e-6):
     src=Path(src);dst=Path(dst);tmp=dst.with_name(dst.stem+'.parcial.tif')
     for f in (tmp,tmp.with_suffix('.tfw'),tmp.with_suffix('.prj')):
         try:f.unlink()
-        except OSError:pass
+        except OSError as _e:_falha(__name__,_e)
     ds=gdal.Open(str(src))
     if ds is None:raise ValueError('O GDAL não abriu o arquivo (formato sem driver?).')
     drv=ds.GetDriver().ShortName
@@ -210,7 +211,7 @@ def convert_py(src,dst,status=lambda *a:None,gdal=None,tol_m=1e-6):
     if srs0 is not None:
         e=srs0.Clone()
         try:e.MorphToESRI()
-        except Exception:pass
+        except Exception as _e:_falha(__name__,_e)
         tmp.with_suffix('.prj').write_text(e.ExportToWkt(),encoding='ascii')
     for sfx in ('.tif','.tfw','.prj'):
         a=tmp.with_suffix(sfx) if sfx!='.tif' else tmp;b=dst.with_suffix(sfx)

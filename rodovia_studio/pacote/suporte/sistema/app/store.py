@@ -1,3 +1,4 @@
+from .falhas import registrar as _falha
 import os,json,sqlite3,uuid,threading,time
 from pathlib import Path
 def install_root():
@@ -64,7 +65,7 @@ def _atomic_write_json(file,data):
             time.sleep(.05*(attempt+1))
         finally:
             try:tmp.unlink(missing_ok=True)
-            except OSError:pass
+            except OSError as _e:_falha(__name__,_e)
 
 def update(job,**fields):
     if not fields:return

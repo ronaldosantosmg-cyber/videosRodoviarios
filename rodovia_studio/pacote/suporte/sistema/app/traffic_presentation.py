@@ -1,4 +1,5 @@
 """Visibilidade de veículos: não altera geometria, circulação, demanda ou restrições."""
+from .falhas import registrar as _falha
 import numpy as np
 from collections import Counter
 from . import visual
@@ -45,13 +46,15 @@ def visible(scene,t,cam,width,progress):
     if not scene.s.traffic:return items,stats
     for pt,tan,vid,identity,j in scene.traffic_iter(t):
         stats['active']+=1
+        net=getattr(scene,'network',None);ghost=getattr(net,'is_ghost',None)
+        if ghost is not None and ghost(pt):stats['ghost_hidden']=stats.get('ghost_hidden',0)+1;continue   # 1.42.43: vazio de pavimento — veículo oculto
         ch=scene.ch[scene.tree.query(pt)[1]]
         if ch>progress*scene.length:stats['outside_revealed_section']+=1;continue
         q=scene.screen(pt[None],cam,width)[0]
         if not(5<q[0]<scene.W-5 and scene.H*.12<q[1]<scene.H*.88):stats['outside_view']+=1;continue
         vt=visual.vehicle_type(scene.network.paths[identity[0]]['kinds'],identity,getattr(scene.s,'vehicle_mix','classico'))
         if not scene.fits(identity[0],j,pt,tan,vt):stats['body_outside_allowed']+=1;continue
-        if visual.TYPES[vt]['L']*scene.W/width<2:stats['subpixel']+=1
+        if ((visual.TYPES[vt]['L']*scene.W) / (width))<2:stats['subpixel']+=1
         items.append((pt,tan,vt,visual.vehicle_color(identity,vt)))
     if stats['reveal_pending']:items=[]
     stats['drawn']=len(items)
@@ -145,7 +148,7 @@ def project_status(directory):
         try:
             checked=json.loads(check.read_text(encoding='utf-8-sig'))
             if checked.get('revision')==digest([revision(config),revisions(d)]):presentation=checked.get('presentation') or presentation
-        except (OSError,ValueError):pass
+        except (OSError,ValueError) as _e:_falha(__name__,_e)
     simulation=video.get('motion_audit') or analysis.get('traffic_simulation') or {}
     current=bool(editor);paths=editor.get('itineraries') if current else None
     notices=[]
@@ -167,4 +170,9 @@ def project_status(directory):
     if simulation.get('motion_blocked_vehicles',0):notices.append('Parte da frota foi recusada pela análise do corpo/curva. Isso não significa que todos os veículos ou todas as rotas estejam bloqueados.')
     if paths and not simulation and visibility.get('active') is None:notices.append('Há itinerários, mas a simulação ainda não foi medida em uma prévia ou vídeo atual.')
     if visibility.get('active')==0:notices.append('Nenhum veículo ativo neste instante da prévia. Confira demanda, tempo e restrições antes de alterar a geometria.')
-    return {'enabled':bool(config.get('traffic',True)),'editor_current':current,'itineraries':paths,'simulated_vehicles':simulation.get('vehicles'),'preview_active':visibility.get('active'),'preview_drawn':visibility.get('drawn'),'preview_width_m':visibility.get('width_m'),'camera_mode':config.get('camera_mode'),'presentation':presentation,'notices':notices,'segments':[{k:s.get(k) for k in ('id','source','technical_status','technical_message','disabled','technical_exclusion')} for s in editor.get('segments',[]) if s.get('technical_status')!='ok'][:100],'scope':'Somente resultados atuais; abrir esta janela não recalcula, não libera rotas e não altera a configuração.'}
+    stops=(simulation.get('stop_diagnostics') or {}).get('seconds_by_reason') or {}
+    if stops:
+        names={'bloqueio':'bloqueio/interdição','semaforo':'semáforo ou controle','pare_e_siga':'pare e siga','pedestres':'travessia de pedestres','lider':'veículo à frente (fila)','fim_da_via':'fim da via','livre':'sem restrição aparente'}
+        ranked=sorted(stops.items(),key=lambda kv:-kv[1])[:3]
+        notices.append('Veículos parados na simulação — principais causas: '+'; '.join(f'{names.get(k,k)} ({v:.0f} s·veículo)' for k,v in ranked)+'.')
+    return {'enabled':bool(config.get('traffic',True)),'editor_current':current,'itineraries':paths,'simulated_vehicles':simulation.get('vehicles'),'stop_diagnostics':simulation.get('stop_diagnostics'),'preview_active':visibility.get('active'),'preview_drawn':visibility.get('drawn'),'preview_width_m':visibility.get('width_m'),'camera_mode':config.get('camera_mode'),'presentation':presentation,'notices':notices,'segments':[{k:s.get(k) for k in ('id','source','technical_status','technical_message','disabled','technical_exclusion')} for s in editor.get('segments',[]) if s.get('technical_status')!='ok'][:100],'scope':'Somente resultados atuais; abrir esta janela não recalcula, não libera rotas e não altera a configuração.'}

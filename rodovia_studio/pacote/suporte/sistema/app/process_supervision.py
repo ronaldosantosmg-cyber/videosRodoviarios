@@ -1,4 +1,5 @@
 """Encerramento limitado e sinal de vida separado do progresso real da operação."""
+from .falhas import registrar as _falha
 import subprocess,threading,time,re,os,signal,queue
 from pathlib import Path
 
@@ -16,7 +17,7 @@ def stop_process(process,grace=5,tree=False):
     finally:
         if group:
             try:os.killpg(process.pid,signal.SIGKILL)
-            except ProcessLookupError:pass
+            except ProcessLookupError as _e:_falha(__name__,_e)
 
 def heartbeat_path(directory,jid):
     if not re.fullmatch('[0-9a-f]{32}',jid):raise ValueError('Tarefa inválida.')
@@ -33,7 +34,7 @@ class Heartbeat:
         def run():
             while not self.stop.wait(2):
                 try:self.path.touch()
-                except OSError:pass
+                except OSError as _e:_falha(__name__,_e)
         self.thread=threading.Thread(target=run,daemon=True);self.thread.start();return self
     def __exit__(self,*args):
         self.stop.set();self.thread.join(timeout=3);self.path.unlink(missing_ok=True)

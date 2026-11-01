@@ -29,7 +29,7 @@ estender('click',_c=>function(w,e){
   const pct=Math.max(10,Math.min(500,Number($('advPct')?.value||50)));checkpoint();M.advance_zones.push({id:uid(),name:($('advName')?.value||'').trim()||'Trecho '+(M.advance_zones.length+1),start:a,end:b,speed_pct:pct,enabled:true});
   changed(`Trecho com avanço a ${pct}% criado (${Math.hypot(a.x-b.x,a.y-b.y).toFixed(0)} m). Gere a prévia na câmera do vídeo para conferir.`);advInfo();return}
  return _c(w,e)},'fluxos: ligações, velocidade, editar traçado, forçar ligação');
-estender('draw',_d=>function(){_d();if(!ready())return;try{if(draft&&['linkforce','advzone'].includes(draft.type)&&lastWorld){poly([draft.pts[0],lastWorld]);ctx.strokeStyle=draft.type==='linkforce'?'#ff9cf1':'#ffb347';ctx.lineWidth=3;ctx.setLineDash([6,4]);ctx.stroke();ctx.setLineDash([]);arrowHead(draft.pts[0],lastWorld,12,ctx.strokeStyle)}}catch(err){}},'fluxos: ligações, velocidade, editar traçado, forçar ligação');
+estender('draw',_d=>function(){_d();if(!ready())return;try{if(draft&&['linkforce','advzone'].includes(draft.type)&&lastWorld){poly([draft.pts[0],lastWorld]);ctx.strokeStyle=draft.type==='linkforce'?'#ff9cf1':'#ffb347';ctx.lineWidth=3;ctx.setLineDash([6,4]);ctx.stroke();ctx.setLineDash([]);arrowHead(draft.pts[0],lastWorld,12,ctx.strokeStyle)}}catch(err){window.RodoviaErros&&RodoviaErros.avisar('fluxos_avanco',err)}},'fluxos: ligações, velocidade, editar traçado, forçar ligação');
 
 // ---------- velocidade de avanço da apresentação ----------
 async function advInfo(){const el=$('advInfo');if(!el||!pid||!analysis)return;try{const mode=$('advance_mode').value;const q=mode==='velocidade'?`velocidade_kmh=${Number($('advance_speed_kmh').value)||150}`:`duracao_s=${Number($('duration_s').value)||cfg.duration_s}`;
@@ -37,7 +37,7 @@ async function advInfo(){const el=$('advInfo');if(!el||!pid||!analysis)return;tr
  el.textContent=`Percurso de ${(r.comprimento_m/1000).toLocaleString('pt-BR',{maximumFractionDigits:2})} km em ${tempo(r.percurso_s)} ≈ ${r.velocidade_kmh.toLocaleString('pt-BR')} km/h sobre a imagem`+(mode==='velocidade'?` · duração do vídeo: ${r.duracao_s.toLocaleString('pt-BR')} s`:'')+(zs?` · ${zs} trecho(s) com velocidade própria`:'')+(r.aproximado?' (com paradas nas obras; valor aproximado)':'');
  $('duration_s').disabled=mode==='velocidade';if(mode==='velocidade')$('duration_s').value=r.duracao_s}catch(e){el.textContent=e.message}}
 for(const id of ['advance_mode','advance_speed_kmh','duration_s','camera_mode'])$(id)?.addEventListener('change',()=>{advInfo()});
-estender('load',_l=>async (id,options={})=>{const loaded=await _l(id,options);if(loaded===false||pid!==id)return false;if(options.resultsOnly)return loaded;try{advInfo()}catch{};return loaded},'velocidade de avanço da apresentação');
+estender('load',_l=>async (id,options={})=>{const loaded=await _l(id,options);if(loaded===false||pid!==id)return false;if(options.resultsOnly)return loaded;try{advInfo()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('fluxos_avanco',_e)};return loaded},'velocidade de avanço da apresentação');
 
 // ---------- menu do botão direito: largura fixa e só os comandos da seleção ----------
 estender('openCanvasMenu',_o=>function(x,y,w){const r=canvas.getBoundingClientRect();const c={cx:(x-r.left)*canvas.width/r.width,cy:(y-r.top)*canvas.height/r.height,w};
@@ -54,7 +54,7 @@ ctxItems=function(w){const L=selObjs(),one=L.length===1?L[0]:null,run=c=>()=>run
   items.push({ic:'☰',t:L.length>1?'Atributos em comum…':'Propriedades…',k:L.length>1?'AT':'PR',h:'Abre o painel para alterar os atributos; Enter confirma.',f:run(L.length>1?'ATRIB':'PR')},{sep:1},
    {ic:'✥',t:'Mover',k:'M',h:'Ponto base e destino. (Ou arraste o objeto.)',f:run('MOVER')},{ic:'⟳',t:'Girar',k:'RO',h:'Ângulo em graus. (Ou arraste a alça redonda.)',f:run('GIRAR')},{ic:'⧉',t:'Copiar',k:'CO',h:'Cria cópias deslocadas.',f:run('COPIAR')},
    {ic:'⤢',t:'Escala',k:'SC',h:'Aumenta ou diminui a partir de um ponto.',f:run('ESCALA')},{ic:'⇋',t:'Espelhar',k:'MI',h:'Cópias espelhadas por uma linha.',f:run('ESPELHAR')});
-  if(one&&one.shape!=='pt')items.push({ic:'∥',t:'Paralela (offset)',k:'OF',h:'Cria uma paralela à distância digitada.',f:run('OFFSET')});
+  if(one&&one.shape!=='pt')items.push({ic:'∥',t:'Paralela',k:'OF',h:'Cria uma paralela à distância digitada.',f:run('OFFSET')});
   if(one)items.push({ic:'🖌',t:'Copiar propriedades para…',k:'MA',h:'Aplica o estilo deste objeto a outros do mesmo tipo.',f:run('PINTAR')});
   items.push({sep:1},{ic:'🗑',t:'Apagar',k:'Del',h:'Apaga a seleção (Ctrl+Z desfaz).',f:()=>deleteSel()},{ic:'◌',t:'Desmarcar',k:'Esc',h:'Limpa a seleção.',f:()=>{sel=null;selSet=[];showProps();draw()}});return items}
  if(dxfSel){const kinds=Object.entries(PAV_LABEL).map(([k,l])=>({ic:'▣',t:l,h:`A área passa a ser ${l.toLowerCase()} (vale por cima do desenho).`,f:()=>dxfToArea({kind:k})}));

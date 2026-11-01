@@ -111,7 +111,7 @@ def render_local(directory,settings,box,n,status=lambda *a:None):
     if out.exists():return np.array(Image.open(out).convert('RGB')),label
     status(.1,'Reprojetando imagem local')
     src=read_pixels(image);gt=info['gt'];H,W=src.shape[:2]
-    x0,y0,x1,y1=box;span=(x1-x0)/n
+    x0,y0,x1,y1=box;span=((x1-x0) / (n))
     tr=None if info['crs']==target else Transformer.from_crs(target,info['crs'],always_xy=True)
     det=gt[1]*gt[5]-gt[2]*gt[4]
     if abs(det)<1e-18:raise ValueError('Georreferência degenerada.')
@@ -138,7 +138,7 @@ def render_local(directory,settings,box,n,status=lambda *a:None):
             al=cv2.remap(alpha_src,mx,my,cv2.INTER_LINEAR,borderMode=cv2.BORDER_CONSTANT,borderValue=0)[:,:,None]/255.
             part=(part*al+np.array(NEUTRAL)*(1-al)).astype(np.uint8)
         out_img[r0:r1]=part
-        status(.1+.1*r1/n,'Reprojetando imagem local')
+        status(.1+((.1*r1) / (n)),'Reprojetando imagem local')
     tmp=out.with_suffix('.tmp.png');Image.fromarray(out_img).save(tmp);tmp.replace(out)
     return out_img,label
 

@@ -2,6 +2,7 @@
 
 Só atua com per_display='trecho' ou schedule_mode='linha_do_tempo' (projetos anteriores ficam com per_display='chamada'
 e schedule_mode='off': vídeo idêntico)."""
+from .seguro import sdiv as _sdiv
 import datetime as dt
 import numpy as np,cv2
 from PIL import Image,ImageDraw
@@ -21,7 +22,7 @@ def prepare(scene):
         n=max(2,int((b-a)/4)+1);kms=np.linspace(a,b,n)
         if scene.km_active:P=np.array([scene.stationing.point(k) for k in kms],float)
         else:
-            span=max(1e-9,s.km_end_m-s.km_start_m);ch=np.clip((kms-s.km_start_m)/span,0,1)*scene.ds[-1];P=np.array([scene.at(c) for c in ch])
+            span=max(1e-9,s.km_end_m-s.km_start_m);ch=np.clip((_sdiv(kms-s.km_start_m, span)),0,1)*scene.ds[-1];P=np.array([scene.at(c) for c in ch])
         if w.x is not None and w.y is not None and w.km_end_m-w.km_start_m<30:
             P=P-P.mean(0)+np.array([w.x,w.y])   # obra pontual com coordenada: a faixa fica no ponto
         if len(P)>1 and w.side!='ambos':
@@ -52,7 +53,7 @@ def draw(scene,im,t,cam,width,progress,header,footer):
     if not hasattr(scene,'_work_bands'):scene._work_bands=prepare(scene)
     if not scene._work_bands:return None
     sched=getattr(scene.s,'schedule_mode','off')=='linha_do_tempo';day=day_at(scene,t) if sched else None
-    m=scene.W/width;over=im.copy();lines=[];counts={'prevista':0,'execucao':0,'concluida':0}
+    m=(_sdiv(scene.W, width));over=im.copy();lines=[];counts={'prevista':0,'execucao':0,'concluida':0}
     limit=progress*scene.length+25
     for b in scene._work_bands:
         st,f=status(b['w'].model_dump(),day) if day else ('sem_data',1.)

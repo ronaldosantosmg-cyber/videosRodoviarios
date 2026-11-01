@@ -51,6 +51,7 @@ class TrafficSignal(BaseModel):
     lanes_b:int=Field(default=2,ge=1,le=8)
     lane_width_m:float=Field(default=3.5,ge=2.5,le=5)
     clearance_s:float=Field(default=12,ge=12,le=600)
+    amber_s:float=Field(default=3.0,ge=3,le=6)   # 1.42.43: elevado automaticamente à velocidade da via (signal_amber_auto)
     offset_s:float=Field(default=0,ge=0,le=3600)
     enabled:bool=True
     level:int=Field(default=0,ge=-5,le=5)
@@ -83,7 +84,7 @@ def validate_network(settings):
         if not link.enabled:continue
         if link.source==link.target or link.target in parents:raise ValueError('Cada semáforo pode receber somente um link e não pode ligar a si mesmo.')
         a,b=signals[link.source],signals[link.target]
-        if (a.phases,a.lanes_a,a.lanes_b,a.clearance_s)!=(b.phases,b.lanes_a,b.lanes_b,b.clearance_s):raise ValueError('Onda verde exige mesmos tempos, limpeza de segurança e quantidades de faixas nos semáforos ligados.')
+        if (a.phases,a.lanes_a,a.lanes_b,a.clearance_s,a.amber_s)!=(b.phases,b.lanes_a,b.lanes_b,b.clearance_s,b.amber_s):raise ValueError('Onda verde exige mesmos tempos, limpeza de segurança e quantidades de faixas nos semáforos ligados.')
         parents[link.target]=link.source
     for node in parents:
         seen=set();n=node

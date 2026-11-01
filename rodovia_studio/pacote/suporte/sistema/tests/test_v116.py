@@ -57,7 +57,7 @@ def test_natural_earthworks(mixed):
     c2,_=earthwork_style(mask,lines,'fill',.2,look='natural');assert c2[30,30,1]>c2[30,30,0]
     h,_=earthwork_style(mask,lines,'cut',.2);assert h[30,30,0]==224          # hachura padrão inalterada
     v=((500150,7800020),70);sc=Scene(mixed,S(earthwork_look='natural'));im=sc.frame(0,view=v)[0]
-    hatch=Scene(mixed,S()).frame(0,view=v)[0]
+    hatch=Scene(mixed,S(earthwork_look='hatch')).frame(0,view=v)[0]
     r=region(sc,v,(500140,7800018),(500160,7800028))
     red=lambda x:float(((x[:,:,0].astype(int)-x[:,:,1])>70).mean())
     assert red(hatch[r])>.1 and red(im[r])<.05
@@ -87,4 +87,4 @@ def test_detail_resolution_01(junction):
 
 def test_schema_v15():
     s=Settings.model_validate({'schema_version':14,'km_start_m':0,'km_end_m':100})
-    assert s.schema_version>=15 and s.texture_style=='realistic' and s.earthwork_look=='hatch' and s.detail_resolution_m==.2
+    assert s.schema_version>=15 and s.texture_style=='realistic' and s.earthwork_look=='textura' and s.detail_resolution_m==.2   # 1.42.40: textura sobre a hachura por padrão

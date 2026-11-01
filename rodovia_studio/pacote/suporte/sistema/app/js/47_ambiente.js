@@ -2,7 +2,7 @@
 // 1.36: câmera por pontos-chave, clima, sombras pela hora do sol e comparação antes/depois (estilo Twinmotion).
 // =====================================================================================================
 MARK_KEYS.push('camera_keys');estender('emptyMarks',_em=>function(){return {..._em(),camera_keys:[]}},'câmera por pontos-chave');if(!M.camera_keys)M.camera_keys=[];
-fields.push('weather','weather_intensity','sun_hour','before_after_s');numeric.push('weather_intensity','sun_hour','before_after_s');checks.push('sun_shadows','before_after');
+fields.push('weather','weather_intensity','sun_hour','before_after_s','time_of_day');numeric.push('weather_intensity','sun_hour','before_after_s');checks.push('sun_shadows','before_after','photo_atmosphere');
 function vistaAtual(){const c=C2W(canvas.width/2,canvas.height/2),a=C2W(0,canvas.height/2),b=C2W(canvas.width,canvas.height/2);return {x:+c.x.toFixed(3),y:+c.y.toFixed(3),width_m:Math.max(20,Math.round(Math.hypot(b.x-a.x,b.y-a.y)))}}
 function irParaVista(k){const [ix,iy]=worldToImg({x:k.x,y:k.y});const a=worldToImg({x:k.x-k.width_m/2,y:k.y}),b=worldToImg({x:k.x+k.width_m/2,y:k.y});const wimg=Math.hypot(b[0]-a[0],b[1]-a[1])||1;
  view.s=canvas.width/wimg;view.ox=canvas.width/2-ix*view.s;view.oy=canvas.height/2-iy*view.s;draw()}

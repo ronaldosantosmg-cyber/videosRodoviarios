@@ -291,5 +291,5 @@ def unpack(data,directory,limit=900*1024*1024):
             if not SAFE.match(rel) or '..' in rel:raise ValueError('Caminho não permitido no pacote: '+rel)
             blob=z.read('projeto/'+rel)
             if hashlib.sha256(blob).hexdigest()!=f['sha256']:raise ValueError('Arquivo corrompido no pacote: '+rel)
-            out=d/rel;out.parent.mkdir(parents=True,exist_ok=True);out.write_bytes(blob)
+            from . import caminhos;caminhos.gravar(d/rel,blob)   # 1.42.38: aceita caminho longo
     return manifest

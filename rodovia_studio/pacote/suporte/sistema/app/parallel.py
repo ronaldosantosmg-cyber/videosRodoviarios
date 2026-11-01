@@ -6,6 +6,7 @@ k ≡ índice (mod N) e envia os pixels brutos pela saída padrão; o principal 
 aplica as transições entre cenas e alimenta um único FFmpeg. Os quadros são os mesmos da
 montagem em um processo; só o tempo muda.
 """
+from .falhas import registrar as _falha
 import os,sys,subprocess,ctypes,time,threading,queue
 from pathlib import Path
 import numpy as np
@@ -19,7 +20,7 @@ def available_memory():
             m=M();m.dwLength=ctypes.sizeof(M);ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(m));return int(m.ullAvailPhys)
         for line in open('/proc/meminfo'):
             if line.startswith('MemAvailable:'):return int(line.split()[1])*1024
-    except Exception:pass
+    except Exception as _e:_falha(__name__,_e)
     return 4*1024**3
 
 def plan_workers(requested,W,H,frames,cpu_encoder,cores=None,memory=None):
@@ -53,7 +54,7 @@ class Pool:
         def publish(value):
             while not self.closed.is_set():
                 try:results.put(value,timeout=.1);return
-                except queue.Full:pass
+                except queue.Full as _e:_falha(__name__,_e)
         def read():
             try:
                 while not self.closed.is_set():
@@ -92,7 +93,7 @@ class Pool:
         for _,_,thread,_ in self.readers.values():thread.join(timeout=2)
         for p in self.procs:
             try:p.stdout.close()
-            except OSError:pass
+            except OSError as _e:_falha(__name__,_e)
         for l in self.logs:l.close()
         return [p.returncode for p in self.procs]
 

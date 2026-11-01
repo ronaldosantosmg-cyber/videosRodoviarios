@@ -6,7 +6,8 @@ let overlay=null,frame=0;const nodes=new Map();
 function locate(issue){setTool('pan');vecOn.flows=true;selSeg={id:issue.segment};zoomTo(P(issue.point));draw()}
 function showIssue(issue){
  const d=element('dialog');d.className='winDlg rsFlowIssue';d.setAttribute('aria-label','Como corrigir este fluxo');
- d.append(element('h2','Como corrigir este fluxo'),element('p',issue.message),element('p',issue.exact?'Ponto informado pelo motor.':'Referência do trecho; o motor não informou a posição exata do defeito.'));
+ d.append(element('h2','Como corrigir este fluxo'));if(issue.label){const c=element('p');c.className='rsCutCat';const b=element('b',issue.label+': ');c.append(b,issue.explain||'');d.append(c);if(issue.fix)d.append(element('p','Correção sugerida: '+issue.fix))}
+ d.append(element('p',issue.message),element('p',issue.exact?'Ponto informado pelo motor.':'Referência do trecho; o motor não informou a posição exata do defeito.'));
  const segment=(editor?.segments||[]).find(s=>s.id===issue.segment),guide=segment?.technical_assistant;
  if(guide){d.append(element('h3',guide.title));const list=element('ol');for(const step of guide.steps||[])list.append(element('li',step.instruction));d.append(list)}
  if(window.RodoviaFlowStudy?.stale)d.append(element('p','Diagnóstico anterior: há alterações pendentes. Atualize os fluxos antes de considerar o problema resolvido.'));
@@ -28,12 +29,12 @@ function sync(){
   if(x<0||y<0||x>parent.width||y>parent.height)return;
   const key=JSON.stringify([pid,projectSession.context,editor?.engine_revision,issue.segment,issue.point]);if(visible.has(key))return;visible.add(key);count++;
   let b=nodes.get(key);if(!b){b=element('button');b.type='button';b.className='rsFlowProblemPoint';b.dataset.segment=String(issue.segment);nodes.set(key,b);overlay.append(b)}
-  b.title=(issue.exact?'Problema do fluxo: ':'Referência do fluxo: ')+issue.message+' · Clique para orientação';b.setAttribute('aria-label',b.title);b.style.left=x+'px';b.style.top=y+'px';b.onclick=()=>showIssue(issue);
+  b.dataset.cat=issue.category||'';b.title=(issue.label?issue.label+' — ':'')+(issue.exact?'Problema do fluxo: ':'Referência do fluxo: ')+issue.message+' · Clique para orientação';b.setAttribute('aria-label',b.title);b.style.left=x+'px';b.style.top=y+'px';b.onclick=()=>showIssue(issue);
  }
  for(const segment of (editor?.segments||[]).slice(0,10000)){
   if(segment.technical_status==='ok'||segment.disabled||segment.technical_exclusion==='length_limit')continue;
   const points=(segment.technical_points||[]).filter(p=>point(p.point));
-  for(const p of points)add({segment:segment.id,point:p.point,message:segment.technical_message||p.reason||'Confira o diagnóstico do fluxo.',exact:true});
+  for(const p of points)add({segment:segment.id,point:p.point,message:segment.technical_message||p.reason||'Confira o diagnóstico do fluxo.',exact:true,category:p.category,label:p.label,explain:p.explain,fix:p.fix});
   if(!points.length&&point(segment.mid))add({segment:segment.id,point:segment.mid,message:segment.technical_message||'Confira a continuidade deste trecho.',exact:false});
   if(count>=200)break;
  }

@@ -1,4 +1,5 @@
 """Projetos: criar, listar, abrir, renomear, salvar como, retirar, configuração, pacote e importação."""
+from ..falhas import registrar as _falha
 import asyncio,json,os,sys,uuid,shutil,subprocess,threading,time,zipfile,re
 from xml.etree.ElementTree import ParseError as ET_ERRORS
 from pathlib import Path
@@ -31,6 +32,39 @@ class ResetBody(_BM):
 def reset_groups():
     from ..workreset import GROUPS,DEFAULT
     return {'groups':[{'id':k,'label':v[0],'keys':v[1],'default':k in DEFAULT} for k,v in GROUPS.items()]}
+
+@router.get('/api/projects/{pid}/central')
+def central_estado(pid):
+    """2.29: retrato da Central do projeto (entradas, derivados, resultados, proteções e alertas)."""
+    from ..central import estado
+    d,s=_config(pid);return estado(d,s)
+
+class CentralBody(_BM):
+    escopo:str
+    confirmar:bool=False
+
+@router.post('/api/projects/{pid}/central/limpar')
+def central_limpar(pid,body:CentralBody):
+    """Limpeza protegida (arquivos vão para _limpeza e podem ser restaurados). Sem confirmar, apenas simula."""
+    from ..central import limpar
+    idle(pid);d,s=_config(pid)
+    try:novas,info=limpar(d,s,body.escopo,body.confirmar)
+    except ValueError as e:raise HTTPException(422,str(e))
+    if body.confirmar and novas is not s:_save_config(pid,novas)
+    return {**info,'config':novas.model_dump() if body.confirmar else None}
+
+@router.post('/api/projects/{pid}/central/desfazer')
+def central_desfazer(pid):
+    from ..central import desfazer
+    idle(pid);d=store.directory(pid)
+    try:s,nome=desfazer(d)
+    except ValueError as e:raise HTTPException(409,str(e))
+    _save_config(pid,s);return {'config':s.model_dump(),'restaurada':nome}
+
+@router.post('/api/projects/{pid}/central/conferir_dxf')
+def central_conferir(pid):
+    from ..central import conferir_dxf
+    d=store.directory(pid);return conferir_dxf(d)
 
 @router.post('/api/projects/{pid}/reset_work')
 def reset_work(pid,body:ResetBody):
@@ -111,7 +145,7 @@ def projects_info():
         try:
             j=json.loads(cf.read_text(encoding='utf-8'));r['origin']=j.get('origin','');r['destination']=j.get('destination','')
             r['km']=[j.get('km_start_m'),j.get('km_end_m')]
-        except Exception:pass
+        except Exception as _e:_falha(__name__,_e)
         out.append(r)
     return out
 

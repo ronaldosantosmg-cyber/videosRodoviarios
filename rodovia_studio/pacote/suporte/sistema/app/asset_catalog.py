@@ -44,6 +44,17 @@ DEFAULT={row['role']:key for key,row in reversed(list(CATALOG.items()))}
 DEFAULT['earthwork']='earth'
 DXF_RULES=[{'pattern':alias,'role':row['role'],'material':key} for key,row in CATALOG.items() for alias in row['aliases']]
 
+# 2.12: materiais para classes de linha/área que antes não ofereciam opção em "Padrão da classe". Entram após DEFAULT: não mudam o padrão das classes existentes.
+EXTRA=[('edge_white','Bordo — pintura branca','edge_line','#e8e8e0','stripe',[]),('edge_yellow','Bordo — pintura amarela','edge_line','#e3b72f','stripe',[]),
+('edge_dashed','Bordo — tracejado','edge_line','#d8d8d0','grid',[]),('newjersey','Barreira New Jersey (concreto)','barrier','#b4b6b2','grain',[]),
+('guardrail','Defensa metálica','barrier','#9aa5a9','metal',[]),('median_grass','Canteiro gramado','median','#6a8d4e','leaf',[]),
+('median_concrete','Canteiro em concreto','median','#a9aca7','grain',[]),('terrain_grass','Terrapleno em grama','terrain','#5f8a47','leaf',[]),
+('terrain_soil','Terrapleno em solo','terrain','#a98a62','soil',[]),('domain_line','Faixa de domínio','domain','#c9b24a','grid',[]),
+('paint_white','Pintura branca','sign_h','#f1f1ea','stripe',[]),('paint_yellow','Pintura amarela','sign_h','#efc434','stripe',[]),
+('cut_soil','Corte em solo','cut','#a07a55','soil',[]),('fill_soil','Aterro em solo','fill','#b08a5e','soil',[])]
+for _k,_n,_r,_c,_p,_a in EXTRA:
+    if _k not in CATALOG:CATALOG[_k]={'id':_k,'name':_n,'role':_r,'color':_c,'pattern':_p,'aliases':_a}
+
 def material_for(role,name='',overrides=None):
     if overrides and name in overrides and overrides[name] in CATALOG:return overrides[name]
     from .layer_profiles import matches

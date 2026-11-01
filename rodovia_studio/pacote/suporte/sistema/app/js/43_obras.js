@@ -106,7 +106,7 @@ function janelaObra(){let d=$('obNovaDlg');if(d)return d;document.body.insertAdj
  <p id="obErr" class="inputErr"></p><div class="row"><span class="grow"></span><button type="button" id="obOk" class="primary">OK</button><button type="button" id="obCancel">Cancelar</button></div></dialog>`);
  d=$('obNovaDlg');arrumarJanela(d);return d}
 function pedirObra(a,b,w=null){return new Promise(res=>{const d=janelaObra();$('obTipo').innerHTML=OBRA_TIPOS.map(t=>`<option value="${t.id}">${esc(t.rotulo)}</option>`).join('');
- let ult={};try{ult=JSON.parse(localStorage.getItem('rodovia_obra_ult')||'{}')}catch{}
+ let ult={};try{ult=JSON.parse(localStorage.getItem('rodovia_obra_ult')||'{}')}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('obras',_e)}
  $('obNovaT').textContent=w?'Propriedades da obra':'Nova obra do PER';
  $('obTipo').value=w?w.kind:(ult.kind||'duplicacao');$('obLado').value=w?(w.side||'ambos'):(ult.side||'ambos');
  $('obNome').value=w?w.description:'';$('obKmA').value=kmTexto(a);$('obKmB').value=kmTexto(b);$('obIni').value=w?.start_date||'';$('obFim').value=w?.end_date||'';
@@ -116,7 +116,7 @@ function pedirObra(a,b,w=null){return new Promise(res=>{const d=janelaObra();$('
  let fim=false;const ok=()=>{const ka=kmLer($('obKmA').value),kb=kmLer($('obKmB').value);if(ka==null||kb==null){$('obErr').textContent='Km inválido (use 325+850).';return}
   const nome=$('obNome').value.trim()||$('obNome').placeholder;if($('obIni').value&&$('obFim').value&&$('obFim').value<$('obIni').value){$('obErr').textContent='O término é anterior ao início.';return}
   const pct=$('obPct').value===''?null:Math.max(0,Math.min(100,Number($('obPct').value)));
-  fim=true;d.close();try{localStorage.setItem('rodovia_obra_ult',JSON.stringify({kind:$('obTipo').value,side:$('obLado').value}))}catch{}
+  fim=true;d.close();try{localStorage.setItem('rodovia_obra_ult',JSON.stringify({kind:$('obTipo').value,side:$('obLado').value}))}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('obras',_e)}
   res({description:nome,kind:$('obTipo').value,side:$('obLado').value,km_start_m:Math.min(ka,kb),km_end_m:Math.max(ka,kb),start_date:$('obIni').value,end_date:$('obFim').value,
    progress_pct:pct,per_year:$('obAno').value.trim(),per_table:$('obTab').value.trim(),color:$('obCorI').dataset.mexeu&&$('obCorI').value!==corTipo()?$('obCorI').value:'',show:$('obMostrar').checked})};
  $('obOk').onclick=ok;$('obCancel').onclick=()=>d.close();d.onkeydown=e=>{if(e.key==='Enter'&&e.target.tagName!=='SELECT'){e.preventDefault();ok()}};d.onclose=()=>{if(!fim)res(null)};d.showModal();$('obNome').focus()})}

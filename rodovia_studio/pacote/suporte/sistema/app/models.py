@@ -30,6 +30,7 @@ class POI(BaseModel):
     bridge_clearance_m: float = Field(default=5.5,ge=5.5,le=15)
     bridge_angle_deg: float = Field(default=0,ge=-85,le=85)
     bridge_access: Literal['ramps','stairs','none'] = 'ramps'
+    bridge_poles: Literal['none','landings','both'] = 'none'   # 2.52: postes de iluminação junto às rampas (só desenho)
 
     ramp_flight_m: float = Field(default=24,ge=10,le=80)
     bus_length_m: float = Field(default=30,ge=12,le=80)
@@ -198,6 +199,7 @@ class RouteSection(BaseModel):
     type: Literal['simples','dupla','unico'] = 'dupla'
     lanes: int = Field(default=1,ge=1,le=6)          # faixas por sentido (no sentido único: total)
     median_m: float = Field(default=0,ge=0,le=60)    # canteiro central na pista dupla
+    axis_ref: Literal['centro','bordo_esquerdo','bordo_direito'] = 'centro'   # 2.19: posição do eixo na pista de sentido único
     @model_validator(mode='after')
     def order(self):
         if self.end_m<self.start_m:self.start_m,self.end_m=self.end_m,self.start_m
@@ -241,6 +243,7 @@ class RouteAlignment(BaseModel):
     external_vdm: float | None = Field(default=None,gt=0,le=1000000)
     lanes: int = Field(default=1,ge=1,le=6)
     median_m: float = Field(default=0,ge=0,le=60)
+    axis_ref: Literal['centro','bordo_esquerdo','bordo_direito'] = 'centro'   # 2.19: sentido único com o eixo no meio da pista (sem canteiro) ou num bordo
     lane_width_m: float = Field(default=3.5,ge=2.5,le=5)
     taper_m: float = Field(default=40,ge=5,le=300)          # comprimento das transições
     speed_kmh: float | None = Field(default=None,ge=5,le=130)
@@ -248,6 +251,7 @@ class RouteAlignment(BaseModel):
     outside_pavement: bool = False                          # deixa os veículos andarem fora do pavimento do desenho
     source: str = 'cliques'
     source_axis_fingerprint: str = Field(default='',pattern=r'^([a-f0-9]{64})?$')
+    source_axis_layer: str = Field(default='',max_length=200)   # 2.28: layer do eixo de origem (para a escolha de sentido por layer)
     sections: list[RouteSection] = Field(default_factory=list,max_length=100)
     cross_sections: list[CrossSection] = Field(default_factory=list,max_length=100)
     sections_only: bool = False
@@ -256,6 +260,13 @@ class RouteAlignment(BaseModel):
     # 1.40.4: ultrapassagem/mudança de faixa. "marked" é o padrão conservador: somente em trechos allow.
     lane_change: Literal['off','marked','safe'] = 'marked'
     lane_change_sections: list[LaneChangeSection] = Field(default_factory=list,max_length=200)
+    @model_validator(mode='before')
+    @classmethod
+    def drop_stray_rotation(cls,data):
+        # 2.21: giro só vale para rotatória; um giro esquecido em outro tipo de eixo é zerado em vez de impedir o Salvar e fechar.
+        if isinstance(data,dict) and data.get('flow_role','automatico')!='rotatoria' and data.get('roundabout_rotation','cadastro')!='cadastro':
+            data={**data,'roundabout_rotation':'cadastro'}
+        return data
     @model_validator(mode='after')
     def disable_micro_route(self):
         from .flow_nodes import direction
@@ -264,7 +275,9 @@ class RouteAlignment(BaseModel):
         if self.external_demand_vph is not None and self.external_vdm is not None:raise ValueError('Use veículos/h ou VDM na entrada externa, não os dois.')
         if (self.external_demand_vph is not None or self.external_vdm is not None) and 'entrada' not in (self.flow_start,self.flow_end):raise ValueError('A demanda externa exige um nó de entrada explícito.')
         length=sum(math.hypot(b.x-a.x,b.y-a.y) for a,b in zip(self.points,self.points[1:]))
-        ordered=sorted(self.cross_sections,key=lambda section:section.start_m)
+        from .road_sections import resolver_sobreposicao
+        self.cross_sections=resolver_sobreposicao(self.cross_sections)
+        ordered=self.cross_sections
         for i,section in enumerate(ordered):
             if section.end_m>length+.01:raise ValueError('Seção ultrapassa o comprimento do alinhamento.')
             if i and section.start_m<ordered[i-1].end_m-1e-6:raise ValueError('Seções não podem se sobrepor.')
@@ -644,8 +657,9 @@ TextureArea.model_rebuild()
 class HatchRole(BaseModel):
     """1.24: tipo atribuído a uma assinatura de hachura do DXF (camada | padrão | cor)."""
     model_config=ConfigDict(allow_inf_nan=False)
-    role: Literal['pavement','existing_pavement','shoulder','median','barrier','oae','cut','fill','water','domain','ignore']
+    role: Literal['pavement','existing_pavement','shoulder','median','terrain','barrier','oae','cut','fill','water','domain','ignore']
     material: Literal['auto','flexivel','rigido'] = 'auto'
+    oae_kind: Literal['auto','nova','existente','alargada'] = 'auto'   # 1.42.40: textura própria da OAE nova, existente ou alargada
 
 class CustomAxis(BaseModel):
     """1.22: alinhamento (eixo de referência) definido por cliques sobre o eixo da via no editor."""
@@ -674,6 +688,17 @@ class Settings(BaseModel):
     image_features:list[ImageFeature]=Field(default_factory=list,max_length=1000)
     image_groups:dict[ImageRole,ImageGroup]=Field(default_factory=dict)
     image_context_source:ImageProvenance | None = None
+    @model_validator(mode='after')
+    def validate_calibration(self):
+        limits={'a':(.3,4.),'b':(.5,6.),'T':(.5,4.),'s0':(1.,8.)}
+        classes={'car','car6','pickup','van','moto','moto2','truck','truck18','bus','carreta','long30','hatch','sedan','suv','vuc','toco','cacamba','onibus13','micro','bitrem'}
+        for cls,values in self.traffic_calibration.items():
+            if cls not in classes:raise ValueError(f'Calibração: classe desconhecida "{cls}".')
+            for k,v in values.items():
+                if k not in limits:raise ValueError(f'Calibração: parâmetro desconhecido "{k}" (use a, b, T ou s0).')
+                lo,hi=limits[k]
+                if not math.isfinite(v) or not lo<=v<=hi:raise ValueError(f'Calibração {cls}.{k} fora do intervalo {lo}–{hi}.')
+        return self
     @model_validator(mode="after")
     def image_ids_unique(self):
         if sum(len(f.points)+sum(len(h) for h in f.holes) for f in self.image_features)>100000:raise ValueError('Objetos da imagem excedem 100 mil vértices. Reduza a área ou simplifique contornos.')
@@ -688,7 +713,7 @@ class Settings(BaseModel):
             if route.type!='simples' or route.lanes!=1 or any(section.type!='simples' or section.lanes!=1 for section in route.sections):raise ValueError('Pare e siga exige pista simples, uma faixa por sentido.')
             for section in route.cross_sections:
                 if max(section.start_m,zone.start_m-route.taper_m)<min(section.end_m,zone.end_m+route.taper_m):
-                    if section.type!='simples' or any(sum(b.kind=='pista' for b in side)!=1 for side in (section.left,section.right)):raise ValueError('Pare e siga exige uma faixa operacional por sentido no trecho.')
+                    if section.type!='simples' or section.left_dir!='contrario' or section.right_dir!='mesmo' or any(sum(b.kind=='pista' for b in side)!=1 for side in (section.left,section.right)):raise ValueError('Pare e siga exige uma faixa operacional por sentido no trecho.')
             for other in active:
                 if other.route_id==zone.route_id and max(other.start_m-route.taper_m,zone.start_m-route.taper_m)<min(other.end_m+route.taper_m,zone.end_m+route.taper_m):raise ValueError('Zonas de pare e siga não podem sobrepor transições.')
             active.append(zone)
@@ -744,6 +769,8 @@ class Settings(BaseModel):
     traffic_network_preview: bool = False
     derive_traffic_paths: bool = False  # legado: pavimento não autoriza gerar eixos de circulação
     route_directions: dict[str,Literal['auto','forward','reverse','off']] = Field(default_factory=dict)
+    # 1.42.40: tipologia do eixo nativo (chave 'axis:<impressão>'): decide ultrapassagem e papel no fluxo.
+    axis_types: dict[str,Literal['auto','pista_simples','pista_dupla','acesso','retorno','dispositivo']] = Field(default_factory=dict)
     encoder: Literal['auto','nvenc','cpu'] = 'auto'
     cpu_preset: Literal['fast','veryfast'] = 'veryfast'
     short_video_mode: Literal['auto','tour'] = 'auto'
@@ -792,13 +819,22 @@ class Settings(BaseModel):
     traffic_classic: bool = False
     traffic_model: Literal['simulado','anterior'] = 'simulado'
     traffic_density: float = Field(default=1.0,ge=.2,le=8)
+    traffic_seed: int = Field(default=1729,ge=0,le=10**9)   # 2.23: mesma semente = mesma animação de tráfego
     # 1.40.5: capacidade e reação a veículos pesados. Mantidos neutros para projetos antigos.
     traffic_capacity_vphpl: float = Field(default=1900,gt=0,le=20000)
     traffic_demand_vphpl: float | None = Field(default=None,gt=0,le=20000)
+    # 2.45: nível de serviço-alvo (A–F). 'manual' = usa a demanda informada (comportamento antigo).
+    service_level_target: Literal['manual','A','B','C','D','E','F'] = 'manual'
+    service_level_road: Literal['auto','pista_simples','pista_dupla'] = 'auto'
+    service_level_table: dict[str,dict] = Field(default_factory=dict)
     queue_capacity_model: bool = True
     heavy_vehicle_reaction: bool = True
     heavy_shoulder_probe: bool = True
     heavy_shoulder_overtake: bool = False
+    # 2.14: ultrapassagem pela pista contrária em pista simples, só em trechos com geometria permitida e sem veículo vindo em sentido oposto.
+    opposite_overtake: bool = True
+    opposite_overtake_share: float = Field(default=.25,ge=0,le=1)   # fração dos veículos (sorteio determinístico) com perfil de ultrapassador
+    shoulder_vehicles: Literal['pesados','todos'] = 'pesados'   # 1.42.40: 'todos' estende o uso do acostamento (com retorno à faixa) a qualquer veículo
     traffic_entry_inset_m: float = Field(default=5,ge=0,le=30)
     traffic_branch_share_pct: float = Field(default=20,ge=0,le=100)
     traffic_vdm: float | None = Field(default=None,gt=0,le=1000000)
@@ -808,6 +844,15 @@ class Settings(BaseModel):
     traffic_no_median_crossing: bool = False
     traffic_respect_signals: bool = True
     traffic_prevent_collisions: bool = True
+    traffic_conflict_guard: bool = True
+    traffic_stability: bool = True
+    signal_amber_auto: bool = True   # 1.42.43: amarelo = reação + v/(2a), entre 3 e 6 s
+    traffic_bridge_gaps: bool = True   # 1.42.43: fluxo do eixo atravessa vazios de pavimento oculto (5 m antes até o retorno do pavimento)
+    traffic_bridge_lead_m: float = Field(5.0,ge=0,le=30)
+    traffic_bridge_max_m: float = Field(5000.0,ge=5,le=50000)   # túneis longos: o eixo continua e o pavimento volta
+    traffic_calibration: dict[str,dict[str,float]] = Field(default_factory=dict)   # 1.42.41: calibração IDM por classe {classe:{a,b,T,s0}}
+    callout_style: Literal['referencia','padrao'] = 'referencia'   # 1.42.40: caixa e linha de chamada como na referência
+    edge_line_guide: bool = True      # 1.42.40: linhas de bordo desenhadas conduzem os veículos (guia lateral)
     median_crossing: Literal['returns','marked','free'] = 'returns'
     # 1.39: trechos curtos (ramos do esqueleto nos encontros) abaixo disto não entram nas rotas (sem ziguezague); 0 = como antes.
     min_route_segment_m: float = Field(default=50,ge=0,le=500)
@@ -851,6 +896,8 @@ class Settings(BaseModel):
     weather_intensity: float = Field(default=.6,ge=.1,le=1)
     sun_shadows: bool = False
     sun_hour: float = Field(default=15,ge=6,le=18)
+    photo_atmosphere: bool = False                       # 2.46: atmosfera fotográfica (hora do dia + tempo)
+    time_of_day: Literal['hora_do_sol','amanhecer','dia','entardecer','noite'] = 'hora_do_sol'
     before_after: bool = False
     before_after_s: float = Field(default=8,ge=3,le=30)
     # 1.37: vegetação, pedestres e mais tipos de veículo.
@@ -860,7 +907,7 @@ class Settings(BaseModel):
     pedestrians: bool = True            # pessoas nas faixas de pedestre, passarelas e caminhos
     pedestrian_seed: int = Field(default=1729,ge=0,le=10**9)
     rail_smoke: bool = True
-    vehicle_mix: Literal['classico','variado','engenharia'] = 'variado'   # variado: carros, motos, vans, caminhões, carretas e ônibus
+    vehicle_mix: Literal['classico','variado','engenharia','rodovia_br'] = 'variado'   # variado: carros, motos, vans, caminhões, carretas e ônibus
     # 1.21: pavimento flexível (asfalto) ou rígido (concreto com juntas), texturas no modo técnico e contraste projeto × imagem.
     pavement_material: Literal['flexivel','rigido'] = 'flexivel'
     existing_material: Literal['flexivel','rigido'] = 'flexivel'
@@ -885,7 +932,7 @@ class Settings(BaseModel):
     render_engine: Literal['otimizado','anterior'] = 'otimizado'   # 1.24: 'anterior' reproduz os quadros da 1.23
     hatch_roles: dict[str,HatchRole] = Field(default_factory=dict)
     hatch_auto: bool = True   # hachuras de camadas não mapeadas recebem o tipo sugerido (projetos novos)
-    texture_params: dict[Literal['pista_nova','pista_existente','concreto','acostamento','canteiro','trilhas','talude_corte','talude_aterro'],TextureParam] = Field(default_factory=dict)
+    texture_params: dict[Literal['pista_nova','pista_existente','concreto','acostamento','canteiro','trilhas','talude_corte','talude_aterro','oae_nova','oae_existente','oae_alargada'],TextureParam] = Field(default_factory=dict)
     direction_reference: Literal['axis','anterior'] = 'axis'
     pavement_areas: list[PavementArea] = Field(default_factory=list,max_length=300)
     shoulder_marks: list[ShoulderMark] = Field(default_factory=list,max_length=300)
@@ -895,9 +942,10 @@ class Settings(BaseModel):
     arrow_min_gap_m: float = Field(default=25,ge=0,le=500)  # 0 = sem afastamento mínimo (igual à 1.17)
     # 1.16: texturas. 'anterior' reproduz a 1.15; 'realistic' acrescenta agregado, remendos, fissuras,
     # trilhas de roda, acostamento e cor da imagem detalhada casada com o mosaico.
+    texture_relief: bool = True                           # 2.48: relevo iluminado nos materiais (asfalto, grama, terra, cascalho, concreto)
     texture_style: Literal['artistico','realistic','anterior'] = 'artistico'   # 1.34: artístico realista (novos projetos)
     natural_materials_only: bool = False
-    earthwork_look: Literal['hatch','natural'] = 'hatch'
+    earthwork_look: Literal['hatch','natural','textura'] = 'textura'   # 1.42.40: a textura cobre a hachura (projetos já salvos mantêm o valor gravado)
     detail_resolution_m: Literal[0.2,0.1] = 0.2
     @model_validator(mode='before')
     @classmethod

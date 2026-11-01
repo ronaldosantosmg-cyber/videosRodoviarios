@@ -30,15 +30,23 @@ def direction(route):
     return result or (1 if route.flow_role in ('acesso','retorno','dispositivo','rotatoria') else 0)
 
 
-def orient_offsets(route,offsets):
-    sense=direction(route)
+def orient_offsets(route,offsets,inherited=0):
+    from .road_sections import lane_directions as _lane_directions
+    sense=direction(route) or inherited
     if not sense:return offsets
     wanted='f' if sense>0 else 'r';other='r' if sense>0 else 'f';result=[]
+    # 2.31: eixo MISTO (parte de dois sentidos, parte de um sentido): o sentido do eixo só orienta os trechos de um sentido;
+    # onde há pista nos dois sentidos (ex.: pista simples) as duas direções são mantidas.
+    misto=(bool(route.cross_sections) and len({len(_lane_directions(x)) for x in route.cross_sections})>1)
     for row in offsets:
+        if misto and any(k[0]=='f' for k in row) and any(k[0]=='r' for k in row) and route.flow_role not in ('acesso','retorno','dispositivo','rotatoria'):
+            result.append(dict(row));continue
         kept={k:v for k,v in row.items() if k[0]==wanted}
         # Uma seção unidirecional pode ser percorrida no sentido inverso sem
         # apagar seu cadastro; as faixas são espelhadas na derivação.
-        if not kept and row and route.type=='unico' and not route.cross_sections and not route.sections and all(k[0]==other for k in row):kept={(wanted,k[1]):-v for k,v in row.items()}
+        if not kept and row and all(k[0]==other for k in row) and ((route.type=='unico' and not route.cross_sections and not route.sections) or (route.cross_sections and all(len(_lane_directions(s))==1 for s in route.cross_sections))):
+            # 2.19: pista de sentido único (também por seção) percorrida ao contrário: espelha e renumera (0 = faixa mais à esquerda da marcha).
+            mirrored=sorted(((-v) for v in row.values()),reverse=(wanted=='r'));kept={(wanted,i):v for i,v in enumerate(mirrored)}
         if route.flow_role=='acesso' and kept:
             if len(kept)>1:raise ValueError('Acesso sobre o eixo: habilite uma única faixa na seção desse percurso.')
             kept={next(iter(kept)):0.}

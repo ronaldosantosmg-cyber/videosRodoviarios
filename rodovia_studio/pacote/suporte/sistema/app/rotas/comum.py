@@ -19,6 +19,23 @@ def idle(pid):
     store.directory(pid)
     with store.connect() as c:r=c.execute("SELECT id FROM jobs WHERE project=? AND state IN ('queued','running','cancel_requested')",(pid,)).fetchone()
     if r:raise HTTPException(409,'Aguarde a tarefa atual terminar ou cancele-a.')
+def release_engine(pid,wait_s=40.):
+    """2.16: a PEDIDO do usuário (substituir o DXF), solta o motor: cancela a consulta de IA e as tarefas do projeto e espera o supervisor
+    encerrar o processo de cálculo (que pode manter o arquivo aberto). O projeto e os arquivos originais não são apagados."""
+    import time as _t
+    from ..small_ai import active as ai_active,cancel as ai_cancel
+    if ai_active():ai_cancel(None)
+    deadline=_t.monotonic()+float(wait_s);asked=False
+    while True:
+        with dispatch_lock:
+            with store.connect() as c:rows=c.execute("SELECT id,state FROM jobs WHERE project=? AND state IN ('queued','running','cancel_requested')",(pid,)).fetchall()
+            for r in rows:
+                jid,state=(r['id'],r['state']) if hasattr(r,'keys') else (r[0],r[1])
+                if state=='queued':store.update(jid,state='cancelled',message='Cancelado a pedido: substituição do DXF')
+                elif state=='running':store.update(jid,state='cancel_requested',message='Cancelamento solicitado: substituição do DXF');asked=True
+        if not rows:return {'released':True,'cancelled':asked}
+        if _t.monotonic()>deadline:raise HTTPException(409,'O motor não encerrou a tarefa em %d s. Aguarde ou reinicie o aplicativo; o projeto e os arquivos originais foram preservados.'%int(wait_s))
+        _t.sleep(.5)
 def enqueue(pid,kind):
     with dispatch_lock:
         from ..small_ai import active as ai_active
@@ -72,4 +89,4 @@ def _project_wgs84(pid):
     rep=json.loads(a.read_text(encoding='utf-8'))
     try:return project_area_wgs84(s.crs,rep['bounds'],margin_m=200)
     except Exception as e:raise HTTPException(422,f'Não foi possível converter a área do projeto para WGS84: {e}')
-__all__=['stop','dispatch_lock','BASE', 'VERSION', 'idle', 'enqueue', '_config', '_save_config', '_receive', '_files_meta', '_files_info', '_img_type', '_project_wgs84', 'ASSETS', 'store', 'Settings', '_BM']
+__all__=['stop','dispatch_lock','BASE', 'VERSION', 'idle', 'release_engine', 'enqueue', '_config', '_save_config', '_receive', '_files_meta', '_files_info', '_img_type', '_project_wgs84', 'ASSETS', 'store', 'Settings', '_BM']

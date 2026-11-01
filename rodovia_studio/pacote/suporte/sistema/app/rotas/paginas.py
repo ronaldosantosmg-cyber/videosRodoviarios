@@ -1,4 +1,5 @@
 """Páginas, ícones, saúde do servidor e “Sobre”."""
+from ..falhas import registrar as _falha
 import asyncio,json,os,sys,uuid,shutil,subprocess,threading,time,zipfile,re
 from xml.etree.ElementTree import ParseError as ET_ERRORS
 from pathlib import Path
@@ -6,7 +7,7 @@ from typing import List
 from fastapi import APIRouter,UploadFile,File,Form,HTTPException,Request
 from fastapi.responses import HTMLResponse,FileResponse,JSONResponse,Response
 from pydantic import BaseModel as _BM,ConfigDict,Field
-from .. import store
+from .. import store,caminhos
 from ..models import Settings
 from ..render import ASSETS
 from .comum import *
@@ -59,7 +60,7 @@ def estilo_css():
 @router.get('/api/health')
 def health(request:Request):
     import imageio_ffmpeg
-    return {'status':'ok','version':VERSION,'ffmpeg':Path(imageio_ffmpeg.get_ffmpeg_exe()).is_file(),'data':str(store.ROOT),'startup_seconds':getattr(request.app.state,'startup_seconds',None)}
+    return {'status':'ok','version':VERSION,'ffmpeg':Path(imageio_ffmpeg.get_ffmpeg_exe()).is_file(),'data':str(store.ROOT),'startup_seconds':getattr(request.app.state,'startup_seconds',None),'caminhos':caminhos.situacao(store.ROOT)}
 
 @router.get('/marca/icone.png',include_in_schema=False)
 def app_icon():
@@ -85,7 +86,7 @@ def about():
     try:
         for f in [store.ROOT.parent/'sistema'/'logs'/'iniciador_versao.txt',store.ROOT.parent/'suporte'/'logs'/'iniciador_versao.txt']:
             if f.exists():launcher=f.read_text(encoding='utf-8').strip()[:80];break
-    except Exception:pass
+    except Exception as _e:_falha(__name__,_e)
     return {'app':VERSION,'schema':SCHEMA_VERSION,'launcher':launcher,'pastas':{'projetos':str(store.ROOT),'videos':str(store.videos_root()),'sistema':str(store.system_root() or '')},'python':platform.python_version(),'system':platform.platform()}
 
 @router.get('/api/capacidades')

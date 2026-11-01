@@ -199,7 +199,7 @@ def test_editor_127_ui(junction):
             # Barra de menus: Ajuda > Sobre.
             page.click('#menuBar .mb:has-text("Ajuda")');page.click('#menuBar .rb:has-text("Sobre")');page.wait_for_selector('#aboutDlg[open]')
             assert 'Formato do projeto' in page.inner_text('#aboutBody');page.keyboard.press('Escape')
-            sbt=page.inner_text('#statusBar');assert 'SNAP' in sbt and 'ORTO' in sbt and 'X 5002' in sbt
+            sbt=page.inner_text('#statusBar');assert 'CAPTURA' in sbt and 'ORTO' in sbt and 'X 5002' in sbt
             page.wait_for_timeout(1300);conf=c.get(f'/api/projects/{pid}').json()['config']
             assert conf['advance_mode']=='velocidade' and conf['advance_speed_kmh']==36 and conf['connection_rules'] and conf['advance_zones'] and conf['pavement_areas'][0]['texture']['grao']==2.5
             b.close()
