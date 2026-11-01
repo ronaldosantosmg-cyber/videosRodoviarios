@@ -97,7 +97,7 @@ def test_real_scene_hides_only_technical_guides_and_retains_registered_dxf(tmp_p
     # O desenho e suas máscaras continuam presentes, mesmo com referências ocultas.
     assert (scene.surface>0).any() and scene.has_surface
     if os.environ.get('VISUAL_ARTIFACTS'):
-        out=Path(os.environ['VISUAL_ARTIFACTS']);out.mkdir(parents=True,exist_ok=True);Image.fromarray(a).save(out/'264_artistico_sem_contornos.png');Image.fromarray(b).save(out/'264_contornos_opcionais.png')
+        out=Path(os.environ['VISUAL_ARTIFACTS']);out.mkdir(parents=True,exist_ok=True);Image.fromarray(a).save(out/'266_artistico_sem_contornos.png');Image.fromarray(b).save(out/'266_contornos_opcionais.png')
 
 
 def test_profiles_produce_decodable_video_and_comparable_frames(tmp_path):
@@ -108,6 +108,6 @@ def test_profiles_produce_decodable_video_and_comparable_frames(tmp_path):
     reports={}
     for mode in ('realista','ultra_realista'):
         folder=tmp_path/mode;folder.mkdir();d,s=sample(folder,mode);s.traffic=True;(d/'config.json').write_text(s.model_dump_json())
-        scene=Scene(d,s);assert any(list(scene.traffic_iter(t)) for t in (0,1,2));frame,_=scene.frame(2.8,view=([500250,7800010],650));Image.fromarray(frame).save(evidence/f'264_{mode}.png')
+        scene=Scene(d,s);assert any(list(scene.traffic_iter(t)) for t in (0,1,2));frame,_=scene.frame(2.8,view=([500250,7800010],650));Image.fromarray(frame).save(evidence/f'266_{mode}.png')
         output=render(d,s);result=validate_mp4(ffmpeg_exe(),output,72,1280,720,24);assert result['ok'];reports[mode]=result
-    (evidence/'264_videos.json').write_text(json.dumps(reports,indent=2)+'\n')
+    (evidence/'266_videos.json').write_text(json.dumps(reports,indent=2)+'\n')

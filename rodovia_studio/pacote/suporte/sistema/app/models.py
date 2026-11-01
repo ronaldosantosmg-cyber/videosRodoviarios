@@ -948,6 +948,7 @@ class Settings(BaseModel):
     texture_style: Literal['artistico','realistic','anterior'] = 'artistico'   # 1.34: artístico realista (novos projetos)
     realism_profile: Literal['realista','ultra_realista'] = 'ultra_realista'
     presentation_guides: bool = False
+    dxf_lead_m: float = Field(default=30.,ge=0,le=150)
     natural_materials_only: bool = False
     earthwork_look: Literal['hatch','natural','textura'] = 'textura'   # 1.42.40: a textura cobre a hachura (projetos já salvos mantêm o valor gravado)
     detail_resolution_m: Literal[0.2,0.1] = 0.2

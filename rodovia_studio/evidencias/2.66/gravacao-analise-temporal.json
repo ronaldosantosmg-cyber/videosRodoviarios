@@ -1,0 +1,9 @@
+{
+  "decoded_frames": 203,
+  "registered_pairs": 67,
+  "frame_step": 3,
+  "scale": 0.5,
+  "road_mean_delta": 7.245600205840101,
+  "background_mean_delta": 5.7150520697279665,
+  "scope": "Gravação recebida; alinhamento afim aproximado. Compressão, veículos e parallax também contribuem. Não é comparação com uma nova renderização exata do TH57."
+}

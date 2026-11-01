@@ -250,7 +250,8 @@ class Scene:
         return np.column_stack([(p[:,0]-self.box[0])/self.px,(self.box[3]-p[:,1])/self.px])
     def at(self,ch):return np.array([np.interp(ch,self.ds,self.axis[:,k]) for k in range(2)])
     def prepare_surface(self,status):
-        self.domain=[e['points'] for e in self.items if e['role']=='domain']
+        from .presentation import contour_runs
+        self.domain=[run for e in self.items if e['role']=='domain' for run in contour_runs(e)]
         self.domain_dashes=[]
         for points in self.domain:
             ln=LineString(points)
@@ -735,6 +736,17 @@ class Scene:
             end=max(2,int(np.searchsorted(self.ds,progress*self.length)))
             coords=self.screen(self.axis[:end],cam,width).astype(np.int32)
             if len(coords)>1:cv2.polylines(im,[coords],False,(120,218,230),max(2,round(4*self.scale)),cv2.LINE_AA)
+        lead=float(getattr(self.s,'dxf_lead_m',30.))
+        if progress<1 and lead>0:
+            from .presentation import DXFAdvance
+            if not hasattr(self,'_dxf_advance'):self._dxf_advance=DXFAdvance(self.items,self.tree,self.ch)
+            segments=self._dxf_advance.window(progress*self.length,lead)
+            if len(segments):
+                near=np.linalg.norm(segments.mean(1)-cam,axis=1)<width*.8
+                coords=self.screen(segments[near].reshape(-1,2),cam,width).reshape(-1,2,2).astype(np.int32)
+                if len(coords):
+                    cv2.polylines(im,coords,False,(35,43,46),3,cv2.LINE_AA)
+                    cv2.polylines(im,coords,False,(215,229,230),1,cv2.LINE_AA)
         before_vectors=im.copy() if opacity<1 else None
         if self.enhanced:self.draw_enhanced_structures(im,cam,width,progress)
         else:self.draw_oae_marks(im,cam,width,progress)

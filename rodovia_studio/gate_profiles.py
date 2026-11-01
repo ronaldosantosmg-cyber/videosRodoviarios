@@ -7,7 +7,7 @@ VISUAL_FILES={
  'app/scene3d.py','app/visual.py','app/dependencies.py','app/webgl/viewer.mjs',
  'app/index.html','app/js/01_estado_configuracao.js','app/js/75_operacao_consolidada.js',
 }
-NEW_FIELDS={'realism_profile','presentation_guides'}
+NEW_FIELDS={'realism_profile','presentation_guides','dxf_lead_m'}
 
 def model_contract(text,strip=False):
     tree=ast.parse(text)

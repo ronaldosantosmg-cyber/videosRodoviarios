@@ -1,0 +1,24 @@
+{
+  "base_version": "2.63",
+  "platform": "Linux; não é homologação Windows nativa",
+  "packages": [
+    {
+      "filename": "RodoviaStudio_2_65_atualizacao.zip",
+      "sha256": "9aef956661a07a960068c60bfabd95356c88355b9a0056ffa4519b712e04c6cf",
+      "files_checked": 477,
+      "apply": true,
+      "rollback": true,
+      "data_preserved": true,
+      "older_base_refused": false
+    },
+    {
+      "filename": "RodoviaStudio_2_65_atualizacao_leve.zip",
+      "sha256": "2065eac7222b92a22808072180f5684ed5ec1a8346e18795f292d88d7140bde6",
+      "files_checked": 31,
+      "apply": true,
+      "rollback": true,
+      "data_preserved": true,
+      "older_base_refused": true
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "2.64",
-  "description": "2.64: perfis Realista/Ultra realista, estabilidade da textura, contornos opcionais e apresentação DXF sincronizada."
+  "version": "2.66",
+  "description": "2.66: frente DXF antes dos materiais, supressão de fechamentos virtuais, perfis de detalhe e GATE por risco."
 }

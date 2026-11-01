@@ -1,0 +1,117 @@
+No broken requirements found.
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.7.0 -- /workspace/.venvs/rodovia-studio/bin/python
+rootdir: /workspace/rodovia-studio-263
+configfile: pyproject.toml
+plugins: anyio-4.15.1, xdist-3.8.0
+collecting ... collected 85 items
+
+tests/test_v264_presentation.py::test_quality_modes_are_explicit_and_invalid_modes_refused PASSED [  1%]
+tests/test_v264_presentation.py::test_same_world_point_does_not_flash_with_small_zoom_change PASSED [  2%]
+tests/test_v264_presentation.py::test_lod_transition_is_continuous_not_an_octave_switch PASSED [  3%]
+tests/test_v264_presentation.py::test_realistic_has_less_micro_detail_and_keeps_manual_material_color PASSED [  4%]
+tests/test_v264_presentation.py::test_fill_green_cut_red_and_manual_mapping_preserved PASSED [  5%]
+tests/test_v264_presentation.py::test_detail_reveal_recovers_only_drawn_pixels_missing_in_coarse_map PASSED [  7%]
+tests/test_v264_presentation.py::test_appearance_changes_do_not_rebuild_traffic_or_geometry PASSED [  8%]
+tests/test_v264_presentation.py::test_real_scene_hides_only_technical_guides_and_retains_registered_dxf PASSED [  9%]
+tests/test_v264_presentation.py::test_profiles_produce_decodable_video_and_comparable_frames PASSED [ 10%]
+tests/test_v264_ui.py::test_quality_reaches_saved_config_discard_preserves_it_and_webgl_uses_it PASSED [ 11%]
+tests/test_v265_dxf_advance.py::test_virtual_hatch_chord_is_not_a_drawn_edge_even_when_split PASSED [ 12%]
+tests/test_v265_dxf_advance.py::test_leading_dxf_is_clipped_to_front_and_never_connects_separate_entities PASSED [ 14%]
+tests/test_v265_dxf_advance.py::test_guide_and_dxf_lead_changes_do_not_invalidate_static_3d_or_read_dxf PASSED [ 15%]
+tests/test_v265_dxf_advance.py::test_real_construction_frame_draws_dxf_ahead_then_keeps_final_texture PASSED [ 16%]
+tests/test_v265_dxf_advance.py::test_3d_fill_cut_pigments_and_manual_colors_are_preserved PASSED [ 17%]
+tests/test_v14281_relevo_texturas.py::test_sem_costura_entre_ladrilhos_vizinhos PASSED [ 18%]
+tests/test_v14281_relevo_texturas.py::test_deterministico_e_cores_validas PASSED [ 20%]
+tests/test_v14281_relevo_texturas.py::test_tem_textura_e_mantem_a_cor_media PASSED [ 21%]
+tests/test_v14281_relevo_texturas.py::test_ancorada_no_mundo_deslocar_o_ladrilho_desloca_a_textura PASSED [ 22%]
+tests/test_v14281_relevo_texturas.py::test_papel_desconhecido_nao_muda PASSED [ 23%]
+tests/test_v14281_relevo_texturas.py::test_blocos_igual_a_passo_unico_e_respeita_mascara PASSED [ 24%]
+tests/test_v14281_relevo_texturas.py::test_modelo_tem_o_campo PASSED     [ 25%]
+tests/test_v14281_relevo_texturas.py::test_quatro_tipos_de_pavimento_tem_texturas_distintas PASSED [ 27%]
+tests/test_v14281_relevo_texturas.py::test_existente_e_mais_irregular_que_novo PASSED [ 28%]
+tests/test_v14281_relevo_texturas.py::test_rigido_sem_costura_e_deterministico PASSED [ 29%]
+tests/test_v14281_relevo_texturas.py::test_misto_aplica_cada_material_na_sua_regiao PASSED [ 30%]
+tests/test_v14281_relevo_texturas.py::test_misto_sem_rigido_igual_a_flexivel PASSED [ 31%]
+tests/test_v14281_relevo_texturas.py::test_barreira_e_acostamento_rigido_tem_relevo PASSED [ 32%]
+tests/test_v14281_relevo_texturas.py::test_oae_tres_tipos_distintos_e_sem_costura PASSED [ 34%]
+tests/test_v14281_relevo_texturas.py::test_agua_sem_costura_entre_ladrilhos_e_so_na_mascara PASSED [ 35%]
+tests/test_v14281_relevo_texturas.py::test_agua_azulada_e_mais_escura_no_fundo PASSED [ 36%]
+tests/test_v14281_relevo_texturas.py::test_copa_determinismo_cache_e_limites PASSED [ 37%]
+tests/test_v14281_relevo_texturas.py::test_copa_lado_do_sol_mais_claro PASSED [ 38%]
+tests/test_v14281_relevo_texturas.py::test_blit_copa_nas_bordas_nao_quebra PASSED [ 40%]
+tests/test_v14282_passarela_tinta.py::test_anchor_igual_ao_desenho_simples PASSED [ 41%]
+tests/test_v14282_passarela_tinta.py::test_realista_deterministico_e_visivel PASSED [ 42%]
+tests/test_v14282_passarela_tinta.py::test_deck_claro_e_texturizado PASSED [ 43%]
+tests/test_v14282_passarela_tinta.py::test_escada_e_rampa_nao_quebram PASSED [ 44%]
+tests/test_v14282_passarela_tinta.py::test_tinta_so_altera_onde_pintou PASSED [ 45%]
+tests/test_v14282_passarela_tinta.py::test_tinta_sem_pintura_nao_muda PASSED [ 47%]
+tests/test_v14282_passarela_tinta.py::test_tinta_ancorada_no_mundo PASSED [ 48%]
+tests/test_v14282_passarela_tinta.py::test_tinta_mais_clara_que_asfalto PASSED [ 49%]
+tests/test_v14282_passarela_tinta.py::test_postes_opcionais_nas_rampas PASSED [ 50%]
+tests/test_v14282_passarela_tinta.py::test_modelo_aceita_bridge_poles PASSED [ 51%]
+tests/test_v14282_passarela_tinta.py::test_graos_preservam_tom_medio_e_sao_deterministicos PASSED [ 52%]
+tests/test_v14282_passarela_tinta.py::test_craquele_so_de_perto_e_nao_vaza_para_fora_da_tinta PASSED [ 54%]
+tests/test_v263_ui.py::test_split_axis_preserves_first_section_and_saves_modified_second PASSED [ 55%]
+tests/test_v263_ui.py::test_save_and_close_includes_next_section_without_extra_add_click PASSED [ 56%]
+tests/test_v263_ui.py::test_csv_import_previews_positions_and_outside_work_cannot_be_located PASSED [ 57%]
+tests/test_v142_update.py::test_apply_snapshot_rollback_and_relocation PASSED [ 58%]
+tests/test_v142_update.py::test_failed_replace_restores_all_and_has_journal_before_write PASSED [ 60%]
+tests/test_v142_update.py::test_incomplete_backup_rejected_before_any_restore PASSED [ 61%]
+tests/test_v142_update.py::test_zip_formats_apply_and_archive[] PASSED   [ 62%]
+tests/test_v142_update.py::test_zip_formats_apply_and_archive[pacote/] PASSED [ 63%]
+tests/test_v142_update.py::test_zip_formats_apply_and_archive[RS142/pacote/] PASSED [ 64%]
+tests/test_v142_update.py::test_only_updates_directory_and_equivalent_versions PASSED [ 65%]
+tests/test_v142_update.py::test_reject_zip_traversal_and_quarantine[../../fora.py] PASSED [ 67%]
+tests/test_v142_update.py::test_reject_zip_traversal_and_quarantine[C:/fora.py] PASSED [ 68%]
+tests/test_v142_update.py::test_reject_zip_traversal_and_quarantine[..\\fora.py] PASSED [ 69%]
+tests/test_v142_update.py::test_reject_zip_traversal_and_quarantine[/fora.py] PASSED [ 70%]
+tests/test_v142_update.py::test_invalid_content_quarantined_and_valid_can_follow PASSED [ 71%]
+tests/test_v142_update.py::test_bad_manifest_archived_even_with_valid_candidate PASSED [ 72%]
+tests/test_v142_update.py::test_snapshot_names_do_not_collide PASSED     [ 74%]
+tests/test_v142_update.py::test_target_symlink_cannot_change_persistent_data PASSED [ 75%]
+tests/test_v142_update.py::test_tampered_backup_target_is_rejected PASSED [ 76%]
+tests/test_v142_update.py::test_concurrent_update_is_rejected PASSED     [ 77%]
+tests/test_v142_update.py::test_api_listing_real_candidate_and_rollback PASSED [ 78%]
+tests/test_v142_update.py::test_session_shutdown_requires_token_and_refuses_active_work PASSED [ 80%]
+tests/test_v142_update.py::test_invalid_wait_is_rejected[nan] PASSED     [ 81%]
+tests/test_v142_update.py::test_invalid_wait_is_rejected[inf] PASSED     [ 82%]
+tests/test_v142_update.py::test_invalid_wait_is_rejected[-1] PASSED      [ 83%]
+tests/test_v142_update.py::test_failed_rollback_recovers_state_before_attempt PASSED [ 84%]
+tests/test_v142_update.py::test_recover_pending_update_after_process_crash PASSED [ 85%]
+tests/test_v142_update.py::test_hash_manifest_detects_tampering_and_unlisted_files PASSED [ 87%]
+tests/test_v263_backend.py::test_vehicle_body_must_be_entirely_on_pavement_without_changing_routes PASSED [ 88%]
+tests/test_v263_backend.py::test_empty_pavement_hides_vehicle_including_classic_mode PASSED [ 89%]
+tests/test_v263_backend.py::test_per_position_uses_true_stationing_and_does_not_clip_outside_to_endpoint[False] PASSED [ 90%]
+tests/test_v263_backend.py::test_per_position_uses_true_stationing_and_does_not_clip_outside_to_endpoint[True] PASSED [ 91%]
+tests/test_v263_backend.py::test_per_coordinates_and_off_stationing_are_explicit PASSED [ 92%]
+tests/test_v263_backend.py::test_import_preview_api_uses_current_draft_and_preserves_saved_config PASSED [ 94%]
+tests/test_v14231_flow_nodes.py::test_real_typed_y_junction_preserves_connections_and_conservation PASSED [ 95%]
+tests/test_v14294_redimensionar_sem_balancar.py::test_resize_preserva_vista PASSED [ 96%]
+../../../verificacao/test_gate_curto.py::test_core_or_unknown_change_promotes_broad_and_appearance_is_currently_scoped PASSED [ 97%]
+../../../verificacao/test_gate_curto.py::test_deadline_stops_test_children_instead_of_leaving_a_late_write PASSED [ 98%]
+../../../verificacao/test_gate_curto.py::test_gate_external_tests_and_helpers_participate_in_reuse_hash PASSED [100%]
+
+=============================== warnings summary ===============================
+../../../../../.venvs/rodovia-studio/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /workspace/rodovia-studio-263/rodovia_studio/evidencias/2.66/entrega/pytest-resultados.xml -
+============================= slowest 10 durations =============================
+28.48s call     rodovia_studio/pacote/suporte/sistema/tests/test_v264_presentation.py::test_profiles_produce_decodable_video_and_comparable_frames
+28.14s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v264_ui.py::test_quality_reaches_saved_config_discard_preserves_it_and_webgl_uses_it
+15.20s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v263_ui.py::test_csv_import_previews_positions_and_outside_work_cannot_be_located
+13.28s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v263_ui.py::test_save_and_close_includes_next_section_without_extra_add_click
+10.35s setup    rodovia_studio/pacote/suporte/sistema/tests/test_v263_ui.py::test_split_axis_preserves_first_section_and_saves_modified_second
+9.72s call     rodovia_studio/pacote/suporte/sistema/tests/test_v264_ui.py::test_quality_reaches_saved_config_discard_preserves_it_and_webgl_uses_it
+3.02s call     rodovia_studio/pacote/suporte/sistema/tests/test_v263_ui.py::test_csv_import_previews_positions_and_outside_work_cannot_be_located
+2.56s call     rodovia_studio/pacote/suporte/sistema/tests/test_v264_presentation.py::test_real_scene_hides_only_technical_guides_and_retains_registered_dxf
+2.20s call     rodovia_studio/pacote/suporte/sistema/tests/test_v265_dxf_advance.py::test_real_construction_frame_draws_dxf_ahead_then_keeps_final_texture
+1.61s call     rodovia_studio/pacote/suporte/sistema/tests/test_v263_ui.py::test_split_axis_preserves_first_section_and_saves_modified_second
+================== 85 passed, 1 warning in 124.22s (0:02:04) ===================
+iniciador/RodoviaStudio.cs(428,17): warning CS0162: Unreachable code detected
+Compilation succeeded - 1 warning(s)
+Gtk not found (missing LD_LIBRARY_PATH to libgtk-x11-2.0.so.0?), using built-in colorscheme
+Splash: versão, fabricante e animação verificados (8114 pixels alterados).

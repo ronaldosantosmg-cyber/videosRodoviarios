@@ -84,7 +84,7 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
         color=settings.role_colors.get(e['role']) or ART_COLORS.get(e['role'])
         if color:labels[key_mesh]['color']=color
         from .asset_catalog import CATALOG
-        if material in CATALOG:labels[key_mesh].update(asset_material=material,texture_pattern=CATALOG[material]['pattern'],color=settings.role_colors.get(e['role']) or CATALOG[material]['color'])
+        if material in CATALOG:labels[key_mesh].update(asset_material=material,texture_pattern=CATALOG[material]['pattern'],color=settings.role_colors.get(e['role']) or ART_COLORS.get(e['role']) or CATALOG[material]['color'])
         for triangle in shapely.constrained_delaunay_triangles(geom).geoms:
             q=np.asarray(triangle.exterior.coords)[:3,:2];total+=3
             if total>MAX_VERTICES:raise ValueError('Cena 3D muito detalhada. Divida o desenho em trechos menores.')

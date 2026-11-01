@@ -7,6 +7,7 @@ import {OrbitControls} from '/vendor/three/examples/jsm/controls/OrbitControls.j
 const PALETTE={pavement:0x667079,existing_pavement:0x899195,shoulder:0x8e948d,median:0x73906a,oae:0x8a9299,water:0x4e899d,cut:0xa85642,fill:0x54803e,rail_ballast:0x8d877c,crosswalk:0xf4f3e6};
 const finiteArray=(a,stride)=>Array.isArray(a)&&a.length%stride===0&&a.every(Number.isFinite);
 export function validateScene(data){
+ if(data?.realism_profile!==undefined&&!['realista','ultra_realista'].includes(data.realism_profile))throw Error('Perfil de apresentação inválido.');
  if(data?.format!=='rodovia-scene3d-1'||!finiteArray(data.origin_crs,3)||data.origin_crs.length!==3||!Number.isFinite(data.span_m)||data.span_m<=0||data.span_m>200000)throw Error('Origem ou escala 3D inválida.');
  if(!Array.isArray(data.meshes)||data.meshes.length>10000||!Array.isArray(data.vehicles)||data.vehicles.length>20000)throw Error('Cena 3D fora dos limites de segurança.');
  let count=0;

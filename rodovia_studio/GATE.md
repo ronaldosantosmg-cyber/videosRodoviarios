@@ -1,6 +1,6 @@
 # GATE por risco
 
-O padrão da 2.64 executa testes da alteração e das dependências diretas. A seleção inclui comportamento da janela, persistência, vídeo decodificado nos dois perfis, pavimento, estaqueamento PER, conservação de fluxo e aplicação/rollback. Não aprova a entrega apenas porque a tela abriu ou porque uma porcentagem de casos passou.
+O padrão da 2.66 executa testes da alteração e das dependências diretas. A seleção inclui comportamento da janela, persistência, vídeo decodificado nos dois perfis, pavimento, estaqueamento PER, conservação de fluxo e aplicação/rollback. Não aprova a entrega apenas porque a tela abriu ou porque uma porcentagem de casos passou.
 
 `python validar_entrega.py --gerar` usa o perfil curto quando a comparação com a 2.63 comprova o escopo conhecido de apresentação. Arquivos novos/alterados fora dessa lista e alterações no contrato antigo de modelos promovem o perfil ampliado. `--amplo` força a regressão maior. A classificação é conservadora, não substitui a revisão do diff nem prova cobertura universal de chamadas dinâmicas.
 
