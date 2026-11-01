@@ -80,6 +80,9 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
         material='concrete' if e.get('material')=='rigido' or e['role']=='oae' else e.get('asset_material')
         key_mesh=e['role']+'|'+str(e.get('layer',''))+'|'+str(material)
         labels[key_mesh]={'role':e['role'],'layer':str(e.get('layer','')),'name':str(e.get('layer') or e['role'])}
+        from .presentation import ART_COLORS
+        color=settings.role_colors.get(e['role']) or ART_COLORS.get(e['role'])
+        if color:labels[key_mesh]['color']=color
         from .asset_catalog import CATALOG
         if material in CATALOG:labels[key_mesh].update(asset_material=material,texture_pattern=CATALOG[material]['pattern'],color=settings.role_colors.get(e['role']) or CATALOG[material]['color'])
         for triangle in shapely.constrained_delaunay_triangles(geom).geoms:
@@ -208,7 +211,7 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
     if cancel():raise InterruptedError('Construção 3D cancelada.')
     if sum(len(mesh['positions'])//3 for mesh in context_meshes+meshes)>MAX_VERTICES:raise ValueError('Cena e objetos da imagem excedem o orçamento 3D. Reduza a área.')
     if not settings.traffic_prevent_collisions or not settings.traffic_respect_signals:warnings.append('Ensaio: verificação de colisões ou respeito aos semáforos desativado; não interpretar como circulação validada.')
-    data={'simulation_mode':'protegido' if not settings.traffic_classic and settings.traffic_prevent_collisions and settings.traffic_respect_signals and not settings.heavy_shoulder_overtake else 'ensaio','format':'rodovia-scene3d-1','revision':rev0,'origin_crs':origin.tolist(),'crs':settings.crs,'coordinates_confirmed':settings.coordinates_confirmed,'span_m':span,'meshes':context_meshes+meshes,'terrain':terrain,'markings':markings,'marking_width_m':marking_width_m,'diagnostics':diagnostics,'vehicles':list(tracks.values())+list(train_tracks.values()),'pedestrians':list(person_tracks.values()),'pedestrian_report':people.report(),'rail_smoke':settings.rail_smoke,'transport':transport_data,'duration_s':duration,'source_duration_s':settings.duration_s,'simulation_report':sim.report() if sim else None,'warnings':warnings[-25:],'scope':'Visualização de projeto e tráfego. Diagnósticos técnicos não integram a captura de apresentação.'}
+    data={'simulation_mode':'protegido' if not settings.traffic_classic and settings.traffic_prevent_collisions and settings.traffic_respect_signals and not settings.heavy_shoulder_overtake else 'ensaio','format':'rodovia-scene3d-1','realism_profile':settings.realism_profile,'revision':rev0,'origin_crs':origin.tolist(),'crs':settings.crs,'coordinates_confirmed':settings.coordinates_confirmed,'span_m':span,'meshes':context_meshes+meshes,'terrain':terrain,'markings':markings,'marking_width_m':marking_width_m,'diagnostics':diagnostics,'vehicles':list(tracks.values())+list(train_tracks.values()),'pedestrians':list(person_tracks.values()),'pedestrian_report':people.report(),'rail_smoke':settings.rail_smoke,'transport':transport_data,'duration_s':duration,'source_duration_s':settings.duration_s,'simulation_report':sim.report() if sim else None,'warnings':warnings[-25:],'scope':'Visualização de projeto e tráfego. Diagnósticos técnicos não integram a captura de apresentação.'}
     if not np.isfinite(origin).all():raise ValueError('Origem 3D inválida.')
     if rev0!=revision(d):raise ValueError('O projeto mudou durante o processamento. Reconstrua o 3D.')
     encoded=json.dumps(data,ensure_ascii=False,allow_nan=False,separators=(',',':')).encode()

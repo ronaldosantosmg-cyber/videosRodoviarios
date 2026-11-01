@@ -12,6 +12,8 @@ import sys
 import tempfile
 import xml.etree.ElementTree as ET
 import zipfile
+import time
+import signal
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from validacao_incremental import product_digest,test_hashes,plan as resume_plan,merge as merge_reports
 
@@ -23,6 +25,20 @@ EVIDENCE=ROOT/'evidencias'/json.loads((PACKAGE/'manifest.json').read_text())['ve
 # A auditoria histórica ampla é registrada à parte e não aprova esta revisão.
 TESTS=['tests/test_v263_backend.py', 'tests/test_v263_ui.py', 'tests/test_v135.py', 'tests/test_v142_update.py', 'tests/test_v1428_long_paths.py', 'tests/test_v1427_state.py', 'tests/test_v1427_state_ui.py', 'tests/test_v1429_layer_reading.py', 'tests/test_v1425_scene3d.py', 'tests/test_v1425_live_3d.py', 'tests/test_v1425_capture3d.py', 'tests/test_v1424_flow_limit.py', 'tests/test_v14231_flow_nodes.py', 'tests/test_v14230_flow_rules.py', 'tests/test_v14229_shoulder_probe.py', 'tests/test_v14248_pista_dupla_mesmo_sentido.py', 'tests/test_v14249_contorno_hachura.py', 'tests/test_v14264_sentido_previa_secao.py', 'tests/test_v14265_uniformidade_sentido.py', 'tests/test_v14266_setas_uniformes_navegador.py', 'tests/test_v14267_secao_segue_km.py', 'tests/test_v14268_apresentacao_segue_km.py', 'tests/test_v14270_eixo_nao_paralelo.py', 'tests/test_v14271_fluxo_tela_completo.py', 'tests/test_v14272_cobertura_secoes.py', 'tests/test_v14273_varias_secoes_no_eixo.py', 'tests/test_v14274_textura_ao_vivo.py', 'tests/test_v14275_frota_realista.py', 'tests/test_v14278_articulado.py', 'tests/test_v14279_atmosfera_foto.py', 'tests/test_v14280_sprites_exatidao.py', 'tests/test_v14281_relevo_texturas.py', 'tests/test_v14282_passarela_tinta.py', 'tests/test_v14283_transicao_secoes.py', 'tests/test_v14284_dialogo_secoes.py', 'tests/test_v14288_agua_blocos.py', 'tests/test_v14289_mascara_roi.py', 'tests/test_v14290_hausdorff_rapido.py', 'tests/test_v14291_cache_analise.py', 'tests/test_v14292_varredura_rapida.py', 'tests/test_v14293_legenda_terreno.py', 'tests/test_v14294_redimensionar_sem_balancar.py']
 DESELECT=[]
+CRITICAL=[
+ 'tests/test_v264_presentation.py','tests/test_v264_ui.py',
+ 'tests/test_v14281_relevo_texturas.py','tests/test_v14282_passarela_tinta.py',
+ 'tests/test_v263_ui.py','tests/test_v142_update.py',
+ 'tests/test_v263_backend.py::test_vehicle_body_must_be_entirely_on_pavement_without_changing_routes',
+ 'tests/test_v263_backend.py::test_empty_pavement_hides_vehicle_including_classic_mode',
+ 'tests/test_v263_backend.py::test_per_position_uses_true_stationing_and_does_not_clip_outside_to_endpoint',
+ 'tests/test_v263_backend.py::test_per_coordinates_and_off_stationing_are_explicit',
+ 'tests/test_v263_backend.py::test_import_preview_api_uses_current_draft_and_preserves_saved_config',
+ 'tests/test_v14231_flow_nodes.py::test_real_typed_y_junction_preserves_connections_and_conservation',
+ 'tests/test_v14294_redimensionar_sem_balancar.py',
+ '../../../verificacao/test_gate_curto.py',
+]
+
 
 
 
@@ -30,6 +46,21 @@ def run(args,env,log):
     result=subprocess.run([str(a) for a in args],cwd=SYSTEM,env=env,stdout=log,stderr=subprocess.STDOUT)
     log.flush()
     if result.returncode:raise RuntimeError(f'Verificação falhou: {args[0]}. Consulte {log.name}.')
+
+
+def test_process(args,env,log,limit):
+    proc=subprocess.Popen([str(a) for a in args],cwd=SYSTEM,env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=os.name!='nt')
+    try:return proc.wait(timeout=limit)
+    except subprocess.TimeoutExpired:
+        if os.name!='nt':os.killpg(proc.pid,signal.SIGTERM)
+        else:proc.terminate()
+        try:proc.wait(timeout=3)
+        except subprocess.TimeoutExpired:
+            if os.name!='nt':os.killpg(proc.pid,signal.SIGKILL)
+            else:proc.kill()
+            proc.wait()
+        raise RuntimeError(f'Testes excederam {limit} s; execução encerrada e pacote bloqueado. Consulte a última etapa no log.')
+    finally:log.flush()
 
 
 def digest():
@@ -67,12 +98,16 @@ def native_checks(env,log):
 
 def main():
     global EVIDENCE
-    parser=argparse.ArgumentParser();parser.add_argument('--workers',type=int,default=1,choices=range(1,5),help='Processos de teste isolados, com os mesmos testes obrigatórios.');parser.add_argument('--retomar',default='',help='Retoma relatório anterior do mesmo produto; repete módulos alterados, dependentes e falhas.');parser.add_argument('--evidencias',default='',help='Subpasta desta tentativa; preserva relatórios anteriores.');parser.add_argument('--gerar',action='store_true');parser.add_argument('--rapido',action='store_true',help='Diagnóstico curto; não autoriza gerar pacote.');args=parser.parse_args()
+    started=time.perf_counter()
+    parser=argparse.ArgumentParser();parser.add_argument('--workers',type=int,default=1,choices=range(1,5),help='Processos de teste isolados, com os mesmos testes obrigatórios.');parser.add_argument('--retomar',default='',help='Retoma relatório anterior do mesmo produto; repete módulos alterados, dependentes e falhas.');parser.add_argument('--evidencias',default='',help='Subpasta desta tentativa; preserva relatórios anteriores.');parser.add_argument('--gerar',action='store_true');parser.add_argument('--amplo',action='store_true',help='Regressão ampliada; automática se o núcleo ou um contrato sensível mudar.');parser.add_argument('--rapido',action='store_true',help='Diagnóstico curto; não autoriza gerar pacote.');args=parser.parse_args()
     if args.evidencias:
         if not args.evidencias.replace('-','').replace('_','').isalnum():parser.error('Nome de pasta de evidências inválido.')
         EVIDENCE=EVIDENCE/args.evidencias
     if args.rapido and args.gerar:parser.error('--rapido não pode gerar pacote; execute a validação completa.')
-    selected=TESTS
+    from gate_profiles import assess
+    risk=assess(ROOT.parent,SYSTEM)
+    broad=args.amplo or risk['requires_broad']
+    selected=list(dict.fromkeys(TESTS+CRITICAL)) if broad else CRITICAL
     if args.rapido:
         EVIDENCE=EVIDENCE/'diagnostico_rapido'
         selected=['tests/test_v14210_flow_tools.py','tests/test_v14210_engineering_assets.py','tests/test_v14210_flow_recovery.py','tests/test_v1429_layer_reading.py','tests/test_v1429_layers_ui.py','tests/test_v1429_route_recovery.py','tests/test_v1429_mouse.py','tests/test_v1429_project_imagery.py']
@@ -85,6 +120,7 @@ def main():
     initial=digest();report=EVIDENCE/'pytest-resultados.xml'
     if args.retomar and Path(args.retomar).resolve()==EVIDENCE.resolve():raise RuntimeError('Use outra subpasta para preservar a execução de origem.')
     report.unlink(missing_ok=True)
+    (EVIDENCE/'perfil.json').write_text(json.dumps({'profile':'amplo' if broad else 'curto_por_risco','risk':risk,'limit_seconds':900 if broad else 180},ensure_ascii=False,indent=2)+'\n')
     origin={'product_sha256':product_digest(PACKAGE),'package_sha256':initial,'tests':test_hashes(SYSTEM),'selected':selected}
     (EVIDENCE/'origem.json').write_text(json.dumps(origin,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     with (EVIDENCE/'validacao.log').open('w',encoding='utf-8') as log:
@@ -106,12 +142,12 @@ def main():
         arguments=state['arguments'] if state else selected
         fresh=EVIDENCE/'pytest-reexecutados.xml' if state else report
         if arguments:
-            result=subprocess.run([sys.executable,'-m','pytest','-v','-p','no:cacheprovider',*parallel,'--durations=15',*arguments,*[item for case in DESELECT for item in ['--deselect',case]],f'--junitxml={fresh}'],cwd=SYSTEM,env=env,stdout=log,stderr=subprocess.STDOUT);log.flush()
+            result_code=test_process([sys.executable,'-m','pytest','-v','-p','no:cacheprovider',*parallel,'--durations=10',*arguments,*[item for case in DESELECT for item in ['--deselect',case]],f'--junitxml={fresh}'],env,log,900 if broad else 180)
             if not fresh.exists():raise RuntimeError('Testes não produziram relatório; pacote bloqueado.')
         if state:
             merge_reports(state,fresh if arguments else None,report)
-            if arguments and result.returncode:raise RuntimeError('Execução de testes incompleta; pacote bloqueado.')
-        if not state and result.returncode:raise RuntimeError('Há falhas na suíte completa; consulte o relatório. Nenhum ZIP gerado.')
+            if arguments and result_code:raise RuntimeError('Execução de testes incompleta; pacote bloqueado.')
+        if not state and result_code:raise RuntimeError('Há falhas na suíte completa; consulte o relatório. Nenhum ZIP gerado.')
         suites=ET.parse(report).getroot().findall('.//testsuite')
         counts={k:sum(int(s.attrib.get(k,0)) for s in suites) for k in ['tests','failures','errors','skipped']}
         if not counts['tests'] or any(counts[k] for k in ['failures','errors','skipped']):raise RuntimeError('Há falhas, erros, testes ausentes ou ignorados. Pacote bloqueado.')
@@ -120,7 +156,7 @@ def main():
     if args.rapido:
         (EVIDENCE/'resultado.json').write_text(json.dumps({'mode':'diagnostico_rapido','release_approved':False,'pytest':counts},ensure_ascii=False,indent=2)+'\n')
         print(f"Diagnóstico rápido aprovado: {counts['tests']} testes. Entrega exige validação completa.");return
-    metadata={'version':json.loads((PACKAGE/'manifest.json').read_text())['version'],'source_sha256':initial,'pytest':counts,'splash':'Mono/Xvfb; versão, fabricante e animação','launcher':'C# compilado com e sem WEBVIEW2','platform':'Linux, Python '+sys.version.split()[0],'windows_native_executed':False}
+    metadata={'version':json.loads((PACKAGE/'manifest.json').read_text())['version'],'source_sha256':initial,'pytest':counts,'splash':'Mono/Xvfb; versão, fabricante e animação','launcher':'C# compilado com e sem WEBVIEW2','platform':'Linux, Python '+sys.version.split()[0],'windows_native_executed':False,'profile':'amplo' if broad else 'curto_por_risco','elapsed_s':round(time.perf_counter()-started,2)}
     (EVIDENCE/'resultado.json').write_text(json.dumps(metadata,ensure_ascii=False,indent=2)+'\n')
     print(f"Validação aprovada: {counts['tests']} testes; splash e compilação C# aprovados.")
     if not args.gerar:return
@@ -136,9 +172,9 @@ def main():
             elif f.name.startswith(('ATUALIZACAO_','AUDITORIA_')):f.unlink()
             else:f.replace(docs/f.name)
         evidence=stage/('suporte/documentacao/validacao_'+metadata['version'].replace('.','_'));evidence.mkdir(parents=True)
-        for name in ['263_duas_secoes.png','263_per_importacao.png','263_per_localizacao.png','263_apresentacao_0.png','263_apresentacao_1.5.png','263_apresentacao_2.9.png','263_video.json','pytest-resultados.xml','resultado.json','validacao.log','splash_142_1_a.png','splash_142_1_b.png']:
+        for name in ['264_artistico_sem_contornos.png','264_contornos_opcionais.png','264_realista.png','264_ultra_realista.png','264_videos.json','264_ui_perfis.png','264_3d.png','pytest-resultados.xml','resultado.json','validacao.log','splash_142_1_a.png','splash_142_1_b.png']:
             shutil.copy2(EVIDENCE/name,evidence/name)
-        for name in ['origem.json','retomada.json','evidencias_reutilizadas.json','pytest-reexecutados.xml']:
+        for name in ['origem.json','retomada.json','evidencias_reutilizadas.json','pytest-reexecutados.xml','perfil.json']:
             if (EVIDENCE/name).is_file():shutil.copy2(EVIDENCE/name,evidence/name)
         if state:
             for name,target in [('origem.json','origem-anterior.json'),('pytest-resultados.xml','pytest-origem.xml')]:shutil.copy2(Path(args.retomar)/name,evidence/target)

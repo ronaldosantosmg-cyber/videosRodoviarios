@@ -169,7 +169,7 @@ class Detail:
                 else:cv2.polylines(lines,[q(o['p'])],False,255,max(1,round(.25/self.R)),cv2.LINE_AA,4)
             if role in ('cut','fill'):
                 hard=(mask>127).astype(np.uint8)*255
-                color,alpha=earthwork_style(hard,lines,role,self.R,phase=(i*n,j*n),look=getattr(sc.s,'earthwork_look','hatch'))
+                color,alpha=earthwork_style(hard,lines,role,self.R,phase=(i*n,j*n),look=getattr(sc.s,'earthwork_look','hatch'),base_color=sc.s.role_colors.get(role))
                 if excl is not None:alpha[excl>0]=0
             else:alpha=mask
             rgb=_rgb(sc.color(role) if hasattr(sc,'color') else COLORS[role])
@@ -196,7 +196,7 @@ class Detail:
             if st is not None:color=paint_style(color,mask>127,role,x0,y1,self.R,st,getattr(sc,'joint_field_net',None),float(getattr(sc.s,'joint_spacing_m',5)))  # 1.21: representação escolhida pelo usuário
             if getattr(sc.s,'texture_relief',True) and getattr(sc.s,'texture_style','artistico')!='anterior' and getattr(sc.s,'style_profile','padrao')!='tecnico' and (role not in ('cut','fill') or getattr(sc.s,'earthwork_look','hatch') in ('natural','textura')):
                 from . import relevo   # 2.48/2.49: relevo iluminado por material (flexível/rígido; novo/existente)
-                if role in relevo.MATERIAIS or role in relevo.RIGIDOS:color=relevo.acabar_misto(color,mask>127,rmask,role,x0,y1,self.R)
+                if role in relevo.MATERIAIS or role in relevo.RIGIDOS:color=relevo.acabar_misto(color,mask>127,rmask,role,x0,y1,self.R,quality=sc.s.realism_profile)
             sel=alpha>0;a=alpha[sel,None].astype(np.float32)/255;old=ov[sel,:3].astype(np.float32)
             c=color[sel] if getattr(color,'ndim',1)==3 else color
             ov[sel,:3]=(old*(1-a)+c*a).astype(np.uint8);ov[:,:,3]=np.maximum(ov[:,:,3],alpha)

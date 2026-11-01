@@ -946,6 +946,8 @@ class Settings(BaseModel):
     # trilhas de roda, acostamento e cor da imagem detalhada casada com o mosaico.
     texture_relief: bool = True                           # 2.48: relevo iluminado nos materiais (asfalto, grama, terra, cascalho, concreto)
     texture_style: Literal['artistico','realistic','anterior'] = 'artistico'   # 1.34: artístico realista (novos projetos)
+    realism_profile: Literal['realista','ultra_realista'] = 'ultra_realista'
+    presentation_guides: bool = False
     natural_materials_only: bool = False
     earthwork_look: Literal['hatch','natural','textura'] = 'textura'   # 1.42.40: a textura cobre a hachura (projetos já salvos mantêm o valor gravado)
     detail_resolution_m: Literal[0.2,0.1] = 0.2

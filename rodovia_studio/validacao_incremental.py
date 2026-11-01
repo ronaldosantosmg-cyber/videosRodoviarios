@@ -12,12 +12,21 @@ def product_digest(package):
     return h.hexdigest()
 
 
-def test_hashes(system):
-    return {p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in (Path(system)/'tests').glob('*.py')}
+def _test_files(system):
+    system=Path(system);control=system.parents[2]
+    paths=list((system/'tests').glob('*.py'))+list((control/'verificacao').glob('*.py'))
+    paths += [control/n for n in ('validar_entrega.py','validacao_incremental.py','gate_profiles.py') if (control/n).exists()]
+    files={}
+    for p in paths:
+        if p.name in files:raise RuntimeError('Nome de verificação duplicado: '+p.name)
+        files[p.name]=p
+    return files
 
+def test_hashes(system):
+    return {n:hashlib.sha256(p.read_bytes()).hexdigest() for n,p in _test_files(system).items()}
 
 def affected(system,previous):
-    files={p.name:p for p in (Path(system)/'tests').glob('*.py')}
+    files=_test_files(system)
     names={Path(n).stem:n for n in files};changed={n for n,p in files.items() if previous.get(n)!=hashlib.sha256(p.read_bytes()).hexdigest()}
     if 'conftest.py' in changed:return set(files)
     dependencies={};unknown=set()
@@ -54,7 +63,7 @@ def failed(case):return any(case.find(t) is not None for t in ('failure','error'
 
 
 def collect(system,selected,env,log):
-    result=subprocess.run([sys.executable,'-m','pytest','--collect-only','-q',*selected],cwd=system,env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    result=subprocess.run([sys.executable,'-m','pytest','--collect-only','-q',*selected],cwd=system,env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=45)
     log.write(result.stdout);log.flush()
     if result.returncode:raise RuntimeError('A coleta dos testes obrigatórios falhou.')
     cases=set()

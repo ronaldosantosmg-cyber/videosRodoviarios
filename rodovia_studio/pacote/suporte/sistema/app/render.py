@@ -1,3 +1,4 @@
+from .presentation import guides as presentation_guides
 from .seguro import sdiv as _sdiv
 from .falhas import registrar as _falha
 from .traffic import TrafficNetwork
@@ -242,7 +243,9 @@ class Scene:
                 from .pavement import TECH_RIGID,ART_RIGID
                 c=TECH_RIGID[role][0] if getattr(self.s,'style_profile','padrao')=='tecnico' else ART_RIGID[role];return '#%02x%02x%02x'%c
         if getattr(self.s,'style_profile','padrao')=='tecnico' and role in visual.TECH_FILL:return visual.TECH_FILL[role]
-        return (getattr(self.s,'role_colors',None) or {}).get(role) or COLORS[role]
+        from .presentation import ART_COLORS
+        default=ART_COLORS.get(role,COLORS[role]) if self.s.style_profile!='tecnico' else COLORS[role]
+        return (getattr(self.s,'role_colors',None) or {}).get(role) or default
     def worldpx(self,p):
         return np.column_stack([(p[:,0]-self.box[0])/self.px,(self.box[3]-p[:,1])/self.px])
     def at(self,ch):return np.array([np.interp(ch,self.ds,self.axis[:,k]) for k in range(2)])
@@ -259,11 +262,12 @@ class Scene:
         try:
             signature=hashlib.sha256()
             extra=sorted((self.directory/'camadas').glob('*.dxf')) if (self.directory/'camadas').exists() else []
-            for file in [self.directory/'input.dxf',self.directory/'input.kmz',Path(__file__),Path(__file__).with_name('geometry.py'),Path(__file__).with_name('earthworks.py'),Path(__file__).with_name('visual.py'),Path(__file__).with_name('surface_marks.py'),Path(__file__).with_name('pavement.py'),Path(__file__).with_name('asset_catalog.py')]+extra:
+            for file in [self.directory/'input.dxf',self.directory/'input.kmz',Path(__file__),Path(__file__).with_name('geometry.py'),Path(__file__).with_name('earthworks.py'),Path(__file__).with_name('relevo.py'),Path(__file__).with_name('presentation.py'),Path(__file__).with_name('visual.py'),Path(__file__).with_name('surface_marks.py'),Path(__file__).with_name('pavement.py'),Path(__file__).with_name('asset_catalog.py')]+extra:
                 if file.exists():
                     with file.open('rb') as f:
                         while chunk:=f.read(1024*1024):signature.update(chunk)
             dump=self.s.model_dump();config={k:dump[k] for k in ['layers','crs','units_to_m','reverse_axis','exclusions','dxf_alignment','overlays']}
+            config['realism_profile']=dump.get('realism_profile','ultra_realista')
             if dump.get('earthwork_look','hatch')!='hatch':config['earthwork_look']=dump['earthwork_look']
             if dump.get('accesses'):config['accesses']=dump['accesses']
             if dump.get('style_profile','padrao')!='padrao':config['style_profile']=dump['style_profile']
@@ -323,7 +327,7 @@ class Scene:
                             np.bitwise_or(mask[by0:by1,bx0:bx1],temp,out=mask[by0:by1,bx0:bx1])
                     else:cv2.polylines(lines,[q],False,255,1,cv2.LINE_AA)
             if role in ['cut','fill']:
-                earth_color,alpha=earthwork_style(mask,lines,role,self.px,look=getattr(self.s,'earthwork_look','hatch'))
+                earth_color,alpha=earthwork_style(mask,lines,role,self.px,look=getattr(self.s,'earthwork_look','hatch'),base_color=self.s.role_colors.get(role))
                 if not self.exclusion.is_empty:
                     # Final raster clip also removes widened offset strokes in cleaned areas.
                     geoms=list(self.exclusion.geoms) if hasattr(self.exclusion,'geoms') else [self.exclusion]
@@ -354,12 +358,12 @@ class Scene:
             if st is not None:color=paint_style(color,mask>0,role,self.box[0],self.box[3],self.px,st,getattr(self,'joint_field',None) or JointField(self.axes),float(getattr(self.s,'joint_spacing_m',5)))  # 1.21: representação escolhida pelo usuário
             if getattr(self.s,'texture_relief',True) and getattr(self.s,'texture_style','artistico')!='anterior' and getattr(self.s,'style_profile','padrao')!='tecnico' and (role not in ('cut','fill') or getattr(self.s,'earthwork_look','hatch') in ('natural','textura')):
                 from . import relevo   # 2.48/2.49: relevo iluminado por material (flexível/rígido; novo/existente)
-                if role in relevo.MATERIAIS or role in relevo.RIGIDOS:color=relevo.acabar_misto(color,mask>0,rmask,role,self.box[0],self.box[3],self.px)
+                if role in relevo.MATERIAIS or role in relevo.RIGIDOS:color=relevo.acabar_misto(color,mask>0,rmask,role,self.box[0],self.box[3],self.px,quality=self.s.realism_profile)
             select=alpha>0;old=self.overlay[select,:3].astype(np.float32);a=alpha[select,None]/255
             c=color[select] if getattr(color,'ndim',1)==3 else color
             self.overlay[select,:3]=(old*(1-a)+c*a).astype(np.uint8);self.overlay[:,:,3]=np.maximum(self.overlay[:,:,3],alpha)
             # Use straight RGB colors for translucent earthwork over satellite.
-            if role in ['cut','fill']:self.overlay[select,:3]=earth_color[select]
+            if role in ['cut','fill']:self.overlay[select,:3]=c
             stationmask=np.maximum(stationmask,alpha)
             if role in visual.SURF:self.surface[mask>0]=visual.SURF[role]
             elif role in visual.EARTH_SURF and getattr(self.s,'earthwork_look','hatch') in ('natural','textura'):self.surface[mask>0]=visual.EARTH_SURF[role]
@@ -693,7 +697,13 @@ class Scene:
         y0=int(157*self.scale)+1;y1=self.H-int(154*self.scale);view=im[y0:y1];ov=ov[y0:y1];alpha=ov[:,:,3].astype(np.float32)/255
         opacity=getattr(self,'reveal_opacity',1.);alpha*=opacity
         if progress<1:
-            st=cv2.warpAffine(self.stations,mat,(self.W,self.H),flags=cv2.INTER_NEAREST|cv2.WARP_INVERSE_MAP,borderValue=65535);st=st[y0:y1];ahead=(st.astype(float)/65534-progress)*self.length;alpha*=np.clip(1-ahead/20,0,1);alpha[st==65535]=0
+            st=cv2.warpAffine(self.stations,mat,(self.W,self.H),flags=cv2.INTER_NEAREST|cv2.WARP_INVERSE_MAP,borderValue=65535);st=st[y0:y1]
+            if dsurf is not None:
+                from .presentation import repair_reveal_stations
+                A=np.array([[self.px,0,self.box[0]],[0,-self.px,self.box[3]]])@np.vstack([mat.astype(np.float64),[0,0,1]])
+                A[:,2]+=A[:,1]*y0
+                st=repair_reveal_stations(alpha,st,A,self.tree,self.ch,self.length)
+            ahead=(st.astype(float)/65534-progress)*self.length;alpha*=np.clip(1-ahead/20,0,1);alpha[st==65535]=0
         pc=float(getattr(self.s,'project_contrast',0) or 0)
         if pc>0 and getattr(self,'_matte',None) is None:
             # 1.21: contraste projeto × imagem: a imagem aérea fica mais escura e menos saturada; o projeto, por cima, não.
@@ -711,10 +721,13 @@ class Scene:
             # 1.21: no vídeo técnico as hachuras ficam limpas (sem texturas por cima), salvo pedido em contrário.
             if not(getattr(self.s,'style_profile','padrao')=='tecnico' and not getattr(self.s,'technical_textures',False)):
                 if not hasattr(self,'tex_lut'):self.tex_lut=visual.texture_lut(getattr(self.s,'texture_params',None),[(e['tex_code'],e['tex_base'],e['tex_p']) for e in {e['tex_code']:e for e in self.items if e.get('tex_code')}.values()]+[(c,b,p) for c,b,p,_ in self.texture_areas()])
+                from .presentation import strength
+                amount=strength(self.s);unshaded=view.copy() if amount<1 else None
                 visual.shade_surface(view,surf,Av,m,alpha>.5,self.s.median_grass,lut=self.tex_lut,arte=getattr(self.s,'texture_style','')=='artistico',sol=self.sol_ambiente())
                 ts=getattr(self.s,'texture_style','anterior')
                 if ts in ('realistic','artistico'):visual.shade_realistic(view,surf,Av,m,alpha>.5,lut=self.tex_lut,earth_grass=getattr(self.s,'earthwork_look','')=='textura')
                 if ts=='artistico':visual.shade_artistic(view,surf,Av,m,alpha>.5,lut=self.tex_lut)   # 1.34
+                if unshaded is not None:view[:]=cv2.addWeighted(view,amount,unshaded,1-amount,0)
             if self.water_mask is not None:
                 wm=cv2.warpAffine(self.water_mask,mat,(self.W,self.H),flags=cv2.INTER_LINEAR|cv2.WARP_INVERSE_MAP)[y0:y1]
                 visual.water_ripple(view,wm,Av,getattr(self,'_t',0.))
@@ -740,16 +753,18 @@ class Scene:
         if pre is not None and self._tinta_on() and width<3000:im=self.tinta_real(im,pre,mat,m)
         if wear:im=self.paint_wear(im,pre,mat,m,sp);pre=None
         pre=None
-        if width>3000:
-            for pts in self.domain:
-                q=self.screen(pts,cam,width).astype(np.int32);cv2.polylines(im,[q],False,(30,27,20),max(2,round(4*self.scale)),cv2.LINE_AA);cv2.polylines(im,[q],False,(255,214,107),max(1,round(2*self.scale)),cv2.LINE_AA)
-        elif len(self.domain_dashes):
+        from .presentation import guides
+        if guides(self.s):
+            if width>3000:
+                for pts in self.domain:
+                    q=self.screen(pts,cam,width).astype(np.int32);cv2.polylines(im,[q],False,(30,27,20),max(2,round(4*self.scale)),cv2.LINE_AA);cv2.polylines(im,[q],False,(255,214,107),max(1,round(2*self.scale)),cv2.LINE_AA)
+            elif len(self.domain_dashes):
             
-            if not hasattr(self,'domain_centers'):self.domain_centers=self.domain_dashes.mean(1)
-            centers=self.domain_centers;near=np.linalg.norm(centers-cam,axis=1)<width*.75;segments=self.domain_dashes[near]
-            if len(segments):
-                coords=self.screen(segments.reshape(-1,2),cam,width).reshape(-1,2,2).astype(np.int32)
-                cv2.polylines(im,coords,False,(30,27,20),max(3,round(6*self.scale)),cv2.LINE_AA);cv2.polylines(im,coords,False,(255,214,107),max(1,round(3*self.scale)),cv2.LINE_AA)
+                if not hasattr(self,'domain_centers'):self.domain_centers=self.domain_dashes.mean(1)
+                centers=self.domain_centers;near=np.linalg.norm(centers-cam,axis=1)<width*.75;segments=self.domain_dashes[near]
+                if len(segments):
+                    coords=self.screen(segments.reshape(-1,2),cam,width).reshape(-1,2,2).astype(np.int32)
+                    cv2.polylines(im,coords,False,(30,27,20),max(3,round(6*self.scale)),cv2.LINE_AA);cv2.polylines(im,coords,False,(255,214,107),max(1,round(3*self.scale)),cv2.LINE_AA)
         if width<3000 and getattr(self,'paint_items',None):
             from .signage import draw_paint
             pre=im.copy() if (wear or self._tinta_on()) else None
@@ -982,7 +997,7 @@ class Scene:
         if key not in self.headers:
             image=Image.new('RGB',(self.W,header+1),'#081623');dr=ImageDraw.Draw(image)
             tx,ft=fit(dr,f'{self.s.name} | km {km(self.s.km_start_m)} → km {km(self.s.km_end_m)}',38*sc,self.W*.56,True);dr.text((58*sc,25*sc),tx,font=ft,fill='white')
-            tx,ft=fit(dr,f'{self.s.origin} → {self.s.destination} • Faixa de domínio em amarelo',22*sc,self.W*.56);dr.text((58*sc,86*sc),tx,font=ft,fill='#c1d5df')
+            tx,ft=fit(dr,f'{self.s.origin} → {self.s.destination} • '+('Faixa de domínio em amarelo' if presentation_guides(self.s) else 'Apresentação do projeto'),22*sc,self.W*.56);dr.text((58*sc,86*sc),tx,font=ft,fill='#c1d5df')
             labels={'existing_pavement':'Existente'+(' (rígido)' if 'existing_pavement' in (getattr(self,'_rigid_roles',None) or ()) else ''),'pavement':'Projetado'+(' (rígido)' if 'pavement' in (getattr(self,'_rigid_roles',None) or ()) else ''),'median':'Canteiro','barrier':'Barreira','oae':'OAE','cut':'Corte','fill':'Aterro','domain':'Domínio','water':'Água','terrain':'Terreno'}
             lx=58*sc
             for role in legend:
@@ -1207,6 +1222,7 @@ class Scene:
             qs=self.screen(points,cam,width)
             if qs[:,0].max()>0 and qs[:,0].min()<self.W and qs[:,1].max()>header and qs[:,1].min()<self.H-footer:
                 visible.add('water');break
+        if not presentation_guides(self.s):visible.discard('domain')
         legend=tuple(role for role in ['existing_pavement','pavement','median','terrain','barrier','oae','cut','fill','domain','water'] if role in visible)
         self.chrome(im,title,sub,legend)
         if getattr(self.s,'progress_indicator',False):self.draw_progress(im,progress)

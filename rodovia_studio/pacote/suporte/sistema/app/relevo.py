@@ -12,13 +12,21 @@ def vn(X,Y,s,seed=0):
     u=X/s;v=Y/s;ix=np.floor(u);iy=np.floor(v);fx=u-ix;fy=v-iy;fx=fx*fx*(3-2*fx);fy=fy*fy*(3-2*fy)
     a=_h(ix,iy,seed);b=_h(ix+1,iy,seed);c=_h(ix,iy+1,seed);d=_h(ix+1,iy+1,seed)
     return (a*(1-fx)+b*fx)*(1-fy)+(c*(1-fx)+d*fx)*fy
+def stable_noise(X,Y,scale,px,seed=0):
+    """Escala física fixa; só a amplitude varia suavemente com a resolução."""
+    if not np.isfinite([scale,px]).all() or scale<=0 or px<=0:raise ValueError('Resolução de textura inválida.')
+    fade=float(np.clip(scale/px-1,0,1));fade=fade*fade*(3-2*fade)
+    if fade<=0:return np.full_like(X,.5,dtype=np.float64)
+    return .5+(vn(X,Y,scale,seed)-.5)*fade
+
+def micro_noise(X,Y,px,seed=0):return stable_noise(X,Y,.06,px,seed)-.5
+
 def fbm(X,Y,s0,oc,px,seed=0,ganho=.5):
-    """soma de oitavas; descarta as que ficam abaixo de 2 pixels"""
-    t=np.zeros_like(X);amp=1.;tot=0.;s=s0
+    """Oitavas fixas no mundo, com transição contínua entre níveis de detalhe."""
+    t=np.zeros_like(X);amp=1.;tot=0.;scale=s0
     for o in range(oc):
-        if s<2*px and o>0:break
-        t+=amp*(vn(X,Y,s,seed+o*17)-.5);tot+=amp;amp*=ganho;s*=.5
-    return t/max(tot,1e-9)*2     # ~[-1,1]
+        t+=amp*(stable_noise(X,Y,scale,px,seed+o*17)-.5);tot+=amp;amp*=ganho;scale*=.5
+    return t/max(tot,1e-9)*2
 
 def _normal(h,px,forca):
     gy,gx=np.gradient(h,px);n=np.stack([-gx*forca,gy*forca,np.ones_like(h)],-1);return n/np.linalg.norm(n,axis=-1,keepdims=True)
@@ -29,7 +37,7 @@ def _ilum(rgb,h,px,forca,esp,amb=.78):
     n=np.stack([nx,ny,np.ones_like(h)],-1);n/=np.linalg.norm(n,axis=-1,keepdims=True);hv=LUZ+np.array([0,0,1.]);hv/=np.linalg.norm(hv);sp=np.clip((n*hv).sum(-1),0,1)**28
     return rgb*k[...,None]+(sp*esp*255*.6)[...,None]
 
-def acabar(color,role,x0,y1,px,mask=None,seed=0,rigido=False):
+def acabar(color,role,x0,y1,px,mask=None,seed=0,rigido=False,quality="ultra_realista"):
     """color: (n,n,3) uint8/float. Devolve uint8 com relevo iluminado. mask opcional limita os cálculos (não muda o resultado fora dela)."""
     c=np.array(color,np.float64,copy=True)
     if c.ndim==1:return c.astype(np.uint8)
@@ -38,6 +46,7 @@ def acabar(color,role,x0,y1,px,mask=None,seed=0,rigido=False):
     P=2;c=np.pad(c,((P,P),(P,P),(0,0)),mode='edge');H,W=c.shape[:2]                      # margem: o gradiente na borda do ladrilho fica idêntico ao do vizinho
     xs=np.arange(W)[None,:]-P;ys=np.arange(H)[:,None]-P;X=(x0+(xs+.5)*px+0*ys).astype(np.float64);Y=(y1-(ys+.5)*px+0*xs).astype(np.float64)
     out=tab[role](c,X,Y,px,seed)
+    if quality=="realista":out=c*.45+out*.55
     return np.clip(out[P:-P,P:-P],0,255).astype(np.uint8)
 
 # ------------------------------------------------------------------ materiais
@@ -54,7 +63,7 @@ def _asfalto(c,X,Y,px,seed):
     tom=fbm(X,Y,9.,4,px,seed+1);c=c*(1+.07*tom)[...,None]                                  # tom: manchas de desgaste e emendas
     mancha=np.clip((vn(X,Y,14.,seed+2)-.72)/.12,0,1);c=c*(1-.14*mancha)[...,None]           # trechos mais escuros (óleo/borracha)
     rem=np.clip((vn(X,Y,23.,seed+3)-.78)/.08,0,1);c=c*(1+.12*rem)[...,None]                 # remendos mais claros
-    h=.25*fbm(X,Y,.5,5,px,seed+4)+.35*(vn(X,Y,px*1.01,seed+5)-.5)                          # agregado (grão no nível do pixel)
+    h=.25*fbm(X,Y,.5,5,px,seed+4)+.35*micro_noise(X,Y,px,seed+5)                          # agregado (grão no nível do pixel)
     trinca=1-np.abs(2*vn(X,Y,3.4,seed+6)-1);tr=np.clip((trinca-.985)/.012,0,1)*np.clip((vn(X,Y,17.,seed+7)-.62)/.1,0,1)   # trincas esparsas
     h-=.6*tr;c=c*(1-.35*tr)[...,None]
     return _ilum(_graos(_foto(c,X,Y,px,'asfalto_azulado',.6),X,Y,px,seed),h,px,.9,.05)
@@ -80,25 +89,25 @@ def _graos(c,X,Y,px,seed,forca=1.0):
     return out/(1+E*ganho)
 def _concreto(c,X,Y,px,seed):
     c=c*(1+.05*fbm(X,Y,6.,3,px,seed+11))[...,None]
-    h=.12*fbm(X,Y,.35,4,px,seed+12)+.2*(vn(X,Y,px*1.01,seed+13)-.5)
-    poro=np.clip((vn(X,Y,max(.07,px*1.6),seed+14)-.86)/.06,0,1);c=c*(1-.25*poro)[...,None]
+    h=.12*fbm(X,Y,.35,4,px,seed+12)+.2*micro_noise(X,Y,px,seed+13)
+    poro=np.clip((stable_noise(X,Y,.07,px,seed+14)-.86)/.06,0,1);c=c*(1-.25*poro)[...,None]
     return _ilum(c,h,px,.7,.07)
 def _grama(c,X,Y,px,seed):
     ton=fbm(X,Y,11.,4,px,seed+21);c=c*(1+.10*ton)[...,None]
     seco=np.clip((vn(X,Y,19.,seed+22)-.6)/.3,0,1)*.55;c=c*(1-seco[...,None])+seco[...,None]*(c*np.array([1.12,1.04,.78]))   # manchas secas
     tufo=np.clip((vn(X,Y,2.2,seed+23)-.62)/.2,0,1);c=c*(1-.14*tufo)[...,None]
-    h=.5*fbm(X*.6,Y*1.0,.35,4,px,seed+24)+.3*(vn(X,Y,px*1.01,seed+25)-.5)                   # lâminas: alongadas em x
+    h=.5*fbm(X*.6,Y*1.0,.35,4,px,seed+24)+.3*micro_noise(X,Y,px,seed+25)                   # lâminas: alongadas em x
     return _ilum(c,h,px,1.1,.04,.72)
 def _terra(c,X,Y,px,seed):                                                              # corte: solo exposto
     c=c*(1+.12*fbm(X,Y,7.,4,px,seed+31))[...,None]
     banda=.5+.5*np.sin(Y*1.7+4*vn(X,Y,9.,seed+32));c=c*(1+.07*(banda-.5))[...,None]     # estratos
     sulco=1-np.abs(2*vn(X*.35,Y*1.4,.9,seed+33)-1);h=-.28*np.clip((sulco-.88)/.1,0,1)+.35*fbm(X,Y,.6,4,px,seed+34)   # ravinas de erosão
-    pedra=np.clip((vn(X,Y,max(.22,px*2.2),seed+35)-.83)/.08,0,1);h+=.6*pedra;c=c*(1+.18*pedra)[...,None]
+    pedra=np.clip((stable_noise(X,Y,.22,px,seed+35)-.83)/.08,0,1);h+=.6*pedra;c=c*(1+.18*pedra)[...,None]
     return _ilum(c,h,px,1.2,.06,.70)
 def _cascalho(c,X,Y,px,seed):                                                          # acostamento
     c=_foto(c,X,Y,px,'areia_acostamento',.6)
     c=c*(1+.08*fbm(X,Y,5.,3,px,seed+41))[...,None]
-    g=vn(X,Y,max(.08,px*1.8),seed+42);h=.5*(g-.5)+.25*fbm(X,Y,.5,3,px,seed+43)
+    g=stable_noise(X,Y,.08,px,seed+42);h=.5*(g-.5)+.25*fbm(X,Y,.5,3,px,seed+43)
     c=c*(1+.22*(g-.5))[...,None]
     return _ilum(c,h,px,1.0,.08,.74)
 def _remendos(X,Y,seed,celx=4.,cely=7.,prob=.10):
@@ -108,7 +117,7 @@ def _remendos(X,Y,seed,celx=4.,cely=7.,prob=.10):
     return flag,flag*borda
 def _asfalto_novo(c,X,Y,px,seed):                                                       # flexível NOVO: escuro, uniforme, fino, levemente brilhante
     c=c*(1+.025*fbm(X,Y,14.,3,px,seed+51))[...,None]
-    h=.18*fbm(X,Y,.5,4,px,seed+52)+.30*(vn(X,Y,px*1.01,seed+53)-.5)
+    h=.18*fbm(X,Y,.5,4,px,seed+52)+.30*micro_noise(X,Y,px,seed+53)
     return _ilum(_graos(_foto(c,X,Y,px,'asfalto_escuro',.8),X,Y,px,seed,.55),h,px,.8,.09)
 def _asfalto_exist(c,X,Y,px,seed):                                                      # flexível EXISTENTE: desgastado, trincado, remendado
     c=c*(1+.10*fbm(X,Y,8.,4,px,seed+61))[...,None]
@@ -118,12 +127,12 @@ def _asfalto_exist(c,X,Y,px,seed):                                              
     jacare=1-np.abs(2*vn(X,Y,1.7,seed+65)-1);ja=np.clip((jacare-.945)/.04,0,1)*np.clip((vn(X,Y,9.,seed+66)-.50)/.1,0,1)   # trincas couro de jacaré
     longi=1-np.abs(2*vn(X*.25,Y,5.,seed+67)-1);lg=np.clip((longi-.985)/.012,0,1)
     cr=np.maximum(ja,lg);c=c*(1-.45*cr)[...,None]
-    h=.38*fbm(X,Y,.5,5,px,seed+68)+.50*(vn(X,Y,px*1.01,seed+69)-.5)-.4*cr                # agregado graúdo aparente (desagregação)
+    h=.38*fbm(X,Y,.5,5,px,seed+68)+.50*micro_noise(X,Y,px,seed+69)-.4*cr                # agregado graúdo aparente (desagregação)
     return _ilum(_graos(_foto(c,X,Y,px,'asfalto_azulado',.9),X,Y,px,seed,1.25),h,px,1.0,.03)
 def _concreto_novo(c,X,Y,px,seed):                                                      # rígido NOVO: claro, liso, poros finos
     c=c*(1+.035*fbm(X,Y,7.,3,px,seed+71))[...,None]
-    h=.08*fbm(X,Y,.4,4,px,seed+72)+.16*(vn(X,Y,px*1.01,seed+73)-.5)
-    poro=np.clip((vn(X,Y,max(.07,px*1.6),seed+74)-.90)/.05,0,1);c=c*(1-.18*poro)[...,None]
+    h=.08*fbm(X,Y,.4,4,px,seed+72)+.16*micro_noise(X,Y,px,seed+73)
+    poro=np.clip((stable_noise(X,Y,.07,px,seed+74)-.90)/.05,0,1);c=c*(1-.18*poro)[...,None]
     return _ilum(c,h,px,.6,.09)
 def _concreto_exist(c,X,Y,px,seed):                                                     # rígido EXISTENTE: manchado, trincado, com reparos
     c=c*(1+.09*fbm(X,Y,6.,4,px,seed+81))[...,None]
@@ -131,14 +140,14 @@ def _concreto_exist(c,X,Y,px,seed):                                             
     sujo=np.clip((vn(X*.3,Y,2.5,seed+83)-.62)/.2,0,1);c=c*(1-.14*sujo)[...,None]          # rastros de sujeira
     rem,bor=_remendos(X,Y,seed+84,5.,5.,.07);c=c*(1-.28*rem)[...,None]*(1-.3*bor)[...,None]   # reparos em asfalto/argamassa
     tri=1-np.abs(2*vn(X,Y,2.6,seed+85)-1);tr=np.clip((tri-.968)/.025,0,1)*np.clip((vn(X,Y,12.,seed+86)-.45)/.1,0,1)
-    desp=np.clip((vn(X,Y,max(.12,px*2.2),seed+87)-.86)/.06,0,1)                            # esborcinados (buracos rasos)
+    desp=np.clip((stable_noise(X,Y,.12,px,seed+87)-.86)/.06,0,1)                            # esborcinados (buracos rasos)
     c=c*(1-.38*tr)[...,None]*(1-.22*desp)[...,None]
-    h=.14*fbm(X,Y,.4,4,px,seed+88)+.22*(vn(X,Y,px*1.01,seed+89)-.5)-.35*tr-.4*desp
+    h=.14*fbm(X,Y,.4,4,px,seed+88)+.22*micro_noise(X,Y,px,seed+89)-.35*tr-.4*desp
     return _ilum(c,h,px,.8,.05)
 MATERIAIS={'pavement':_asfalto_novo,'existing_pavement':_asfalto_exist,'shoulder':_cascalho,'median':_grama,'terrain':_grama,'fill':_grama,'cut':_terra,'oae':_concreto,'barrier':_concreto}
 RIGIDOS={'pavement':_concreto_novo,'existing_pavement':_concreto_exist,'shoulder':_concreto_novo,'oae':_concreto_novo,'barrier':_concreto_novo}
 
-def acabar_blocos(color,mask,role,x0,y1,px,seed=11,bloco=256,rigido=False):
+def acabar_blocos(color,mask,role,x0,y1,px,seed=11,bloco=256,rigido=False,quality="ultra_realista"):
     """aplica `acabar` em blocos, só onde a máscara tem pixels (memória e tempo controlados em mosaicos grandes). Resultado idêntico ao de um passo único."""
     n,m=mask.shape[:2]
     out=np.array(np.broadcast_to(np.asarray(color),(n,m,3)) if np.ndim(color)==1 else color,np.uint8,copy=True)
@@ -146,15 +155,15 @@ def acabar_blocos(color,mask,role,x0,y1,px,seed=11,bloco=256,rigido=False):
     for j in range(0,n,bloco):
         for i in range(0,m,bloco):
             if not mask[j:j+bloco,i:i+bloco].any():continue
-            out[j:j+bloco,i:i+bloco]=acabar(out[j:j+bloco,i:i+bloco],role,x0+i*px,y1-j*px,px,seed=seed,rigido=rigido)
+            out[j:j+bloco,i:i+bloco]=acabar(out[j:j+bloco,i:i+bloco],role,x0+i*px,y1-j*px,px,seed=seed,rigido=rigido,quality=quality)
     return out
 
-def acabar_misto(color,mask,rmask,role,x0,y1,px,seed=11):
+def acabar_misto(color,mask,rmask,role,x0,y1,px,seed=11,quality="ultra_realista"):
     """pavimento rígido (rmask) e flexível (resto da máscara) recebem texturas diferentes; novo × existente vem do papel (pavement × existing_pavement)."""
     mask=np.asarray(mask,bool);r=np.zeros_like(mask) if rmask is None else (np.asarray(rmask)>0)&mask;f=mask&~r
-    out=acabar_blocos(color,f,role,x0,y1,px,seed) if f.any() else np.array(np.broadcast_to(np.asarray(color),mask.shape+(3,)) if np.ndim(color)==1 else color,np.uint8,copy=True)
+    out=acabar_blocos(color,f,role,x0,y1,px,seed,quality=quality) if f.any() else np.array(np.broadcast_to(np.asarray(color),mask.shape+(3,)) if np.ndim(color)==1 else color,np.uint8,copy=True)
     if r.any():
-        rg=acabar_blocos(color,r,role,x0,y1,px,seed,rigido=True);out[r]=rg[r]
+        rg=acabar_blocos(color,r,role,x0,y1,px,seed,rigido=True,quality=quality);out[r]=rg[r]
     return out
 
 # ------------------------------------------------------------------ OAE (nova / existente / alargada)
