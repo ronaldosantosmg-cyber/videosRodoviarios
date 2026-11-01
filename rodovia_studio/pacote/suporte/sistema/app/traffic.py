@@ -131,11 +131,12 @@ def steady_path(P,allowed,sigma_m=3.,step=STEP):
     return p,d
 
 class TrafficNetwork:
-    def __init__(self,roads,obstacles,axes,axis,ds,settings,bridges=(),oae_dirs=(),edge_lines=(),dxf_signage=(),dxf_signs=(),directory=None,oae_info=None,median_obstacles=None,virtual_chords=()):
+    def __init__(self,roads,obstacles,axes,axis,ds,settings,bridges=(),oae_dirs=(),edge_lines=(),dxf_signage=(),dxf_signs=(),directory=None,oae_info=None,median_obstacles=None,virtual_chords=(),display_edge_lines=None):
         # 1.20: trajetórias suavizadas e sentido pelo eixo ('anterior' reproduz a 1.19).
         self.classic=bool(getattr(settings,'traffic_classic',False));self.medians=unary_union(obstacles if median_obstacles is None else median_obstacles)
         self.smooth_paths=getattr(settings,'vehicle_paths','smooth')=='smooth';self.axis_dir=getattr(settings,'direction_reference','axis')=='axis'
         self.oae_dirs=list(oae_dirs);self.dxf_edges=[np.asarray(p,float) for p in edge_lines];self.s=settings;self.axis=axis;self.ds=ds;self.bridges=Polygon()  # Contorno isolado, sem cota confirmada, não é impedimento.
+        self.display_edge_lines=list(display_edge_lines) if display_edge_lines is not None else self.dxf_edges
         self.oae_info=list(oae_info or [])
         from shapely.geometry import MultiLineString
         self.virtual=MultiLineString([[tuple(a),tuple(b)] for a,b in virtual_chords]) if virtual_chords else None;self.virtual_dropped=0   # 2.18: fechamentos de hachura inexistentes no DXF
@@ -713,18 +714,19 @@ class TrafficNetwork:
             if poly.geom_type!='Polygon' or poly.is_empty:continue
             for ring in [poly.exterior]+list(poly.interiors):
                 if ring.length<15:continue
-                ln=LineString(ring.coords);n=max(2,int(ln.length/step))
-                q=np.array([ln.interpolate(v).coords[0] for v in np.linspace(0,ln.length,n+1)])
+                from .presentation import resample_stroke
+                q=resample_stroke(np.asarray(ring.coords),step)
                 for a,b in zip(q[:-1],q[1:]):
                     if self.virtual is not None and self.virtual.distance(Point((a[0]+b[0])/2,(a[1]+b[1])/2))<1.2:self.virtual_dropped+=1;continue   # 2.18
                     if self.perpendicular_to_axis(a,b):self.perp_dropped=getattr(self,'perp_dropped',0)+1;continue   # 2.15: sem linhas fantasma perpendiculares ao eixo
                     self.markings.append((a,b,(244,242,226)));self.mark_src.append(-2)
     def add_dxf_edges(self,step=2.):
         """Bordos desenhados no DXF (tipo 'Bordo'): usados no lugar das linhas calculadas pelo contorno."""
-        for p in self.dxf_edges:
+        for p in self.display_edge_lines:
             ln=LineString(p)
             if ln.length<2:continue
-            n=max(1,int(ln.length/step));q=np.array([ln.interpolate(v).coords[0] for v in np.linspace(0,ln.length,n+1)])
+            from .presentation import resample_stroke
+            q=resample_stroke(p,step)
             for a,b in zip(q[:-1],q[1:]):self.markings.append((a,b,(244,242,226)));self.mark_src.append(-2)
     def junction_zones(self):
         shapes=[Point(*self.nodes[n][0]).buffer(22) for n in self.conflict_nodes()]
@@ -746,7 +748,7 @@ class TrafficNetwork:
                 M=np.array([(m[0]+m[1])/2 for m in self.markings]);inside=contains_xy(z,M[:,0],M[:,1])
                 self.markings=[m for m,k in zip(self.markings,inside) if not k];self.mark_src=[m for m,k in zip(self.mark_src,inside) if not k]
             if self.dxf_edges:self.add_dxf_edges()
-            else:self.edge_lines()
+            elif getattr(self.s,'derived_contours',False):self.edge_lines()
         if self.arrow_mode=='km_conflicts':self.arrows=self.smart_arrows(float(getattr(self.s,'flow_arrow_spacing_m',1000)))
         elif self.arrow_mode=='off':self.arrows=[]
         if self.clean:self.declutter()
@@ -763,7 +765,7 @@ class TrafficNetwork:
                 if len(self.arrow_anchors)==len(self.arrows):self.arrow_anchors=[a for a,k in zip(self.arrow_anchors,inside) if not k]
                 self.arrows=[a for a,k in zip(self.arrows,inside) if not k]
             signage.clean(self,g)
-        self.report_signage={'markings':len(self.markings),'arrows':len(self.arrows),'mode':self.arrow_mode,'clean':self.clean,'full':self.full,'paint':len(self.fills),'signs':len(self.signs),'arrow_kinds':dict(collections.Counter(self.arrow_kinds))}
+        self.report_signage={'markings':len(self.markings),'arrows':len(self.arrows),'mode':self.arrow_mode,'clean':self.clean,'full':self.full,'edge_origin':'DXF' if self.dxf_edges else 'contorno do pavimento (calculado)' if getattr(self.s,'derived_contours',False) else 'sem bordo ilustrativo; geometria de cálculo preservada','paint':len(self.fills),'signs':len(self.signs),'arrow_kinds':dict(collections.Counter(self.arrow_kinds))}
     def connector(self,a,b,force=False):
         if a.get('level',0)!=b.get('level',0):return None
         # Pontas dos sentidos opostos da mesma rota não são retornos. Recusar

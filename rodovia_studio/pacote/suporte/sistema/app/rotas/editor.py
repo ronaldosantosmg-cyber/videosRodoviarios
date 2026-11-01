@@ -382,3 +382,24 @@ def swept_inspection(pid,body:SweptBody):
     except ValueError as e:raise HTTPException(422,str(e))
     if revisions(d)['editor']!=current:raise HTTPException(409,'O projeto mudou durante a inspeção. Repita a análise.')
     return {**result,'revision':current,'segment':body.segment,'using_calculated_trajectory':actual,'geometry_source':'trajetoria_calculada' if actual else 'eixo_sem_itinerario_no_sentido_selecionado'}
+
+
+@router.get('/api/projects/{pid}/trim/linha')
+def pick_trim_line(pid,x:float,y:float,tol:float=5):
+    from ..dxf_trim import pick
+    try:result=pick(store.directory(pid),x,y,tol)
+    except (ValueError,FileNotFoundError) as error:raise HTTPException(409,str(error))
+    if result is None:raise HTTPException(404,'Nenhuma linha visível nesta posição. Aproxime a vista ou selecione outra linha.')
+    return result
+
+
+@router.get('/api/projects/{pid}/trim/validar')
+def validate_trim_source(pid,source_id:str,context:str):
+    from ..dxf_trim import context as current_context
+    from ..webmap import _lines
+    d=store.directory(pid)
+    try:data=_lines(d)
+    except FileNotFoundError as error:raise HTTPException(409,str(error))
+    if data.get('trim_context')!=context or current_context(d)!=context or not any(source_id in ids for ids in data.get('trim_ids',[])):
+        raise HTTPException(409,'A linha ou a configuração mudou. Atualize o projeto e reinicie o TRIM.')
+    return {'valid':True}

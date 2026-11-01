@@ -9,7 +9,7 @@ import gate_profiles
 
 def test_core_or_unknown_change_promotes_broad_and_appearance_is_currently_scoped():
     report=gate_profiles.assess(gate.ROOT.parent,gate.SYSTEM)
-    assert report['baseline']=='b3dcd3e' and not report.get('requires_broad'),report
+    assert report['baseline']=='3ff694c' and not report.get('requires_broad'),report
     # Um contrato existente não pode desaparecer ao retirar os campos de aparência.
     assert gate_profiles.model_contract('class Settings:\n x:int=1')!=gate_profiles.model_contract('class Settings:\n x:int=2',True)
 
@@ -31,7 +31,7 @@ def test_gate_external_tests_and_helpers_participate_in_reuse_hash():
 
 
 def test_reviewed_reader_is_bound_to_exact_source_not_a_blanket_exception():
-    for name in ('app/models.py','app/geometry.py'):
+    for name in ('app/models.py','app/geometry.py','app/traffic.py','app/webmap.py','app/rotas/editor.py'):
         data=(gate.SYSTEM/name).read_bytes()
         assert gate_profiles.reviewed(name,data)
         assert not gate_profiles.reviewed(name,data+b'\n# outra alteracao')

@@ -33,7 +33,10 @@ def source_segments(entity):
     if points.ndim!=2 or points.shape[1]!=2 or not np.isfinite(points).all():raise ValueError('Contorno DXF inválido.')
     if len(points)<2:return np.empty((0,2,2))
     if entity.get('closed') and np.linalg.norm(points[0]-points[-1])>1e-6:points=np.vstack([points,points[0]])
-    parts=np.stack([points[:-1],points[1:]],axis=1);keep=np.linalg.norm(parts[:,1]-parts[:,0],axis=1)>1e-8
+    from .dxf_trim import runs
+    paths=runs(entity)
+    if not paths:return np.empty((0,2,2))
+    parts=np.concatenate([np.stack([p[:-1],p[1:]],axis=1) for p in paths]);keep=np.linalg.norm(parts[:,1]-parts[:,0],axis=1)>1e-8
     for virtual in entity.get('virtual') or []:
         chord=np.asarray(virtual,float)
         if chord.shape!=(2,2) or not np.isfinite(chord).all():raise ValueError('Fechamento DXF inválido.')
@@ -73,3 +76,24 @@ class DXFAdvance:
         start=segments[:,0].copy();vector=segments[:,1]-start
         segments[:,0]=start+vector*lo[:,None];segments[:,1]=start+vector*hi[:,None]
         return segments[np.linalg.norm(segments[:,1]-segments[:,0],axis=1)>1e-8]
+
+
+def dash_segments(points,dash=6.,gap=4.):
+    """Tracejado sobre a polilinha original; não corta curvas/cantos por uma corda."""
+    from .dxf_trim import path,at
+    if not np.isfinite([dash,gap]).all() or dash<=0 or gap<0:raise ValueError('Tracejado inválido.')
+    try:p,ds=path(points)
+    except ValueError:return np.empty((0,2,2))
+    segments=[]
+    for start in np.arange(0,ds[-1],dash+gap):
+        end=min(ds[-1],start+dash);inside=p[(ds>start+1e-9)&(ds<end-1e-9)];q=np.vstack([at(p,ds,start),inside,at(p,ds,end)])
+        segments.extend(np.stack([q[:-1],q[1:]],axis=1))
+    return np.asarray(segments,float).reshape(-1,2,2)
+
+
+def resample_stroke(points,step=2.):
+    """Insere amostras sem remover vértices reais nem ligar entidades independentes."""
+    from .dxf_trim import path
+    if not np.isfinite(step) or step<=0:raise ValueError('Passo inválido para traço.')
+    p,ds=path(points);stations=np.unique(np.r_[ds,np.arange(0,ds[-1],step)])
+    return np.column_stack([np.interp(stations,ds,p[:,k]) for k in range(2)])

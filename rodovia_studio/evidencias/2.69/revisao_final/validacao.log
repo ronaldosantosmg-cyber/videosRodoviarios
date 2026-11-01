@@ -1,0 +1,318 @@
+No broken requirements found.
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.7.0 -- /workspace/.venvs/rodovia-studio/bin/python
+rootdir: /workspace/rodovia-studio-263
+configfile: pyproject.toml
+plugins: anyio-4.15.1, xdist-3.8.0
+created: 4/4 workers
+4 workers [155 items]
+
+scheduling tests via LoadFileScheduling
+
+tests/test_v14281_relevo_texturas.py::test_sem_costura_entre_ladrilhos_vizinhos 
+tests/test_v142_update.py::test_apply_snapshot_rollback_and_relocation 
+tests/test_v268_zebrados_dxf.py::test_layer_names_are_specific[ZEBRADO-01-True] 
+tests/test_v269_trim.py::test_exact_curve_interval_reverse_click_order_and_no_join_over_gap 
+[gw3] [  0%] PASSED tests/test_v268_zebrados_dxf.py::test_layer_names_are_specific[ZEBRADO-01-True] 
+tests/test_v268_zebrados_dxf.py::test_layer_names_are_specific[Z\xe9brados amarelos-True] 
+[gw3] [  1%] PASSED tests/test_v268_zebrados_dxf.py::test_layer_names_are_specific[Z\xe9brados amarelos-True] 
+tests/test_v268_zebrados_dxf.py::test_layer_names_are_specific[ZEBRA WHITE-True] 
+[gw3] [  1%] PASSED tests/test_v268_zebrados_dxf.py::test_layer_names_are_specific[ZEBRA WHITE-True] 
+tests/test_v268_zebrados_dxf.py::test_layer_names_are_specific[SEM_ZEBRADO-False] 
+[gw3] [  2%] PASSED tests/test_v268_zebrados_dxf.py::test_layer_names_are_specific[SEM_ZEBRADO-False] 
+tests/test_v268_zebrados_dxf.py::test_layer_names_are_specific[NAO ZEBRADO-False] 
+[gw3] [  3%] PASSED tests/test_v268_zebrados_dxf.py::test_layer_names_are_specific[NAO ZEBRADO-False] 
+tests/test_v268_zebrados_dxf.py::test_layer_names_are_specific[PAVIMENTO-False] 
+[gw3] [  3%] PASSED tests/test_v268_zebrados_dxf.py::test_layer_names_are_specific[PAVIMENTO-False] 
+tests/test_v268_zebrados_dxf.py::test_layer_names_are_specific[ZEBRADOLOGIA-False] 
+[gw2] [  4%] PASSED tests/test_v269_trim.py::test_exact_curve_interval_reverse_click_order_and_no_join_over_gap 
+tests/test_v269_trim.py::test_invalid_intervals_refused[data0] 
+[gw2] [  5%] PASSED tests/test_v269_trim.py::test_invalid_intervals_refused[data0] 
+tests/test_v269_trim.py::test_invalid_intervals_refused[data1] 
+[gw2] [  5%] PASSED tests/test_v269_trim.py::test_invalid_intervals_refused[data1] 
+tests/test_v269_trim.py::test_invalid_intervals_refused[data2] 
+[gw2] [  6%] PASSED tests/test_v269_trim.py::test_invalid_intervals_refused[data2] 
+tests/test_v269_trim.py::test_invalid_intervals_refused[data3] 
+[gw2] [  7%] PASSED tests/test_v269_trim.py::test_invalid_intervals_refused[data3] 
+tests/test_v269_trim.py::test_invalid_intervals_refused[data4] 
+[gw3] [  7%] PASSED tests/test_v268_zebrados_dxf.py::test_layer_names_are_specific[ZEBRADOLOGIA-False] 
+tests/test_v268_zebrados_dxf.py::test_identity_is_independent_of_start_and_orientation 
+[gw3] [  8%] PASSED tests/test_v268_zebrados_dxf.py::test_identity_is_independent_of_start_and_orientation 
+tests/test_v268_zebrados_dxf.py::test_lateral_flows_and_explicit_color 
+[gw0] [  9%] PASSED tests/test_v142_update.py::test_apply_snapshot_rollback_and_relocation 
+tests/test_v142_update.py::test_failed_replace_restores_all_and_has_journal_before_write 
+[gw3] [  9%] PASSED tests/test_v268_zebrados_dxf.py::test_lateral_flows_and_explicit_color 
+[gw2] [ 10%] PASSED tests/test_v269_trim.py::test_invalid_intervals_refused[data4] 
+tests/test_v269_trim.py::test_invalid_intervals_refused[data5] 
+[gw2] [ 10%] PASSED tests/test_v269_trim.py::test_invalid_intervals_refused[data5] 
+tests/test_v269_trim.py::test_masks_do_not_change_source_other_layers_or_surface_and_survive_reload 
+[gw2] [ 11%] PASSED tests/test_v269_trim.py::test_masks_do_not_change_source_other_layers_or_surface_and_survive_reload 
+tests/test_v268_zebrados_dxf.py::test_ambiguity_requires_confirmation_without_blocking_routes 
+tests/test_v269_trim.py::test_closed_ring_keeps_surface_and_can_hide_part_of_contour 
+[gw2] [ 12%] PASSED tests/test_v269_trim.py::test_closed_ring_keeps_surface_and_can_hide_part_of_contour 
+tests/test_v269_trim.py::test_dependency_scope_does_not_invalidate_geometry_or_traffic 
+[gw3] [ 12%] PASSED tests/test_v268_zebrados_dxf.py::test_ambiguity_requires_confirmation_without_blocking_routes 
+tests/test_v268_zebrados_dxf.py::test_override_disable_dedup_holes_and_missing_source 
+[gw0] [ 13%] PASSED tests/test_v142_update.py::test_failed_replace_restores_all_and_has_journal_before_write 
+tests/test_v142_update.py::test_incomplete_backup_rejected_before_any_restore 
+[gw3] [ 14%] PASSED tests/test_v268_zebrados_dxf.py::test_override_disable_dedup_holes_and_missing_source 
+tests/test_v268_zebrados_dxf.py::test_reader_closed_zebra_mapping_and_hidden_layers 
+[gw0] [ 14%] PASSED tests/test_v142_update.py::test_incomplete_backup_rejected_before_any_restore 
+tests/test_v142_update.py::test_zip_formats_apply_and_archive[] 
+[gw0] [ 15%] PASSED tests/test_v142_update.py::test_zip_formats_apply_and_archive[] 
+tests/test_v142_update.py::test_zip_formats_apply_and_archive[pacote/] 
+[gw0] [ 16%] PASSED tests/test_v142_update.py::test_zip_formats_apply_and_archive[pacote/] 
+tests/test_v142_update.py::test_zip_formats_apply_and_archive[RS142/pacote/] 
+[gw0] [ 16%] PASSED tests/test_v142_update.py::test_zip_formats_apply_and_archive[RS142/pacote/] 
+tests/test_v142_update.py::test_only_updates_directory_and_equivalent_versions 
+[gw0] [ 17%] PASSED tests/test_v142_update.py::test_only_updates_directory_and_equivalent_versions 
+tests/test_v142_update.py::test_reject_zip_traversal_and_quarantine[../../fora.py] 
+[gw0] [ 18%] PASSED tests/test_v142_update.py::test_reject_zip_traversal_and_quarantine[../../fora.py] 
+tests/test_v142_update.py::test_reject_zip_traversal_and_quarantine[C:/fora.py] 
+[gw0] [ 18%] PASSED tests/test_v142_update.py::test_reject_zip_traversal_and_quarantine[C:/fora.py] 
+tests/test_v142_update.py::test_reject_zip_traversal_and_quarantine[..\\fora.py] 
+[gw0] [ 19%] PASSED tests/test_v142_update.py::test_reject_zip_traversal_and_quarantine[..\\fora.py] 
+tests/test_v142_update.py::test_reject_zip_traversal_and_quarantine[/fora.py] 
+[gw0] [ 20%] PASSED tests/test_v142_update.py::test_reject_zip_traversal_and_quarantine[/fora.py] 
+tests/test_v142_update.py::test_invalid_content_quarantined_and_valid_can_follow 
+[gw0] [ 20%] PASSED tests/test_v142_update.py::test_invalid_content_quarantined_and_valid_can_follow 
+tests/test_v142_update.py::test_bad_manifest_archived_even_with_valid_candidate 
+[gw0] [ 21%] PASSED tests/test_v142_update.py::test_bad_manifest_archived_even_with_valid_candidate 
+tests/test_v142_update.py::test_snapshot_names_do_not_collide 
+[gw0] [ 21%] PASSED tests/test_v142_update.py::test_snapshot_names_do_not_collide 
+tests/test_v142_update.py::test_target_symlink_cannot_change_persistent_data 
+[gw0] [ 22%] PASSED tests/test_v142_update.py::test_target_symlink_cannot_change_persistent_data 
+tests/test_v142_update.py::test_tampered_backup_target_is_rejected 
+[gw0] [ 23%] PASSED tests/test_v142_update.py::test_tampered_backup_target_is_rejected 
+tests/test_v142_update.py::test_concurrent_update_is_rejected 
+[gw0] [ 23%] PASSED tests/test_v142_update.py::test_concurrent_update_is_rejected 
+tests/test_v142_update.py::test_api_listing_real_candidate_and_rollback 
+[gw2] [ 24%] PASSED tests/test_v269_trim.py::test_dependency_scope_does_not_invalidate_geometry_or_traffic 
+tests/test_v269_trim.py::test_source_cache_selection_is_exact_rejects_stale_and_skips_hidden_span 
+[gw0] [ 25%] PASSED tests/test_v142_update.py::test_api_listing_real_candidate_and_rollback 
+tests/test_v142_update.py::test_session_shutdown_requires_token_and_refuses_active_work 
+[gw0] [ 25%] PASSED tests/test_v142_update.py::test_session_shutdown_requires_token_and_refuses_active_work 
+tests/test_v142_update.py::test_invalid_wait_is_rejected[nan] 
+[gw0] [ 26%] PASSED tests/test_v142_update.py::test_invalid_wait_is_rejected[nan] 
+tests/test_v142_update.py::test_invalid_wait_is_rejected[inf] 
+[gw0] [ 27%] PASSED tests/test_v142_update.py::test_invalid_wait_is_rejected[inf] 
+tests/test_v142_update.py::test_invalid_wait_is_rejected[-1] 
+[gw0] [ 27%] PASSED tests/test_v142_update.py::test_invalid_wait_is_rejected[-1] 
+tests/test_v142_update.py::test_failed_rollback_recovers_state_before_attempt 
+[gw0] [ 28%] PASSED tests/test_v142_update.py::test_failed_rollback_recovers_state_before_attempt 
+tests/test_v142_update.py::test_recover_pending_update_after_process_crash 
+[gw0] [ 29%] PASSED tests/test_v142_update.py::test_recover_pending_update_after_process_crash 
+tests/test_v142_update.py::test_hash_manifest_detects_tampering_and_unlisted_files 
+[gw0] [ 29%] PASSED tests/test_v142_update.py::test_hash_manifest_detects_tampering_and_unlisted_files 
+tests/test_v267_zebrados.py::test_invalid_paint_is_refused_before_committing[change0] 
+[gw0] [ 30%] PASSED tests/test_v267_zebrados.py::test_invalid_paint_is_refused_before_committing[change0] 
+tests/test_v267_zebrados.py::test_invalid_paint_is_refused_before_committing[change1] 
+[gw0] [ 30%] PASSED tests/test_v267_zebrados.py::test_invalid_paint_is_refused_before_committing[change1] 
+tests/test_v267_zebrados.py::test_invalid_paint_is_refused_before_committing[change2] 
+[gw0] [ 31%] PASSED tests/test_v267_zebrados.py::test_invalid_paint_is_refused_before_committing[change2] 
+tests/test_v267_zebrados.py::test_invalid_paint_is_refused_before_committing[change3] 
+[gw0] [ 32%] PASSED tests/test_v267_zebrados.py::test_invalid_paint_is_refused_before_committing[change3] 
+tests/test_v267_zebrados.py::test_invalid_paint_is_refused_before_committing[change4] 
+[gw0] [ 32%] PASSED tests/test_v267_zebrados.py::test_invalid_paint_is_refused_before_committing[change4] 
+tests/test_v267_zebrados.py::test_invalid_paint_is_refused_before_committing[change5] 
+[gw0] [ 33%] PASSED tests/test_v267_zebrados.py::test_invalid_paint_is_refused_before_committing[change5] 
+tests/test_v267_zebrados.py::test_metric_stripes_preserve_holes_and_stay_inside[-45] 
+[gw0] [ 34%] PASSED tests/test_v267_zebrados.py::test_metric_stripes_preserve_holes_and_stay_inside[-45] 
+tests/test_v267_zebrados.py::test_metric_stripes_preserve_holes_and_stay_inside[0] 
+[gw0] [ 34%] PASSED tests/test_v267_zebrados.py::test_metric_stripes_preserve_holes_and_stay_inside[0] 
+tests/test_v267_zebrados.py::test_metric_stripes_preserve_holes_and_stay_inside[45] 
+[gw0] [ 35%] PASSED tests/test_v267_zebrados.py::test_metric_stripes_preserve_holes_and_stay_inside[45] 
+tests/test_v267_zebrados.py::test_metric_stripes_preserve_holes_and_stay_inside[135] 
+[gw0] [ 36%] PASSED tests/test_v267_zebrados.py::test_metric_stripes_preserve_holes_and_stay_inside[135] 
+tests/test_v267_zebrados.py::test_anchor_does_not_shift_when_area_is_extended 
+[gw0] [ 36%] PASSED tests/test_v267_zebrados.py::test_anchor_does_not_shift_when_area_is_extended 
+tests/test_v267_zebrados.py::test_legacy_and_budget 
+[gw3] [ 37%] PASSED tests/test_v268_zebrados_dxf.py::test_reader_closed_zebra_mapping_and_hidden_layers 
+tests/test_v268_zebrados_dxf.py::test_auto_paint_editor_video_3d_and_unchanged_routes 
+[gw0] [ 38%] PASSED tests/test_v267_zebrados.py::test_legacy_and_budget 
+tests/test_v267_zebrados.py::test_paint_reaches_video_and_webgl_without_changing_routes 
+[gw2] [ 38%] PASSED tests/test_v269_trim.py::test_source_cache_selection_is_exact_rejects_stale_and_skips_hidden_span 
+tests/test_v269_trim.py::test_frontend_clipping_has_same_endpoints_and_does_not_close_removed_gap 
+[gw2] [ 39%] PASSED tests/test_v269_trim.py::test_frontend_clipping_has_same_endpoints_and_does_not_close_removed_gap 
+tests/test_v269_trim.py::test_trimmed_dxf_is_absent_in_video_but_traffic_and_original_are_preserved 
+[gw1] [ 40%] PASSED tests/test_v14281_relevo_texturas.py::test_sem_costura_entre_ladrilhos_vizinhos 
+tests/test_v14281_relevo_texturas.py::test_deterministico_e_cores_validas 
+[gw1] [ 40%] PASSED tests/test_v14281_relevo_texturas.py::test_deterministico_e_cores_validas 
+tests/test_v14281_relevo_texturas.py::test_tem_textura_e_mantem_a_cor_media 
+[gw1] [ 41%] PASSED tests/test_v14281_relevo_texturas.py::test_tem_textura_e_mantem_a_cor_media 
+tests/test_v14281_relevo_texturas.py::test_ancorada_no_mundo_deslocar_o_ladrilho_desloca_a_textura 
+[gw1] [ 41%] PASSED tests/test_v14281_relevo_texturas.py::test_ancorada_no_mundo_deslocar_o_ladrilho_desloca_a_textura 
+tests/test_v14281_relevo_texturas.py::test_papel_desconhecido_nao_muda 
+[gw1] [ 42%] PASSED tests/test_v14281_relevo_texturas.py::test_papel_desconhecido_nao_muda 
+tests/test_v14281_relevo_texturas.py::test_blocos_igual_a_passo_unico_e_respeita_mascara 
+[gw1] [ 43%] PASSED tests/test_v14281_relevo_texturas.py::test_blocos_igual_a_passo_unico_e_respeita_mascara 
+tests/test_v14281_relevo_texturas.py::test_modelo_tem_o_campo 
+[gw1] [ 43%] PASSED tests/test_v14281_relevo_texturas.py::test_modelo_tem_o_campo 
+tests/test_v14281_relevo_texturas.py::test_quatro_tipos_de_pavimento_tem_texturas_distintas 
+[gw1] [ 44%] PASSED tests/test_v14281_relevo_texturas.py::test_quatro_tipos_de_pavimento_tem_texturas_distintas 
+tests/test_v14281_relevo_texturas.py::test_existente_e_mais_irregular_que_novo 
+[gw1] [ 45%] PASSED tests/test_v14281_relevo_texturas.py::test_existente_e_mais_irregular_que_novo 
+tests/test_v14281_relevo_texturas.py::test_rigido_sem_costura_e_deterministico 
+[gw1] [ 45%] PASSED tests/test_v14281_relevo_texturas.py::test_rigido_sem_costura_e_deterministico 
+tests/test_v14281_relevo_texturas.py::test_misto_aplica_cada_material_na_sua_regiao 
+[gw1] [ 46%] PASSED tests/test_v14281_relevo_texturas.py::test_misto_aplica_cada_material_na_sua_regiao 
+tests/test_v14281_relevo_texturas.py::test_misto_sem_rigido_igual_a_flexivel 
+[gw1] [ 47%] PASSED tests/test_v14281_relevo_texturas.py::test_misto_sem_rigido_igual_a_flexivel 
+tests/test_v14281_relevo_texturas.py::test_barreira_e_acostamento_rigido_tem_relevo 
+[gw1] [ 47%] PASSED tests/test_v14281_relevo_texturas.py::test_barreira_e_acostamento_rigido_tem_relevo 
+tests/test_v14281_relevo_texturas.py::test_oae_tres_tipos_distintos_e_sem_costura 
+[gw1] [ 48%] PASSED tests/test_v14281_relevo_texturas.py::test_oae_tres_tipos_distintos_e_sem_costura 
+tests/test_v14281_relevo_texturas.py::test_agua_sem_costura_entre_ladrilhos_e_so_na_mascara 
+[gw1] [ 49%] PASSED tests/test_v14281_relevo_texturas.py::test_agua_sem_costura_entre_ladrilhos_e_so_na_mascara 
+tests/test_v14281_relevo_texturas.py::test_agua_azulada_e_mais_escura_no_fundo 
+[gw1] [ 49%] PASSED tests/test_v14281_relevo_texturas.py::test_agua_azulada_e_mais_escura_no_fundo 
+tests/test_v14281_relevo_texturas.py::test_copa_determinismo_cache_e_limites 
+[gw1] [ 50%] PASSED tests/test_v14281_relevo_texturas.py::test_copa_determinismo_cache_e_limites 
+tests/test_v14281_relevo_texturas.py::test_copa_lado_do_sol_mais_claro 
+[gw1] [ 50%] PASSED tests/test_v14281_relevo_texturas.py::test_copa_lado_do_sol_mais_claro 
+tests/test_v14281_relevo_texturas.py::test_blit_copa_nas_bordas_nao_quebra 
+[gw1] [ 51%] PASSED tests/test_v14281_relevo_texturas.py::test_blit_copa_nas_bordas_nao_quebra 
+tests/test_v264_presentation.py::test_quality_modes_are_explicit_and_invalid_modes_refused 
+[gw1] [ 52%] PASSED tests/test_v264_presentation.py::test_quality_modes_are_explicit_and_invalid_modes_refused 
+tests/test_v264_presentation.py::test_same_world_point_does_not_flash_with_small_zoom_change 
+[gw1] [ 52%] PASSED tests/test_v264_presentation.py::test_same_world_point_does_not_flash_with_small_zoom_change 
+tests/test_v264_presentation.py::test_lod_transition_is_continuous_not_an_octave_switch 
+[gw1] [ 53%] PASSED tests/test_v264_presentation.py::test_lod_transition_is_continuous_not_an_octave_switch 
+tests/test_v264_presentation.py::test_realistic_has_less_micro_detail_and_keeps_manual_material_color 
+[gw1] [ 54%] PASSED tests/test_v264_presentation.py::test_realistic_has_less_micro_detail_and_keeps_manual_material_color 
+tests/test_v264_presentation.py::test_fill_green_cut_red_and_manual_mapping_preserved 
+[gw1] [ 54%] PASSED tests/test_v264_presentation.py::test_fill_green_cut_red_and_manual_mapping_preserved 
+tests/test_v264_presentation.py::test_detail_reveal_recovers_only_drawn_pixels_missing_in_coarse_map 
+[gw1] [ 55%] PASSED tests/test_v264_presentation.py::test_detail_reveal_recovers_only_drawn_pixels_missing_in_coarse_map 
+tests/test_v264_presentation.py::test_appearance_changes_do_not_rebuild_traffic_or_geometry 
+[gw1] [ 56%] PASSED tests/test_v264_presentation.py::test_appearance_changes_do_not_rebuild_traffic_or_geometry 
+tests/test_v264_presentation.py::test_real_scene_hides_only_technical_guides_and_retains_registered_dxf 
+[gw1] [ 56%] PASSED tests/test_v264_presentation.py::test_real_scene_hides_only_technical_guides_and_retains_registered_dxf 
+tests/test_v264_presentation.py::test_profiles_produce_decodable_video_and_comparable_frames 
+[gw0] [ 57%] PASSED tests/test_v267_zebrados.py::test_paint_reaches_video_and_webgl_without_changing_routes 
+tests/test_v267_zebrados.py::test_webgl_handles_disjoint_letters_and_holes_in_physical_paint 
+[gw0] [ 58%] PASSED tests/test_v267_zebrados.py::test_webgl_handles_disjoint_letters_and_holes_in_physical_paint 
+tests/test_v14282_passarela_tinta.py::test_anchor_igual_ao_desenho_simples 
+[gw0] [ 58%] PASSED tests/test_v14282_passarela_tinta.py::test_anchor_igual_ao_desenho_simples 
+tests/test_v14282_passarela_tinta.py::test_realista_deterministico_e_visivel 
+[gw0] [ 59%] PASSED tests/test_v14282_passarela_tinta.py::test_realista_deterministico_e_visivel 
+tests/test_v14282_passarela_tinta.py::test_deck_claro_e_texturizado 
+[gw0] [ 60%] PASSED tests/test_v14282_passarela_tinta.py::test_deck_claro_e_texturizado 
+tests/test_v14282_passarela_tinta.py::test_escada_e_rampa_nao_quebram 
+[gw0] [ 60%] PASSED tests/test_v14282_passarela_tinta.py::test_escada_e_rampa_nao_quebram 
+tests/test_v14282_passarela_tinta.py::test_tinta_so_altera_onde_pintou 
+[gw0] [ 61%] PASSED tests/test_v14282_passarela_tinta.py::test_tinta_so_altera_onde_pintou 
+tests/test_v14282_passarela_tinta.py::test_tinta_sem_pintura_nao_muda 
+[gw0] [ 61%] PASSED tests/test_v14282_passarela_tinta.py::test_tinta_sem_pintura_nao_muda 
+tests/test_v14282_passarela_tinta.py::test_tinta_ancorada_no_mundo 
+[gw0] [ 62%] PASSED tests/test_v14282_passarela_tinta.py::test_tinta_ancorada_no_mundo 
+tests/test_v14282_passarela_tinta.py::test_tinta_mais_clara_que_asfalto 
+[gw0] [ 63%] PASSED tests/test_v14282_passarela_tinta.py::test_tinta_mais_clara_que_asfalto 
+tests/test_v14282_passarela_tinta.py::test_postes_opcionais_nas_rampas 
+[gw0] [ 63%] PASSED tests/test_v14282_passarela_tinta.py::test_postes_opcionais_nas_rampas 
+tests/test_v14282_passarela_tinta.py::test_modelo_aceita_bridge_poles 
+[gw0] [ 64%] PASSED tests/test_v14282_passarela_tinta.py::test_modelo_aceita_bridge_poles 
+tests/test_v14282_passarela_tinta.py::test_graos_preservam_tom_medio_e_sao_deterministicos 
+[gw0] [ 65%] PASSED tests/test_v14282_passarela_tinta.py::test_graos_preservam_tom_medio_e_sao_deterministicos 
+tests/test_v14282_passarela_tinta.py::test_craquele_so_de_perto_e_nao_vaza_para_fora_da_tinta 
+[gw0] [ 65%] PASSED tests/test_v14282_passarela_tinta.py::test_craquele_so_de_perto_e_nao_vaza_para_fora_da_tinta 
+tests/test_v269_ghost_lines.py::test_open_hatch_strokes_never_gain_polygon_closure[domain] 
+[gw0] [ 66%] PASSED tests/test_v269_ghost_lines.py::test_open_hatch_strokes_never_gain_polygon_closure[domain] 
+tests/test_v269_ghost_lines.py::test_open_hatch_strokes_never_gain_polygon_closure[edge_line] 
+[gw0] [ 67%] PASSED tests/test_v269_ghost_lines.py::test_open_hatch_strokes_never_gain_polygon_closure[edge_line] 
+tests/test_v269_ghost_lines.py::test_disconnected_hatch_loops_are_not_joined_or_repaired_into_long_diagonals 
+[gw0] [ 67%] PASSED tests/test_v269_ghost_lines.py::test_disconnected_hatch_loops_are_not_joined_or_repaired_into_long_diagonals 
+tests/test_v269_ghost_lines.py::test_dashes_and_resampled_borders_preserve_sharp_vertices_and_actual_edges 
+[gw0] [ 68%] PASSED tests/test_v269_ghost_lines.py::test_dashes_and_resampled_borders_preserve_sharp_vertices_and_actual_edges 
+tests/test_v269_ghost_lines.py::test_real_render_and_network_do_not_show_open_hatch_closing_chords 
+[gw3] [ 69%] PASSED tests/test_v268_zebrados_dxf.py::test_auto_paint_editor_video_3d_and_unchanged_routes 
+tests/test_v268_zebrados_dxf.py::test_no_flow_index_cost_without_named_sources 
+[gw3] [ 69%] PASSED tests/test_v268_zebrados_dxf.py::test_no_flow_index_cost_without_named_sources 
+tests/test_v268_zebrados_dxf.py::test_new_configuration_rejects_unsafe_values[extra0] 
+[gw3] [ 70%] PASSED tests/test_v268_zebrados_dxf.py::test_new_configuration_rejects_unsafe_values[extra0] 
+tests/test_v268_zebrados_dxf.py::test_new_configuration_rejects_unsafe_values[extra1] 
+[gw3] [ 70%] PASSED tests/test_v268_zebrados_dxf.py::test_new_configuration_rejects_unsafe_values[extra1] 
+tests/test_v268_zebrados_dxf.py::test_new_configuration_rejects_unsafe_values[extra2] 
+[gw3] [ 71%] PASSED tests/test_v268_zebrados_dxf.py::test_new_configuration_rejects_unsafe_values[extra2] 
+tests/test_v268_zebrados_dxf.py::test_virtual_closure_is_not_an_automatic_zebra 
+[gw3] [ 72%] PASSED tests/test_v268_zebrados_dxf.py::test_virtual_closure_is_not_an_automatic_zebra 
+tests/test_v265_dxf_advance.py::test_virtual_hatch_chord_is_not_a_drawn_edge_even_when_split 
+[gw3] [ 72%] PASSED tests/test_v265_dxf_advance.py::test_virtual_hatch_chord_is_not_a_drawn_edge_even_when_split 
+tests/test_v265_dxf_advance.py::test_leading_dxf_is_clipped_to_front_and_never_connects_separate_entities 
+[gw3] [ 73%] PASSED tests/test_v265_dxf_advance.py::test_leading_dxf_is_clipped_to_front_and_never_connects_separate_entities 
+tests/test_v265_dxf_advance.py::test_guide_and_dxf_lead_changes_do_not_invalidate_static_3d_or_read_dxf 
+[gw3] [ 74%] PASSED tests/test_v265_dxf_advance.py::test_guide_and_dxf_lead_changes_do_not_invalidate_static_3d_or_read_dxf 
+tests/test_v265_dxf_advance.py::test_real_construction_frame_draws_dxf_ahead_then_keeps_final_texture 
+[gw0] [ 74%] PASSED tests/test_v269_ghost_lines.py::test_real_render_and_network_do_not_show_open_hatch_closing_chords 
+tests/test_v14243_aparar_pincel.py::test_trim_meio_divide_em_duas_partes 
+[gw0] [ 75%] PASSED tests/test_v14243_aparar_pincel.py::test_trim_meio_divide_em_duas_partes 
+tests/test_v14243_aparar_pincel.py::test_trim_ponta_mantem_vertices_restantes 
+[gw0] [ 76%] PASSED tests/test_v14243_aparar_pincel.py::test_trim_ponta_mantem_vertices_restantes 
+tests/test_v14243_aparar_pincel.py::test_trim_sem_interseccao_informa_erro_e_nao_altera 
+[gw0] [ 76%] PASSED tests/test_v14243_aparar_pincel.py::test_trim_sem_interseccao_informa_erro_e_nao_altera 
+tests/test_v14243_aparar_pincel.py::test_trim_registrado_e_pincel_troca_origem 
+[gw0] [ 77%] PASSED tests/test_v14243_aparar_pincel.py::test_trim_registrado_e_pincel_troca_origem 
+tests/test_v14243_aparar_pincel.py::test_contrato_comandos_sem_duplicidade_nem_colisao_de_alias 
+[gw0] [ 78%] PASSED tests/test_v14243_aparar_pincel.py::test_contrato_comandos_sem_duplicidade_nem_colisao_de_alias 
+tests/test_v263_ui.py::test_split_axis_preserves_first_section_and_saves_modified_second 
+[gw3] [ 78%] PASSED tests/test_v265_dxf_advance.py::test_real_construction_frame_draws_dxf_ahead_then_keeps_final_texture 
+tests/test_v265_dxf_advance.py::test_3d_fill_cut_pigments_and_manual_colors_are_preserved 
+[gw3] [ 79%] PASSED tests/test_v265_dxf_advance.py::test_3d_fill_cut_pigments_and_manual_colors_are_preserved 
+../../../verificacao/test_gate_curto.py::test_core_or_unknown_change_promotes_broad_and_appearance_is_currently_scoped 
+[gw3] [ 80%] PASSED ../../../verificacao/test_gate_curto.py::test_core_or_unknown_change_promotes_broad_and_appearance_is_currently_scoped 
+../../../verificacao/test_gate_curto.py::test_deadline_stops_test_children_instead_of_leaving_a_late_write 
+[gw3] [ 80%] PASSED ../../../verificacao/test_gate_curto.py::test_deadline_stops_test_children_instead_of_leaving_a_late_write 
+../../../verificacao/test_gate_curto.py::test_gate_external_tests_and_helpers_participate_in_reuse_hash 
+[gw3] [ 81%] PASSED ../../../verificacao/test_gate_curto.py::test_gate_external_tests_and_helpers_participate_in_reuse_hash 
+../../../verificacao/test_gate_curto.py::test_reviewed_reader_is_bound_to_exact_source_not_a_blanket_exception 
+[gw3] [ 81%] PASSED ../../../verificacao/test_gate_curto.py::test_reviewed_reader_is_bound_to_exact_source_not_a_blanket_exception 
+tests/test_v269_layer_semantics.py::test_expropriation_name_wins_over_material_pattern_without_overwriting_manual_choice 
+[gw3] [ 82%] PASSED tests/test_v269_layer_semantics.py::test_expropriation_name_wins_over_material_pattern_without_overwriting_manual_choice 
+tests/test_v269_layer_semantics.py::test_hatch_surface_does_not_become_cad_outline_or_generated_white_border 
+[gw3] [ 83%] PASSED tests/test_v269_layer_semantics.py::test_hatch_surface_does_not_become_cad_outline_or_generated_white_border 
+tests/test_v14230_flow_rules.py::test_entry_is_inside_by_five_meters_without_disabling_signals_or_collisions 
+[gw3] [ 83%] PASSED tests/test_v14230_flow_rules.py::test_entry_is_inside_by_five_meters_without_disabling_signals_or_collisions 
+tests/test_v14230_flow_rules.py::test_no_median_checkbox_overrides_permitted_return_without_touching_parallel_flow 
+[gw3] [ 84%] PASSED tests/test_v14230_flow_rules.py::test_no_median_checkbox_overrides_permitted_return_without_touching_parallel_flow 
+tests/test_v1429_layer_reading.py::test_reader_retains_named_layers_and_nested_block_inheritance 
+[gw3] [ 85%] PASSED tests/test_v1429_layer_reading.py::test_reader_retains_named_layers_and_nested_block_inheritance 
+tests/test_v1429_layer_reading.py::test_mapping_original_layer_survives_automatic_color_split 
+[gw3] [ 85%] PASSED tests/test_v1429_layer_reading.py::test_mapping_original_layer_survives_automatic_color_split 
+tests/test_v269_icons.py::test_all_user_icons_are_local_valid_and_match_the_catalog 
+[gw3] [ 86%] PASSED tests/test_v269_icons.py::test_all_user_icons_are_local_valid_and_match_the_catalog 
+tests/test_v269_trim_ui.py::test_trim_commands_menu_context_confirm_undo_redo_reload_restore 
+[gw2] [ 87%] PASSED tests/test_v269_trim.py::test_trimmed_dxf_is_absent_in_video_but_traffic_and_original_are_preserved 
+tests/test_v269_trim.py::test_hiding_dxf_edge_does_not_release_physical_guide_or_change_routes 
+[gw2] [ 87%] PASSED tests/test_v269_trim.py::test_hiding_dxf_edge_does_not_release_physical_guide_or_change_routes 
+tests/test_v269_trim.py::test_zero_length_reference_does_not_break_visual_rendering 
+[gw2] [ 88%] PASSED tests/test_v269_trim.py::test_zero_length_reference_does_not_break_visual_rendering 
+tests/test_v269_trim.py::test_disabled_surface_and_camera_do_not_invalidate_the_same_cad_selection 
+[gw2] [ 89%] PASSED tests/test_v269_trim.py::test_disabled_surface_and_camera_do_not_invalidate_the_same_cad_selection 
+tests/test_v267_zebrados_ui.py::test_zebra_confirm_cancel_flow_and_saved_metric_geometry 
+[gw0] [ 89%] PASSED tests/test_v263_ui.py::test_split_axis_preserves_first_section_and_saves_modified_second 
+[gw1] [ 90%] PASSED tests/test_v264_presentation.py::test_profiles_produce_decodable_video_and_comparable_frames 
+tests/test_v263_backend.py::test_vehicle_body_must_be_entirely_on_pavement_without_changing_routes 
+[gw1] [ 90%] PASSED tests/test_v263_backend.py::test_vehicle_body_must_be_entirely_on_pavement_without_changing_routes 
+tests/test_v263_backend.py::test_empty_pavement_hides_vehicle_including_classic_mode 
+[gw1] [ 91%] PASSED tests/test_v263_backend.py::test_empty_pavement_hides_vehicle_including_classic_mode 
+tests/test_v263_backend.py::test_per_position_uses_true_stationing_and_does_not_clip_outside_to_endpoint[False] 
+[gw1] [ 92%] PASSED tests/test_v263_backend.py::test_per_position_uses_true_stationing_and_does_not_clip_outside_to_endpoint[False] 
+tests/test_v263_backend.py::test_per_position_uses_true_stationing_and_does_not_clip_outside_to_endpoint[True] 
+[gw1] [ 92%] PASSED tests/test_v263_backend.py::test_per_position_uses_true_stationing_and_does_not_clip_outside_to_endpoint[True] 
+tests/test_v263_backend.py::test_per_coordinates_and_off_stationing_are_explicit 
+[gw1] [ 93%] PASSED tests/test_v263_backend.py::test_per_coordinates_and_off_stationing_are_explicit 
+tests/test_v263_backend.py::test_import_preview_api_uses_current_draft_and_preserves_saved_config 
+[gw1] [ 94%] PASSED tests/test_v263_backend.py::test_import_preview_api_uses_current_draft_and_preserves_saved_config 
+tests/test_v14294_redimensionar_sem_balancar.py::test_resize_preserva_vista 
+tests/test_v263_ui.py::test_save_and_close_includes_next_section_without_extra_add_click 
+[gw1] [ 94%] PASSED tests/test_v14294_redimensionar_sem_balancar.py::test_resize_preserva_vista 
+[gw2] [ 95%] PASSED tests/test_v267_zebrados_ui.py::test_zebra_confirm_cancel_flow_and_saved_metric_geometry 
+tests/test_v264_ui.py::test_quality_reaches_saved_config_discard_preserves_it_and_webgl_uses_it 
+[gw3] [ 96%] PASSED tests/test_v269_trim_ui.py::test_trim_commands_menu_context_confirm_undo_redo_reload_restore 
+tests/test_v268_zebrados_ui.py::test_dxf_sources_directions_override_and_selected_contour 
+[gw0] [ 96%] PASSED tests/test_v263_ui.py::test_save_and_close_includes_next_section_without_extra_add_click 
+tests/test_v263_ui.py::test_csv_import_previews_positions_and_outside_work_cannot_be_located 
+[gw2] [ 97%] PASSED tests/test_v264_ui.py::test_quality_reaches_saved_config_discard_preserves_it_and_webgl_uses_it 
+tests/test_v14231_flow_nodes.py::test_real_typed_y_junction_preserves_connections_and_conservation 
+[gw2] [ 98%] PASSED tests/test_v14231_flow_nodes.py::test_real_typed_y_junction_preserves_connections_and_conservation 
+[gw3] [ 98%] PASSED tests/test_v268_zebrados_ui.py::test_dxf_sources_directions_override_and_selected_contour 

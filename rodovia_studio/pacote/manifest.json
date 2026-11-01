@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "2.68",
-  "description": "2.68: zebrados automáticos por contornos DXF, conferência dos fluxos laterais, edição de cor e inclinação e preservação de vazios."
+  "version": "2.69",
+  "description": "2.69 consolidada: TRIM reversível, fidelidade de contornos DXF, conferência de desapropriação/acostamento e 148 ícones locais."
 }

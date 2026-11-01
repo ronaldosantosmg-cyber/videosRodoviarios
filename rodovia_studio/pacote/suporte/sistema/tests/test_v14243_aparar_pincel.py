@@ -38,7 +38,9 @@ def test_trim_sem_interseccao_informa_erro_e_nao_altera():
 
 def test_trim_registrado_e_pincel_troca_origem():
     s=(JS/'91_aparar.js').read_text(encoding='utf-8')
-    assert "'APARAR','TRIM'" in s and "itemFaixa('Editar','Modificar'" in s and 'checkpoint()' in s
+    assert 'APARARINTERSECOES' in s and 'checkpoint()' in s
+    revised=(JS/'98_trim_visual.js').read_text(encoding='utf-8')
+    assert "'TRIM','APARAR','OCULTARTRECHO'" in revised and 'rsTrim' in revised
     b=(JS/'35_pincel.js').read_text(encoding='utf-8')
     assert 'e.shiftKey&&brush.src' in b
 

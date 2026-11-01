@@ -1,0 +1,27 @@
+{
+  "profile": "curto_por_risco",
+  "risk": {
+    "baseline": "3ff694c",
+    "changed_runtime": [
+      "app/dependencies.py",
+      "app/detail.py",
+      "app/dxf_trim.py",
+      "app/js/01_estado_configuracao.js",
+      "app/js/02_vista_imagem_web.js",
+      "app/js/53_interface_estudos.js",
+      "app/js/91_aparar.js",
+      "app/js/98_trim_visual.js",
+      "app/models.py",
+      "app/presentation.py",
+      "app/render.py",
+      "app/rotas/editor.py",
+      "app/scene3d.py",
+      "app/signage.py",
+      "app/traffic.py",
+      "app/webmap.py"
+    ],
+    "sensitive": [],
+    "requires_broad": false
+  },
+  "limit_seconds": 180
+}

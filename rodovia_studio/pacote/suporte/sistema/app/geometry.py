@@ -84,7 +84,12 @@ def convert(e,layer,role,units,entities,warnings,extra=None):
                 extra={**extra,'elevation_valid':valid,'elevation_m':float(np.median(z)) if valid else None,'elevation_range_m':[float(z.min()),float(z.max())] if valid else None}
                 if not valid:warnings.append('OAE: cota Z inválida na camada '+layer+'. Confira a cota; nenhum desnível foi presumido.')
             if len(pts)>=2: ps.append(pts)
-        if hatch and ps:
+        if hatch and ps and role in ('domain','edge_line'):
+            # São traços, não superfícies: nunca fechar uma borda aberta para reparar um polígono.
+            for pts in ps:
+                entities.append({'layer':layer,'role':role,'closed':False,'hatch':True,'source_hatch_stroke':True,'points':pts,'holes':[],**extra})
+            if any(float(np.linalg.norm(p[0]-p[-1]))>1e-6 for p in ps):warnings.append('Traços abertos da hachura preservados sem fechamento artificial: '+layer+'.')
+        elif hatch and ps:
             # Even/odd fill respects islands rather than filling every loop independently.
             shape=Polygon()
             for p in ps:
@@ -197,6 +202,7 @@ def check_roles(entities):
     out=[];by={}
     for e in entities:by.setdefault((e['role'],e['layer']),[]).append(e)
     for (role,layer),es in by.items():
+        if role in ('pavement','existing_pavement','shoulder') and 'DESAPROP' in norm(layer):out.append('Camada “'+layer+'” está como pavimento, mas o nome indica desapropriação/domínio. Use Conferir classificação (REVISARCONTORNOS) antes de gerar o vídeo.')
         if role in ('pavement','existing_pavement','shoulder','median','oae') and not any(x['closed'] for x in es):
             out.append(f'Camada “{layer}” está como {role} mas não tem áreas fechadas (hachura ou polilinha fechada): não será preenchida. Confira o tipo.')
         if role=='axis' and len(es)>40:
@@ -312,6 +318,8 @@ def analyze(directory,settings,preview=None,hatch_preview=None):
     if getattr(settings,'pavement_areas',None) or getattr(settings,'shoulder_marks',None):
         from .surface_marks import items as surface_items
         entities=surface_items(settings,entities,warnings)
+        for a in settings.pavement_areas:
+            if a.enabled and 'DESAPROP' in norm(a.name):warnings.append('Área “'+a.name+'” está como pista/acostamento, mas indica desapropriação. Use REVISARCONTORNOS para conferir; os dados foram preservados.')
     if settings.overlays:entities.extend(read_overlays(directory,settings,warnings))
     # Native earthwork material hatches inherit the nearest typed cut/fill offset.
     from scipy.spatial import cKDTree
@@ -410,7 +418,7 @@ def custom_axis_points(ca,step=1.):
         return cs(ss)
     return P
 
-HATCH_KW=[('terrain',('GRAMADO','AREA VERDE','AREAVERDE')),('shoulder',('ACOST','SHOULDER')),('median',('CANTEIRO','MEDIAN','ILHA','GRAMA')),
+HATCH_KW=[('domain',('DESAPROP','DOMINIO','FAIXA DE DOMINIO')),('terrain',('GRAMADO','AREA VERDE','AREAVERDE')),('shoulder',('ACOST','SHOULDER')),('median',('CANTEIRO','MEDIAN','ILHA','GRAMA')),
           ('cut',('CORTE','CUT')),('fill',('ATERRO','FILL')),('water',('AGUA','RIO','CORREGO','LAGO')),('oae',('OAE','PONTE','VIADUTO','TABULEIRO')),
           ('existing_pavement',('EXIST','ATUAL','ANTIG')),
           ('pavement',('PAV','PISTA','ASFALT','CBUQ','CAUQ','REVEST','RIGID','CONCRET','CCP','PCC'))]
@@ -467,7 +475,7 @@ def hatch_signature(e,layer,doc,units=1.):
     except Exception as _e:_falha(__name__,_e)
     n=norm(layer+' '+pat);role=None;mat=None;conf=None;why=''
     g=guess(layer)
-    if g in ('pavement','existing_pavement','shoulder','median','cut','fill','water','oae'):
+    if g in ('domain','pavement','existing_pavement','shoulder','median','cut','fill','water','oae'):
         role=g;conf='alta';why='perfil de camadas'
     if role is None:
         for r,kws in HATCH_KW:
@@ -476,7 +484,7 @@ def hatch_signature(e,layer,doc,units=1.):
     pinfo=HATCH_PATTERNS.get(pat)
     if role is None:
         g=guess(layer)
-        if g in ('pavement','existing_pavement','shoulder','median','cut','fill','water','oae'):role=g;conf='alta';why='perfil de camadas'
+        if g in ('domain','pavement','existing_pavement','shoulder','median','cut','fill','water','oae'):role=g;conf='alta';why='perfil de camadas'
     if role is None and pinfo:role=pinfo[0];conf='média';why=f'padrão {pat}'
     hint=None
     if role is None and pat in ('SOLID',''):

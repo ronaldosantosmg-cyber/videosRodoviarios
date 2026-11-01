@@ -12,6 +12,23 @@ class Point(BaseModel):
     x: float
     y: float
 
+class DxfLineTrim(BaseModel):
+    model_config=ConfigDict(allow_inf_nan=False)
+    id: str = Field(default='',max_length=80)
+    source_id: str = Field(min_length=1,max_length=80)
+    layer: str = Field(default='',max_length=400)
+    start_m: float = Field(ge=0)
+    end_m: float = Field(gt=0)
+    length_m: float = Field(gt=0,le=20000000)
+    start: Point
+    end: Point
+    enabled: bool = True
+
+    @model_validator(mode='after')
+    def interval(self):
+        if self.end_m-self.start_m<1e-6 or self.end_m>self.length_m+1e-4:raise ValueError('TRIM: início/fim fora da linha ou intervalo vazio.')
+        return self
+
 class POI(BaseModel):
     model_config=ConfigDict(allow_inf_nan=False)
     id: str = ''
@@ -805,6 +822,7 @@ class Settings(BaseModel):
     short_video_mode: Literal['auto','tour'] = 'auto'
     hydrography: bool = True
     vehicles_paved_only: bool = True  # Proteção visual: corpo inteiro sobre pavimento cadastrado.
+    derived_contours: bool = False  # contornos ilustrativos de hachuras só por opção explícita
     signage_emphasis: bool = True  # Contraste/acabamento da pintura, sem mudar regras viárias.
     traffic: bool = True
     traffic_speed_kmh: float = Field(default=70, ge=5, le=110)
@@ -957,6 +975,7 @@ class Settings(BaseModel):
     advance_mode: Literal['duracao','velocidade'] = 'duracao'   # 1.27: a duração do vídeo é digitada ou calculada pela velocidade
     advance_speed_kmh: float = Field(default=150,ge=5,le=5000)   # 1.27: velocidade de avanço sobre a imagem (modo 'velocidade')
     curve_speed: bool = True   # 1.27: veículos reduzem nas curvas fechadas e ligações (projetos antigos: desligado)
+    dxf_line_trims: list[DxfLineTrim] = Field(default_factory=list,max_length=2000)
     hidden_layers: list[str] = Field(default_factory=list,max_length=3000)   # 1.26: some no editor e no vídeo
     frozen_layers: list[str] = Field(default_factory=list,max_length=3000)   # 1.26: travada no editor; no vídeo aparece pronta desde o início
     callout_layout: Literal['auto','anterior'] = 'auto'   # 1.26: caixas sem sobreposição; 'anterior' = como na 1.25

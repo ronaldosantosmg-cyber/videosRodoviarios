@@ -21,6 +21,7 @@ from .asset_catalog import ASSET_ROLES,DXF_RULES,CATALOG
 ROLE_LABELS.update(ASSET_ROLES)
 
 BUILTIN={'name':'Padrão (nomes comuns)','builtin':True,'rules':[
+    {'pattern':'*DESAPROP*','role':'domain'},
     *DXF_RULES,
     {'pattern':'*SINALIZ*HORIZ*','role':'sign_h'},{'pattern':'*PINTURA*','role':'sign_h'},{'pattern':'*FAIXA*PEDEST*','role':'sign_h'},{'pattern':'*ZEBRAD*','role':'sign_h'},
     {'pattern':'*SINALIZ*VERT*','role':'sign_v'},{'pattern':'*PLACA*','role':'sign_v'},

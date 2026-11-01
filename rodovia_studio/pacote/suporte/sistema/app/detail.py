@@ -132,7 +132,9 @@ class Detail:
                     if v.is_empty:continue
                     if v.geom_type=='Polygon':out.append({'role':role,'closed':True,'p':np.asarray(v.exterior.coords),'holes':[np.asarray(h.coords) for h in v.interiors],'e':e})
                     elif v.geom_type=='LineString':out.append({'role':role,'closed':False,'p':np.asarray(v.coords),'holes':[],'e':e})
-            else:out.append({'role':role,'closed':bool(e['closed']),'p':np.asarray(e['points']),'holes':list(e.get('holes',[])),'e':e})
+            else:
+                from .dxf_trim import runs
+                for p in ([e['points']] if e['closed'] else runs(e)):out.append({'role':role,'closed':bool(e['closed']),'p':np.asarray(p),'holes':list(e.get('holes',[])),'e':e})
         for o in out:o['bb']=np.r_[o['p'].min(0),o['p'].max(0)]
         self._paths=out;return out
     def overlay_tile(self,i,j):
@@ -226,7 +228,9 @@ class Detail:
             st=groups[order][0]['e']['style'];rgb=_rgb(st['color']);mask=np.zeros((n,n),np.uint8);lw=max(1,round(st['width_m']/self.R))
             for o in groups[order]:
                 if o['closed'] and st['fill']:cv2.fillPoly(mask,[q(o['p'])],115,cv2.LINE_AA,4)
-            for o in groups[order]:cv2.polylines(mask,[q(o['p'])],o['closed'],255,lw,cv2.LINE_AA,4)
+            from .dxf_trim import runs
+            for o in groups[order]:
+                for p in (runs(o['e']) if o['closed'] else [o['p']]):cv2.polylines(mask,[q(p)],False,255,lw,cv2.LINE_AA,4)
             a=(mask.astype(np.float32)*st['opacity']).astype(np.uint8);sel=a>0
             if not sel.any():continue
             f=a[sel,None]/255;old=ov[sel,:3].astype(np.float32);ov[sel,:3]=(old*(1-f)+rgb*f).astype(np.uint8);ov[:,:,3]=np.maximum(ov[:,:,3],a)

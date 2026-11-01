@@ -92,7 +92,8 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
             buffers[key_mesh].extend(local(q,lift).ravel().tolist())
     meshes=[dict(labels[k],id=f'surface-{i}',positions=p) for i,(k,p) in enumerate(buffers.items())]
     from .engineering_assets import asset_meshes
-    meshes.extend(asset_meshes(scene.items,local,settings.role_colors))
+    from .dxf_trim import display_items
+    meshes.extend(asset_meshes(display_items(scene.items),local,settings.role_colors))
     if sum(len(m['positions'])//3 for m in meshes)>MAX_VERTICES:raise ValueError('Cena e interferências excedem o orçamento 3D; divida o trecho.')
     total=sum(len(m['positions'])//3 for m in meshes)
     paint_buffers=defaultdict(list)

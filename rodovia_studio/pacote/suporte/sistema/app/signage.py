@@ -548,7 +548,9 @@ def dxf_signage(net,items):
         if e.get('closed') and len(p)>=3:
             if Polygon(p).area>500:continue   # 1.18: área grande demais para pintura (provável pavimento)
             paint.append(([p]+[np.asarray(h) for h in e.get('holes',[])],col))
-        elif len(p)>=2:lines.extend((a,b,col) for a,b in chain_line(p))
+        elif len(p)>=2:
+            from .dxf_trim import runs
+            lines.extend((a,b,col) for part in runs(e) for a,b in chain_line(part))
     return paint,lines
 
 def build(net,dxf_h=(),dxf_v=()):

@@ -39,6 +39,6 @@ if(typeof window!=='undefined'&&typeof comando==='function'){
   if(r.pieces.length>1){const c=JSON.parse(JSON.stringify(orig));c.points=r.pieces[1].map(p=>({x:p.x,y:p.y}));if('id' in c)c.id=uid();if(c.name)c.name=(c.name+' (2)').slice(0,80);list.splice(o.i+1,0,c)}
   sel=null;changed(`${o.label} aparada${r.pieces.length>1?' e dividida em duas partes':''}. Clique em outro trecho; Enter encerra.`);showProps&&showProps()}
  function startTrim(){if(!pid||!ready())return msg('Abra o editor de um projeto primeiro.',true);cadCmd={step:trimStep};prompt_('APARAR — clique no trecho a remover (Enter encerra):');msg('APARAR: os demais objetos do desenho são as arestas de corte. Clique no trecho a remover; Enter ou Esc encerra.')}
- comando(['APARAR','TRIM'],()=>startTrim(),'Aparar: remove o trecho do fluxo/acesso/linha até a interseção com os demais objetos');
- itemFaixa('Editar','Modificar',['Aparar','✂',()=>startTrim(),1]);
+ comando(['APARARINTERSECOES'],()=>startTrim(),'Aparar: remove o trecho do fluxo/acesso/linha até a interseção com os demais objetos');
+ // Modo anterior preservado como APARARINTERSECOES; TRIM principal está em 98_trim_visual.js.
 }

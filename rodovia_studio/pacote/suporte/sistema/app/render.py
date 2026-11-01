@@ -134,6 +134,9 @@ class Scene:
     def __init__(self,directory,s,status=lambda *a:None):
         self.directory=Path(directory);self.s=s;self.W=s.width;self.H=s.width*9//16;self.scale=self.W/2560
         status(.02,'Lendo geometria');self.items,self.axis,self.ds,self.axes,self.report=analyze(directory,s)
+        from .dxf_trim import annotate,runs
+        self.items,missing_trims=annotate(self.items,s)
+        if missing_trims:self.report.setdefault('warnings',[]).append('TRIM: '+str(len(missing_trims))+' linha(s) de origem ausentes ou alteradas. As ocultações foram preservadas; confira Restaurar trechos.')
         from .image_context import accepted_items
         self.image_context_items=accepted_items(s,self.items,directory)
         self.map,self.box,self.attribution=mosaic(directory,s,self.report['bounds'],status,warnings=self.report.setdefault('warnings',[]))
@@ -147,7 +150,7 @@ class Scene:
                 g=Polygon(e['points'],holes=e.get('holes',[])).buffer(0)
                 for part in (list(g.geoms) if hasattr(g,'geoms') else [g]):
                     if part.geom_type=='Polygon' and part.area>1:self.hydro.polygons.append(part)
-            elif len(e['points'])>=2:self.hydro.lines.append(np.asarray(e['points']))
+            elif len(e['points'])>=2:self.hydro.lines.extend(runs(e))
         if any(e['role']=='water' for e in self.items) and 'DXF' not in self.hydro.source:self.hydro.source=(self.hydro.source+' + ' if self.hydro.source else '')+'hidrografia do DXF'
         if (self.hydro.lines or self.hydro.polygons) and (s.water_texture or s.water_names):
             if s.water_texture:
@@ -216,6 +219,9 @@ class Scene:
         # Handoff interno da mesma tarefa/configuração: não relê nem reconverte o DXF.
         status(.1,'Preparando geometria analisada' if _geometry is not None else 'Lendo geometria')
         self.items,self.axis,self.ds,self.axes,self.report=_geometry if _geometry is not None else analyze(directory,s)
+        from .dxf_trim import annotate,runs
+        self.items,missing_trims=annotate(self.items,s)
+        if missing_trims:self.report.setdefault('warnings',[]).append('TRIM: '+str(len(missing_trims))+' linha(s) de origem ausentes ou alteradas. As ocultações foram preservadas; confira Restaurar trechos.')
         from .image_context import accepted_items
         self.image_context_items=accepted_items(s,self.items,directory)
         self.length=self.ds[-1]
@@ -253,9 +259,8 @@ class Scene:
         from .presentation import contour_runs
         self.domain=[run for e in self.items if e['role']=='domain' for run in contour_runs(e)]
         self.domain_dashes=[]
-        for points in self.domain:
-            ln=LineString(points)
-            self.domain_dashes.extend([[ln.interpolate(v).coords[0],ln.interpolate(min(ln.length,v+6)).coords[0]] for v in np.arange(0,ln.length,10)])
+        from .presentation import dash_segments
+        for points in self.domain:self.domain_dashes.extend(dash_segments(points))
         self.domain_dashes=np.array(self.domain_dashes).reshape(-1,2,2)
         self.domain_centers=self.domain_dashes.mean(1)
         from .full_update import required,rebuilt
@@ -283,8 +288,8 @@ class Scene:
                 if dump.get(k):config[k]=dump[k]
             if dump.get('role_colors'):config['role_colors']=dump['role_colors']
             if dump.get('auto_earthworks') is False:config['auto_earthworks']=False
-            for k in ('hidden_layers','frozen_layers'):
-                if dump.get(k):config[k]=sorted(dump[k])
+            for k in ('hidden_layers','frozen_layers','dxf_line_trims'):
+                if dump.get(k):config[k]=dump[k] if k=='dxf_line_trims' else sorted(dump[k])
             signature.update(json.dumps([config,self.box,self.n],sort_keys=True).encode())
             self.geometry_signature=signature.hexdigest();cache_dir=self.directory/'cache_geometria'/signature.hexdigest()[:24]
             force_surface=required('surface',str(cache_dir))
@@ -316,7 +321,9 @@ class Scene:
                     g=poly(e) if e['closed'] else LineString(e['points']);g=g.difference(self.exclusion)
                     geoms=list(g.geoms) if hasattr(g,'geoms') else [g]
                     paths=[np.array(v.exterior.coords if v.geom_type=='Polygon' else v.coords) for v in geoms if not v.is_empty and v.geom_type in ['Polygon','LineString']]
-                else:paths=[e['points']]
+                else:
+                    from .dxf_trim import runs
+                    paths=[e['points']] if e['closed'] else runs(e)
                 for p in paths:
                     q=np.rint(self.worldpx(p)).astype(np.int32)
                     if e['closed']:
@@ -396,7 +403,9 @@ class Scene:
                 q=np.rint(self.worldpx(e['points'])).astype(np.int32)
                 if e['closed'] and st['fill']:cv2.fillPoly(mask,[q],115)
             for e in groups[order]:
-                q=np.rint(self.worldpx(e['points'])).astype(np.int32);cv2.polylines(mask,[q],e['closed'],255,lw,cv2.LINE_AA)
+                from .dxf_trim import runs
+                for p in runs(e):
+                    q=np.rint(self.worldpx(p)).astype(np.int32);cv2.polylines(mask,[q],False,255,lw,cv2.LINE_AA)
             a=(mask.astype(np.float32)*st['opacity']).astype(np.uint8);del mask;select=a>0
             if not select.any():continue
             f=a[select,None]/255;old=self.overlay[select,:3].astype(np.float32)
@@ -449,7 +458,8 @@ class Scene:
             try:
                 deck,line,_,_,_=deck_geometry(item['points']);oae_info.append({'id':item.get('layer','OAE'),'deck':deck,'line':line,'level_m':float(item.get('elevation_m') or 0),'elevation_valid':item.get('elevation_valid',True),'grade_confirmed':False})
             except ValueError:continue
-        self.network=TrafficNetwork(roads,obstacles,self.axes,self.axis,self.ds,self.s,[poly(e) for e in self.items if e['closed'] and e['role']=='oae']+decks,oae_direction_marks(self.oae,self.stationing),[e['points'] for e in self.items if e['role']=='edge_line' and len(e['points'])>=2],[e for e in self.items if e['role']=='sign_h'],[e for e in self.items if e['role']=='sign_v'],directory=self.directory,oae_info=oae_info,median_obstacles=[poly(e) for e in self.items if e['closed'] and e['role']=='median'],virtual_chords=[c for e in self.items for c in (e.get('virtual') or []) if e['role'] in ('pavement','existing_pavement','shoulder')])
+        from .dxf_trim import runs
+        self.network=TrafficNetwork(roads,obstacles,self.axes,self.axis,self.ds,self.s,[poly(e) for e in self.items if e['closed'] and e['role']=='oae']+decks,oae_direction_marks(self.oae,self.stationing),[e['points'] for e in self.items if e['role']=='edge_line' and len(e['points'])>=2],[e for e in self.items if e['role']=='sign_h'],[e for e in self.items if e['role']=='sign_v'],directory=self.directory,oae_info=oae_info,median_obstacles=[poly(e) for e in self.items if e['closed'] and e['role']=='median'],virtual_chords=[c for e in self.items for c in (e.get('virtual') or []) if e['role'] in ('pavement','existing_pavement','shoulder')],display_edge_lines=[p for e in self.items if e['role']=='edge_line' for p in runs(e)])
         self.allowed=self.network.allowed
         self.save_editor_geometry(roads,obstacles)
         self.routes=[(e['p'],e['t'],np.ones(len(e['p']),bool),e['length'],i) for i,e in enumerate(self.network.edges)]

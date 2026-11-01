@@ -58,7 +58,8 @@ async function loadGeo(){const id=pid,context=projectSession.context,keep=geoPid
 
 function buildVectorPaths(){vecPaths={};if(!vec||!geo)return;const L=vec.layers||{};
  for(const [role,list] of Object.entries(L)){if(!list.length)continue;const path=new Path2D(),fill=new Path2D();let nf=0;
-  for(const r of list){const sk=r.k?new Set(r.k):null;r.p.forEach((q,i)=>{const [x,y]=worldToImg({x:q[0],y:q[1]});if(i){if(sk&&sk.has(i-1))path.moveTo(x,y);else path.lineTo(x,y);if(r.c)fill.lineTo(x,y)}else{path.moveTo(x,y);if(r.c){fill.moveTo(x,y);nf++}}});if(r.c){if(!(sk&&sk.has(r.p.length-1)))path.closePath();fill.closePath()}}
+  for(const r of list){for(const stroke of (window.RodoviaTrimController?.records(r.hatch_outline?{...r,k:cfg.derived_contours?r.source_k:Array.from({length:r.p.length},(_,i)=>i)}:r)||[r])){const sk=stroke.k?new Set(stroke.k):null;stroke.p.forEach((q,i)=>{const [x,y]=worldToImg({x:q[0],y:q[1]});if(i&&!(sk&&sk.has(i-1)))path.lineTo(x,y);else path.moveTo(x,y)});if(stroke.c&&!(sk&&sk.has(stroke.p.length-1)))path.closePath()}if(r.c){r.p.forEach((q,i)=>{const [x,y]=worldToImg({x:q[0],y:q[1]});if(i)fill.lineTo(x,y);else{fill.moveTo(x,y);nf++}});fill.closePath()}}
+
   const col=role==='overlay'&&list[0].color?list[0].color:VSTYLE[role]?.[0];vecPaths[role]={path,fill:nf?fill:null,n:list.length,color:col};if(vecOn[role]===undefined)vecOn[role]=true}
  buildSignage()}
 function buildSignage(){if(!vecPaths||!geo)return;delete vecPaths.signage;delete vecPaths.signage_y;delete vecPaths.arrows;if(!editor)return;

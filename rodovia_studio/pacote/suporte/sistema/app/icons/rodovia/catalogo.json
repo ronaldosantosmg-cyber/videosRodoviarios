@@ -1,0 +1,1644 @@
+[
+  {
+    "id": "projeto-novo",
+    "name_pt": "Novo projeto",
+    "group": "Arquivo e projeto",
+    "file_name": "projeto-novo.svg",
+    "tooltip": "Criar um novo projeto rodoviário (Ctrl+N)",
+    "aria_label": "Criar novo projeto",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "projeto-abrir",
+    "name_pt": "Abrir",
+    "group": "Arquivo e projeto",
+    "file_name": "projeto-abrir.svg",
+    "tooltip": "Abrir projeto existente (Ctrl+O)",
+    "aria_label": "Abrir projeto existente",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "projeto-salvar",
+    "name_pt": "Salvar",
+    "group": "Arquivo e projeto",
+    "file_name": "projeto-salvar.svg",
+    "tooltip": "Gravar alterações no arquivo do projeto (Ctrl+S)",
+    "aria_label": "Salvar alterações do projeto",
+    "variants": [
+      "default",
+      "dirty"
+    ]
+  },
+  {
+    "id": "projeto-salvar-como",
+    "name_pt": "Salvar como",
+    "group": "Arquivo e projeto",
+    "file_name": "projeto-salvar-como.svg",
+    "tooltip": "Salvar cópia do projeto com novo nome (Ctrl+Shift+S)",
+    "aria_label": "Salvar projeto como",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "projeto-importar-dxf",
+    "name_pt": "Importar DXF",
+    "group": "Arquivo e projeto",
+    "file_name": "projeto-importar-dxf.svg",
+    "tooltip": "Importar arquivo vetorial CAD DXF",
+    "aria_label": "Importar desenho DXF",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "projeto-importar-imagem",
+    "name_pt": "Importar imagem",
+    "group": "Arquivo e projeto",
+    "file_name": "projeto-importar-imagem.svg",
+    "tooltip": "Importar ortofoto aérea ou imagem raster",
+    "aria_label": "Importar imagem aérea",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "projeto-importar-planilha-per",
+    "name_pt": "Importar planilha PER",
+    "group": "Arquivo e projeto",
+    "file_name": "projeto-importar-planilha-per.svg",
+    "tooltip": "Importar planilha de Programa de Exploração Rodoviária (PER)",
+    "aria_label": "Importar planilha PER",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "projeto-exportar",
+    "name_pt": "Exportar",
+    "group": "Arquivo e projeto",
+    "file_name": "projeto-exportar.svg",
+    "tooltip": "Exportar dados geométricos e relatórios",
+    "aria_label": "Exportar projeto",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "projeto-configuracoes",
+    "name_pt": "Configurações",
+    "group": "Arquivo e projeto",
+    "file_name": "projeto-configuracoes.svg",
+    "tooltip": "Configurações gerais do sistema e unidades",
+    "aria_label": "Configurações do aplicativo",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "projeto-informacoes",
+    "name_pt": "Informações do projeto",
+    "group": "Arquivo e projeto",
+    "file_name": "projeto-informacoes.svg",
+    "tooltip": "Propriedades e metadados da rodovia e concessão",
+    "aria_label": "Informações do projeto",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "editar-selecionar",
+    "name_pt": "Selecionar",
+    "group": "Edição",
+    "file_name": "editar-selecionar.svg",
+    "tooltip": "Selecionar elementos vetoriais (V)",
+    "aria_label": "Selecionar entidades",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "editar-mover",
+    "name_pt": "Mover",
+    "group": "Edição",
+    "file_name": "editar-mover.svg",
+    "tooltip": "Transladar elementos selecionados (M)",
+    "aria_label": "Mover elementos",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "editar-copiar",
+    "name_pt": "Copiar",
+    "group": "Edição",
+    "file_name": "editar-copiar.svg",
+    "tooltip": "Duplicar geometria selecionada (Ctrl+C)",
+    "aria_label": "Copiar geometria",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "editar-girar",
+    "name_pt": "Girar",
+    "group": "Edição",
+    "file_name": "editar-girar.svg",
+    "tooltip": "Rotacionar geometria em torno do pivô (RO)",
+    "aria_label": "Girar geometria",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "editar-apagar",
+    "name_pt": "Apagar",
+    "group": "Edição",
+    "file_name": "editar-apagar.svg",
+    "tooltip": "Excluir elementos selecionados da base (Delete)",
+    "aria_label": "Apagar entidade geométrica",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "editar-recortar-segmento",
+    "name_pt": "Recortar segmento",
+    "group": "Edição",
+    "file_name": "editar-recortar-segmento.svg",
+    "tooltip": "Seccionar segmento de eixo ou linha CAD em dois",
+    "aria_label": "Recortar segmento linear",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "editar-unir-segmentos",
+    "name_pt": "Unir segmentos",
+    "group": "Edição",
+    "file_name": "editar-unir-segmentos.svg",
+    "tooltip": "Concatenar dois segmentos contíguos em uma única polilinha",
+    "aria_label": "Unir segmentos lineares contíguos",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "editar-inserir-ponto",
+    "name_pt": "Inserir ponto",
+    "group": "Edição",
+    "file_name": "editar-inserir-ponto.svg",
+    "tooltip": "Inserir novo vértice na geometria selecionada",
+    "aria_label": "Inserir ponto no traçado",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "editar-remover-ponto",
+    "name_pt": "Remover ponto",
+    "group": "Edição",
+    "file_name": "editar-remover-ponto.svg",
+    "tooltip": "Remover vértice existente da polilinha",
+    "aria_label": "Remover ponto do traçado",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "editar-editar-vertices",
+    "name_pt": "Editar vértices",
+    "group": "Edição",
+    "file_name": "editar-editar-vertices.svg",
+    "tooltip": "Manipular grips e alças dos vértices geométricos",
+    "aria_label": "Manipular alças e nós de vértices",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "editar-desfazer",
+    "name_pt": "Desfazer",
+    "group": "Edição",
+    "file_name": "editar-desfazer.svg",
+    "tooltip": "Reverter última ação (Ctrl+Z)",
+    "aria_label": "Desfazer última alteração",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "editar-refazer",
+    "name_pt": "Refazer",
+    "group": "Edição",
+    "file_name": "editar-refazer.svg",
+    "tooltip": "Reaplicar ação desfeita (Ctrl+Y)",
+    "aria_label": "Refazer alteração",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "navegacao-pan",
+    "name_pt": "Pan",
+    "group": "Navegação",
+    "file_name": "navegacao-pan.svg",
+    "tooltip": "Arrastar enquadramento da tela (Espaço + Mouse)",
+    "aria_label": "Arrastar enquadramento",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "navegacao-aproximar",
+    "name_pt": "Aproximar",
+    "group": "Navegação",
+    "file_name": "navegacao-aproximar.svg",
+    "tooltip": "Zoom in na cena rodoviária (+)",
+    "aria_label": "Aproximar visualização",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "navegacao-afastar",
+    "name_pt": "Afastar",
+    "group": "Navegação",
+    "file_name": "navegacao-afastar.svg",
+    "tooltip": "Zoom out na cena rodoviária (-)",
+    "aria_label": "Afastar visualização",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "navegacao-enquadrar-projeto",
+    "name_pt": "Enquadrar projeto",
+    "group": "Navegação",
+    "file_name": "navegacao-enquadrar-projeto.svg",
+    "tooltip": "Zoom em toda a extensão do projeto rodoviário (ZE)",
+    "aria_label": "Enquadrar extensão total do projeto",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "navegacao-enquadrar-selecao",
+    "name_pt": "Enquadrar seleção",
+    "group": "Navegação",
+    "file_name": "navegacao-enquadrar-selecao.svg",
+    "tooltip": "Zoom nos elementos atualmente selecionados (ZS)",
+    "aria_label": "Enquadrar elementos selecionados",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "navegacao-redesenhar",
+    "name_pt": "Redesenhar",
+    "group": "Navegação",
+    "file_name": "navegacao-redesenhar.svg",
+    "tooltip": "Regenerar viewport gráfica e limpar artefatos visuais (RE)",
+    "aria_label": "Redesenhar e regenerar tela",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "navegacao-vista-planta",
+    "name_pt": "Vista em planta",
+    "group": "Navegação",
+    "file_name": "navegacao-vista-planta.svg",
+    "tooltip": "Alternar para projeção ortogonal 2D superior",
+    "aria_label": "Vista ortogonal em planta 2D",
+    "variants": [
+      "default",
+      "active"
+    ]
+  },
+  {
+    "id": "navegacao-vista-3d",
+    "name_pt": "Vista 3D",
+    "group": "Navegação",
+    "file_name": "navegacao-vista-3d.svg",
+    "tooltip": "Alternar para visualizador de perspectiva tridimensional",
+    "aria_label": "Vista perspectiva 3D",
+    "variants": [
+      "default",
+      "active"
+    ]
+  },
+  {
+    "id": "navegacao-tela-cheia",
+    "name_pt": "Tela cheia",
+    "group": "Navegação",
+    "file_name": "navegacao-tela-cheia.svg",
+    "tooltip": "Expandir viewport para tela cheia (F11)",
+    "aria_label": "Modo de tela cheia",
+    "variants": [
+      "default",
+      "exit"
+    ]
+  },
+  {
+    "id": "precisao-snap",
+    "name_pt": "Snap",
+    "group": "Precisão",
+    "file_name": "precisao-snap.svg",
+    "tooltip": "Ativar/desativar captura magnética de pontos (F3)",
+    "aria_label": "Atrair cursor a pontos notáveis (Snap)",
+    "variants": [
+      "default",
+      "active"
+    ]
+  },
+  {
+    "id": "precisao-ortogonal",
+    "name_pt": "Ortogonal",
+    "group": "Precisão",
+    "file_name": "precisao-ortogonal.svg",
+    "tooltip": "Restringir desenho a ângulos retos (F8)",
+    "aria_label": "Restrição ortogonal de traçado",
+    "variants": [
+      "default",
+      "active"
+    ]
+  },
+  {
+    "id": "precisao-coordenadas",
+    "name_pt": "Coordenadas",
+    "group": "Precisão",
+    "file_name": "precisao-coordenadas.svg",
+    "tooltip": "Exibir e capturar coordenadas UTM / geográficas",
+    "aria_label": "Inspetor de coordenadas UTM",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "precisao-medir-distancia",
+    "name_pt": "Medir distância",
+    "group": "Precisão",
+    "file_name": "precisao-medir-distancia.svg",
+    "tooltip": "Calcular distância linear e extensão de trecho (DI)",
+    "aria_label": "Medir distância entre pontos",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "precisao-medir-area",
+    "name_pt": "Medir área",
+    "group": "Precisão",
+    "file_name": "precisao-medir-area.svg",
+    "tooltip": "Calcular área e perímetro de polígono fechado",
+    "aria_label": "Calcular área de polígono",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "precisao-alinhar",
+    "name_pt": "Alinhar",
+    "group": "Precisão",
+    "file_name": "precisao-alinhar.svg",
+    "tooltip": "Alinhar elementos a um eixo de referência",
+    "aria_label": "Alinhar elementos a vetor de referência",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "precisao-georreferenciar",
+    "name_pt": "Georreferenciar",
+    "group": "Precisão",
+    "file_name": "precisao-georreferenciar.svg",
+    "tooltip": "Ajustar pontos de controle e projeção cartográfica (SAD69 / SIRGAS)",
+    "aria_label": "Georreferenciar projeto com pontos de controle",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "camadas-camadas",
+    "name_pt": "Camadas",
+    "group": "Camadas e imagens",
+    "file_name": "camadas-camadas.svg",
+    "tooltip": "Gerenciador de camadas de desenho CAD (Layers)",
+    "aria_label": "Gerenciador de camadas",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "camadas-mostrar-ocultar",
+    "name_pt": "Mostrar/ocultar",
+    "group": "Camadas e imagens",
+    "file_name": "camadas-mostrar-ocultar.svg",
+    "tooltip": "Alternar visibilidade da camada selecionada",
+    "aria_label": "Alternar visibilidade de camada",
+    "variants": [
+      "visible",
+      "hidden"
+    ]
+  },
+  {
+    "id": "camadas-bloquear-desbloquear",
+    "name_pt": "Bloquear/desbloquear",
+    "group": "Camadas e imagens",
+    "file_name": "camadas-bloquear-desbloquear.svg",
+    "tooltip": "Travar ou destravar edição da camada selecionada",
+    "aria_label": "Alternar bloqueio de camada",
+    "variants": [
+      "locked",
+      "unlocked"
+    ]
+  },
+  {
+    "id": "camadas-imagem-local",
+    "name_pt": "Imagem local",
+    "group": "Camadas e imagens",
+    "file_name": "camadas-imagem-local.svg",
+    "tooltip": "Gerenciar imagem raster salva no disco local",
+    "aria_label": "Camada de imagem local",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "camadas-mapa-georreferenciado",
+    "name_pt": "Mapa georreferenciado",
+    "group": "Camadas e imagens",
+    "file_name": "camadas-mapa-georreferenciado.svg",
+    "tooltip": "Serviço de mosaico online WMS/WMTS e mapa satélite",
+    "aria_label": "Mapa base georreferenciado online",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "camadas-sobreposicao-imagens",
+    "name_pt": "Sobreposição de imagens",
+    "group": "Camadas e imagens",
+    "file_name": "camadas-sobreposicao-imagens.svg",
+    "tooltip": "Ajustar ordem e mistura de ortofotos sobrepostas",
+    "aria_label": "Sobreposição de imagens aéreas",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "camadas-recortar-imagem",
+    "name_pt": "Recortar imagem",
+    "group": "Camadas e imagens",
+    "file_name": "camadas-recortar-imagem.svg",
+    "tooltip": "Delimitar área de recorte (bounding box) da ortofoto",
+    "aria_label": "Recortar área de imagem raster",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "camadas-ajustar-transparencia",
+    "name_pt": "Ajustar transparência",
+    "group": "Camadas e imagens",
+    "file_name": "camadas-ajustar-transparencia.svg",
+    "tooltip": "Controlar opacidade da camada de imagem ou vetor",
+    "aria_label": "Ajustar opacidade e transparência",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "eixos-selecionar-eixo",
+    "name_pt": "Selecionar eixo",
+    "group": "Eixos e seções",
+    "file_name": "eixos-selecionar-eixo.svg",
+    "tooltip": "Identificar e selecionar diretriz geométrica da via",
+    "aria_label": "Selecionar eixo rodoviário",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "eixos-cadastrar-eixo",
+    "name_pt": "Cadastrar eixo",
+    "group": "Eixos e seções",
+    "file_name": "eixos-cadastrar-eixo.svg",
+    "tooltip": "Registrar nova diretriz de traçado rodoviário",
+    "aria_label": "Cadastrar novo eixo de traçado",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "eixos-inverter-sentido",
+    "name_pt": "Inverter sentido",
+    "group": "Eixos e seções",
+    "file_name": "eixos-inverter-sentido.svg",
+    "tooltip": "Inverter direção de circulação do tráfego na diretriz",
+    "aria_label": "Inverter sentido de tráfego do eixo",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "eixos-estaqueamento",
+    "name_pt": "Estaqueamento",
+    "group": "Eixos e seções",
+    "file_name": "eixos-estaqueamento.svg",
+    "tooltip": "Gerar estacas de 20m ao longo do alinhamento horizontal (ex: 120+0,00)",
+    "aria_label": "Gerar estaqueamento de projeto",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "eixos-dividir-trecho",
+    "name_pt": "Dividir trecho",
+    "group": "Eixos e seções",
+    "file_name": "eixos-dividir-trecho.svg",
+    "tooltip": "Fracionar rodovia em lotes ou segmentos de projeto",
+    "aria_label": "Dividir trecho rodoviário",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "eixos-secao-tipica",
+    "name_pt": "Seção típica",
+    "group": "Eixos e seções",
+    "file_name": "eixos-secao-tipica.svg",
+    "tooltip": "Definir gabarito transversal de pista e taludes",
+    "aria_label": "Perfil transversal de seção típica",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "eixos-pista-simples",
+    "name_pt": "Pista simples",
+    "group": "Eixos e seções",
+    "file_name": "eixos-pista-simples.svg",
+    "tooltip": "Seção com 1 faixa por sentido sem separador físico",
+    "aria_label": "Pista simples bidirecional",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "eixos-pista-duplicada",
+    "name_pt": "Pista duplicada",
+    "group": "Eixos e seções",
+    "file_name": "eixos-pista-duplicada.svg",
+    "tooltip": "Pistas separadas por canteiro central ou barreira New Jersey",
+    "aria_label": "Pista duplicada com separador central",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "eixos-terceira-faixa",
+    "name_pt": "Terceira faixa",
+    "group": "Eixos e seções",
+    "file_name": "eixos-terceira-faixa.svg",
+    "tooltip": "Faixa adicional para aclive e tráfego pesado",
+    "aria_label": "Terceira faixa de aclive",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "eixos-acostamento",
+    "name_pt": "Acostamento",
+    "group": "Eixos e seções",
+    "file_name": "eixos-acostamento.svg",
+    "tooltip": "Definir largura e declividade transversal do acostamento",
+    "aria_label": "Faixa de acostamento",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "eixos-canteiro-central",
+    "name_pt": "Canteiro central",
+    "group": "Eixos e seções",
+    "file_name": "eixos-canteiro-central.svg",
+    "tooltip": "Configurar barreira e elemento de separação entre pistas",
+    "aria_label": "Canteiro central de rodovia",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "trafego-gerar-fluxos",
+    "name_pt": "Gerar fluxos",
+    "group": "Tráfego",
+    "file_name": "trafego-gerar-fluxos.svg",
+    "tooltip": "Computar matriz Origem-Destino e alocação de tráfego",
+    "aria_label": "Gerar fluxos de tráfego",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "trafego-atualizar-fluxos",
+    "name_pt": "Atualizar fluxos",
+    "group": "Tráfego",
+    "file_name": "trafego-atualizar-fluxos.svg",
+    "tooltip": "Recalcular volumes horários e carregamento na rede",
+    "aria_label": "Atualizar fluxos e demandas de tráfego",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "trafego-densidade",
+    "name_pt": "Densidade",
+    "group": "Tráfego",
+    "file_name": "trafego-densidade.svg",
+    "tooltip": "Mapa de calor de ocupação volumétrica (veíc/km/faixa)",
+    "aria_label": "Mapa de densidade de veículos",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "trafego-veiculos",
+    "name_pt": "Veículos",
+    "group": "Tráfego",
+    "file_name": "trafego-veiculos.svg",
+    "tooltip": "Configurar frota vehicular (leves, semipesados e pesados)",
+    "aria_label": "Composição da frota veicular",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "trafego-ativar-desativar-rota",
+    "name_pt": "Ativar/desativar rota",
+    "group": "Tráfego",
+    "file_name": "trafego-ativar-desativar-rota.svg",
+    "tooltip": "Habilitar ou desabilitar itinerário na simulação",
+    "aria_label": "Alternar status da rota de tráfego",
+    "variants": [
+      "active",
+      "inactive"
+    ]
+  },
+  {
+    "id": "trafego-sentido-unico",
+    "name_pt": "Sentido único",
+    "group": "Tráfego",
+    "file_name": "trafego-sentido-unico.svg",
+    "tooltip": "Via de mão única",
+    "aria_label": "Tráfego em sentido único",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "trafego-sentido-duplo",
+    "name_pt": "Sentido duplo",
+    "group": "Tráfego",
+    "file_name": "trafego-sentido-duplo.svg",
+    "tooltip": "Via com fluxo em ambos os sentidos",
+    "aria_label": "Tráfego em sentido duplo",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "trafego-reversao-fluxo",
+    "name_pt": "Reversão de fluxo",
+    "group": "Tráfego",
+    "file_name": "trafego-reversao-fluxo.svg",
+    "tooltip": "Faixa reversível para horários de pico",
+    "aria_label": "Operação de reversão de fluxo",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "trafego-simulacao-classica",
+    "name_pt": "Simulação clássica",
+    "group": "Tráfego",
+    "file_name": "trafego-simulacao-classica.svg",
+    "tooltip": "Executar modelo de microssimulação clássica de tráfego",
+    "aria_label": "Iniciar simulação de tráfego clássica",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "nos-criar-no",
+    "name_pt": "Criar nó",
+    "group": "Nós e conexões",
+    "file_name": "nos-criar-no.svg",
+    "tooltip": "Inserir nó topológico de interseção de malha",
+    "aria_label": "Criar nó topológico",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "nos-apagar-no",
+    "name_pt": "Apagar nó",
+    "group": "Nós e conexões",
+    "file_name": "nos-apagar-no.svg",
+    "tooltip": "Excluir nó topológico da rede",
+    "aria_label": "Apagar nó topológico",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "nos-no-entrada",
+    "name_pt": "Nó de entrada",
+    "group": "Nós e conexões",
+    "file_name": "nos-no-entrada.svg",
+    "tooltip": "Ponto de injeção de demanda na malha",
+    "aria_label": "Nó de entrada de tráfego",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "nos-no-saida",
+    "name_pt": "Nó de saída",
+    "group": "Nós e conexões",
+    "file_name": "nos-no-saida.svg",
+    "tooltip": "Ponto de sumidouro/escoamento da rede",
+    "aria_label": "Nó de saída de tráfego",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "nos-fim-ramal",
+    "name_pt": "Fim de ramal",
+    "group": "Nós e conexões",
+    "file_name": "nos-fim-ramal.svg",
+    "tooltip": "Término sem saída ou final de diretriz",
+    "aria_label": "Fim de ramal rodoviário",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "nos-conectar-ramais",
+    "name_pt": "Conectar ramais",
+    "group": "Nós e conexões",
+    "file_name": "nos-conectar-ramais.svg",
+    "tooltip": "Articular dois ramais através de nó de entroncamento",
+    "aria_label": "Conectar ramais rodoviários por nó",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "nos-derivacao-percentual",
+    "name_pt": "Derivação percentual",
+    "group": "Nós e conexões",
+    "file_name": "nos-derivacao-percentual.svg",
+    "tooltip": "Definir taxa percentual de conversão de veículos (Split)",
+    "aria_label": "Derivação percentual de fluxo de tráfego",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "nos-acesso",
+    "name_pt": "Acesso",
+    "group": "Nós e conexões",
+    "file_name": "nos-acesso.svg",
+    "tooltip": "Ramo de entrada/saída em desnível ou marginal",
+    "aria_label": "Ramo de acesso viário",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "nos-retorno",
+    "name_pt": "Retorno",
+    "group": "Nós e conexões",
+    "file_name": "nos-retorno.svg",
+    "tooltip": "Dispositivo operacional de retorno em nível ou desnível",
+    "aria_label": "Dispositivo de retorno viário",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "nos-rotatoria",
+    "name_pt": "Rotatória",
+    "group": "Nós e conexões",
+    "file_name": "nos-rotatoria.svg",
+    "tooltip": "Interseção circular giratória (Roundabout)",
+    "aria_label": "Interseção em rotatória",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "correcao-localizar-conflito",
+    "name_pt": "Localizar conflito",
+    "group": "Correção de fluxos",
+    "file_name": "correcao-localizar-conflito.svg",
+    "tooltip": "Destacar entrelaçamentos e nós com erro na malha",
+    "aria_label": "Localizar conflitos e incoerências geométricas",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "correcao-diagnostico",
+    "name_pt": "Diagnóstico",
+    "group": "Correção de fluxos",
+    "file_name": "correcao-diagnostico.svg",
+    "tooltip": "Relatório de inconsistências topológicas e de tráfego",
+    "aria_label": "Painel de diagnóstico de rede",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "correcao-tentar-correcao-automatica",
+    "name_pt": "Tentar correção automática",
+    "group": "Correção de fluxos",
+    "file_name": "correcao-tentar-correcao-automatica.svg",
+    "tooltip": "Ajuste automatizado de nós desconectados por tolerância",
+    "aria_label": "Tentar autocorreção de malha",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "correcao-editar-manualmente",
+    "name_pt": "Editar manualmente",
+    "group": "Correção de fluxos",
+    "file_name": "correcao-editar-manualmente.svg",
+    "tooltip": "Ajuste fino manual dos vetores de conflito",
+    "aria_label": "Edição manual de topologia",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "correcao-remover-segmento-defeituoso",
+    "name_pt": "Remover segmento defeituoso",
+    "group": "Correção de fluxos",
+    "file_name": "correcao-remover-segmento-defeituoso.svg",
+    "tooltip": "Eliminar aresta com geometria inválida ou corrompida",
+    "aria_label": "Remover segmento corrompido",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "correcao-juntar-trechos",
+    "name_pt": "Juntar trechos",
+    "group": "Correção de fluxos",
+    "file_name": "correcao-juntar-trechos.svg",
+    "tooltip": "Fundir vias desconectadas preservando fluxo",
+    "aria_label": "Juntar trechos seccionados",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "correcao-remover-segmentos-desconectados",
+    "name_pt": "Remover segmentos desconectados",
+    "group": "Correção de fluxos",
+    "file_name": "correcao-remover-segmentos-desconectados.svg",
+    "tooltip": "Expurgar trechos órfãos sem continuidade de tráfego",
+    "aria_label": "Expurgar trechos órfãos desconectados",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "sinalizacao-zebrado-branco",
+    "name_pt": "Zebrado branco",
+    "group": "Sinalização",
+    "file_name": "sinalizacao-zebrado-branco.svg",
+    "tooltip": "Marca de canalização branca (mesmo sentido de tráfego)",
+    "aria_label": "Zebrado branco de canalização",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "sinalizacao-zebrado-amarelo",
+    "name_pt": "Zebrado amarelo",
+    "group": "Sinalização",
+    "file_name": "sinalizacao-zebrado-amarelo.svg",
+    "tooltip": "Marca de canalização amarela (sentidos opostos)",
+    "aria_label": "Zebrado amarelo de canalização",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "sinalizacao-detectar-zebrados-dxf",
+    "name_pt": "Detectar zebrados no DXF",
+    "group": "Sinalização",
+    "file_name": "sinalizacao-detectar-zebrados-dxf.svg",
+    "tooltip": "Reconhecimento ótico e algorítmico de hachuras de canalização",
+    "aria_label": "Detectar áreas zebradas no DXF",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "sinalizacao-desenhar-contorno",
+    "name_pt": "Desenhar contorno",
+    "group": "Sinalização",
+    "file_name": "sinalizacao-desenhar-contorno.svg",
+    "tooltip": "Desenhar perímetro da marca viária canalizadora",
+    "aria_label": "Desenhar contorno de marca viária",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "sinalizacao-orientar-zebrado",
+    "name_pt": "Orientar zebrado",
+    "group": "Sinalização",
+    "file_name": "sinalizacao-orientar-zebrado.svg",
+    "tooltip": "Ajustar ângulo de inclinação das estrias de canalização",
+    "aria_label": "Ajustar orientação angular do zebrado",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "sinalizacao-seta-circulacao",
+    "name_pt": "Seta de circulação",
+    "group": "Sinalização",
+    "file_name": "sinalizacao-seta-circulacao.svg",
+    "tooltip": "Pintura de seta indicativa sobre o pavimento físico (RFF)",
+    "aria_label": "Seta viária de pavimento",
+    "variants": [
+      "default",
+      "curved"
+    ]
+  },
+  {
+    "id": "sinalizacao-faixa-pedestres",
+    "name_pt": "Faixa de pedestres",
+    "group": "Sinalização",
+    "file_name": "sinalizacao-faixa-pedestres.svg",
+    "tooltip": "Demarcação transversal de travessia zebrada de pedestres",
+    "aria_label": "Faixa zebrada de pedestres",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "sinalizacao-linha-retencao",
+    "name_pt": "Linha de retenção",
+    "group": "Sinalização",
+    "file_name": "sinalizacao-linha-retencao.svg",
+    "tooltip": "Pintura transversal de parada obrigatória em interseções",
+    "aria_label": "Linha de retenção viária",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "sinalizacao-placa",
+    "name_pt": "Placa",
+    "group": "Sinalização",
+    "file_name": "sinalizacao-placa.svg",
+    "tooltip": "Sinalização vertical de regulamentação, advertência e indicação",
+    "aria_label": "Placa de sinalização vertical",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "sinalizacao-semaforo",
+    "name_pt": "Semáforo",
+    "group": "Sinalização",
+    "file_name": "sinalizacao-semaforo.svg",
+    "tooltip": "Foco semafórico veicular e planos de tempos",
+    "aria_label": "Semáforo de controle de tráfego",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "sinalizacao-onda-verde",
+    "name_pt": "Onda verde",
+    "group": "Sinalização",
+    "file_name": "sinalizacao-onda-verde.svg",
+    "tooltip": "Sincronismo de semáforos em artéria para progressão contínua",
+    "aria_label": "Onda verde e sincronismo semafórico",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "ferrovia-criar-ferrovia",
+    "name_pt": "Criar ferrovia",
+    "group": "Ferrovia",
+    "file_name": "ferrovia-criar-ferrovia.svg",
+    "tooltip": "Lançar diretriz de linha férrea com dormentes",
+    "aria_label": "Criar diretriz de ferrovia",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "ferrovia-selecionar-alinhamento-ferroviario",
+    "name_pt": "Selecionar alinhamento ferroviário",
+    "group": "Ferrovia",
+    "file_name": "ferrovia-selecionar-alinhamento-ferroviario.svg",
+    "tooltip": "Selecionar gabarito de ferrovia existente na malha",
+    "aria_label": "Selecionar alinhamento de via férrea",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "ferrovia-linha-simples",
+    "name_pt": "Linha simples",
+    "group": "Ferrovia",
+    "file_name": "ferrovia-linha-simples.svg",
+    "tooltip": "Via férrea de trilho único singelo",
+    "aria_label": "Linha ferroviária simples",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "ferrovia-linha-dupla",
+    "name_pt": "Linha dupla",
+    "group": "Ferrovia",
+    "file_name": "ferrovia-linha-dupla.svg",
+    "tooltip": "Via férrea com dois pares de trilhos paralelos",
+    "aria_label": "Linha ferroviária dupla",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "ferrovia-composicao-ferroviaria",
+    "name_pt": "Composição ferroviária",
+    "group": "Ferrovia",
+    "file_name": "ferrovia-composicao-ferroviaria.svg",
+    "tooltip": "Configurar locomotiva e vagões de carga/passageiro",
+    "aria_label": "Composição e trem ferroviário",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "ferrovia-passagem-de-nivel",
+    "name_pt": "Passagem de nível",
+    "group": "Ferrovia",
+    "file_name": "ferrovia-passagem-de-nivel.svg",
+    "tooltip": "Cruzamento rodoferroviário em nível com cancela/sinal",
+    "aria_label": "Passagem de nível rodoferroviária",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "ferrovia-ativar-desativar-circulacao",
+    "name_pt": "Ativar/desativar circulação",
+    "group": "Ferrovia",
+    "file_name": "ferrovia-ativar-desativar-circulacao.svg",
+    "tooltip": "Liberar ou interditar tráfego de trens no ramal ferroviário",
+    "aria_label": "Alternar circulação ferroviária",
+    "variants": [
+      "active",
+      "inactive"
+    ]
+  },
+  {
+    "id": "cena-aplicar-material",
+    "name_pt": "Aplicar material",
+    "group": "Cena e materiais",
+    "file_name": "cena-aplicar-material.svg",
+    "tooltip": "Atribuir textura física ou shader à superfície 3D",
+    "aria_label": "Aplicar material e textura à superfície",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "cena-texturas",
+    "name_pt": "Texturas",
+    "group": "Cena e materiais",
+    "file_name": "cena-texturas.svg",
+    "tooltip": "Biblioteca de mapas de textura (albedo, normal, rugosidade)",
+    "aria_label": "Biblioteca de texturas PBR",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "cena-pavimento-existente",
+    "name_pt": "Pavimento existente",
+    "group": "Cena e materiais",
+    "file_name": "cena-pavimento-existente.svg",
+    "tooltip": "Superfície cadastrada em estado operacional atual",
+    "aria_label": "Pavimento asfáltico existente",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "cena-pavimento-projetado",
+    "name_pt": "Pavimento projetado",
+    "group": "Cena e materiais",
+    "file_name": "cena-pavimento-projetado.svg",
+    "tooltip": "Camadas de reforço, CBUQ ou restauração propostas",
+    "aria_label": "Pavimento rodoviário projetado",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "cena-concreto",
+    "name_pt": "Concreto",
+    "group": "Cena e materiais",
+    "file_name": "cena-concreto.svg",
+    "tooltip": "Pavimento rígido em placas de concreto e juntas de dilatação",
+    "aria_label": "Material de concreto rígido",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "cena-asfalto",
+    "name_pt": "Asfalto",
+    "group": "Cena e materiais",
+    "file_name": "cena-asfalto.svg",
+    "tooltip": "Revestimento betuminoso flexível (CBUQ)",
+    "aria_label": "Material de asfalto flexível",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "cena-oae-ponte",
+    "name_pt": "OAE/ponte",
+    "group": "Cena e materiais",
+    "file_name": "cena-oae-ponte.svg",
+    "tooltip": "Obra de Arte Especial (ponte, viaduto e passarela)",
+    "aria_label": "Obra de arte especial ou ponte",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "cena-corte",
+    "name_pt": "Corte",
+    "group": "Cena e materiais",
+    "file_name": "cena-corte.svg",
+    "tooltip": "Seção em desmonte / escavação de terraplenagem",
+    "aria_label": "Talude de corte em terraplenagem",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "cena-aterro",
+    "name_pt": "Aterro",
+    "group": "Cena e materiais",
+    "file_name": "cena-aterro.svg",
+    "tooltip": "Seção em aterro e compactação de saia de talude",
+    "aria_label": "Talude de aterro em terraplenagem",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "cena-vegetacao",
+    "name_pt": "Vegetação",
+    "group": "Cena e materiais",
+    "file_name": "cena-vegetacao.svg",
+    "tooltip": "Plantio de gramíneas, reflorestamento e faixa de domínio verde",
+    "aria_label": "Cobertura vegetal de talude",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "cena-hidrografia",
+    "name_pt": "Hidrografia",
+    "group": "Cena e materiais",
+    "file_name": "cena-hidrografia.svg",
+    "tooltip": "Rios, bueiros, bacias de retenção e drenagem",
+    "aria_label": "Corpo hídrico e drenagem rodoviária",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "cena-iluminacao",
+    "name_pt": "Iluminação",
+    "group": "Cena e materiais",
+    "file_name": "cena-iluminacao.svg",
+    "tooltip": "Postes e fontes de iluminação noturna na rodovia",
+    "aria_label": "Poste de iluminação pública",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "cena-dia-e-noite",
+    "name_pt": "Dia e noite",
+    "group": "Cena e materiais",
+    "file_name": "cena-dia-e-noite.svg",
+    "tooltip": "Alternar condição solar e luminosidade da cena 3D",
+    "aria_label": "Alternar iluminação diurna e noturna",
+    "variants": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "obras-importar-obras",
+    "name_pt": "Importar obras",
+    "group": "Obras PER",
+    "file_name": "obras-importar-obras.svg",
+    "tooltip": "Carregar intervenções contratuais do plano PER",
+    "aria_label": "Importar cadastro de obras",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "obras-localizar-por-quilometro",
+    "name_pt": "Localizar por quilômetro",
+    "group": "Obras PER",
+    "file_name": "obras-localizar-por-quilometro.svg",
+    "tooltip": "Navegar diretamente para o km de projeto especificado",
+    "aria_label": "Localizar intervenção por quilômetro",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "obras-cronograma",
+    "name_pt": "Cronograma",
+    "group": "Obras PER",
+    "file_name": "obras-cronograma.svg",
+    "tooltip": "Gráfico de Gantt do plano de exploração e execução",
+    "aria_label": "Cronograma de execução das obras",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "obras-intervencao",
+    "name_pt": "Intervenção",
+    "group": "Obras PER",
+    "file_name": "obras-intervencao.svg",
+    "tooltip": "Ponto de intervenção estrutural ou recapeamento na rodovia",
+    "aria_label": "Intervenção de engenharia no pavimento",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "obras-interdicao",
+    "name_pt": "Interdição",
+    "group": "Obras PER",
+    "file_name": "obras-interdicao.svg",
+    "tooltip": "Bloqueio total de tráfego na pista",
+    "aria_label": "Pista com interdição total",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "obras-barreira",
+    "name_pt": "Barreira",
+    "group": "Obras PER",
+    "file_name": "obras-barreira.svg",
+    "tooltip": "Posicionamento de barreiras New Jersey, cones ou defensas",
+    "aria_label": "Barreira de sinalização de obras",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "obras-operacao-pare-e-siga",
+    "name_pt": "Operação pare e siga",
+    "group": "Obras PER",
+    "file_name": "obras-operacao-pare-e-siga.svg",
+    "tooltip": "Controle alternado de tráfego com bandeirante ou semáforo provisório",
+    "aria_label": "Operação provisória de pare e siga",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "video-configurar-camera",
+    "name_pt": "Configurar câmera",
+    "group": "Vídeo",
+    "file_name": "video-configurar-camera.svg",
+    "tooltip": "Ajustar campo de visão (FOV), altura e ângulo da lente",
+    "aria_label": "Configurar câmera de visualização",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "video-trajetoria-da-camera",
+    "name_pt": "Trajetória da câmera",
+    "group": "Vídeo",
+    "file_name": "video-trajetoria-da-camera.svg",
+    "tooltip": "Definir splines de passagem aérea e fly-through da rodovia",
+    "aria_label": "Trajetória de animação da câmera",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "video-previa",
+    "name_pt": "Prévia",
+    "group": "Vídeo",
+    "file_name": "video-previa.svg",
+    "tooltip": "Reprodução de teste em baixa resolução sem renderizar",
+    "aria_label": "Prévia interativa de vídeo",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "video-reproduzir",
+    "name_pt": "Reproduzir",
+    "group": "Vídeo",
+    "file_name": "video-reproduzir.svg",
+    "tooltip": "Iniciar reprodução da animação e tráfego (Espaço)",
+    "aria_label": "Reproduzir animação",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "video-pausar",
+    "name_pt": "Pausar",
+    "group": "Vídeo",
+    "file_name": "video-pausar.svg",
+    "tooltip": "Congelar quadro e tráfego na posição atual",
+    "aria_label": "Pausar reprodução de vídeo",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "video-parar",
+    "name_pt": "Parar",
+    "group": "Vídeo",
+    "file_name": "video-parar.svg",
+    "tooltip": "Interromper reprodução e retornar ao primeiro quadro",
+    "aria_label": "Parar reprodução de vídeo",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "video-qualidade",
+    "name_pt": "Qualidade",
+    "group": "Vídeo",
+    "file_name": "video-qualidade.svg",
+    "tooltip": "Resolução, amostragem e bitrate de renderização",
+    "aria_label": "Ajustar qualidade de renderização",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "video-gerar-video",
+    "name_pt": "Gerar vídeo",
+    "group": "Vídeo",
+    "file_name": "video-gerar-video.svg",
+    "tooltip": "Renderizar arquivo final MP4/ProRes da animação",
+    "aria_label": "Renderizar e gerar arquivo de vídeo",
+    "variants": [
+      "default",
+      "processing"
+    ]
+  },
+  {
+    "id": "video-abrir-pasta-de-videos",
+    "name_pt": "Abrir pasta de vídeos",
+    "group": "Vídeo",
+    "file_name": "video-abrir-pasta-de-videos.svg",
+    "tooltip": "Abrir diretório de saída no Windows Explorer",
+    "aria_label": "Abrir pasta de vídeos renderizados",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "operacoes-atualizar",
+    "name_pt": "Atualizar",
+    "group": "Operações e proteção",
+    "file_name": "operacoes-atualizar.svg",
+    "tooltip": "Atualizar dados e recalcular dependências de projeto",
+    "aria_label": "Atualizar dados do projeto",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "operacoes-atualizacao-pendente",
+    "name_pt": "Atualização pendente",
+    "group": "Operações e proteção",
+    "file_name": "operacoes-atualizacao-pendente.svg",
+    "tooltip": "Alterações no traçado exigem novo recálculo",
+    "aria_label": "Atualização de cálculos pendente",
+    "variants": [
+      "warning"
+    ]
+  },
+  {
+    "id": "operacoes-calculo-automatico",
+    "name_pt": "Cálculo automático",
+    "group": "Operações e proteção",
+    "file_name": "operacoes-calculo-automatico.svg",
+    "tooltip": "Recálculo instantâneo em tempo real a cada edição",
+    "aria_label": "Modo de cálculo geométrico automático",
+    "variants": [
+      "default",
+      "active"
+    ]
+  },
+  {
+    "id": "operacoes-calculo-manual",
+    "name_pt": "Cálculo manual",
+    "group": "Operações e proteção",
+    "file_name": "operacoes-calculo-manual.svg",
+    "tooltip": "Suspender cálculos pesados até clique manual (F9)",
+    "aria_label": "Modo de cálculo geométrico manual",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "operacoes-cancelar-tarefa",
+    "name_pt": "Cancelar tarefa",
+    "group": "Operações e proteção",
+    "file_name": "operacoes-cancelar-tarefa.svg",
+    "tooltip": "Abortar imediatamente processamento em segundo plano (Esc)",
+    "aria_label": "Cancelar tarefa de processamento em execução",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "operacoes-retomar-acompanhamento",
+    "name_pt": "Retomar acompanhamento",
+    "group": "Operações e proteção",
+    "file_name": "operacoes-retomar-acompanhamento.svg",
+    "tooltip": "Restabelecer rastreamento de tarefas e logs",
+    "aria_label": "Retomar acompanhamento de processo",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "operacoes-fila",
+    "name_pt": "Fila",
+    "group": "Operações e proteção",
+    "file_name": "operacoes-fila.svg",
+    "tooltip": "Gerenciador de tarefas e renderizações em espera",
+    "aria_label": "Fila de processamento em lote",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "operacoes-logs",
+    "name_pt": "Logs",
+    "group": "Operações e proteção",
+    "file_name": "operacoes-logs.svg",
+    "tooltip": "Histórico de eventos, avisos e mensagens do console",
+    "aria_label": "Registro de eventos e logs do sistema",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "operacoes-backup",
+    "name_pt": "Backup",
+    "group": "Operações e proteção",
+    "file_name": "operacoes-backup.svg",
+    "tooltip": "Criar cópia de segurança com carimbo de data/hora",
+    "aria_label": "Criar cópia de segurança (backup)",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "operacoes-restaurar",
+    "name_pt": "Restaurar",
+    "group": "Operações e proteção",
+    "file_name": "operacoes-restaurar.svg",
+    "tooltip": "Reverter projeto a um ponto de restauração anterior",
+    "aria_label": "Restaurar versão anterior do projeto",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "operacoes-verificar-integridade",
+    "name_pt": "Verificar integridade",
+    "group": "Operações e proteção",
+    "file_name": "operacoes-verificar-integridade.svg",
+    "tooltip": "Validar banco de dados SQLite/geometria contra corrupção",
+    "aria_label": "Verificar integridade e consistência dos dados",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "ia-assistente",
+    "name_pt": "Assistente",
+    "group": "IA assistida",
+    "file_name": "ia-assistente.svg",
+    "tooltip": "Assistente neural integrado para projeto e tráfego",
+    "aria_label": "Assistente de inteligência artificial",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "ia-explicar-problema",
+    "name_pt": "Explicar problema",
+    "group": "IA assistida",
+    "file_name": "ia-explicar-problema.svg",
+    "tooltip": "Diagnóstico discursivo sobre gargalos ou erros de projeto",
+    "aria_label": "Explicar causa do problema geométrico",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "ia-sugerir-correcao",
+    "name_pt": "Sugerir correção",
+    "group": "IA assistida",
+    "file_name": "ia-sugerir-correcao.svg",
+    "tooltip": "Proposta de redesenho gerada pelo modelo neural",
+    "aria_label": "Sugerir correção automática de traçado",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "ia-revisar-proposta",
+    "name_pt": "Revisar proposta",
+    "group": "IA assistida",
+    "file_name": "ia-revisar-proposta.svg",
+    "tooltip": "Comparar traçado original com a sugestão da IA",
+    "aria_label": "Revisar proposta técnica de ajuste",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "ia-aplicar-correcao-validada",
+    "name_pt": "Aplicar correção validada",
+    "group": "IA assistida",
+    "file_name": "ia-aplicar-correcao-validada.svg",
+    "tooltip": "Gravar alteração no modelo após validação do engenheiro",
+    "aria_label": "Aplicar solução validada na base de dados",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "ia-exportar-diagnostico",
+    "name_pt": "Exportar diagnóstico",
+    "group": "IA assistida",
+    "file_name": "ia-exportar-diagnostico.svg",
+    "tooltip": "Exportar relatório técnico para auditoria externa",
+    "aria_label": "Exportar laudo técnico do diagnóstico",
+    "variants": [
+      "default"
+    ]
+  },
+  {
+    "id": "ia-importar-resposta",
+    "name_pt": "Importar resposta",
+    "group": "IA assistida",
+    "file_name": "ia-importar-resposta.svg",
+    "tooltip": "Carregar parecer técnico ou geometria corrigida",
+    "aria_label": "Importar solução aprovada externamente",
+    "variants": [
+      "default"
+    ]
+  }
+]

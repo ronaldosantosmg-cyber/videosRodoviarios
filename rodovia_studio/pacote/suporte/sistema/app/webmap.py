@@ -166,7 +166,7 @@ def _dedupe_outlines(out,items,axis,perp_cos=.5,reach=30.,max_perp_len=40.):
             q=np.asarray(rec['p'],float)
             if len(q)<3:continue
             closed=bool(rec.get('c'));A=q[:-1];B=q[1:]
-            if closed and not np.allclose(q[0],q[-1]):A=np.vstack([A,q[-1:]]);B=np.vstack([B,q[:1]])
+            if closed and np.linalg.norm(q[0]-q[-1])>1e-6:A=np.vstack([A,q[-1:]]);B=np.vstack([B,q[:1]])
             V=B-A;L=np.linalg.norm(V,axis=1);ok=L>1e-6
             Nn=np.column_stack([-V[:,1],V[:,0]])/np.maximum(L,1e-9)[:,None];M=(A+B)/2
             left=shapely.contains_xy(U,M[:,0]+Nn[:,0]*.2,M[:,1]+Nn[:,1]*.2);right=shapely.contains_xy(U,M[:,0]-Nn[:,0]*.2,M[:,1]-Nn[:,1]*.2)
@@ -225,7 +225,7 @@ def unbacked_skips(p,closed,U,tol=.8,min_backed=.2):
     if (_sdiv(float(L[ok&near].sum()), float(L[ok].sum())))<min_backed:return []
     return [int(i) for i in np.flatnonzero(ok&~near)]
 
-def vectors(items,axis,kmz_lines=(),tol=.25):
+def vectors(items,axis,kmz_lines=(),tol=.25,derived_contours=False):
     """Contornos simplificados por classe (CRS do projeto), para desenhar rápido sobre a imagem web."""
     out={r:[] for r in STYLE_ORDER};count=0;lnames={}
     try:backing=backing_lines(items)
@@ -233,13 +233,18 @@ def vectors(items,axis,kmz_lines=(),tol=.25):
     for e in items:
         role=e['role'];role=role if role in out else 'overlay'
         rings=[e['points']]+list(e.get('holes',[]))
-        for r in rings:
+        for ring_index,r in enumerate(rings):
             r=np.asarray(r)
             if len(r)<2:continue
             g=LineString(r).simplify(tol,preserve_topology=False)
             p=np.round(np.asarray(g.coords),2)
             if len(p)>=2:
                 rec={'p':p.tolist(),'c':bool(e.get('closed')),'l':lnames.setdefault(str(e.get('layer','')),len(lnames))}
+                from .dxf_trim import source_id,vector_stations
+                try:
+                    stations,length=vector_stations(r,np.asarray(g.coords),bool(e.get('closed')))
+                    rec.update(trim_id=source_id(e,ring_index),ds=stations,length_m=length)
+                except ValueError:pass
                 if e.get('hatch') and role in PAVE_ROLES and backing is not None:
                     try:
                         sk=unbacked_skips(p,bool(e.get('closed')),backing)
@@ -252,6 +257,9 @@ def vectors(items,axis,kmz_lines=(),tol=.25):
                     except Exception as _e:_falha(__name__,_e)
                 if e.get('frozen'):rec['z']=1
                 if role=='overlay' and e.get('style'):rec['color']=e['style']['color']
+                if e.get('hatch') and role in PAVE_ROLES:
+                    rec['hatch_outline']=True;rec['source_k']=list(rec.get('k',[]))
+                    if not derived_contours:rec['k']=list(range(len(p)))
                 out[role].append(rec);count+=len(p)
     try:_dedupe_outlines(out,items,axis)
     except Exception as _e:_falha(__name__,_e)   # contorno completo é preferível a nenhum contorno
@@ -264,7 +272,9 @@ def write_vectors(directory,items,axis,crs):
     from .geometry import read_kmz
     kmz=Path(directory)/'input.kmz'
     lines=read_kmz(kmz,CRS.from_user_input(crs))[0] if kmz.exists() else []
-    data=vectors(items,axis,lines)
+    from .models import Settings
+    f=Path(directory)/'config.json';settings=Settings.model_validate_json(f.read_text(encoding='utf-8-sig')) if f.exists() else Settings()
+    data=vectors(items,axis,lines,derived_contours=settings.derived_contours)
     f=Path(directory)/'vectors.json';tmp=f.with_suffix('.tmp');tmp.write_text(json.dumps(data,separators=(',',':')),encoding='utf-8');tmp.replace(f)
     write_snap(directory,items)
     write_lines(directory,items)
@@ -304,16 +314,19 @@ def snap_points(directory,x0,y0,x1,y1,limit=8000):
 
 # ---------------- 1.26: linhas exatas do DXF para selecionar o alinhamento ----------------
 def write_lines(directory,items):
-    xy=[];off=[0];lay=[];names={};closed=[];roles=[];curves=[];holes=[]
+    xy=[];off=[0];lay=[];names={};closed=[];roles=[];curves=[];holes=[];trim_ids=[]
     for e in items:
         if e.get('frozen') or e.get('role') in ('sign_v',):continue
         r=np.asarray(e['points'],float)
         if len(r)<2:continue
+        from .dxf_trim import source_ids
+        trim_ids.append(json.dumps(source_ids(e)))
         xy.append(r);off.append(off[-1]+len(r));lay.append(names.setdefault(str(e.get('layer','')),len(names)));closed.append(bool(e.get('closed')));roles.append(str(e.get('role','')))
         curves.append(json.dumps(e.get('cad_curve'),allow_nan=False));holes.append(json.dumps([np.asarray(h,float).tolist() for h in e.get('holes',[])],allow_nan=False))
     f=Path(directory)/'linhas.npz';tmp=Path(directory)/'linhas_tmp.npz'
+    from .dxf_trim import context
     np.savez_compressed(tmp,xy=np.concatenate(xy) if xy else np.zeros((0,2)),off=np.asarray(off,np.int64),lay=np.asarray(lay,np.int32),
-                        closed=np.asarray(closed,bool),names=np.asarray(list(names) or [''],dtype=str),roles=np.asarray(roles or [''],dtype=str),curves=np.asarray(curves,dtype=str),holes=np.asarray(holes,dtype=str));tmp.replace(f)
+                        closed=np.asarray(closed,bool),names=np.asarray(list(names) or [''],dtype=str),roles=np.asarray(roles or [''],dtype=str),curves=np.asarray(curves,dtype=str),holes=np.asarray(holes,dtype=str),trim_ids=np.asarray(trim_ids,dtype=str),trim_context=np.asarray(context(directory)));tmp.replace(f)
 
 _lines_cache={}
 def _lines(directory):
@@ -325,6 +338,8 @@ def _lines(directory):
         lines=[xy[off[i]:off[i+1]] for i in range(len(off)-1)]
         box=np.array([[l[:,0].min(),l[:,1].min(),l[:,0].max(),l[:,1].max()] for l in lines]) if lines else np.zeros((0,4))
         d={'lines':lines,'box':box,'lay':z['lay'],'closed':z['closed'],'names':[str(v) for v in z['names']],'roles':[str(v) for v in z['roles']] if 'roles' in z.files else ['']*len(lines)}
+        d['trim_ids']=[json.loads(str(v)) for v in z['trim_ids']] if 'trim_ids' in z.files else [[] for _ in lines]
+        d['trim_context']=str(z['trim_context']) if 'trim_context' in z.files else ''
         d['holes']=[json.loads(str(v)) for v in z['holes']] if 'holes' in z.files else [[] for _ in lines]
         _lines_cache.clear();_lines_cache[key]=d
         d['curves']=[json.loads(str(c)) for c in z['curves']] if 'curves' in z.files else [None]*len(lines)
