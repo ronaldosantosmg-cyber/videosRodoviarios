@@ -1,0 +1,18 @@
+{
+  "commit": "4d981d8231bfece95cac283a3c423aa2488b1f0d",
+  "main_unchanged": "4a4e47011ce44f6a33d4fc6f7bc31cac3ec472c3",
+  "packages": [
+    {
+      "url": "https://raw.githubusercontent.com/ronaldosantosmg-cyber/videosRodoviarios/4d981d8231bfece95cac283a3c423aa2488b1f0d/atualizacoes/RodoviaStudio_2_67_atualizacao.zip",
+      "http": 200,
+      "bytes": 6761328,
+      "sha256": "7f1a755ee01b8d83722df06e8f414d0644d1e2fb6fd3200de1c77e5058240499"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/ronaldosantosmg-cyber/videosRodoviarios/4d981d8231bfece95cac283a3c423aa2488b1f0d/atualizacoes/RodoviaStudio_2_67_atualizacao_leve.zip",
+      "http": 200,
+      "bytes": 2288798,
+      "sha256": "249d81d323eaa6fdcd14e0d265e70d92f73dd50eb034ca06ae0520697983d85f"
+    }
+  ]
+}
