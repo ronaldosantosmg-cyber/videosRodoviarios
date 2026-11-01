@@ -19,71 +19,11 @@ ROOT=Path(__file__).resolve().parent
 PACKAGE=ROOT/'pacote'
 SYSTEM=PACKAGE/'suporte/sistema'
 EVIDENCE=ROOT/'evidencias'/json.loads((PACKAGE/'manifest.json').read_text())['version']
-TESTS=[
- 'tests/test_v202_reconstruction.py',
- 'tests/test_v201_operation.py',
- 'tests/test_release_gate_resume.py',
- 'tests/test_tracking_reconnect.py',
- 'tests/test_log_flow_recovery.py','tests/test_log_flow_ui.py','tests/test_mixed_imagery_traffic.py',
- 'tests/test_dialog_drafts.py','tests/test_contextual_toolbar_status.py','tests/test_view_preview_sessions.py',
- 'tests/test_image_border_alpha.py',
- 'tests/test_v14237_interface_central.py',
- 'tests/test_v14236_circulation.py','tests/test_v14236_circulation_ui.py',
- 'tests/test_v14235_critical.py','tests/test_v14235_critical_ui.py','tests/test_v14235_node_save.py','tests/test_v14235_high.py',
- 'tests/test_v14234_nodes_classic_swept.py','tests/test_v14234_nodes_ui_video.py',
- 'tests/test_v14233_opening.py',
- 'tests/test_v14232_confirmation.py',
- 'tests/test_v14231_flow_nodes.py','tests/test_v14231_flow_nodes_ui.py','tests/test_v14231_video.py',
- 'tests/test_v14230_overtake.py','tests/test_v14230_flow_rules.py','tests/test_v14230_flow_ui.py','tests/test_v14230_fleet_video.py',
- 'tests/test_v14229_shoulder_probe.py','tests/test_v14229_probe_visual.py',
- 'tests/test_v14228_hatch_online.py',
- 'tests/test_v14228_vehicle_presentation.py',
- 'tests/test_small_ai_bridge.py',
- 'tests/test_v14227_assistance_ui.py',
- 'tests/test_v14226_interface.py',
- 'tests/test_v14225_ui.py','tests/test_v14225_execution.py','tests/test_v14225_protection.py','tests/test_v14225_snapshot.py',
- 'tests/test_v14224_assistance.py','tests/test_v14224_workspace.py',
- 'tests/test_v14223_update_policy.py',
- 'tests/test_v14222_reliability.py',
- 'tests/test_v14221_simplification.py','tests/test_v14220_sections_materials.py','tests/test_v14219_reconstruction_curves_semantics.py',
- 'tests/test_v14218_agents.py','tests/test_v14218_axis_policy.py','tests/test_v14218_scene_agents.py','tests/test_v14218_live_agents.py','tests/test_v14218_layers_ui.py',
- 'tests/test_v14217_usability.py',
- 'tests/test_v14216_flow_repair.py','tests/test_v14216_repair_live.py',
- 'tests/test_v14215_view_retention.py',
- 'tests/test_v14214_assistant.py','tests/test_v14214_panels_ui.py',
- 'tests/test_v14213_continuity.py','tests/test_v14213_continuity_ui.py',
- 'tests/test_v14212_modelagem.py','tests/test_v14212_traffic_safety.py',
- 'tests/test_v14212_ui.py','tests/test_v14212_presentation.py',
- 'tests/test_v14211_infrarail_icons.py',
- 'tests/test_v14210_flow_recovery.py','tests/test_v14210_recovery_ui.py',
- 'tests/test_v14210_flow_tools.py','tests/test_v14210_flow_edit_ui.py',
- 'tests/test_v14210_engineering_assets.py','tests/test_v14210_assets_visual.py',
- 'tests/test_v1429_project_imagery.py','tests/test_v1429_mouse.py',
- 'tests/test_v1429_popup_calculation.py',
- 'tests/test_v1429_layer_reading.py','tests/test_v1429_layers_ui.py',
- 'tests/test_v1429_route_recovery.py',
- 'tests/test_v1429_route_recovery_ui.py',
- 'tests/test_v1428_long_paths.py',
- 'tests/test_v1428_panels.py',
- 'tests/test_v1428_menu_flow.py',
- 'tests/test_v1427_state.py','tests/test_v1427_state_ui.py',
- 'tests/test_v1426_transport.py','tests/test_v1426_transport_visual.py',
- 'tests/test_v1426_import_capacity.py','tests/test_v1426_import_capacity_ui.py',
- 'tests/test_v1425_scene3d.py','tests/test_v1425_fan_pruning.py',
- 'tests/test_v1425_archive.py','tests/test_v1425_capture3d.py','tests/test_v1425_live_3d.py',
- 'tests/test_v1424_resilience.py','tests/test_v1424_editing.py',
- 'tests/test_v132.py::test_cleanup_categories','tests/test_v126.py::test_api_images_lines_sessions_and_logs',
- 'tests/test_v1424_flow_limit.py','tests/test_v1424_flow_limit_ui.py',
- 'tests/test_v1424_ribbon.py',
- 'tests/test_v1423_motion.py','tests/test_v1423_toolbar.py','tests/test_v1423_video.py',
- 'tests/test_v139.py','tests/test_v1404_traffic_sim.py','tests/test_v127.py::test_curve_envelope',
- 'tests/test_v142_update.py','tests/test_v142_runtime.py','tests/test_v142_diagnostics.py',
- 'tests/test_v142_visual.py','tests/test_v1422_layout.py','tests/test_v142_live_ui.py','tests/test_v141_technical.py',
- 'tests/test_v1410_final.py','tests/test_v1405_robust_traffic.py','tests/test_v1407_imagery_cache.py',
- 'tests/test_v1408.py','tests/test_v1409_functionality.py','tests/test_v1407_visual.py',
- 'tests/test_v1408_visual.py','tests/test_v1409_visual.py','tests/test_v1410_visual.py',
- 'tests/test_workflow.py::test_video_encoder','tests/test_workflow.py::test_api_complete',
-]
+# Perfil de regressão 2.63: alterações e dependências diretas da base 2.62.
+# A auditoria histórica ampla é registrada à parte e não aprova esta revisão.
+TESTS=['tests/test_v263_backend.py', 'tests/test_v263_ui.py', 'tests/test_v135.py', 'tests/test_v142_update.py', 'tests/test_v1428_long_paths.py', 'tests/test_v1427_state.py', 'tests/test_v1427_state_ui.py', 'tests/test_v1429_layer_reading.py', 'tests/test_v1425_scene3d.py', 'tests/test_v1425_live_3d.py', 'tests/test_v1425_capture3d.py', 'tests/test_v1424_flow_limit.py', 'tests/test_v14231_flow_nodes.py', 'tests/test_v14230_flow_rules.py', 'tests/test_v14229_shoulder_probe.py', 'tests/test_v14248_pista_dupla_mesmo_sentido.py', 'tests/test_v14249_contorno_hachura.py', 'tests/test_v14264_sentido_previa_secao.py', 'tests/test_v14265_uniformidade_sentido.py', 'tests/test_v14266_setas_uniformes_navegador.py', 'tests/test_v14267_secao_segue_km.py', 'tests/test_v14268_apresentacao_segue_km.py', 'tests/test_v14270_eixo_nao_paralelo.py', 'tests/test_v14271_fluxo_tela_completo.py', 'tests/test_v14272_cobertura_secoes.py', 'tests/test_v14273_varias_secoes_no_eixo.py', 'tests/test_v14274_textura_ao_vivo.py', 'tests/test_v14275_frota_realista.py', 'tests/test_v14278_articulado.py', 'tests/test_v14279_atmosfera_foto.py', 'tests/test_v14280_sprites_exatidao.py', 'tests/test_v14281_relevo_texturas.py', 'tests/test_v14282_passarela_tinta.py', 'tests/test_v14283_transicao_secoes.py', 'tests/test_v14284_dialogo_secoes.py', 'tests/test_v14288_agua_blocos.py', 'tests/test_v14289_mascara_roi.py', 'tests/test_v14290_hausdorff_rapido.py', 'tests/test_v14291_cache_analise.py', 'tests/test_v14292_varredura_rapida.py', 'tests/test_v14293_legenda_terreno.py', 'tests/test_v14294_redimensionar_sem_balancar.py']
+DESELECT=[]
+
 
 
 def run(args,env,log):
@@ -101,6 +41,7 @@ def digest():
 
 
 def native_checks(env,log):
+    env=dict(env,DISPLAY=os.environ.get("RODOVIA_SPLASH_DISPLAY",":91"))
     mono_root=Path(os.environ['MONO_ROOT']) if os.environ.get('MONO_ROOT') else None
     mono=mono_root/'usr/bin/mono-sgen' if mono_root else shutil.which('mono')
     compiler=mono_root/'usr/lib/mono/4.5/mcs.exe' if mono_root else shutil.which('mcs')
@@ -114,11 +55,14 @@ def native_checks(env,log):
     with tempfile.TemporaryDirectory(prefix='rs_compile_') as tmp:
         tmp=Path(tmp)
         run(cmd+common+['-define:WEBVIEW2',f'-r:{libs/"Microsoft.Web.WebView2.Core.dll"}',f'-r:{libs/"Microsoft.Web.WebView2.WinForms.dll"}',f'-out:{tmp/"RodoviaStudio.exe"}','iniciador/RodoviaStudio.cs'],env,log)
-        run(cmd+common+['-main:SplashValidation',f'-out:{tmp/"SplashValidation.exe"}','iniciador/RodoviaStudio.cs','tests/SplashValidation.cs'],env,log)
+        run(cmd+common+['-main:SplashValidation',f'-out:{tmp/"SplashValidation.exe"}','iniciador/RodoviaStudio.cs',ROOT/'verificacao/SplashValidation.cs'],env,log)
         from PIL import Image
         # A arte original é preservada; Mono exige um ICO BMP alinhado em 32 px.
         Image.open(SYSTEM/'rodovia.ico').convert('RGB').save(tmp/'logo.ico',format='ICO',sizes=[(32,32)],bitmap_format='bmp')
-        run([mono,tmp/'SplashValidation.exe',tmp/'logo.ico',EVIDENCE,json.loads((PACKAGE/'manifest.json').read_text())['version']],env,log)
+        xvfb=mono_root/'usr/bin/xvfb-run' if mono_root else shutil.which('xvfb-run')
+        if not xvfb:raise RuntimeError('Xvfb é necessário para validar o splash.')
+        if mono_root:env['PATH']=str(mono_root/'usr/bin')+os.pathsep+env.get('PATH','')
+        run([xvfb,'-a','-e',EVIDENCE/'xvfb.log',mono,tmp/'SplashValidation.exe',tmp/'logo.ico',EVIDENCE,json.loads((PACKAGE/'manifest.json').read_text())['version']],env,log)
 
 
 def main():
@@ -133,7 +77,9 @@ def main():
         EVIDENCE=EVIDENCE/'diagnostico_rapido'
         selected=['tests/test_v14210_flow_tools.py','tests/test_v14210_engineering_assets.py','tests/test_v14210_flow_recovery.py','tests/test_v1429_layer_reading.py','tests/test_v1429_layers_ui.py','tests/test_v1429_route_recovery.py','tests/test_v1429_mouse.py','tests/test_v1429_project_imagery.py']
     EVIDENCE.mkdir(parents=True,exist_ok=True)
-    env=dict(os.environ,PYTHONPYCACHEPREFIX=str(ROOT.parent.parent/'.cache/pycache'),XDG_CACHE_HOME=str(ROOT.parent.parent/'.cache'),VISUAL_ARTIFACTS=str(EVIDENCE),RODOVIA_DATA=tempfile.mkdtemp(prefix='rodovia_gate_data_'))
+    env=dict(os.environ,CHROMIUM='/usr/bin/chromium',PYTHONPYCACHEPREFIX=str(ROOT.parent.parent/'.cache/pycache'),XDG_CACHE_HOME=str(ROOT.parent.parent/'.cache'),VISUAL_ARTIFACTS=str(EVIDENCE),RODOVIA_DATA=tempfile.mkdtemp(prefix='rodovia_gate_data_'))
+    # Chromium headless/SwiftShader falha se herdar o DISPLAY do teste Mono.
+    env.pop('DISPLAY',None)
     for name in ['projetos','videos','dados']:
         if (PACKAGE/name).exists():raise RuntimeError(f'Dados locais não devem integrar a entrega: {name}')
     initial=digest();report=EVIDENCE/'pytest-resultados.xml'
@@ -160,7 +106,7 @@ def main():
         arguments=state['arguments'] if state else selected
         fresh=EVIDENCE/'pytest-reexecutados.xml' if state else report
         if arguments:
-            result=subprocess.run([sys.executable,'-m','pytest','-v','-p','no:cacheprovider',*parallel,'--durations=15',*arguments,f'--junitxml={fresh}'],cwd=SYSTEM,env=env,stdout=log,stderr=subprocess.STDOUT);log.flush()
+            result=subprocess.run([sys.executable,'-m','pytest','-v','-p','no:cacheprovider',*parallel,'--durations=15',*arguments,*[item for case in DESELECT for item in ['--deselect',case]],f'--junitxml={fresh}'],cwd=SYSTEM,env=env,stdout=log,stderr=subprocess.STDOUT);log.flush()
             if not fresh.exists():raise RuntimeError('Testes não produziram relatório; pacote bloqueado.')
         if state:
             merge_reports(state,fresh if arguments else None,report)
@@ -190,7 +136,7 @@ def main():
             elif f.name.startswith(('ATUALIZACAO_','AUDITORIA_')):f.unlink()
             else:f.replace(docs/f.name)
         evidence=stage/('suporte/documentacao/validacao_'+metadata['version'].replace('.','_'));evidence.mkdir(parents=True)
-        for name in ['202_reconstrucao_integral_previa.png','202_impedimento_localizado.png','202_rota_reconstruida_video.json','201_vista_estavel_1024.png','201_materiais_locais.png','14212_07_imagem_sem_dxf.png','14212_01_contornos_sugeridos_grupos.png','14212_02_contornos_persistentes.png','14212_03_secoes_assimetricas.png','14212_04_janela_salvar_descartar.png','14212_05_mascaras_texturas_2d.png','14212_06_edificacoes_3d_pisca_alerta.png','14211_01_icones_barra_tecnica.png','14211_02_pacote_32_simbolos.png','14211_03_catalogo_com_simbolos.png','14210_04_texturas_interferencias.png','14210_05_catalogo_nomes_materiais.png','14210_06_semaforo_braco_farol_noturno_3d.png','14210_07_corte_de_intervalo_por_icone.png','14210_08_juncao_validada_por_icone.png','14210_09_ferrovia_por_rota_selecionada.png','14210_01_recuperar_fluxo_principal.png','14210_02_fluxo_recuperado_recalculado.png','14210_03_eixo_com_falha_recuperado.png','1429_01_novo_projeto_reaberto.png','1429_02_imagem_convertida_mista.png','1429_03_calculo_configuracao_confirmada.png','1429_tratamento_erros_rota.png','1428_08_ortofoto_local_real.png','1428_05_marcacoes_popup_1024.png','1428_06_popup_descartar.png','1428_07_imagem_apresentacao.png','1428_03_grupos_e_icones.png','1428_04_calculos_medicao.png','1428_01_barra_lateral.png','1428_02_fluxo_selecionado.png','1427_06_video_de_revisao_anterior.png','1427_01_gravacao_serializada.png','1427_02_conflito_preserva_edicao.png','1427_03_resultados_preservam_historico.png','1427_04_abertura_fora_de_ordem.png','1427_05_historico_recuperacao.png','1426_07_link_onda_verde.png','1426_01_semaforo_tres_tempos.png','1426_02_ferrovia_propriedades.png','1426_03_ferrovia_semaforos_webgl.png','1426_04_cabine_controle.png','1426_05_fluxos_zoom_diagnostico.png','1426_06_demanda_sobressaturacao.png','1426_video_0.png','1426_video_1.5.png','1426_video_2.9.png','1426_video_metadados.json','1425_01_webgl_trafego_real.png','1425_02_captura_e_diagnostico.png','1425_03_contexto_recuperado.png','1425_04_novo_projeto_identificado.png','1425_05_video_3d_conferido.png','1424_06_zoom_dpi_1.png','1424_06_zoom_dpi_2.png','1424_05_limite_fluxos.png','1424_04_barra_completa_139.png','1424_01_comandos_139_visiveis.png','1424_02_comando_e_opcoes.png','1424_03_faixa_1024.png','1424_03_faixa_1366.png','1424_03_faixa_1920.png','1423_01_ferramentas_139_restauradas.png','1423_02_pan_zoom_redesenhar.png','1423_03_modificar.png','1423_04_inserir_controle_desfazer.png','1423_05_controle_calibracao.png','1423_video_quadro_0.png','1423_video_quadro_36.png','1423_video_quadro_71.png','1423_video_metadados.json','imagem_mista_veiculos_True.png','imagem_mista_veiculos_False.png','imagem_mista_video_True.json','imagem_mista_video_False.json','vista_previa_sessoes_760.png','diagnostico_veiculos_sentidos.png','pytest-resultados.xml','resultado.json','validacao.log','142_03_modelar_cascata.png','1422_01_acesso_rapido_rodape.png','1422_03_fluxos_sobre_superficies.png','1422_05_selecao_fluxo_prioritaria.png','142_11_motor_editor_real.png','142_12_motor_editor_fluxo_problema.png','splash_142_1_a.png','splash_142_1_b.png']:
+        for name in ['263_duas_secoes.png','263_per_importacao.png','263_per_localizacao.png','263_apresentacao_0.png','263_apresentacao_1.5.png','263_apresentacao_2.9.png','263_video.json','pytest-resultados.xml','resultado.json','validacao.log','splash_142_1_a.png','splash_142_1_b.png']:
             shutil.copy2(EVIDENCE/name,evidence/name)
         for name in ['origem.json','retomada.json','evidencias_reutilizadas.json','pytest-reexecutados.xml']:
             if (EVIDENCE/name).is_file():shutil.copy2(EVIDENCE/name,evidence/name)

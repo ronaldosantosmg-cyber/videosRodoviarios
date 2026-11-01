@@ -99,6 +99,7 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
             a=j*n+i;indices.extend([a,a+n,a+1,a+1,a+n,a+n+1])
     terrain={'positions':ground.ravel().tolist(),'indices':indices,'label':terrain_label,'elevation_available':elevation_available}
     # Sinalização é física; fluxos coloridos são exclusivamente diagnósticos.
+    marking_width_m=.15 if settings.signage_emphasis else 0.
     markings=[]
     for a,b,color in scene.network.markings:
         markings.append({'p':local(np.array([a,b]),.12).ravel().tolist(),'yellow':tuple(color)==(244,200,70)})
@@ -112,6 +113,7 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
     if settings.traffic_classic:
         from .classic_traffic import ClassicTraffic as TrafficSim
     sim=TrafficSim(scene.network,settings,partial(visual.vehicle_type,mix=settings.vehicle_mix),duration=duration,status=lambda p,m:progress(.55+.25*p,m)) if settings.traffic and scene.network.paths else None
+    scene._sim=sim
     tracks={};samples=0;ghost_hidden={};ghost_segment={}
     if sim:
         for t in np.r_[np.arange(0,duration,.2),duration]:
@@ -119,7 +121,9 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
             indicators=sim.indicators(float(t))
             for pos,heading,vid,identity,_ in sim.vehicles_ex(float(t)):
                 ghost=getattr(sim.net,'is_ghost',None)
-                if ghost is not None and ghost(pos):ghost_hidden[vid]=True;continue   # 1.42.43: vazio de pavimento — veículo oculto
+                vt=sim.info[vid][1]
+                if (ghost is not None and ghost(pos)) or not scene.fits(vid,identity,pos,heading,vt):
+                    ghost_hidden[vid]=True;continue  # rompe a amostra: 3D nunca interpola por cima de área sem pavimento
                 if ghost_hidden.pop(vid,False):ghost_segment[vid]=ghost_segment.get(vid,0)+1
                 key=vid if not ghost_segment.get(vid) else vid+ghost_segment[vid]*5000000
                 vt=sim.info[vid][1]
@@ -204,7 +208,7 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
     if cancel():raise InterruptedError('Construção 3D cancelada.')
     if sum(len(mesh['positions'])//3 for mesh in context_meshes+meshes)>MAX_VERTICES:raise ValueError('Cena e objetos da imagem excedem o orçamento 3D. Reduza a área.')
     if not settings.traffic_prevent_collisions or not settings.traffic_respect_signals:warnings.append('Ensaio: verificação de colisões ou respeito aos semáforos desativado; não interpretar como circulação validada.')
-    data={'simulation_mode':'protegido' if not settings.traffic_classic and settings.traffic_prevent_collisions and settings.traffic_respect_signals and not settings.heavy_shoulder_overtake else 'ensaio','format':'rodovia-scene3d-1','revision':rev0,'origin_crs':origin.tolist(),'crs':settings.crs,'coordinates_confirmed':settings.coordinates_confirmed,'span_m':span,'meshes':context_meshes+meshes,'terrain':terrain,'markings':markings,'diagnostics':diagnostics,'vehicles':list(tracks.values())+list(train_tracks.values()),'pedestrians':list(person_tracks.values()),'pedestrian_report':people.report(),'rail_smoke':settings.rail_smoke,'transport':transport_data,'duration_s':duration,'source_duration_s':settings.duration_s,'simulation_report':sim.report() if sim else None,'warnings':warnings[-25:],'scope':'Visualização de projeto e tráfego. Diagnósticos técnicos não integram a captura de apresentação.'}
+    data={'simulation_mode':'protegido' if not settings.traffic_classic and settings.traffic_prevent_collisions and settings.traffic_respect_signals and not settings.heavy_shoulder_overtake else 'ensaio','format':'rodovia-scene3d-1','revision':rev0,'origin_crs':origin.tolist(),'crs':settings.crs,'coordinates_confirmed':settings.coordinates_confirmed,'span_m':span,'meshes':context_meshes+meshes,'terrain':terrain,'markings':markings,'marking_width_m':marking_width_m,'diagnostics':diagnostics,'vehicles':list(tracks.values())+list(train_tracks.values()),'pedestrians':list(person_tracks.values()),'pedestrian_report':people.report(),'rail_smoke':settings.rail_smoke,'transport':transport_data,'duration_s':duration,'source_duration_s':settings.duration_s,'simulation_report':sim.report() if sim else None,'warnings':warnings[-25:],'scope':'Visualização de projeto e tráfego. Diagnósticos técnicos não integram a captura de apresentação.'}
     if not np.isfinite(origin).all():raise ValueError('Origem 3D inválida.')
     if rev0!=revision(d):raise ValueError('O projeto mudou durante o processamento. Reconstrua o 3D.')
     encoded=json.dumps(data,ensure_ascii=False,allow_nan=False,separators=(',',':')).encode()

@@ -13,7 +13,7 @@ def test_varias_secoes_no_mesmo_eixo_sem_erro(junction,tmp_path,monkeypatch):
     monkeypatch.setenv('RODOVIA_VIDEOS',str(tmp_path/'videos'))
     from app.server import app
     port=free_port();server=uvicorn.Server(uvicorn.Config(app,host='127.0.0.1',port=port,log_level='warning'))
-    threading.Thread(target=server.run,daemon=True).start();base=f'http://127.0.0.1:{port}'
+    server_thread=threading.Thread(target=server.run,daemon=True);server_thread.start();base=f'http://127.0.0.1:{port}'
     for _ in range(100):
         try:httpx.get(base+'/api/health');break
         except Exception:time.sleep(.1)
@@ -73,6 +73,6 @@ def test_varias_secoes_no_mesmo_eixo_sem_erro(junction,tmp_path,monkeypatch):
             if not all(ok):falhas.append(('sentidos por trecho',lista,esp))
             b.close()
     finally:
-        server.should_exit=True
+        server.should_exit=True;server_thread.join(timeout=15);assert not server_thread.is_alive()
     assert not errors,errors
     assert not falhas,repr(falhas)

@@ -5,6 +5,12 @@ import tempfile
 if not os.environ.get('RODOVIA_DATA'):
     os.environ['RODOVIA_DATA']=tempfile.mkdtemp(prefix='rodovia_pytest_')
 
+# Instâncias de workers não compartilham o banco de tarefas durante a coleta.
+import re
+from pathlib import Path
+_worker=os.environ.get('PYTEST_XDIST_WORKER','')
+if re.fullmatch(r'gw\d+',_worker):os.environ['RODOVIA_DATA']=str(Path(os.environ['RODOVIA_DATA'])/_worker)
+
 # 2.28: testes que abrem navegador (Playwright) recebem o marcador "navegador".
 # Gate rápido: pytest -m "not navegador"   |   só navegador: pytest -m navegador
 _CACHE={}

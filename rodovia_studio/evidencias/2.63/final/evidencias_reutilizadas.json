@@ -1,0 +1,20 @@
+{
+  "origin": "rodovia_studio/evidencias/2.63/dirigida",
+  "product_sha256": "b98a16af401d4524e903b0c0257674f8450d546f66e700ee0115e9290d18a87a",
+  "files": {
+    "263_video.json": "67f9bfee767623ec41c6be3a99025b48ff7a20a12be332a5e545b0ee74a373af",
+    "263_per_importacao.png": "152f0a44471ead58de843a110d7a25f0ca3c4b48b95f1bd4ae97fc49b3468003",
+    "1427_03_resultados_preservam_historico.png": "0f85d15802fec295972899d04f4c038efee54e40291b4601b72f4349311554cb",
+    "1427_06_video_de_revisao_anterior.png": "630e136e148fd9348f43dae9757ed49a9106313536326d5f26f856d13bb80a0e",
+    "263_per_localizacao.png": "e201c1a05d8b12eae14e70d19d7cf44dd5540035342f1f1ef3b7111eff6261ce",
+    "263_apresentacao_1.5.png": "1e078bf8151342854dc1131915cc16174c781b10f6b9868a9d2cedd787972e12",
+    "263_apresentacao_2.9.png": "c8461c3fdb7dc460850a7fa7001a39c3524c65f0a48d6aef4cd97a8a5599e098",
+    "1427_02_conflito_preserva_edicao.png": "e80e51793c7cc2b1c2ed084f4f6e5402e199751eefb79d381ffb86526d7d1123",
+    "1427_05_historico_recuperacao.png": "c94d8e2ab6c070e0799563a23a013a04a57cfd4d624eb99a734deb90e9306abb",
+    "1427_01_gravacao_serializada.png": "2ab9f3862ce375cb476b0e6938538e443c8eb260dcce2be249fed5eb3713b925",
+    "263_apresentacao_0.png": "8f5e1d7838a9c833b78ef287b7f4471daa89ee49e1dd818e0835c46a8faeabdc",
+    "263_duas_secoes.png": "8c72be437bd0ecb373c97bc418179a5376d1536384780728c3cb9a6dcc5accca",
+    "1425_04_novo_projeto_identificado.png": "96ba87e53ea95ef97983770ed581d38ea6a78b6899b5fc7b2e41ef6066e74a41"
+  },
+  "scope": "Artefatos do mesmo produto; testes repetidos substituem suas saídas. A aprovação depende do relatório final, não da presença de imagens."
+}

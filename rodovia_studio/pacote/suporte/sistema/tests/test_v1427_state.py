@@ -104,12 +104,12 @@ def test_analysis_reuses_valid_results_after_a_presentation_change(project,monke
     from app.execlog import JobLog
     d=project;s=Settings.model_validate(ps.read_config(d));ticket=artifacts.begin(d,'previous','analyze',s)
     for name in ('analysis.json','editor.json','vectors.json'):store.write_json(d/name,{'result':'preservado'})
-    artifacts.finish(d,ticket);ps.save_config(d,{**s.model_dump(),'texture_style':'realistic'})
+    artifacts.finish(d,ticket);ps.save_config(d,{**s.model_dump(),'texture_style':'artistico'})
     before={p.name:p.stat().st_mtime_ns for p in d.glob('*.json') if p.name!='config.json'}
     monkeypatch.setattr(store,'directory',lambda _:d)
     monkeypatch.setattr(store,'job',lambda _:{'project':'p','kind':'analyze','state':'running'})
     outcomes=[];monkeypatch.setattr(store,'update',lambda *a,**kw:outcomes.append(kw))
     monkeypatch.setattr(worker,'analyze',lambda *a,**kw:pytest.fail('Não deve recalcular a geometria para alterar textura.'))
-    assert worker.run('reuse')==0
+    assert worker.run('e'*32)==0
     assert any(o.get('state')=='done' for o in outcomes)
     assert all((d/n).stat().st_mtime_ns==stamp for n,stamp in before.items())

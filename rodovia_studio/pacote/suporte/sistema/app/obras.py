@@ -1,6 +1,6 @@
 """1.35: obras do PER — importação de planilha (Excel .xlsx ou CSV) e de cronograma (MS Project XML ou Excel com datas),
 reconhecimento do tipo da obra pelo texto e situação de cada obra numa data (prevista, em execução, concluída)."""
-import csv,io,re,unicodedata,datetime as dt
+import csv,io,re,unicodedata,datetime as dt,math
 from xml.etree import ElementTree as ET
 from .per import parse_km,fmt_km
 from .planilha import read_xlsx,write_xlsx
@@ -71,14 +71,18 @@ def to_date(v):
 def _km_value(v):
     if v is None or v=='':return None
     if isinstance(v,(int,float)):
-        v=float(v);return v*1000 if v<5000 else v   # 325,85 (km) ou 325850 (m)
+        v=float(v)
+        if not math.isfinite(v) or v<0:raise ValueError('km precisa ser finito e não negativo')
+        return v*1000 if v<5000 else v   # 325,85 (km) ou 325850 (m)
     s=str(v).strip().lower().replace('km','').strip()
     if not s:return None
     if '+' in s:return parse_km(s.replace(' ',''))
     s=s.replace(' ','')
     if s.count(',')==1 and '.' not in s:s=s.replace(',','.')
     elif s.count('.')>1:s=s.replace('.','')
-    f=float(s);return f*1000 if f<5000 else f
+    f=float(s)
+    if not math.isfinite(f) or f<0:raise ValueError('km precisa ser finito e não negativo')
+    return f*1000 if f<5000 else f
 
 COLS=[('km_start',r'^km\s*(inicial|inicio|ini|de)\b|^inicio\s*\(?km|^km\s*i$'),('km_end',r'^km\s*(final|fim|ate|termino)\b|^fim\s*\(?km|^km\s*f$'),
  ('km',r'^km$|^quilometro|^localiza'),('description',r'^(obra|descricao|nome|tarefa|servico|intervencao|nome da tarefa)'),('kind',r'^(tipo|categoria|classe)'),
@@ -121,9 +125,13 @@ def rows_from_table(rows):
         pct=g('progress_pct')
         try:pct=None if pct in (None,'') else float(str(pct).replace('%','').replace(',','.').strip())
         except ValueError:pct=None
+        if pct is not None and not math.isfinite(pct):warn.append(f'Linha {n}: percentual não finito ignorado.');pct=None
         def num(v):
             if v in (None,''):return None
-            try:return float(str(v).replace(' ','').replace(',','.')) if not isinstance(v,(int,float)) else float(v)
+            try:
+                number=float(str(v).replace(' ','').replace(',','.')) if not isinstance(v,(int,float)) else float(v)
+                if not math.isfinite(number):warn.append(f'Linha {n}: coordenada não finita ignorada.');return None
+                return number
             except ValueError:return None
         w={'description':desc[:300],'kind':guess_kind(g('kind'),'' if g('kind') else desc),'km_start_m':a,'km_end_m':b,'side':side,
            'per_year':str(g('per_year') or '').strip()[:70],'per_table':str(g('per_table') or '').strip()[:70],

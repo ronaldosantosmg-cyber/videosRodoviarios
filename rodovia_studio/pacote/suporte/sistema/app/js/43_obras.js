@@ -24,8 +24,26 @@ Object.assign(HL_STYLE,{rede_agua:['#3fa9f5','H'],gas:['#f5a623','G'],telecom:['
 // ---------- geometria: km -> ponto do eixo ----------
 function ptAtS(s){const d=axisData();if(!d)return null;const S=d.s;s=Math.max(0,Math.min(S[S.length-1],s));let i=1;while(i<S.length-1&&S[i]<s)i++;
  const t=(s-S[i-1])/Math.max(1e-9,S[i]-S[i-1]),A=d.a[i-1],B=d.a[i];return {x:A.x+(B.x-A.x)*t,y:A.y+(B.y-A.y)*t}}
-function obraPontos(w){const d=axisData();if(!d)return [];let a=w.km_start_m,b=w.km_end_m;if(b-a<30){const c=(a+b)/2;a=c-15;b=c+15}
- const sa=sOfKm(a),sb=sOfKm(b),n=Math.max(2,Math.min(400,Math.ceil(Math.abs(sb-sa)/5)+1));const P=[];for(let k=0;k<n;k++){const p=ptAtS(sa+(sb-sa)*k/(n-1));if(p)P.push(p)}return P}
+function obraPontos(w){const d=axisData();if(!d)return [];const L=d.s[d.s.length-1];
+ if(Number.isFinite(w.x)&&Number.isFinite(w.y)&&w.km_end_m-w.km_start_m<30){const hit=projectAxis({x:w.x,y:w.y});if(!hit)return [];const a=ptAtS(Math.max(0,hit.s-1)),b=ptAtS(Math.min(L,hit.s+1)),len=Math.hypot(b.x-a.x,b.y-a.y);if(len<1e-9)return [];return [-15,15].map(t=>({x:w.x+t*(b.x-a.x)/len,y:w.y+t*(b.y-a.y)/len}))}
+ if(M.chainage?.mode==='off')return [];
+ let a=w.km_start_m,b=w.km_end_m;const ka=kmOf(d.a[0])?.km,kb=kmOf(d.a[d.a.length-1])?.km,lo=Math.min(ka,kb),hi=Math.max(ka,kb);
+ if(!Number.isFinite(lo)||!Number.isFinite(hi)||b<lo||a>hi)return [];
+ if(b-a<30){const c=(a+b)/2;a=c-15;b=c+15}a=Math.max(lo,a);b=Math.min(hi,b);
+ const sa=sOfKm(a),sb=sOfKm(b),n=Math.max(2,Math.min(400,Math.ceil(Math.abs(sb-sa)/5)+1)),P=[];for(let k=0;k<n;k++){const p=ptAtS(sa+(sb-sa)*k/(n-1));if(p)P.push(p)}return P}
+const PER_POSITION_LABEL={located:'Localizada',partial:'Trecho parcial',coordinates:'Coordenadas preservadas',outside:'Fora do eixo',unconfigured:'Estaqueamento pendente'};
+async function conferirPosicionamentoObras(){
+ requireProject();const project=pid,context=projectSession.context,epoch=projectSession.epoch,payload=collect();
+ msg('Localizando obras pelo estaqueamento, sem simular o tráfego…');const report=await api(`/api/projects/${project}/obras/localizar`,json('POST',{config:payload}));
+ if(pid!==project||projectSession.context!==context||projectSession.epoch!==epoch)return msg('Os dados mudaram durante a localização. Confira novamente.');
+ const d=document.createElement('dialog');d.id='rsPERLocation';d.className='winDlg rsModelDialog';
+ d.innerHTML=`<header><h2>Posicionamento automático das obras PER</h2><button data-close aria-label="Fechar">×</button></header><section><p>Eixo: km ${formatKm(report.axis_km_start_m)} a ${formatKm(report.axis_km_end_m)}. Posições calculadas sem alterar os quilômetros da planilha.</p><div class="tblWrap"><table class="tbl"><thead><tr><th>Obra</th><th>Localização</th><th>Orientação</th><th></th></tr></thead><tbody>${report.rows.map((r,i)=>`<tr><td>${esc(r.description)}</td><td>${esc(PER_POSITION_LABEL[r.status]||r.status)}${r.point?'<br>X '+r.point[0].toFixed(2)+' · Y '+r.point[1].toFixed(2):''}</td><td>${esc(r.message)}</td><td>${r.point?`<button type="button" data-per-locate="${i}">Localizar</button>`:''}</td></tr>`).join('')}</tbody></table></div></section><footer><button data-close>Fechar</button></footer>`;
+ const close=()=>{d.close();d.remove()};d.querySelectorAll('[data-close]').forEach(b=>b.onclick=close);d.oncancel=e=>{e.preventDefault();close()};
+ d.onclick=e=>{const b=e.target.closest('[data-per-locate]');if(!b)return;if(pid!==project||projectSession.context!==context||projectSession.epoch!==epoch)return msg('O projeto mudou. Refaça a localização.',true);const r=report.rows[Number(b.dataset.perLocate)];close();zoomTo({x:r.point[0],y:r.point[1]});draw();msg(r.message)};
+ document.body.append(d);d.showModal();return d;
+}
+queueMicrotask(()=>{const anchor=$('obImportar');if(!anchor)return;const button=document.createElement('button');button.type='button';button.id='obLocalizar';button.textContent='Conferir posição por km';button.title='Localizar as obras Excel/CSV no eixo calibrado, sem extrapolar o trecho.';button.onclick=guard(conferirPosicionamentoObras);anchor.after(button)});
+
 function kmTexto(m){return m==null||!isFinite(m)?'':formatKm(m)}
 function kmLer(t){t=String(t||'').trim();if(!t)return null;try{const v=parseKm(t);return isFinite(v)?v:null}catch{return null}}
 
@@ -65,7 +83,7 @@ $('obExportar')?.addEventListener('click',guard(async()=>{requireProject();clear
 function janelaImportar(){let d=$('obImpDlg');if(d)return d;document.body.insertAdjacentHTML('beforeend',`<dialog id="obImpDlg" class="winDlg bigDlg"><h3>Importar obras do PER</h3>
  <p class="muted">Planilha Excel (.xlsx) ou CSV com as colunas <b>Obra</b>, <b>Km inicial</b> e <b>Km final</b> (opcionais: Tipo, Lado, Início, Término, % concluído, Ano PER, Tabela PER), ou cronograma do <b>MS Project salvo como XML</b> (o km vem do nome da tarefa, ex.: “Duplicação km 325+850 a 326+200”).</p>
  <div class="dlgTools"><input type="file" id="obArq" accept=".xlsx,.xlsm,.csv,.txt,.xml"><span class="grow"></span><a class="link" href="/api/obras/modelo.xlsx" data-titulo="Baixando o modelo de planilha">Baixar modelo Excel</a></div>
- <div id="obImpInfo" class="muted"></div><div class="tblWrap"><table class="tbl"><thead><tr><th><input type="checkbox" id="obTodas" checked title="Marcar todas"></th><th>Obra</th><th>Tipo</th><th>Km inicial</th><th>Km final</th><th>Início</th><th>Término</th><th>%</th></tr></thead><tbody id="obImpRows"></tbody></table></div>
+ <div id="obImpInfo" class="muted"></div><div class="tblWrap"><table class="tbl"><thead><tr><th><input type="checkbox" id="obTodas" checked title="Marcar todas"></th><th>Obra</th><th>Tipo</th><th>Km inicial</th><th>Km final</th><th>Localização no eixo</th><th>Início</th><th>Término</th><th>%</th></tr></thead><tbody id="obImpRows"></tbody></table></div>
  <div class="row obModo"><label class="inl"><input type="radio" name="obModo" value="acrescentar" checked> Acrescentar às obras atuais</label><label class="inl"><input type="radio" name="obModo" value="substituir"> Substituir todas as obras</label><label class="inl"><input type="radio" name="obModo" value="datas"> Só atualizar datas e % das obras de mesmo nome</label></div>
  <div class="row"><span class="grow"></span><button type="button" id="obImpOk" class="primary" disabled>Importar</button><button type="button" id="obImpCancel">Cancelar</button></div></dialog>`);
  d=$('obImpDlg');arrumarJanela(d);
@@ -76,8 +94,9 @@ function janelaImportar(){let d=$('obImpDlg');if(d)return d;document.body.insert
   const L=[...r.obras,...r.sem_km];
   $('obImpRows').innerHTML=L.map((w,i)=>`<tr><td><input type="checkbox" data-obi="${i}" ${w.sem_km?'':'checked'}></td><td>${esc(w.description)}</td><td>${esc(obraTipo(w.kind).rotulo)}</td>
    <td>${w.sem_km?`<input data-obkm="${i}" placeholder="km inicial" size="8">`:kmTexto(w.km_start_m)}</td><td>${w.sem_km?`<input data-obkf="${i}" placeholder="km final" size="8">`:kmTexto(w.km_end_m)}</td>
-   <td>${(w.start_date||'').split('-').reverse().join('/')}</td><td>${(w.end_date||'').split('-').reverse().join('/')}</td><td>${w.progress_pct??''}</td></tr>`).join('');
+   <td><small title="${esc(r.localizacao?.rows?.[i]?.message||'Confira o estaqueamento após importar.')}">${esc(PER_POSITION_LABEL[r.localizacao?.rows?.[i]?.status]||(w.sem_km?'Informe o km':'Conferir após importar'))}</small></td><td>${(w.start_date||'').split('-').reverse().join('/')}</td><td>${(w.end_date||'').split('-').reverse().join('/')}</td><td>${w.progress_pct??''}</td></tr>`).join('');
   $('obImpInfo').innerHTML=`<b>${esc(r.arquivo)}</b>: ${r.obras.length} obra(s) com km${r.sem_km.length?` · ${r.sem_km.length} tarefa(s) sem km (digite o km para incluir, ou use “Só atualizar datas”)`:''}.`+(r.avisos.length?`<br>${r.avisos.map(esc).join('<br>')}`:'');
+  if(r.localizacao){const c=r.localizacao.counts;$('obImpInfo').innerHTML+=`<br>Posicionamento automático: ${c.located+c.coordinates} localizada(s), ${c.partial} parcial(is), ${c.outside} fora do trecho, ${c.unconfigured} pendente(s) de estaqueamento. Obras fora do trecho não são levadas para as pontas do eixo.`}
   $('obImpOk').disabled=!L.length});
  $('obImpOk').onclick=()=>{const r=d._lidas;if(!r)return;const L=[...r.obras,...r.sem_km].map(w=>({...w}));const modo=d.querySelector('[name=obModo]:checked').value;
   const pega=[];d.querySelectorAll('[data-obi]').forEach(c=>{const i=Number(c.dataset.obi),w=L[i];if(!c.checked&&modo!=='datas')return;

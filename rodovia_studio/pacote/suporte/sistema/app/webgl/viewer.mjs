@@ -1,3 +1,4 @@
+import {markingTriangles} from './paint.mjs';
 import {SceneAgents} from '/webgl/agents.mjs';
 import * as THREE from '/vendor/three/build/three.module.js';
 import {RoundedBoxGeometry} from '/vendor/three/examples/jsm/geometries/RoundedBoxGeometry.js';
@@ -54,8 +55,13 @@ export class RoadViewer {
   const asphalt=this.texture('asphalt'),existing=this.texture('asphalt_old'),concrete=this.texture('concrete'),grass=this.texture('grass','leaf'),soil=this.texture('soil','soil'),ballast=this.texture('gravel','stone');ballast.repeat.set(4,4);
   const ground=new THREE.Mesh(this.texturedGeometry(data.terrain.positions,data.terrain.indices),this.material({color:0x809478,map:grass}));ground.receiveShadow=true;ground.userData={name:data.terrain.label,role:'terrain'};this.scene.add(ground);this.pickables.push(ground);
   for(const record of data.meshes){const mesh=new THREE.Mesh(this.texturedGeometry(record.positions),this.material({map:record.asset_material?this.texture(record.asset_material,record.texture_pattern):record.role==='rail_ballast'?ballast:record.role==='oae'?concrete:record.role==='existing_pavement'?existing:['pavement','shoulder'].includes(record.role)?asphalt:['median','fill'].includes(record.role)?grass:record.role==='cut'?soil:null,color:record.color||PALETTE[record.role]||0x7d8589,roughness:record.role==='water'?.35:.94,metalness:record.role==='water'?.15:0,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));mesh.receiveShadow=true;mesh.castShadow=false;mesh.userData=record;this.scene.add(mesh);this.pickables.push(mesh);}
-  const white=[],yellow=[];for(const m of data.markings||[])(m.yellow?yellow:white).push(...m.p);
-  for(const [p,color] of [[white,0xf4f2e2],[yellow,0xf4c846]]){const g=this.geometry(p);const material=new THREE.LineBasicMaterial({color});this.materials.add(material);this.scene.add(new THREE.LineSegments(g,material));}
+  if(data.marking_width_m>0){
+   const paint=markingTriangles(data.markings,data.marking_width_m);
+   for(const [p,color] of [[paint.white,0xf4f2e2],[paint.yellow,0xf4c846]])if(p.length){const mesh=new THREE.Mesh(this.geometry(p),this.material({color,roughness:.78,emissive:color,emissiveIntensity:.06,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));mesh.userData={role:'road_paint'};this.scene.add(mesh);}
+  }else{
+   const white=[],yellow=[];for(const m of data.markings||[])(m.yellow?yellow:white).push(...m.p);
+   for(const [p,color] of [[white,0xf4f2e2],[yellow,0xf4c846]]){const g=this.geometry(p);const material=new THREE.LineBasicMaterial({color});this.materials.add(material);this.scene.add(new THREE.LineSegments(g,material));}
+  }
   const paths={ok:[],problem:[],adjustment:[]};for(const line of data.diagnostics||[]){const out=paths[line.status]||paths.adjustment;for(let i=3;i<line.p.length;i+=3)out.push(...line.p.slice(i-3,i+3));}
   for(const [status,color] of [['ok',0x22c55e],['problem',0xef4444],['adjustment',0xeab308]]){const g=this.geometry(paths[status]);const m=new THREE.LineBasicMaterial({color,depthTest:false});this.materials.add(m);const line=new THREE.LineSegments(g,m);line.renderOrder=100;this.technical.add(line);}
   this.createTransport(data.transport);this.createVehicles(data.vehicles);this.agents=new SceneAgents(this,data);this.setTime(0);this.fit();this.render();

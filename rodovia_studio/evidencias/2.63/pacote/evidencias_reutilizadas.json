@@ -1,0 +1,25 @@
+{
+  "origin": "rodovia_studio/evidencias/2.63/entrega",
+  "product_sha256": "b98a16af401d4524e903b0c0257674f8450d546f66e700ee0115e9290d18a87a",
+  "files": {
+    "1425_01_webgl_trafego_real.png": "2992b46e7b205c14aac329b39d593ffbf4685c0d293bade53e236311fc70cd0c",
+    "263_video.json": "67f9bfee767623ec41c6be3a99025b48ff7a20a12be332a5e545b0ee74a373af",
+    "263_per_importacao.png": "8045f22a32ad1e589fb75b361380302c06e57bb386860160e65ef6c31a68c718",
+    "1427_03_resultados_preservam_historico.png": "c4c5e8c8665ff2b537ea14d790907600b0bc2d33b0c218507b04a8ab9eede688",
+    "1427_06_video_de_revisao_anterior.png": "b7135f6fa65214071a2793d8f00bca0d72e677aae5d8d8bace00db1f15402ae7",
+    "263_per_localizacao.png": "81674302e873b1c39e591e2c172b3ff3bd452441682a93e937dc30773022ca35",
+    "1425_05_video_3d_conferido.png": "b766d6bd0f1fc592e721de3a41b419aa69ee1158aeaa599b97cc3eec8aec54d6",
+    "263_apresentacao_1.5.png": "1e078bf8151342854dc1131915cc16174c781b10f6b9868a9d2cedd787972e12",
+    "263_apresentacao_2.9.png": "c8461c3fdb7dc460850a7fa7001a39c3524c65f0a48d6aef4cd97a8a5599e098",
+    "1427_04_abertura_fora_de_ordem.png": "131bba8d860eb2f78b1960e1135e033c1601c3aa554f9c632879b520b1d49753",
+    "1427_02_conflito_preserva_edicao.png": "512e141ebd5f01dfa86b7954c71283450e3e5fc06c4cc78c8801c55cd75e6661",
+    "1427_05_historico_recuperacao.png": "e463248294961612c9bef27db2f06f9a8d9febf4ffeb9d29dfe12f6aa50a3ed3",
+    "1427_01_gravacao_serializada.png": "b26f09e1ef4fef1517c9aaa322be462337ca5a8b4382f10c80fa3cdceea90c3b",
+    "263_apresentacao_0.png": "8f5e1d7838a9c833b78ef287b7f4471daa89ee49e1dd818e0835c46a8faeabdc",
+    "263_duas_secoes.png": "02fa79ffe0d96a748a2a0e8e53aac64ee8a3caebda8e24a0ee472bd512f2f95d",
+    "1425_04_novo_projeto_identificado.png": "7bb48cebc3f438d6d8ff682e0bdf5cf7cdb03ca52fa85593cb1e491e63e45dcd",
+    "1425_02_captura_e_diagnostico.png": "189870ec1466e0494bbaeb684666f641041843258838fc3ed627f6d6ad30ee82",
+    "1425_03_contexto_recuperado.png": "5ce35b9fea8875c29cfef12856eab6e14951e73be1f2e008e6694232a5e20cfd"
+  },
+  "scope": "Artefatos do mesmo produto; testes repetidos substituem suas saídas. A aprovação depende do relatório final, não da presença de imagens."
+}

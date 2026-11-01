@@ -775,6 +775,8 @@ class Settings(BaseModel):
     cpu_preset: Literal['fast','veryfast'] = 'veryfast'
     short_video_mode: Literal['auto','tour'] = 'auto'
     hydrography: bool = True
+    vehicles_paved_only: bool = True  # Proteção visual: corpo inteiro sobre pavimento cadastrado.
+    signage_emphasis: bool = True  # Contraste/acabamento da pintura, sem mudar regras viárias.
     traffic: bool = True
     traffic_speed_kmh: float = Field(default=70, ge=5, le=110)
     chainage: Chainage = Field(default_factory=Chainage)

@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "2.62",
-  "description": "2.62 LEVE (só o que mudou desde 2.61; exige 2.61 ou maior). 2.62: Tela nao balanca mais ao abrir/fechar paineis (zoom/posicao preservados), cliques logo apos mudanca de layout ignorados, zona morta de 5 px no arrasto. Sem validação completa."
+  "version": "2.63",
+  "description": "2.63: proteção visual sobre pavimento, seções consecutivas, pintura métrica e localização PER pelo eixo."
 }

@@ -32,7 +32,7 @@ def gl_page(live):
         page.route('**/*',lambda route:route.continue_() if route.request.url.startswith(live[0]+'/') else route.abort())
         # Prontidão pelos módulos reais, sem depender de silêncio das consultas de estado.
         page.goto(live[0],wait_until='domcontentloaded',timeout=60000);page.wait_for_function('!!window.Rodovia3D && !!window.RodoviaNewProject',timeout=60000)
-        page.evaluate('(pid)=>load(pid)',live[1]);page.wait_for_timeout(300);page.wait_for_function('!task',timeout=60000)
+        page.evaluate('(pid)=>load(pid)',live[1]);page.wait_for_timeout(300);page.wait_for_function('!task&&!taskRequestPending&&!RodoviaUpdates.snapshot().requests',timeout=120000)
         yield page
         assert not errors,errors;b.close()
 

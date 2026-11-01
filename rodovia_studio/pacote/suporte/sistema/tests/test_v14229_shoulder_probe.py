@@ -68,8 +68,11 @@ def actual_network(enabled=True,obstacles=()):
     return net,s
 
 
-def test_actual_simulation_keeps_clearance_replays_probe_and_preserves_controls():
+def test_actual_simulation_keeps_clearance_replays_probe_and_preserves_controls(monkeypatch):
     from app.simulation import TrafficSim
+    # O encontro determinístico ocorria durante o aquecimento de 90 s.
+    # Desloca-o para os quadros observados, preservando as regras físicas.
+    monkeypatch.setattr('app.simulation.WARMUP',50.)
     net,s=actual_network();sim=TrafficSim(net,s,lambda *a:'truck',duration=12)
     assert sim.spawned>0
     assert sim.shoulder_probe.events

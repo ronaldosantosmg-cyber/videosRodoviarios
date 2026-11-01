@@ -1,0 +1,14 @@
+{
+  "reused_tests": 287,
+  "executed_tests": 4,
+  "total": 291,
+  "product_sha256": "b98a16af401d4524e903b0c0257674f8450d546f66e700ee0115e9290d18a87a",
+  "origin": "rodovia_studio/evidencias/2.63/aprovada",
+  "changed_test_modules": [
+    "nomes_indefinidos.py",
+    "test_v131.py",
+    "test_v14273_varias_secoes_no_eixo.py",
+    "test_v14274_textura_ao_vivo.py",
+    "test_v14284_dialogo_secoes.py"
+  ]
+}

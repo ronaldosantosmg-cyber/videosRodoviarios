@@ -277,7 +277,7 @@
 <label>Pintura de faixas<select id="signage_style"><option value="clean">Limpa (sem sobras nas junções)</option>
 <option value="previous">Anterior</option></select></label><label>Setas de fluxo<select id="flow_arrows"><option value="km_conflicts">A cada km e nos pontos de conflito</option>
 <option value="dense">Frequentes (anterior)</option>
-<option value="off">Sem setas</option></select></label><label>Espaçamento das setas (m)<input id="flow_arrow_spacing_m" type="number" min="100" max="5000" step="100" value="1000"></label><label>Sinalização horizontal e vertical<select id="signage_detail"><option value="full">Completa (faixas, zebrados, PARE, placas)</option>
+<option value="off">Sem setas</option></select></label><label>Espaçamento das setas (m)<input id="flow_arrow_spacing_m" type="number" min="100" max="5000" step="100" value="1000"></label><label><input id="signage_emphasis" type="checkbox" checked> Realçar pintura e sinalização na apresentação</label><label>Sinalização horizontal e vertical<select id="signage_detail"><option value="full">Completa (faixas, zebrados, PARE, placas)</option>
 <option value="basic">Básica</option></select></label><label>Faixas por sentido na pista principal<select id="lanes_per_direction"><option value="2">2 (o restante é acostamento)</option>
 <option value="1">1</option>
 <option value="3">3</option>
@@ -298,7 +298,7 @@
 <option value="0.1">0,1 m por pixel (vídeo 4K/imagem local; mais lento)</option></select></label><label><input id="km_markers" type="checkbox"> Marcos do km inicial e final no mapa</label><label><input id="direction_badge" type="checkbox"> Seta no topo com o sentido do estaqueamento</label><label><input id="median_grass" type="checkbox"> Grama nos canteiros</label><label><input id="cities_show" type="checkbox"> Nomes das cidades próximas</label></details>
 </div>
 <p class="muted">Base cartográfica 1:250.000; largura gráfica ilustrativa. Consulta online com cache local.</p>
-<label><input id="traffic" type="checkbox" checked> Incluir veículos em trajetórias conectadas</label><label title="Onde faltar pavimento (túnel, canteiro, semáforo com faixa de pedestre, obra) e o eixo continuar com pavimento depois, qualquer que seja o comprimento, o fluxo não é bloqueado: os veículos somem 5 m antes e reaparecem quando o pavimento voltar."><input id="traffic_bridge_gaps" type="checkbox" checked> 🚧 Ocultar o fluxo onde faltar pavimento (sem bloquear)</label><div class="grid">
+<label><input id="vehicles_paved_only" type="checkbox" checked> Exibir veículos somente sobre pavimento cadastrado</label><label><input id="traffic" type="checkbox" checked> Incluir veículos em trajetórias conectadas</label><label title="Onde faltar pavimento (túnel, canteiro, semáforo com faixa de pedestre, obra) e o eixo continuar com pavimento depois, qualquer que seja o comprimento, o fluxo não é bloqueado: os veículos somem 5 m antes e reaparecem quando o pavimento voltar."><input id="traffic_bridge_gaps" type="checkbox" checked> 🚧 Ocultar o fluxo onde faltar pavimento (sem bloquear)</label><div class="grid">
 <label>Processos de montagem<select id="render_workers"><option value="0">Automático (núcleos e memória do PC)</option>
 <option value="1">1 (sem paralelismo)</option>
 <option value="2">2</option>

@@ -49,20 +49,15 @@ def export_csv(works):
     return '\ufeff'+f.getvalue()
 
 def works_to_pois(settings,axis,ds,stationing=None):
-    """Obras da tabela PER como chamadas. Com estaqueamento definido, o km localiza a obra
-    pela distância percorrida ao longo do eixo; obra com X/Y em modo auto recebe km calculado."""
-    result=[]
-    for i,row in enumerate(settings.works):
-        located=row.x is not None and row.y is not None
-        a,b=row.km_start_m,row.km_end_m
-        if located and row.km_mode=='auto' and stationing is not None:a=b=stationing.km([row.x,row.y])
-        if b<settings.km_start_m or a>settings.km_end_m:continue
-        km=(a+b)/2
-        if located:p=[row.x,row.y]
-        elif stationing is not None:p=stationing.point(km).tolist()
-        else:
-            ch=np.clip((km-settings.km_start_m)/(settings.km_end_m-settings.km_start_m),0,1)*ds[-1];p=[float(np.interp(ch,ds,axis[:,k])) for k in range(2)]
+    """Chamadas do PER localizadas no eixo real, sem extrapolação para suas pontas."""
+    if not settings.works:return []
+    from .per_positioning import locate_works
+    report=locate_works(settings,axis,stationing=stationing);result=[]
+    for i,(work,row) in enumerate(zip(settings.works,report['rows'])):
+        if row['point'] is None or not work.show:continue
+        a,b=row['km_start_m'],row['km_end_m'];point=row['point']
         sub='km '+fmt_km(a)+((' a '+fmt_km(b)) if b!=a else '')
-        parts=[sub]+[s for s in [row.per_table,row.per_year] if s]
-        result.append({'id':row.id or 'per-'+str(i),'title':row.description,'subtitle':' • '.join(parts),'kind':row.kind,'x':p[0],'y':p[1],'km_mode':'manual','per_location':'coordenada' if located else ('estaqueamento' if stationing is not None else 'interpolação por km'),'km_start_m':a,'km_end_m':b})
+        if row['status']=='partial':sub+=' · trecho parcial no eixo'
+        parts=[sub]+[v for v in (work.per_table,work.per_year) if v]
+        result.append({'id':work.id or 'per-'+str(i),'title':work.description,'subtitle':' • '.join(parts),'kind':work.kind,'x':point[0],'y':point[1],'km_mode':'manual','per_location':'coordenada' if row['status']=='coordinates' else 'estaqueamento','km_start_m':a,'km_end_m':b})
     return result

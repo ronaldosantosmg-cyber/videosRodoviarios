@@ -43,7 +43,17 @@ def test_background_results_preserve_draft_selection_undo_and_pending_edit(gl_pa
 
 def test_out_of_order_open_does_not_replace_the_latest_project(gl_page,live):
     p=gl_page;data=p.request.get(live[0]+'/api/projects/'+live[1]).json();routes={};a='a'*32;b='b'*32
-    def payload(key):return {**data,'id':key,'config':{**data['config'],'name':key},'analysis':None,'preview':None,'editor_ready':False}
+    # A abertura atual confirma/salva e atualiza: os projetos simulados também
+    # precisam existir, em vez de devolver GET falso e falhar no PUT legítimo.
+    import shutil
+    from app import store
+    for key in (a,b):
+        shutil.copytree(live[2]/live[1],live[2]/key)
+        config=json.loads((live[2]/key/'config.json').read_text());config['name']=key
+        (live[2]/key/'config.json').write_text(json.dumps(config))
+        with store.connect() as c:c.execute('INSERT INTO projects(id,name) VALUES(?,?)',(key,key))
+    actual={key:p.request.get(live[0]+'/api/projects/'+key).json() for key in (a,b)}
+    def payload(key):return {**actual[key],'analysis':None,'preview':None,'editor_ready':False}
     def intercept(r):
         key=r.request.url.rsplit('/',1)[-1]
         if key in routes:r.fulfill(json=payload(key))
@@ -51,7 +61,7 @@ def test_out_of_order_open_does_not_replace_the_latest_project(gl_page,live):
     for key in (a,b):p.route('**/api/projects/'+key,intercept)
     p.evaluate('(id)=>{window.openFirst=load(id)}',a);p.wait_for_timeout(100)
     p.evaluate('(id)=>{window.openSecond=load(id)}',b);p.wait_for_timeout(100)
-    def payload(key):return {**data,'id':key,'config':{**data['config'],'name':key},'analysis':None,'preview':None,'editor_ready':False}
+    def payload(key):return {**actual[key],'analysis':None,'preview':None,'editor_ready':False}
     routes[b].fulfill(json=payload(b));p.evaluate('()=>openSecond')
     routes[a].fulfill(json=payload(a));p.evaluate('()=>openFirst')
     assert p.evaluate('pid')==b and p.evaluate('cfg.name')==b

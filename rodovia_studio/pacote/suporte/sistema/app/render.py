@@ -736,7 +736,7 @@ class Scene:
                 coords=self.screen(segments.reshape(-1,2),cam,width).reshape(-1,2,2)
                 if not hasattr(self,'marking_chains'):self.marking_chains=self.ch[self.tree.query(self.marking_centers)[1]]
                 for seg,ch,color in zip(coords,self.marking_chains[near],self.marking_colors[near]):
-                    if ch<=progress*self.length:cv2.line(im,tuple(seg[0].astype(int)),tuple(seg[1].astype(int)),tuple(map(int,color)),max(1,round(.13/m)),cv2.LINE_AA)
+                    if ch<=progress*self.length:cv2.line(im,tuple(seg[0].astype(int)),tuple(seg[1].astype(int)),tuple(map(int,color)),max(1,round((.15 if getattr(self.s,'signage_emphasis',True) else .13)/m)),cv2.LINE_AA)
         if pre is not None and self._tinta_on() and width<3000:im=self.tinta_real(im,pre,mat,m)
         if wear:im=self.paint_wear(im,pre,mat,m,sp);pre=None
         pre=None
@@ -769,7 +769,9 @@ class Scene:
     def tinta_real(self,im,pre,mat,m):
         """2.51: tinta de sinalização horizontal realista (desgaste em manchas, microbrilho, espessura)."""
         A=np.array([[self.px,0,self.box[0]],[0,-self.px,self.box[3]]])@np.vstack([mat.astype(np.float64),[0,0,1]])
-        from . import relevo;return relevo.tinta(im,pre,A,m)
+        from . import relevo
+        painted=relevo.tinta(im,pre,A,m)
+        return cv2.addWeighted(im,.65,painted,.35,0) if getattr(self.s,'signage_emphasis',True) else painted
     def _tinta_on(self):return getattr(self.s,'texture_relief',True) and getattr(self.s,'texture_style','artistico')!='anterior' and getattr(self.s,'style_profile','padrao')!='tecnico'
     def paint_wear(self,im,pre,mat,m,sp):
         """1.29: tinta gasta/transparente: mistura a pintura com o que havia antes, com manchas fixas no terreno."""
@@ -930,16 +932,27 @@ class Scene:
             import functools
             return self.network.vehicles_ex(t,self.s.traffic_speed_kmh/3.6,functools.partial(visual.vehicle_type,mix=getattr(self.s,'vehicle_mix','classico')))
         return sim.vehicles_ex(t)
+    def presentation_area(self,area=None):
+        """Só a apresentação é recortada; não altera os nós/fluxos calculados."""
+        area=self.allowed if area is None else area
+        if not getattr(self.s,'vehicles_paved_only',True):return area
+        if not hasattr(self,'_presentation_areas'):self._presentation_areas={}
+        key=id(area)
+        if key not in self._presentation_areas:
+            if len(self._presentation_areas)>8:self._presentation_areas.clear()
+            self._presentation_areas[key]=area.intersection(self.network.dxf_pavement)
+        return self._presentation_areas[key]
     def fits(self,i,j,pt,tan,vtype):
         # O desenho usa o corpo real validado, sem margem gráfica adicional que ocultava veículos.
         # Cache por posição/rumo exatos: um ponto da mesma aresta pode ter outro afastamento.
         if not np.isfinite(np.r_[pt,tan]).all():return False
         probe=getattr(getattr(self,'_sim',None),'shoulder_probe',None)
         exceptional=bool(probe and probe.permits(i,vtype))
-        key=(vtype,exceptional,*map(float,pt),*map(float,tan))
+        key=(vtype,exceptional,bool(getattr(self.s,'vehicles_paved_only',True)),*map(float,pt),*map(float,tan))
+        if not hasattr(self,'_fit'):self._fit={}
         if key not in self._fit:
             if len(self._fit)>=4096:self._fit.clear()
-            T=visual.TYPES[vtype];self._fit[key]=(probe.area if exceptional else self.allowed).covers(Polygon(visual.body(pt,tan,T['L'],T['B'])))
+            T=visual.TYPES[vtype];self._fit[key]=self.presentation_area(probe.area if exceptional else self.allowed).covers(Polygon(visual.body(pt,tan,T['L'],T['B'])))
         return self._fit[key]
     def draw_vehicles(self,im,t,cam,width,progress):
         from .traffic_presentation import visible

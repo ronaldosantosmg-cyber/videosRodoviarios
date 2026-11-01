@@ -14,12 +14,15 @@ def _rgb(h):return tuple(int(h[i:i+2],16) for i in (1,3,5))
 
 def prepare(scene):
     """Polilinha (mundo) de cada obra ao longo do eixo, deslocada para o lado escolhido."""
-    s=scene.s;out=[]
-    for w in s.works:
-        if not w.show:continue
-        a,b=float(w.km_start_m),float(w.km_end_m)
+    from .per_positioning import locate_works
+    s=scene.s;out=[];locations=locate_works(s,scene.axis,stationing=scene.stationing)
+    for w,location in zip(s.works,locations['rows']):
+        if not w.show or location['point'] is None:continue
+        a,b=float(location.get('visible_km_start_m',w.km_start_m)),float(location.get('visible_km_end_m',w.km_end_m))
         if b-a<30:c=(a+b)/2;a,b=c-15,c+15
-        n=max(2,int((b-a)/4)+1);kms=np.linspace(a,b,n)
+        if location['status']!='coordinates':
+            a=max(a,locations['axis_km_start_m']);b=min(b,locations['axis_km_end_m'])
+        n=min(2000,max(2,int((b-a)/4)+1));kms=np.linspace(a,b,n)
         if scene.km_active:P=np.array([scene.stationing.point(k) for k in kms],float)
         else:
             span=max(1e-9,s.km_end_m-s.km_start_m);ch=np.clip((_sdiv(kms-s.km_start_m, span)),0,1)*scene.ds[-1];P=np.array([scene.at(c) for c in ch])

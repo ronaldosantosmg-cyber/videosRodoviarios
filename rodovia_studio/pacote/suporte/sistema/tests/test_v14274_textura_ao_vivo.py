@@ -13,7 +13,7 @@ def test_tipo_de_textura_repinta_na_hora(junction,tmp_path,monkeypatch):
     monkeypatch.setenv('RODOVIA_VIDEOS',str(tmp_path/'videos'))
     from app.server import app
     port=free_port();server=uvicorn.Server(uvicorn.Config(app,host='127.0.0.1',port=port,log_level='warning'))
-    threading.Thread(target=server.run,daemon=True).start();base=f'http://127.0.0.1:{port}'
+    server_thread=threading.Thread(target=server.run,daemon=True);server_thread.start();base=f'http://127.0.0.1:{port}'
     for _ in range(100):
         try:httpx.get(base+'/api/health');break
         except Exception:time.sleep(.1)
@@ -52,7 +52,7 @@ def test_tipo_de_textura_repinta_na_hora(junction,tmp_path,monkeypatch):
             muda('estilo de representação da pista (hachura cruzada)',"""()=>{cfg.pavement_styles={pavement:{pattern:'cruzada',fill:'#223344',hatch:'#ffcc00',spacing_m:2,angle_deg:30,line_m:.2}};window.RodoviaAparencia.rascunho.tp={};window.RodoviaAparencia.repintar()}""")
             b.close()
     finally:
-        server.should_exit=True
+        server.should_exit=True;server_thread.join(timeout=15);assert not server_thread.is_alive()
     assert not errors,errors
     assert not falhas,repr(falhas)
 
@@ -64,7 +64,7 @@ def test_zoom_afastado_pinta_cor_media_do_tipo(junction,tmp_path,monkeypatch):
     monkeypatch.setenv('RODOVIA_VIDEOS',str(tmp_path/'videos'))
     from app.server import app
     port=free_port();server=uvicorn.Server(uvicorn.Config(app,host='127.0.0.1',port=port,log_level='warning'))
-    threading.Thread(target=server.run,daemon=True).start();base=f'http://127.0.0.1:{port}'
+    server_thread=threading.Thread(target=server.run,daemon=True);server_thread.start();base=f'http://127.0.0.1:{port}'
     for _ in range(100):
         try:httpx.get(base+'/api/health');break
         except Exception:time.sleep(.1)
@@ -93,6 +93,6 @@ def test_zoom_afastado_pinta_cor_media_do_tipo(junction,tmp_path,monkeypatch):
             res['rig']=page.evaluate("()=>RodoviaTexturasVivas.corMedia('pista_nova',{},true)")
             b.close()
     finally:
-        server.should_exit=True
+        server.should_exit=True;server_thread.join(timeout=15);assert not server_thread.is_alive()
     assert not errors,errors
     assert res['pxTile']<14 and res['flex']!=res['rig'] and res['mudou'],res

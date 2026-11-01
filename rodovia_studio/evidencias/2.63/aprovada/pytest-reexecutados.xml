@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="69" time="577.975" timestamp="2026-11-01T01:22:44.966804+00:00" hostname="dd4e55ac1623"><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v263_ui" name="test_split_axis_preserves_first_section_and_saves_modified_second" time="14.589" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v263_ui" name="test_save_and_close_includes_next_section_without_extra_add_click" time="13.866" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v263_ui" name="test_csv_import_previews_positions_and_outside_work_cannot_be_located" time="17.436" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state" name="test_compare_and_swap_preserves_last_committed_configuration" time="0.011" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state" name="test_corruption_recovers_last_good_and_archives_bad_bytes" time="0.012" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state" name="test_history_restore_uses_revision_guard" time="0.013" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state" name="test_domains_do_not_recalculate_routes_for_camera_or_texture" time="0.021" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state" name="test_old_job_and_file_replacement_cannot_be_advertised_current" time="0.030" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state" name="test_failed_import_restores_inputs_config_and_metadata" time="0.006" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state" name="test_import_is_recovered_after_process_stops_between_file_changes" time="0.004" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state" name="test_two_processes_cannot_silently_overwrite_each_other" time="0.541" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state" name="test_interrupted_configuration_commit_recovers_a_complete_revision[config.json]" time="0.007" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state" name="test_interrupted_configuration_commit_recovers_a_complete_revision[config_atual.json]" time="0.009" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state" name="test_analysis_reuses_valid_results_after_a_presentation_change" time="0.023" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state_ui" name="test_edit_during_save_remains_dirty_then_queued_save_wins" time="11.040" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state_ui" name="test_conflict_keeps_local_edits_and_undo_history" time="8.756" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state_ui" name="test_background_results_preserve_draft_selection_undo_and_pending_edit" time="11.197" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state_ui" name="test_out_of_order_open_does_not_replace_the_latest_project" time="11.755" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state_ui" name="test_finished_job_for_another_project_does_not_switch_project" time="9.647" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state_ui" name="test_history_dialog_restores_an_explicit_revision" time="9.137" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state_ui" name="test_edit_while_background_response_waits_preserves_the_latest_history" time="9.039" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state_ui" name="test_open_does_not_discard_edits_made_while_waiting_for_the_project" time="8.628" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state_ui" name="test_video_finished_for_an_older_revision_is_labelled_as_previous" time="8.196" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1425_live_3d" name="test_real_webgl_has_geometry_traffic_controls_and_no_duplicate_bar" time="16.968" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1425_live_3d" name="test_snapshot_is_real_png_and_diagnostic_overlay_is_preserved" time="14.028" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1425_live_3d" name="test_camera_navigation_context_recovery_and_disposal" time="21.729" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1425_live_3d" name="test_new_project_requires_identity_and_saves_all_initial_settings" time="9.036" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1425_live_3d" name="test_invalid_km_and_cancel_do_not_create_blank_projects" time="9.335" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1425_live_3d" name="test_real_webgl_mp4_export_is_complete_and_archived" time="49.689" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14230_flow_rules" name="test_branch_percentages_keep_main_and_secondary_mass_conservation[None-0.2]" time="0.002" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14230_flow_rules" name="test_branch_percentages_keep_main_and_secondary_mass_conservation[35-0.35]" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14230_flow_rules" name="test_branch_percentages_keep_main_and_secondary_mass_conservation[0-0]" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14230_flow_rules" name="test_branch_percentages_keep_main_and_secondary_mass_conservation[100-1]" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14230_flow_rules" name="test_invalid_or_conflicting_percentages_are_not_silently_normalized" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14230_flow_rules" name="test_vdm_applies_once_to_entries_and_does_not_drop_half_on_one_way_network" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14230_flow_rules" name="test_entry_is_inside_by_five_meters_without_disabling_signals_or_collisions" time="0.114" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14230_flow_rules" name="test_confirmed_alignment_can_have_an_operational_corridor_without_a_hatch" time="0.073" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14230_flow_rules" name="test_oae_zero_or_longitudinal_does_not_invent_an_obstacle_or_elevation" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14230_flow_rules" name="test_contact_turn_gets_a_tangent_curve_only_inside_real_pavement" time="0.010" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14230_flow_rules" name="test_trimmed_merge_uses_physical_edge_offsets_for_following" time="0.000" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14230_flow_rules" name="test_engineering_fleet_dimensions_match_bodies_without_changing_legacy_profiles" time="0.000" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14230_flow_rules" name="test_actual_y_junction_has_derived_itineraries_and_continuity_with_distribution" time="0.682" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14230_flow_rules" name="test_no_median_checkbox_overrides_permitted_return_without_touching_parallel_flow" time="0.002" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14230_flow_rules" name="test_dxf_oae_elevation_is_preserved_instead_of_assigning_a_fake_height" time="0.003" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14230_flow_rules" name="test_density_does_not_double_just_because_a_branch_was_added" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14230_flow_rules" name="test_saturated_entry_keeps_weighted_choice_until_admission_instead_of_starving_branch" time="0.279" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14230_flow_rules" name="test_vehicle_collision_toggle_keeps_people_and_oae_grade_separation_independent" time="0.023" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14230_flow_rules" name="test_larger_axis_has_merge_priority_within_same_road_category" time="0.000" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14230_flow_rules" name="test_invalid_oae_z_never_releases_a_crossing_or_leaks_non_finite_json[None]" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14230_flow_rules" name="test_invalid_oae_z_never_releases_a_crossing_or_leaks_non_finite_json[nan]" time="0.000" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14230_flow_rules" name="test_invalid_oae_z_never_releases_a_crossing_or_leaks_non_finite_json[inf]" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14230_flow_rules" name="test_route_only_keeps_a_vehicle_available_after_first_pass_without_increasing_density" time="0.123" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14230_flow_rules" name="test_route_inspection_preflight_does_not_hide_initial_vehicles_with_cinematic_reveal" time="0.002" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14229_shoulder_probe" name="test_envelope_is_one_meter_from_pavement_not_shoulder_width_and_preserves_barriers_holes" time="0.001" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14229_shoulder_probe" name="test_heavy_encounter_uses_local_shoulder_with_safe_sweep_and_smooth_return[False]" time="0.165" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14229_shoulder_probe" name="test_heavy_encounter_uses_local_shoulder_with_safe_sweep_and_smooth_return[True]" time="0.158" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14229_shoulder_probe" name="test_disabled_light_vehicle_barrier_and_insufficient_length_refuse" time="0.052" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14229_shoulder_probe" name="test_replay_pose_matches_safety_and_does_not_slide_while_stopped" time="0.090" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14229_shoulder_probe" name="test_actual_simulation_keeps_clearance_replays_probe_and_preserves_controls" time="1.283" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14229_shoulder_probe" name="test_curve_exception_does_not_allow_steering_failure_or_vehicle_wider_than_lane" time="0.004" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14229_shoulder_probe" name="test_shoulder_hatch_does_not_expand_exception_to_its_full_width" time="0.134" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14229_shoulder_probe" name="test_curved_body_can_use_one_meter_but_not_an_impossible_steering_angle" time="0.005" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14229_shoulder_probe" name="test_works_block_rejects_exception_without_disabling_it" time="0.252" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14229_shoulder_probe" name="test_probe_refuses_waiting_person_and_current_step_reserves_pedestrians" time="0.364" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14229_shoulder_probe" name="test_second_maneuver_preserves_first_pose_for_video_replay" time="0.254" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14229_shoulder_probe" name="test_pedestrian_already_present_prevents_heavy_admission_without_other_vehicles" time="0.007" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14273_varias_secoes_no_eixo" name="test_varias_secoes_no_mesmo_eixo_sem_erro" time="9.933" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14274_textura_ao_vivo" name="test_tipo_de_textura_repinta_na_hora" time="153.162"><failure message="playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 90000ms exceeded.">junction = PosixPath('/tmp/pytest-of-agent/pytest-10/test_tipo_de_textura_repinta_n0')
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-10/test_tipo_de_textura_repinta_n0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f93b75b2810&gt;
+
+    def test_tipo_de_textura_repinta_na_hora(junction,tmp_path,monkeypatch):
+        pw=pytest.importorskip('playwright.sync_api')
+        import uvicorn,httpx
+        monkeypatch.setenv('RODOVIA_VIDEOS',str(tmp_path/'videos'))
+        from app.server import app
+        port=free_port();server=uvicorn.Server(uvicorn.Config(app,host='127.0.0.1',port=port,log_level='warning'))
+        threading.Thread(target=server.run,daemon=True).start();base=f'http://127.0.0.1:{port}'
+        for _ in range(100):
+            try:httpx.get(base+'/api/health');break
+            except Exception:time.sleep(.1)
+        c=httpx.Client(base_url=base,timeout=60)
+        pid=c.post('/api/projects',json=S(name='TexturaViva').model_dump()).json()['id']
+        c.post(f'/api/projects/{pid}/files',files={'file':('x.dxf',(junction/'input.dxf').read_bytes())})
+        j=c.post(f'/api/projects/{pid}/analyze').json()
+        for _ in range(300):
+            if c.get('/api/jobs/'+j['id']).json()['state'] in ('done','failed'):break
+            time.sleep(.2)
+        errors=[];falhas=[]
+        try:
+            with pw.sync_playwright() as p:
+                exe=os.environ.get('CHROMIUM','/opt/pw-browsers/chromium-1194/chrome-linux/chrome')
+                b=p.chromium.launch(executable_path=exe if os.path.exists(exe) else None);page=b.new_page(viewport={'width':1500,'height':900})
+                page.on('pageerror',lambda e:errors.append(str(e)));page.on('dialog',lambda d:d.dismiss())
+                page.route('**/tiles/**',lambda r:r.fulfill(status=404,body=b''))
+                page.add_init_script(f"localStorage.setItem('rodovia_project','{pid}')")
+&gt;               page.goto(base);page.wait_for_function('typeof geo!=="undefined"&amp;&amp;geo&amp;&amp;vec&amp;&amp;editor&amp;&amp;ready()',timeout=90000)
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_v14274_textura_ao_vivo.py:35: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:11595: in wait_for_function
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_page.py:1110: in wait_for_function
+    return await self._main_frame.wait_for_function(**locals_to_params(locals()))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:878: in wait_for_function
+    await self._channel.send("waitForFunction", self._timeout, params)
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;playwright._impl._connection.Connection object at 0x7f93b5218200&gt;
+cb = &lt;function Channel.send.&lt;locals&gt;.&lt;lambda&gt; at 0x7f93a7bbbc40&gt;
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -&gt; Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+&gt;           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 90000ms exceeded.
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError</failure></testcase><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v14274_textura_ao_vivo" name="test_zoom_afastado_pinta_cor_media_do_tipo" time="154.224"><failure message="playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 90000ms exceeded.">junction = PosixPath('/tmp/pytest-of-agent/pytest-10/test_zoom_afastado_pinta_cor_m0')
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-10/test_zoom_afastado_pinta_cor_m0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f93d4c8e4b0&gt;
+
+    def test_zoom_afastado_pinta_cor_media_do_tipo(junction,tmp_path,monkeypatch):
+        """2.54: com a pista pequena na tela (ladrilho &lt; 14 px) trocar o material AINDA muda o desenho (antes ficava sem textura)."""
+        pw=pytest.importorskip('playwright.sync_api')
+        import uvicorn,httpx
+        monkeypatch.setenv('RODOVIA_VIDEOS',str(tmp_path/'videos'))
+        from app.server import app
+        port=free_port();server=uvicorn.Server(uvicorn.Config(app,host='127.0.0.1',port=port,log_level='warning'))
+        server_thread=threading.Thread(target=server.run,daemon=True);server_thread.start();base=f'http://127.0.0.1:{port}'
+        for _ in range(100):
+            try:httpx.get(base+'/api/health');break
+            except Exception:time.sleep(.1)
+        c=httpx.Client(base_url=base,timeout=60)
+        pid=c.post('/api/projects',json=S(name='TexturaLonge').model_dump()).json()['id']
+        c.post(f'/api/projects/{pid}/files',files={'file':('x.dxf',(junction/'input.dxf').read_bytes())})
+        j=c.post(f'/api/projects/{pid}/analyze').json()
+        for _ in range(300):
+            if c.get('/api/jobs/'+j['id']).json()['state'] in ('done','failed'):break
+            time.sleep(.2)
+        errors=[];res={}
+        try:
+            with pw.sync_playwright() as p:
+                exe=os.environ.get('CHROMIUM','/opt/pw-browsers/chromium-1194/chrome-linux/chrome')
+                b=p.chromium.launch(executable_path=exe if os.path.exists(exe) else None);page=b.new_page(viewport={'width':1500,'height':900})
+                page.on('pageerror',lambda e:errors.append(str(e)));page.on('dialog',lambda d:d.dismiss())
+                page.route('**/tiles/**',lambda r:r.fulfill(status=404,body=b''))
+                page.add_init_script(f"localStorage.setItem('rodovia_project','{pid}')")
+&gt;               page.goto(base);page.wait_for_function('typeof geo!=="undefined"&amp;&amp;geo&amp;&amp;vec&amp;&amp;editor&amp;&amp;ready()',timeout=90000)
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_v14274_textura_ao_vivo.py:86: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:11595: in wait_for_function
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_page.py:1110: in wait_for_function
+    return await self._main_frame.wait_for_function(**locals_to_params(locals()))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:878: in wait_for_function
+    await self._channel.send("waitForFunction", self._timeout, params)
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;playwright._impl._connection.Connection object at 0x7f93a7c1df70&gt;
+cb = &lt;function Channel.send.&lt;locals&gt;.&lt;lambda&gt; at 0x7f93a7b85ee0&gt;
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -&gt; Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+&gt;           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 90000ms exceeded.
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError</failure></testcase></testsuite></testsuites>

@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="25" time="202.859" timestamp="2026-11-01T01:18:50.927175+00:00" hostname="dd4e55ac1623"><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v263_ui" name="test_split_axis_preserves_first_section_and_saves_modified_second" time="10.669" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v263_ui" name="test_save_and_close_includes_next_section_without_extra_add_click" time="8.608" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v263_ui" name="test_csv_import_previews_positions_and_outside_work_cannot_be_located" time="7.768" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state" name="test_compare_and_swap_preserves_last_committed_configuration" time="0.016" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state" name="test_corruption_recovers_last_good_and_archives_bad_bytes" time="0.014" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state" name="test_history_restore_uses_revision_guard" time="0.013" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state" name="test_domains_do_not_recalculate_routes_for_camera_or_texture" time="0.016"><failure message="AssertionError: assert ('1ea4024c2a1e...7025b26338727' == '1ea4024c2a1e...7025b26338727'&#10;  &#10;    1ea4024c2a1e120b26102d6bff739e66920b7b25439e2a837c07025b26338727 and '64b83b6c742e...c294181bae6b5' == '64b83b6c742e...c294181bae6b5'&#10;  &#10;    64b83b6c742e2d3670a08ade088f22e0c69f0fb93cb4905c32cc294181bae6b5 and 'feb924fea15fd4de713c2da02a7a6fabf6f5eef22fe3b1966cc1826865c9a9cd' != 'feb924fea15fd4de713c2da02a7a6fabf6f5eef22fe3b1966cc1826865c9a9cd')">project = PosixPath('/tmp/pytest-of-agent/pytest-9/test_domains_do_not_recalculat0/projeto')
+
+    def test_domains_do_not_recalculate_routes_for_camera_or_texture(project):
+        d=project;s=ps.read_config(d);a=dep.revisions(d,s)
+        b=dep.revisions(d,{**s,'texture_style':'artistico' if s['texture_style']!='realistic' else 'artistico'})
+&gt;       assert a['traffic']==b['traffic'] and a['editor']==b['editor'] and a['scene3d']!=b['scene3d']
+E       AssertionError: assert ('1ea4024c2a1e...7025b26338727' == '1ea4024c2a1e...7025b26338727'
+E         
+E           1ea4024c2a1e120b26102d6bff739e66920b7b25439e2a837c07025b26338727 and '64b83b6c742e...c294181bae6b5' == '64b83b6c742e...c294181bae6b5'
+E         
+E           64b83b6c742e2d3670a08ade088f22e0c69f0fb93cb4905c32cc294181bae6b5 and 'feb924fea15fd4de713c2da02a7a6fabf6f5eef22fe3b1966cc1826865c9a9cd' != 'feb924fea15fd4de713c2da02a7a6fabf6f5eef22fe3b1966cc1826865c9a9cd')
+
+tests/test_v1427_state.py:33: AssertionError</failure></testcase><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state" name="test_old_job_and_file_replacement_cannot_be_advertised_current" time="0.036" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state" name="test_failed_import_restores_inputs_config_and_metadata" time="0.007" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state" name="test_import_is_recovered_after_process_stops_between_file_changes" time="0.004" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state" name="test_two_processes_cannot_silently_overwrite_each_other" time="0.411" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state" name="test_interrupted_configuration_commit_recovers_a_complete_revision[config.json]" time="0.009" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state" name="test_interrupted_configuration_commit_recovers_a_complete_revision[config_atual.json]" time="0.008" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state" name="test_analysis_reuses_valid_results_after_a_presentation_change" time="0.025" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state_ui" name="test_edit_during_save_remains_dirty_then_queued_save_wins" time="8.219" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state_ui" name="test_conflict_keeps_local_edits_and_undo_history" time="5.907" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state_ui" name="test_background_results_preserve_draft_selection_undo_and_pending_edit" time="5.913" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state_ui" name="test_out_of_order_open_does_not_replace_the_latest_project" time="8.727" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state_ui" name="test_finished_job_for_another_project_does_not_switch_project" time="5.674" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state_ui" name="test_history_dialog_restores_an_explicit_revision" time="6.356" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state_ui" name="test_edit_while_background_response_waits_preserves_the_latest_history" time="6.281" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state_ui" name="test_open_does_not_discard_edits_made_while_waiting_for_the_project" time="5.708" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1427_state_ui" name="test_video_finished_for_an_older_revision_is_labelled_as_previous" time="6.181" /><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1425_live_3d" name="test_real_webgl_has_geometry_traffic_controls_and_no_duplicate_bar" time="52.687"><failure message="AssertionError: Não foi possível abrir o 3D: WebGL2 indisponível. O editor 2D continua disponível. | Não foi possível abrir o 3D: WebGL2 indisponível. O editor 2D continua disponível.">page = &lt;Page url='http://127.0.0.1:57315/'&gt;
+
+    def open3d(page):
+        if page.get_by_role('tab',name='Cena',exact=True).count():page.get_by_role('tab',name='Cena',exact=True).click()
+        page.locator('[data-rs3d=view3d]').click()
+&gt;       try:page.wait_for_function('Rodovia3D.stats().ready',timeout=45000)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_v1425_live_3d.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:11595: in wait_for_function
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_page.py:1110: in wait_for_function
+    return await self._main_frame.wait_for_function(**locals_to_params(locals()))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:878: in wait_for_function
+    await self._channel.send("waitForFunction", self._timeout, params)
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;playwright._impl._connection.Connection object at 0x7fe17c7de2a0&gt;
+cb = &lt;function Channel.send.&lt;locals&gt;.&lt;lambda&gt; at 0x7fe1742702c0&gt;
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -&gt; Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+&gt;           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 45000ms exceeded.
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+gl_page = &lt;Page url='http://127.0.0.1:57315/'&gt;
+
+    def test_real_webgl_has_geometry_traffic_controls_and_no_duplicate_bar(gl_page):
+&gt;       page=gl_page;open3d(page);stats=page.evaluate('Rodovia3D.stats()')
+                     ^^^^^^^^^^^^
+
+tests/test_v1425_live_3d.py:48: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+page = &lt;Page url='http://127.0.0.1:57315/'&gt;
+
+    def open3d(page):
+        if page.get_by_role('tab',name='Cena',exact=True).count():page.get_by_role('tab',name='Cena',exact=True).click()
+        page.locator('[data-rs3d=view3d]').click()
+        try:page.wait_for_function('Rodovia3D.stats().ready',timeout=45000)
+&gt;       except Exception as exc:raise AssertionError(page.locator('#rs3dState').inner_text()+' | '+page.locator('#message').inner_text()) from exc
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Não foi possível abrir o 3D: WebGL2 indisponível. O editor 2D continua disponível. | Não foi possível abrir o 3D: WebGL2 indisponível. O editor 2D continua disponível.
+
+tests/test_v1425_live_3d.py:44: AssertionError</failure></testcase><testcase classname="rodovia_studio.pacote.suporte.sistema.tests.test_v1425_live_3d" name="test_snapshot_is_real_png_and_diagnostic_overlay_is_preserved" time="50.795"><failure message="AssertionError: Não foi possível abrir o 3D: WebGL2 indisponível. O editor 2D continua disponível. | Não foi possível abrir o 3D: WebGL2 indisponível. O editor 2D continua disponível.">page = &lt;Page url='http://127.0.0.1:57315/'&gt;
+
+    def open3d(page):
+        if page.get_by_role('tab',name='Cena',exact=True).count():page.get_by_role('tab',name='Cena',exact=True).click()
+        page.locator('[data-rs3d=view3d]').click()
+&gt;       try:page.wait_for_function('Rodovia3D.stats().ready',timeout=45000)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_v1425_live_3d.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/sync_api/_generated.py:11595: in wait_for_function
+    self._sync(
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_page.py:1110: in wait_for_function
+    return await self._main_frame.wait_for_function(**locals_to_params(locals()))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_frame.py:878: in wait_for_function
+    await self._channel.send("waitForFunction", self._timeout, params)
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;playwright._impl._connection.Connection object at 0x7fe17423fe90&gt;
+cb = &lt;function Channel.send.&lt;locals&gt;.&lt;lambda&gt; at 0x7fe1741911c0&gt;
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -&gt; Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+&gt;           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 45000ms exceeded.
+
+/workspace/.venvs/rodovia-studio/lib/python3.12/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+gl_page = &lt;Page url='http://127.0.0.1:57315/'&gt;
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-9/test_snapshot_is_real_png_and_0')
+
+    def test_snapshot_is_real_png_and_diagnostic_overlay_is_preserved(gl_page,tmp_path):
+        from PIL import Image
+&gt;       page=gl_page;open3d(page);page.locator('[data-rs3d=flows3d]').click()
+                     ^^^^^^^^^^^^
+
+tests/test_v1425_live_3d.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+page = &lt;Page url='http://127.0.0.1:57315/'&gt;
+
+    def open3d(page):
+        if page.get_by_role('tab',name='Cena',exact=True).count():page.get_by_role('tab',name='Cena',exact=True).click()
+        page.locator('[data-rs3d=view3d]').click()
+        try:page.wait_for_function('Rodovia3D.stats().ready',timeout=45000)
+&gt;       except Exception as exc:raise AssertionError(page.locator('#rs3dState').inner_text()+' | '+page.locator('#message').inner_text()) from exc
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Não foi possível abrir o 3D: WebGL2 indisponível. O editor 2D continua disponível. | Não foi possível abrir o 3D: WebGL2 indisponível. O editor 2D continua disponível.
+
+tests/test_v1425_live_3d.py:44: AssertionError</failure></testcase><testcase time="5.582" /></testsuite></testsuites>
