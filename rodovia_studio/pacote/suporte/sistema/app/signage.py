@@ -541,6 +541,8 @@ def main_angle(net,c):
 def dxf_signage(net,items):
     paint=[];lines=[]
     for e in items:
+        from .zebrados import is_source
+        if is_source(e):continue
         p=np.asarray(e['points'],float)
         name=str(e.get('layer','')).upper();col=YELLOW if ('AMAREL' in name or 'YELLOW' in name) else WHITE
         if e.get('closed') and len(p)>=3:
@@ -552,6 +554,9 @@ def dxf_signage(net,items):
 def build(net,dxf_h=(),dxf_v=()):
     """Etapa final do modo completo (chamada em finalize_signage, antes das áreas sem sinalização)."""
     s=net.s;paint=[];signs=[]
+    from .zebrados import is_source,resolve
+    zebra_areas=resolve(net,dxf_h)
+    dxf_h=[e for e in dxf_h if not is_source(e)]
     if dxf_h and getattr(s,'dxf_signage','replace')=='replace':
         net.markings=[];net.mark_src=[];net.arrows=[];net.arrow_kinds=[];net.arrow_anchors=[]
     else:two_way_fix(net)
@@ -576,9 +581,9 @@ def build(net,dxf_h=(),dxf_v=()):
             if getattr(s,'auto_signs',True):signs+=ss
     if dxf_h:
         pp,ll=dxf_signage(net,dxf_h);paint+=pp;net.markings+=ll;net.mark_src+=[-4]*len(ll)
-    for h in getattr(s,'hatch_areas',[]) or []:
+    for h in zebra_areas:
         if len(h.points)<3:continue
-        poly=Polygon([(p.x,p.y) for p in h.points]).buffer(0)
+        poly=Polygon([(p.x,p.y) for p in h.points],holes=[[(p.x,p.y) for p in ring] for ring in h.holes]).buffer(0)
         ang=math.radians(h.angle_deg) if h.angle_deg is not None else main_angle(net,np.asarray(poly.centroid.coords[0]))+math.radians(45)
         pp,ll=zebra(poly,ang,YELLOW if h.color=='yellow' else WHITE,h.spacing_m,h.stripe_width_m,h.world_aligned)
         paint+=pp;net.markings+=[(a,b,YELLOW if h.color=='yellow' else WHITE) for a,b in ll];net.mark_src+=[-5]*len(ll)

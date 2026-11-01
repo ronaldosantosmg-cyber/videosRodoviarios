@@ -14,7 +14,7 @@ const OBJ_SPECS=[
  ['direction_marks','Seta de sentido','line',o=>[[o,'start'],[o,'end']]],
  ['accesses','Acesso','poly',o=>o.points.map((_,i)=>[o.points,i])],
  ['traffic_paths','Fluxo incluído','poly',o=>o.points.map((_,i)=>[o.points,i])],
- ['hatch_areas','Zebrado','area',o=>o.points.map((_,i)=>[o.points,i])],
+ ['hatch_areas','Zebrado','area',o=>[o.points,...(o.holes||[])].flatMap(r=>r.map((_,i)=>[r,i]))],
  ['pavement_areas','Área de pista','area',o=>o.points.map((_,i)=>[o.points,i])],
  ['lane_zones','Faixas por trecho','area',o=>o.points.map((_,i)=>[o.points,i])],
  ['lane_blocks','Interdição','area',o=>o.points.map((_,i)=>[o.points,i])],

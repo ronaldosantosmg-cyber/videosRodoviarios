@@ -569,6 +569,11 @@ class Crosswalk(BaseModel):
     width_m: float = Field(default=4.0,ge=2,le=10)
     show: bool = True
 
+class ZebraGuide(BaseModel):
+    model_config=ConfigDict(allow_inf_nan=False)
+    point: Point
+    heading_deg: float = Field(ge=-360,le=360)
+
 class HatchArea(BaseModel):
     """1.15: área zebrada desenhada pelo operador (gores, ilhas pintadas, início de canteiro)."""
     model_config=ConfigDict(allow_inf_nan=False)
@@ -580,14 +585,22 @@ class HatchArea(BaseModel):
     spacing_m: float = Field(default=2.6,ge=1,le=10)
     stripe_width_m: float = Field(default=.45,ge=.1,le=2)
     world_aligned: bool = False
+    enabled: bool = True
+    source_id: str = Field(default='',max_length=80)
+    source_layer: str = Field(default='',max_length=300)
+    holes: list[list[Point]] = Field(default_factory=list,max_length=30)
+    flow_guides: list[ZebraGuide] = Field(default_factory=list,max_length=2)
 
     @model_validator(mode='after')
     def zebra_dimensions(self):
+        if self.source_id and self.enabled and self.angle_deg is None:
+            raise ValueError('Zebrado: confirme o ângulo ou os sentidos laterais antes de ativar a pintura.')
+        if any(len(r)<3 or len(r)>300 for r in self.holes):raise ValueError('Zebrado: vazio precisa de 3 a 300 vértices.')
         if self.stripe_width_m >= self.spacing_m:
             raise ValueError('Zebrado: a largura deve ser menor que o espaçamento entre centros.')
         if self.world_aligned:
             from shapely.geometry import Polygon
-            g=Polygon([(p.x,p.y) for p in self.points])
+            g=Polygon([(p.x,p.y) for p in self.points],holes=[[(p.x,p.y) for p in r] for r in self.holes])
             if not g.is_valid or g.area<.01:
                 raise ValueError('Zebrado: contorno inválido, cruzado ou sem área. Edite os vértices.')
             if 2*math.hypot(g.bounds[2]-g.bounds[0],g.bounds[3]-g.bounds[1])/self.spacing_m>5000:

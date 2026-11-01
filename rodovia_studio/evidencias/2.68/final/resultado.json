@@ -1,0 +1,16 @@
+{
+  "version": "2.68",
+  "source_sha256": "4cf9033d52b26a89eee1e1945d5677e8e4628a0ea7cd9c09b134b20168a64d9c",
+  "pytest": {
+    "tests": 123,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "splash": "Mono/Xvfb; versão, fabricante e animação",
+  "launcher": "C# compilado com e sem WEBVIEW2",
+  "platform": "Linux, Python 3.12.14",
+  "windows_native_executed": false,
+  "profile": "curto_por_risco",
+  "elapsed_s": 128.49
+}

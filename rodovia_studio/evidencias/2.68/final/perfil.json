@@ -1,0 +1,20 @@
+{
+  "profile": "curto_por_risco",
+  "risk": {
+    "baseline": "b3dcd3e",
+    "changed_runtime": [
+      "app/geometry.py",
+      "app/js/05_desenho.js",
+      "app/js/14_cad_edicao.js",
+      "app/js/97_zebrados.js",
+      "app/models.py",
+      "app/render.py",
+      "app/scene3d.py",
+      "app/signage.py",
+      "app/zebrados.py"
+    ],
+    "sensitive": [],
+    "requires_broad": false
+  },
+  "limit_seconds": 180
+}

@@ -1,4 +1,5 @@
 from .falhas import registrar as _falha
+from .zebrados import named_layer
 import json, re, unicodedata, zipfile, xml.etree.ElementTree as ET
 from collections import Counter
 from pathlib import Path
@@ -20,6 +21,7 @@ def norm(s):
     return ''.join(c for c in unicodedata.normalize('NFKD',s.upper()) if not unicodedata.combining(c))
 def guess(layer):
     """Sugestão pelo perfil padrão (layer_profiles.BUILTIN); o mapeamento final é sempre do projeto."""
+    if named_layer(layer):return 'sign_h'
     from .layer_profiles import BUILTIN,role_for
     return role_for(layer,BUILTIN['rules'])
 
@@ -200,7 +202,8 @@ def check_roles(entities):
         if role=='axis' and len(es)>40:
             out.append(f'Camada “{layer}” está como eixo e tem {len(es)} entidades: confira se ela contém só o eixo (use “Ver”).')
         if role=='sign_h':
-            big=[x for x in es if x['closed'] and len(x['points'])>=3 and Polygon(x['points']).area>500]
+            if named_layer(layer) and any(not x['closed'] for x in es):out.append('Camada “'+layer+'” contém trechos abertos: somente contornos fechados geram zebrado.')
+            big=[x for x in es if x['closed'] and len(x['points'])>=3 and Polygon(x['points']).area>500 and not named_layer(layer)]
             if big:out.append(f'Camada “{layer}” (sinalização horizontal) tem {len(big)} área(s) grande(s) demais para pintura (>500 m²): elas foram ignoradas. Confira se não é pavimento.')
     return out
 
@@ -242,6 +245,7 @@ def analyze(directory,settings,preview=None,hatch_preview=None):
             if layer in hidden or e.dxf.layer in hidden:hidden_n+=1;continue   # 1.26: camada oculta: fora do editor e do vídeo (o DXF não muda)
             role=next((r for r,ls in settings.layers.items() if layer in ls),None)
             if role is None:role=next((r for r,ls in settings.layers.items() if e.dxf.layer in ls),None)
+            if role is None and named_layer(layer):role='sign_h'
             guessed=False
             if role is None and (not settings.layers or hauto):
                 named=guess(layer)

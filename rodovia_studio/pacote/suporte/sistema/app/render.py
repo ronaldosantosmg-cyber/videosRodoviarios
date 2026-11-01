@@ -584,6 +584,7 @@ class Scene:
                 'markings':[[round(float(a[0]),2),round(float(a[1]),2),round(float(b[0]),2),round(float(b[1]),2),1 if tuple(c)==(244,200,70) else 0] for a,b,c in self.network.markings],
                 'arrows':[[round(float(p[0]),2),round(float(p[1]),2),round(float(t[0]),4),round(float(t[1]),4)]+([round(float(c[0]),2),round(float(c[1]),2)] if c is not None else []) for (p,t),c in zip(self.network.arrows,list(getattr(self.network,'arrow_anchors',[]) or [])+[None]*len(self.network.arrows))],
                 # 1.15: pinturas preenchidas e placas (como no vídeo).
+                'zebra_sources':getattr(self.network,'zebra_sources',[]),
                 'signage_detail':'full' if self.network.full else 'basic',
                 'paint':[[1 if tuple(c)==(244,200,70) else 0,[np.round(r,2).tolist() for r in rings]] for _,_,rings,c in getattr(self,'paint_items',[])],
                 'signs':[{'x':round(float(g['point'][0]),2),'y':round(float(g['point'][1]),2),'code':g['code'],'text':g.get('text',''),'auto':bool(g.get('auto')),'source':g.get('source','auto')} for g in getattr(self.network,'signs',[])],

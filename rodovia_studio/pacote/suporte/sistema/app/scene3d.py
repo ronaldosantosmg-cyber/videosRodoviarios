@@ -94,6 +94,7 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
     from .engineering_assets import asset_meshes
     meshes.extend(asset_meshes(scene.items,local,settings.role_colors))
     if sum(len(m['positions'])//3 for m in meshes)>MAX_VERTICES:raise ValueError('Cena e interferências excedem o orçamento 3D; divida o trecho.')
+    total=sum(len(m['positions'])//3 for m in meshes)
     paint_buffers=defaultdict(list)
     for rings,color in getattr(scene.network,'fills',[]):
         geom=Polygon()
