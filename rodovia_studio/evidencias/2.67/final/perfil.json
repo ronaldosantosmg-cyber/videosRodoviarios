@@ -1,0 +1,28 @@
+{
+  "profile": "curto_por_risco",
+  "risk": {
+    "baseline": "61eb954",
+    "changed_runtime": [
+      "app/dependencies.py",
+      "app/detail.py",
+      "app/earthworks.py",
+      "app/index.html",
+      "app/js/01_estado_configuracao.js",
+      "app/js/04_ferramentas.js",
+      "app/js/05_desenho.js",
+      "app/js/06_lista_marcacoes.js",
+      "app/js/75_operacao_consolidada.js",
+      "app/js/97_zebrados.js",
+      "app/models.py",
+      "app/presentation.py",
+      "app/relevo.py",
+      "app/render.py",
+      "app/scene3d.py",
+      "app/signage.py",
+      "app/webgl/viewer.mjs"
+    ],
+    "sensitive": [],
+    "requires_broad": false
+  },
+  "limit_seconds": 180
+}

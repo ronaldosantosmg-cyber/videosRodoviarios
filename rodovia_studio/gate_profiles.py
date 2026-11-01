@@ -5,6 +5,7 @@ BASE='61eb954'  # entrega 2.63 preservada
 VISUAL_FILES={
  'app/presentation.py','app/render.py','app/detail.py','app/earthworks.py','app/relevo.py',
  'app/scene3d.py','app/visual.py','app/dependencies.py','app/webgl/viewer.mjs',
+ 'app/signage.py','app/js/04_ferramentas.js','app/js/05_desenho.js','app/js/06_lista_marcacoes.js','app/js/97_zebrados.js',
  'app/index.html','app/js/01_estado_configuracao.js','app/js/75_operacao_consolidada.js',
 }
 NEW_FIELDS={'realism_profile','presentation_guides','dxf_lead_m'}
@@ -15,6 +16,10 @@ def model_contract(text,strip=False):
         for node in tree.body:
             if isinstance(node,ast.ClassDef) and node.name=='Settings':
                 node.body=[n for n in node.body if not(isinstance(n,ast.AnnAssign) and isinstance(n.target,ast.Name) and n.target.id in NEW_FIELDS)]
+    if strip:
+        for node in tree.body:
+            if isinstance(node,ast.ClassDef) and node.name=='HatchArea':
+                node.body=[n for n in node.body if not (isinstance(n,ast.AnnAssign) and isinstance(n.target,ast.Name) and n.target.id in {'stripe_width_m','world_aligned'}) and not (isinstance(n,ast.FunctionDef) and n.name=='zebra_dimensions')]
     return ast.dump(tree,include_attributes=False)
 
 def assess(root,system):

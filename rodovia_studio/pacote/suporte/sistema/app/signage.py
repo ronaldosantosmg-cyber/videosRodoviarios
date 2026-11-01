@@ -199,8 +199,10 @@ def legend(text,center,t,width,height):
     t=np.asarray(t,float);t=t/max(np.linalg.norm(t),1e-9);r=np.array([t[1],-t[0]])
     return [np.asarray(center)+(q[:,:1]-.5)*width*r+(q[:,1:2]-.5)*height*t for q in text_rings(text)]
 
-def zebra(poly,angle,color,spacing=2.6,bar=.45):
+def zebra(poly,angle,color,spacing=2.6,bar=.45,world_aligned=False):
     """Hachura zebrada (barras paralelas) recortada no polígono, mais o contorno."""
+    if not all(math.isfinite(float(x)) for x in (angle,spacing,bar)) or spacing<=0 or bar<=0 or bar>=spacing:
+        raise ValueError('Zebrado: dimensões ou ângulo inválidos.')
     paint=[];lines=[]
     g=poly.buffer(0)
     for part in geoms(g):
@@ -208,10 +210,12 @@ def zebra(poly,angle,color,spacing=2.6,bar=.45):
         if len(ring)>=4:lines.extend(chain_line(ring))
         c=np.asarray(part.centroid.coords[0]);u=np.array([math.cos(angle),math.sin(angle)]);v=np.array([-u[1],u[0]])
         R=float(np.max(np.linalg.norm(ring-c,axis=1)))+1
-        for k in np.arange(-R,R,spacing):
+        if 2*R/spacing>5000:raise ValueError('Zebrado muito extenso: divida a área em partes menores.')
+        phase=math.floor((float(c@v)-R)/spacing)*spacing-float(c@v) if world_aligned else -R
+        for k in np.arange(phase,R+bar/2,spacing):
             seg=LineString([c+v*k-u*R,c+v*k+u*R]).buffer(bar/2,cap_style=2).intersection(part)
             for x in geoms(seg):
-                if x.area>.05:paint.append(([np.asarray(x.exterior.coords)],color))
+                if x.area>.05:paint.append(([np.asarray(x.exterior.coords)]+[np.asarray(r.coords) for r in x.interiors],color))
     return paint,lines
 
 # ---------- construção ----------
@@ -576,7 +580,7 @@ def build(net,dxf_h=(),dxf_v=()):
         if len(h.points)<3:continue
         poly=Polygon([(p.x,p.y) for p in h.points]).buffer(0)
         ang=math.radians(h.angle_deg) if h.angle_deg is not None else main_angle(net,np.asarray(poly.centroid.coords[0]))+math.radians(45)
-        pp,ll=zebra(poly,ang,YELLOW if h.color=='yellow' else WHITE,h.spacing_m)
+        pp,ll=zebra(poly,ang,YELLOW if h.color=='yellow' else WHITE,h.spacing_m,h.stripe_width_m,h.world_aligned)
         paint+=pp;net.markings+=[(a,b,YELLOW if h.color=='yellow' else WHITE) for a,b in ll];net.mark_src+=[-5]*len(ll)
     for cw in getattr(s,'crosswalks',[]) or []:
         if cw.show:paint+=crosswalk(net,cw)

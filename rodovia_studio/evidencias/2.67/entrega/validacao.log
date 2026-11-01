@@ -1,0 +1,32 @@
+No broken requirements found.
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.7.0 -- /workspace/.venvs/rodovia-studio/bin/python
+rootdir: /workspace/rodovia-studio-263
+configfile: pyproject.toml
+plugins: anyio-4.15.1, xdist-3.8.0
+collecting ... collected 99 items
+
+tests/test_v267_zebrados.py::test_invalid_paint_is_refused_before_committing[change0] PASSED [  1%]
+tests/test_v267_zebrados.py::test_invalid_paint_is_refused_before_committing[change1] PASSED [  2%]
+tests/test_v267_zebrados.py::test_invalid_paint_is_refused_before_committing[change2] PASSED [  3%]
+tests/test_v267_zebrados.py::test_invalid_paint_is_refused_before_committing[change3] PASSED [  4%]
+tests/test_v267_zebrados.py::test_invalid_paint_is_refused_before_committing[change4] PASSED [  5%]
+tests/test_v267_zebrados.py::test_invalid_paint_is_refused_before_committing[change5] PASSED [  6%]
+tests/test_v267_zebrados.py::test_metric_stripes_preserve_holes_and_stay_inside[-45] PASSED [  7%]
+tests/test_v267_zebrados.py::test_metric_stripes_preserve_holes_and_stay_inside[0] PASSED [  8%]
+tests/test_v267_zebrados.py::test_metric_stripes_preserve_holes_and_stay_inside[45] PASSED [  9%]
+tests/test_v267_zebrados.py::test_metric_stripes_preserve_holes_and_stay_inside[135] PASSED [ 10%]
+tests/test_v267_zebrados.py::test_anchor_does_not_shift_when_area_is_extended PASSED [ 11%]
+tests/test_v267_zebrados.py::test_legacy_and_budget PASSED               [ 12%]
+tests/test_v267_zebrados.py::test_paint_reaches_video_and_webgl_without_changing_routes PASSED [ 13%]
+tests/test_v267_zebrados_ui.py::test_zebra_confirm_cancel_flow_and_saved_metric_geometry PASSED [ 14%]
+tests/test_v264_presentation.py::test_quality_modes_are_explicit_and_invalid_modes_refused PASSED [ 15%]
+tests/test_v264_presentation.py::test_same_world_point_does_not_flash_with_small_zoom_change PASSED [ 16%]
+tests/test_v264_presentation.py::test_lod_transition_is_continuous_not_an_octave_switch PASSED [ 17%]
+tests/test_v264_presentation.py::test_realistic_has_less_micro_detail_and_keeps_manual_material_color PASSED [ 18%]
+tests/test_v264_presentation.py::test_fill_green_cut_red_and_manual_mapping_preserved PASSED [ 19%]
+tests/test_v264_presentation.py::test_detail_reveal_recovers_only_drawn_pixels_missing_in_coarse_map PASSED [ 20%]
+tests/test_v264_presentation.py::test_appearance_changes_do_not_rebuild_traffic_or_geometry PASSED [ 21%]
+tests/test_v264_presentation.py::test_real_scene_hides_only_technical_guides_and_retains_registered_dxf PASSED [ 22%]
+tests/test_v264_presentation.py::test_profiles_produce_decodable_video_and_comparable_frames PASSED [ 23%]
+tests/test_v264_ui.py::test_quality_reaches_saved_config_discard_preserves_it_and_webgl_uses_it 

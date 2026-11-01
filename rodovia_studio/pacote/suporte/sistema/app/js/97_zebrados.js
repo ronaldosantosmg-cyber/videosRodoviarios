@@ -1,0 +1,42 @@
+// 2.67: a mesma pintura métrica no editor e no vídeo; nenhuma regra de tráfego é alterada.
+(()=>{'use strict';
+function shape(points){
+ if(!Array.isArray(points)||points.length<3||points.some(p=>!Number.isFinite(p.x)||!Number.isFinite(p.y)))throw Error('Marque pelo menos três vértices válidos.');
+ const origin=points[0],q=points.map(p=>({x:p.x-origin.x,y:p.y-origin.y}));let area=0,x=0,y=0;
+ for(let i=0;i<q.length;i++){const a=q[i],b=q[(i+1)%q.length],v=a.x*b.y-b.x*a.y;area+=v;x+=(a.x+b.x)*v;y+=(a.y+b.y)*v}
+ if(Math.abs(area)<.02)throw Error('O zebrado precisa de uma área não degenerada.');
+ return {x:origin.x+x/(3*area),y:origin.y+y/(3*area)};
+}
+function reference(points){
+ const c=shape(points),candidates=[];
+ for(const s of editor?.segments||[]){if(s.disabled)continue;const ps=s.points.map(P);for(let i=1;i<ps.length;i++){const a=ps[i-1],b=ps[i],dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy;if(l<1e-8)continue;const t=Math.max(0,Math.min(1,((c.x-a.x)*dx+(c.y-a.y)*dy)/l));candidates.push({distance:Math.hypot(c.x-a.x-t*dx,c.y-a.y-t*dy),angle:Math.atan2(dy,dx)*180/Math.PI+(s.forward===false?180:0)})}}
+ candidates.sort((a,b)=>a.distance-b.distance);const best=candidates[0];
+ if(!best||best.distance>50)throw Error('Nenhum fluxo habilitado a menos de 50 m. Atualize a prévia ou informe o ângulo manual.');
+ if(candidates.some(v=>v.distance<=best.distance+1&&Math.abs(Math.sin((v.angle-best.angle)*Math.PI/180))>.26))throw Error('Há fluxos com orientações diferentes próximos. Informe o ângulo manual para este zebrado.');
+ return best.angle;
+}
+function segments(h){
+ const c=shape(h.points),angle=(h.angle_deg??(()=>{const d=axisData();if(!d) return 45;let dist=Infinity,a=0;for(let i=1;i<d.a.length;i++){const p=d.a[i-1],q=d.a[i],dx=q.x-p.x,dy=q.y-p.y,l=dx*dx+dy*dy;if(!l)continue;const t=Math.max(0,Math.min(1,((c.x-p.x)*dx+(c.y-p.y)*dy)/l)),v=Math.hypot(c.x-p.x-t*dx,c.y-p.y-t*dy);if(v<dist){dist=v;a=Math.atan2(dy,dx)*180/Math.PI}}return a+45})())*Math.PI/180;
+ const u={x:Math.cos(angle),y:Math.sin(angle)},v={x:-u.y,y:u.x},R=Math.max(...h.points.map(p=>Math.hypot(p.x-c.x,p.y-c.y)))+1,spacing=h.spacing_m??2.6,width=h.stripe_width_m??.45;
+ if(![angle,spacing,width].every(Number.isFinite)||spacing<=width||width<=0||2*R/spacing>5000)throw Error('Dimensões inválidas ou área muito extensa. Divida o zebrado.');
+ const cv=c.x*v.x+c.y*v.y,start=h.world_aligned?Math.floor((cv-R)/spacing)*spacing-cv:-R,out=[];
+ for(let k=start;k<R+width/2;k+=spacing)out.push([{x:c.x+v.x*k-u.x*R,y:c.y+v.y*k-u.y*R},{x:c.x+v.x*k+u.x*R,y:c.y+v.y*k+u.y*R}]);return out;
+}
+function draw(h){try{const bars=segments(h);poly(h.points,true);ctx.save();ctx.clip();ctx.strokeStyle=h.color==='yellow'?'#f4c846':'#f4f2e2';ctx.lineWidth=(h.stripe_width_m??.45)*pxPerM();ctx.lineCap='butt';ctx.beginPath();for(const [a,b] of bars){const p=W2C(a),q=W2C(b);ctx.moveTo(...p);ctx.lineTo(...q)}ctx.stroke();ctx.restore()}catch(_e){/* A janela informa o problema; o desenho não pode interromper a interface. */}}
+function open({index,points,color='white'}={}){
+ const original=index==null?null:M.hatch_areas[index];if(index!=null&&!original)throw Error('Zebrado não encontrado.');
+ const h=structuredClone(original||{id:uid(),name:'Zebrado '+((M.hatch_areas||[]).length+1),points,color,angle_deg:45,spacing_m:2.6,stripe_width_m:.45,world_aligned:true});shape(h.points);if(h.angle_deg==null){const [a,b]=segments(h)[0];h.angle_deg=Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI;}
+ const d=RodoviaModelDialog.open({id:'rsZebraDialog',title:'Zebrado · sinalização horizontal',html:`<p>Desenho de canalização. Confira a aplicação e as dimensões no projeto de sinalização. Referência: MBST, volume IV; conferência normativa dos parâmetros pendente.</p><div class="grid"><label>Nome<input data-z="name" maxlength="80" value="${esc(h.name)}"></label><label>Cor<select data-z="color"><option value="white">Branco</option><option value="yellow">Amarelo</option></select></label><label>Ângulo no desenho (graus)<input data-z="angle" type="number" min="-360" max="360" step=".1" value="${h.angle_deg??45}"></label><label>Largura da barra (m)<input data-z="width" type="number" min=".1" max="2" step=".05" value="${h.stripe_width_m??.45}"></label><label>Intervalo livre entre barras (m)<input data-z="gap" type="number" min=".05" max="9.9" step=".05" value="${h.spacing_m-(h.stripe_width_m??.45)}"></label></div><div class="row"><button type="button" data-flow="45" title="Inclinação de +45° em relação ao fluxo habilitado mais próximo">Fluxo +45°</button><button type="button" data-flow="-45" title="Inclinação de −45° em relação ao fluxo habilitado mais próximo">Fluxo −45°</button></div><p>O ângulo confirmado fica salvo no projeto. Branco/amarelo e a inclinação são escolhas do projetista; não se deduzem regras de circulação pela cor.</p><svg data-sample role="img" aria-label="Amostra métrica do zebrado" style="width:100%;height:140px;background:#33434d;border:1px solid #8595a1"></svg>`,save:async dialog=>{
+  const value=read(dialog);segments(value);checkpoint();if(original)M.hatch_areas[index]=value;else M.hatch_areas.push(value);changed('Zebrado aplicado. Atualização visual pendente.');await save();return true;
+ }});if(!d)return;d.querySelector('[data-z=color]').value=h.color;
+ function read(dialog){const get=k=>dialog.querySelector(`[data-z=${k}]`),n=(k,label,min,max)=>RodoviaModelDialog.number(get(k),label,min,max),name=get('name').value.trim();if(!name)throw Error('Preencha o nome.');const width=n('width','largura',.1,2),gap=n('gap','intervalo livre',.05,9.9);if(width+gap<1||width+gap>10)throw Error('Distância entre centros deve ficar entre 1 e 10 m.');return {...h,name,color:get('color').value,angle_deg:n('angle','ângulo',-360,360),stripe_width_m:width,spacing_m:width+gap,world_aligned:true}}
+ function sample(){try{const value=read(d),bars=segments(value),o=value.points[0],q=value.points.map(p=>({x:p.x-o.x,y:-(p.y-o.y)})),xs=q.map(p=>p.x),ys=q.map(p=>p.y),x=Math.min(...xs),y=Math.min(...ys),w=Math.max(...xs)-x,hh=Math.max(...ys)-y,svg=d.querySelector('[data-sample]'),polygon=q.map(p=>`${p.x},${p.y}`).join(' ');svg.setAttribute('viewBox',`${x-1} ${y-1} ${w+2} ${hh+2}`);svg.innerHTML=`<defs><clipPath id="zebraPreviewClip"><polygon points="${polygon}"/></clipPath></defs><g clip-path="url(#zebraPreviewClip)" stroke="${value.color==='yellow'?'#f4c846':'#f4f2e2'}" stroke-width="${value.stripe_width_m}">${bars.map(([a,b])=>`<path d="M${a.x-o.x},${-(a.y-o.y)} L${b.x-o.x},${-(b.y-o.y)}"/>`).join('')}</g><polygon points="${polygon}" fill="none" stroke="#dbe3e9" stroke-width=".12"/>`}catch(e){d.querySelector('[data-error]').textContent=e.message}}
+ d.querySelectorAll('[data-flow]').forEach(b=>b.onclick=()=>{try{let angle=reference(h.points)+Number(b.dataset.flow);angle=((angle+180)%360+360)%360-180;d.querySelector('[data-z=angle]').value=angle.toFixed(3);d.rsDirty();d.querySelector('[data-error]').textContent='';sample()}catch(e){RodoviaModelDialog.mostrarErro(d,e)}});d.addEventListener('input',sample);d.addEventListener('change',sample);sample();return d;
+}
+function start(color){requireProject();setTool('hatch');if($('hatchColor'))$('hatchColor').value=color;msg('Marque o contorno do zebrado; Enter abre as opções de pintura.');}
+window.RodoviaZebrados=Object.freeze({open,draw,segments,reference,start});
+const old=runCommand;runCommand=function(raw){const key=raw.trim().toUpperCase();if(key==='ZEBRADOBRANCO')return start('white');if(key==='ZEBRADOAMARELO')return start('yellow');return old(raw)};
+// Ícones compactos junto à ferramenta existente, sem outra faixa de ferramentas.
+function buttons(){const target=document.querySelector('[data-rs-tool=hatch]');if(!target)return;target.title='Desenhar zebrado: branco/amarelo, inclinação pelo fluxo ou manual';for(const [color,label] of [['white','Zebrado branco'],['yellow','Zebrado amarelo']]){const id='rsZebra-'+color;if(document.getElementById(id))continue;const b=document.createElement('button');b.id=id;b.type='button';b.title=label;b.setAttribute('aria-label',label);b.className=target.className;b.innerHTML=`<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="2" fill="#354550"/><path d="M3 12L12 3M3 21L21 3M12 21L21 12" stroke="${color==='yellow'?'#f4c846':'#f4f2e2'}" stroke-width="3"/></svg>`;b.onclick=()=>start(color);target.after(b)}}
+buttons();window.addEventListener('load',buttons);
+})();

@@ -94,6 +94,17 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
     from .engineering_assets import asset_meshes
     meshes.extend(asset_meshes(scene.items,local,settings.role_colors))
     if sum(len(m['positions'])//3 for m in meshes)>MAX_VERTICES:raise ValueError('Cena e interferências excedem o orçamento 3D; divida o trecho.')
+    paint_buffers=defaultdict(list)
+    for rings,color in getattr(scene.network,'fills',[]):
+        geom=Polygon()
+        for ring in rings:
+            if len(ring)>=3:geom=geom.symmetric_difference(shapely.make_valid(Polygon(ring)))
+        for triangle in shapely.constrained_delaunay_triangles(geom).geoms:
+            total+=3
+            if total>MAX_VERTICES:raise ValueError('Pintura excede o orçamento 3D. Divida o trecho.')
+            paint_buffers[tuple(color)].extend(local(np.asarray(triangle.exterior.coords)[:3,:2],.125).ravel().tolist())
+    for color,positions in paint_buffers.items():
+        meshes.append({'id':'paint-'+str(len(meshes)),'role':'road_paint','layer':'Sinalização horizontal','name':'Pintura viária','positions':positions,'color':'#'+''.join(f'{int(v):02x}' for v in color)})
     # Grade compartilhada: cotas reais quando há MDT, sem inventar relevo.
     xs=np.linspace(box[0],box[2],n);ys=np.linspace(box[3],box[1],n);X,Y=np.meshgrid(xs,ys);ground=local(np.column_stack([X.ravel(),Y.ravel()]),-.03)
     indices=[]

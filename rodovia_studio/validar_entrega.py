@@ -26,6 +26,7 @@ EVIDENCE=ROOT/'evidencias'/json.loads((PACKAGE/'manifest.json').read_text())['ve
 TESTS=['tests/test_v263_backend.py', 'tests/test_v263_ui.py', 'tests/test_v135.py', 'tests/test_v142_update.py', 'tests/test_v1428_long_paths.py', 'tests/test_v1427_state.py', 'tests/test_v1427_state_ui.py', 'tests/test_v1429_layer_reading.py', 'tests/test_v1425_scene3d.py', 'tests/test_v1425_live_3d.py', 'tests/test_v1425_capture3d.py', 'tests/test_v1424_flow_limit.py', 'tests/test_v14231_flow_nodes.py', 'tests/test_v14230_flow_rules.py', 'tests/test_v14229_shoulder_probe.py', 'tests/test_v14248_pista_dupla_mesmo_sentido.py', 'tests/test_v14249_contorno_hachura.py', 'tests/test_v14264_sentido_previa_secao.py', 'tests/test_v14265_uniformidade_sentido.py', 'tests/test_v14266_setas_uniformes_navegador.py', 'tests/test_v14267_secao_segue_km.py', 'tests/test_v14268_apresentacao_segue_km.py', 'tests/test_v14270_eixo_nao_paralelo.py', 'tests/test_v14271_fluxo_tela_completo.py', 'tests/test_v14272_cobertura_secoes.py', 'tests/test_v14273_varias_secoes_no_eixo.py', 'tests/test_v14274_textura_ao_vivo.py', 'tests/test_v14275_frota_realista.py', 'tests/test_v14278_articulado.py', 'tests/test_v14279_atmosfera_foto.py', 'tests/test_v14280_sprites_exatidao.py', 'tests/test_v14281_relevo_texturas.py', 'tests/test_v14282_passarela_tinta.py', 'tests/test_v14283_transicao_secoes.py', 'tests/test_v14284_dialogo_secoes.py', 'tests/test_v14288_agua_blocos.py', 'tests/test_v14289_mascara_roi.py', 'tests/test_v14290_hausdorff_rapido.py', 'tests/test_v14291_cache_analise.py', 'tests/test_v14292_varredura_rapida.py', 'tests/test_v14293_legenda_terreno.py', 'tests/test_v14294_redimensionar_sem_balancar.py']
 DESELECT=[]
 CRITICAL=[
+ 'tests/test_v267_zebrados.py','tests/test_v267_zebrados_ui.py',
  'tests/test_v264_presentation.py','tests/test_v264_ui.py','tests/test_v265_dxf_advance.py',
  'tests/test_v14281_relevo_texturas.py','tests/test_v14282_passarela_tinta.py',
  'tests/test_v263_ui.py','tests/test_v142_update.py',
@@ -172,7 +173,7 @@ def main():
             elif f.name.startswith(('ATUALIZACAO_','AUDITORIA_')):f.unlink()
             else:f.replace(docs/f.name)
         evidence=stage/('suporte/documentacao/validacao_'+metadata['version'].replace('.','_'));evidence.mkdir(parents=True)
-        for name in ['266_artistico_sem_contornos.png','266_contornos_opcionais.png','266_realista.png','266_ultra_realista.png','266_videos.json','266_ui_perfis.png','266_3d.png','266_frente_dxf.png','266_frente_sem_avanco.png','266_obra_concluida.png','pytest-resultados.xml','resultado.json','validacao.log','splash_142_1_a.png','splash_142_1_b.png']:
+        for name in ['267_zebrado_ui.png','267_zebrado_render.png','266_artistico_sem_contornos.png','266_contornos_opcionais.png','266_realista.png','266_ultra_realista.png','266_videos.json','266_ui_perfis.png','266_3d.png','266_frente_dxf.png','266_frente_sem_avanco.png','266_obra_concluida.png','pytest-resultados.xml','resultado.json','validacao.log','splash_142_1_a.png','splash_142_1_b.png']:
             shutil.copy2(EVIDENCE/name,evidence/name)
         for name in ['origem.json','retomada.json','evidencias_reutilizadas.json','pytest-reexecutados.xml','perfil.json']:
             if (EVIDENCE/name).is_file():shutil.copy2(EVIDENCE/name,evidence/name)

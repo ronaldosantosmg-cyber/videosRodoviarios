@@ -1,5 +1,5 @@
 {
   "app": "Rodovia Studio",
-  "version": "2.66",
-  "description": "2.66: frente DXF antes dos materiais, supressão de fechamentos virtuais, perfis de detalhe e GATE por risco."
+  "version": "2.67",
+  "description": "2.67: comandos de zebrado branco/amarelo, inclinação pelo fluxo ou manual, pintura métrica no editor, vídeo e 3D."
 }

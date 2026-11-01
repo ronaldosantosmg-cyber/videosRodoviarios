@@ -578,6 +578,22 @@ class HatchArea(BaseModel):
     color: Literal['white','yellow'] = 'white'
     angle_deg: float | None = Field(default=None,ge=-360,le=360)
     spacing_m: float = Field(default=2.6,ge=1,le=10)
+    stripe_width_m: float = Field(default=.45,ge=.1,le=2)
+    world_aligned: bool = False
+
+    @model_validator(mode='after')
+    def zebra_dimensions(self):
+        if self.stripe_width_m >= self.spacing_m:
+            raise ValueError('Zebrado: a largura deve ser menor que o espaçamento entre centros.')
+        if self.world_aligned:
+            from shapely.geometry import Polygon
+            g=Polygon([(p.x,p.y) for p in self.points])
+            if not g.is_valid or g.area<.01:
+                raise ValueError('Zebrado: contorno inválido, cruzado ou sem área. Edite os vértices.')
+            if 2*math.hypot(g.bounds[2]-g.bounds[0],g.bounds[3]-g.bounds[1])/self.spacing_m>5000:
+                raise ValueError('Zebrado muito extenso: divida a área.')
+        return self
+
 
 class SignMark(BaseModel):
     """1.15: placa vertical (regulamentação, advertência, obras, indicação, serviço)."""
