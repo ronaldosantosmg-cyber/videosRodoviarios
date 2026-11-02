@@ -35,9 +35,10 @@ def test_guarda_resolve_sobreposicao_quando_as_outras_barreiras_falham(monkeypat
     monkeypatch.setattr(TrafficSim,'enforce_hard_separation',lambda self,V:None)
     monkeypatch.setattr(TrafficSim,'leader_state',lambda self,v,occ,look=150.,path_i=None,s=None:(math.inf,0.,None))
     monkeypatch.setattr(TrafficSim,'check',lambda self,V:None)
-    sem=_sim(60,guard=False,traffic_density=6)
+    # O cenário de falha exige velocidades distintas, sem a semeadura uniforme da 3.5.
+    sem=_sim(60,guard=False,traffic_density=6,traffic_sem_comboio=False,traffic_semear=False)
     assert _min_clear(sem,60)<0,'o cenário precisa produzir sobreposição sem a guarda'
-    com=_sim(60,guard=True,traffic_density=6)
+    com=_sim(60,guard=True,traffic_density=6,traffic_sem_comboio=False,traffic_semear=False)
     assert com.conflict_guard.interventions>0 and com.conflict_guard.unresolved==0
     assert _min_clear(com,60)>=-1e-6
 

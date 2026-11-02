@@ -69,16 +69,31 @@ def has_oncoming(points,others):
     from shapely.geometry import LineString,Point
     p,d=_arc(points)
     if len(p)<2 or d[-1]<=0:return False
-    mid=np.array(LineString(p).interpolate(d[-1]/2).coords[0]);t=np.array(LineString(p).interpolate(d[-1]/2+1).coords[0])-np.array(LineString(p).interpolate(d[-1]/2-1).coords[0])
+    own=LineString(p)
+    mid=np.array(own.interpolate(d[-1]/2).coords[0]);t=np.array(own.interpolate(d[-1]/2+1).coords[0])-np.array(own.interpolate(d[-1]/2-1).coords[0])
     n=float(np.linalg.norm(t))
     if n<1e-9:return False
     t/=n;left=np.array([-t[1],t[0]])
     for q in others:
-        line=LineString(q);s=line.project(Point(mid));near=np.array(line.interpolate(s).coords[0])
+        line=q if isinstance(q,LineString) else LineString(q);s=line.project(Point(mid));near=np.array(line.interpolate(s).coords[0])
         tt=np.array(line.interpolate(min(line.length,s+1)).coords[0])-np.array(line.interpolate(max(0.,s-1)).coords[0]);m=float(np.linalg.norm(tt))
         if m<1e-9:continue
         if 1.5<=abs(float((near-mid)@left))<=8. and float((tt/m)@t)<-.7:return True
     return False
+
+
+def oncoming_flags(paths):
+    """Índice espacial do estudo: não compara cada percurso com toda a rodovia."""
+    from shapely.geometry import LineString,box
+    from shapely import STRtree
+    lines=[LineString(p) for p in paths]
+    index=STRtree(lines)
+    flags=[]
+    for i,line in enumerate(lines):
+        mid=line.interpolate(line.length/2)
+        candidates=index.query(box(mid.x-8,mid.y-8,mid.x+8,mid.y+8))
+        flags.append(has_oncoming(paths[i],[lines[int(k)] for k in candidates if int(k)!=i]))
+    return flags
 
 def slice_polyline(points,a,b):
     p,d=_arc(points);s=np.arange(a,b+1e-9,STEP_M)

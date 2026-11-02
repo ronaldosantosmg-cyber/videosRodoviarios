@@ -787,6 +787,9 @@ class TrafficNetwork:
             signage.clean(self,g)
         self.report_signage={'markings':len(self.markings),'arrows':len(self.arrows),'mode':self.arrow_mode,'clean':self.clean,'full':self.full,'edge_origin':'DXF' if self.dxf_edges else 'contorno do pavimento (calculado)' if getattr(self.s,'derived_contours',False) else 'sem bordo ilustrativo; geometria de cálculo preservada','paint':len(self.fills),'signs':len(self.signs),'arrow_kinds':dict(collections.Counter(self.arrow_kinds))}
     def connector(self,a,b,force=False):
+        if 'end' not in a or 'start' not in b:
+            self.rejected_connectors['ponta_incompleta']+=1
+            return None
         if a.get('level',0)!=b.get('level',0):return None
         # Pontas dos sentidos opostos da mesma rota não são retornos. Recusar
         # essa ligação não pode invalidar os portais legítimos de ambas as faixas.

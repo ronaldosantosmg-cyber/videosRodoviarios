@@ -19,9 +19,9 @@ def frames_of(path):
 def test_plan_workers_by_cores_and_memory():
     from app.parallel import plan_workers
     G=1024**3
-    assert plan_workers(3,2560,1440,6000,True)[0]==3
+    assert plan_workers(3,2560,1440,6000,True,cores=16,memory=32*G)[0]==3
     assert plan_workers(0,2560,1440,60,True)[0]==1                       # vídeo curto
-    assert plan_workers(0,2560,1440,6000,True,cores=16,memory=32*G)[0]==12  # limite superior
+    assert plan_workers(0,2560,1440,6000,True,cores=16,memory=32*G)[0]==11  # montagem + 4 threads do encoder + interface
     assert plan_workers(0,2560,1440,6000,False,cores=8,memory=32*G)[0]==7   # NVENC: sem núcleo reservado ao encoder
     assert plan_workers(0,2560,1440,6000,True,cores=8,memory=3*G)[0]==1     # pouca memória
     assert plan_workers(0,2560,1440,6000,True,cores=2,memory=8*G)[0]==1

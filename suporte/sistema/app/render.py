@@ -119,12 +119,12 @@ def sharpen_imagery(im,quality):
 def passing_zone_rows(network):
     """2.14: trechos onde a ultrapassagem pela pista contrária é possível (só estudo técnico; não entra no vídeo)."""
     try:
-        from .passing_zones import zones,has_oncoming,slice_polyline
+        from .passing_zones import zones,oncoming_flags,slice_polyline
         paths=[np.asarray(p['p'],float) for p in getattr(network,'paths',[]) if len(p.get('p',[]))>=3]
         rows=[]
-        for i,pts in enumerate(paths):
+        for i,(pts,oncoming) in enumerate(zip(paths,oncoming_flags(paths))):
             if len(rows)>=200:break
-            if not has_oncoming(pts,[q for j,q in enumerate(paths) if j!=i]):continue
+            if not oncoming:continue
             for a,b in zones(pts):rows.append({'path':i,'start_m':round(a,1),'end_m':round(b,1),'p':slice_polyline(pts,a,b)})
         return rows[:200]
     except Exception:return []
@@ -582,6 +582,23 @@ class Scene:
                 tmp=d/(name+'.wkb.tmp');tmp.write_bytes(shapely.to_wkb(g));tmp.replace(d/(name+'.wkb'))
         except OSError as _e:_falha(__name__,_e)
     def editor_data(self):
+        from .dependencies import revisions
+        from .full_update import required
+        revision=revisions(self.directory,self.s)['editor']
+        # A posição da câmera e o instante da prévia não alteram os fluxos do editor.
+        # Nunca reutiliza editor de outra revisão ou de uma reconstrução explícita.
+        if not required('editor',revision):
+            try:
+                path=self.directory/'editor.json';full_path=self.directory/'editor/full_flows.json'
+                if not path.is_symlink() and not full_path.is_symlink() and path.stat().st_size<=64*1024*1024 and full_path.stat().st_size<=128*1024*1024:
+                    cached=json.loads(path.read_text(encoding='utf-8'))
+                    full_cached=json.loads(full_path.read_text(encoding='utf-8'))
+                    if cached.get('engine_revision')==revision and all(isinstance(cached.get(k),list) for k in ('axis','segments','paths','markings','arrows')) and full_cached.get('revision')==revision and all(isinstance(full_cached.get(k),list) for k in ('segments','paths')):
+                        self.report['editor_cache_hit']=True
+                        cached['warnings']=self.report.get('warnings',[])[-20:]
+                        return cached
+            except (OSError,ValueError,AttributeError):pass
+        self.report['editor_cache_hit']=False
         st=self.stationing;step=max(1,len(self.axis)//6000)
         def pts(p,stride=1):return np.round(np.asarray(p)[::stride],3).tolist()
         from .flow_diagnostics import flow_diagnostics

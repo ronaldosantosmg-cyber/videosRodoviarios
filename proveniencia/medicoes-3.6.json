@@ -1,0 +1,24 @@
+{
+  "simulation_seconds": {
+    "antes": [
+      2.8472912340000676,
+      2.0273788930001047,
+      1.882933114000025
+    ],
+    "depois": [
+      0.9295899520000148,
+      0.9256937370000742,
+      0.887714361999997
+    ]
+  },
+  "simulation_median_seconds": {
+    "antes": 2.0273788930001047,
+    "depois": 0.9256937370000742
+  },
+  "frames_identical": true,
+  "oncoming_180_paths_seconds": {
+    "before": 0.4736833829999796,
+    "after": 0.007419329000185826
+  },
+  "scope": "Sint\u00e9tico de 1500 m; n\u00e3o mede a m\u00e1quina nem o projeto do usu\u00e1rio."
+}

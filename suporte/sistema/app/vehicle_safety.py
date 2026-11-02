@@ -5,7 +5,7 @@ from collections import defaultdict
 import numpy as np
 import shapely
 from shapely.geometry import Polygon,MultiPoint,Point
-from .vehicle_motion import PROFILES,axle_geometry_prepared
+from .vehicle_motion import PROFILES,axle_geometry_prepared,axle_pose_prepared
 
 LATERAL_CLEARANCE=.3  # Distância livre total entre os corpos de dois veículos.
 LATERAL_BUFFER=LATERAL_CLEARANCE/2
@@ -48,7 +48,7 @@ class SpatialReservations:
         return True
 
 class PolygonSafety:
-    def __init__(self,sim):self.sim=sim;self.interventions=0;self.narrow_holds=0;self.waiting={};self.bursts={};self.corridor_cache={};self.waiting_widths={}
+    def __init__(self,sim):self.sim=sim;self.interventions=0;self.narrow_holds=0;self.waiting={};self.bursts={};self.corridor_cache={};self.waiting_widths={};self.pose_cache={}
     def level(self,v):
         try:
             _,link,_,_,_=self.sim.locate(v['p'],v['s'])
@@ -107,7 +107,11 @@ class PolygonSafety:
             if shifted is not None:return shifted
         sim=self.sim;i=v['p'];s=v['s']+forward;vt=v.get('t','car');L,B,wb,_=PROFILES.get(vt,PROFILES['car']);lc=v.get('lc')
         if not lc:
-            g=axle_geometry_prepared(*sim.motion_points[i],vt,np.array([s]));return g['center'][0],g['heading'][0]
+            key=(i,s,vt)
+            if key not in self.pose_cache:
+                if len(self.pose_cache)>=4096:self.pose_cache.clear()
+                self.pose_cache[key]=axle_pose_prepared(*sim.motion_points[i],vt,s)
+            return self.pose_cache[key]
         alpha=min(1.,lc['elapsed']/lc['duration']+min(dt/lc['duration'],forward/max(lc['travel_m'],1e-6)))
         if alpha<=1e-9:
             g=axle_geometry_prepared(*sim.motion_points[i],vt,np.array([s]));return g['center'][0],g['heading'][0]
@@ -142,8 +146,12 @@ class PolygonSafety:
             # Caminho rápido (sem troca de faixa nem manobra de acostamento): uma única chamada vetorizada em vez de até 17 poses isoladas. Resultado idêntico.
             ds=np.linspace(0,forward,max(3,min(17,int(math.ceil(forward/.5))+1)))
             g=axle_geometry_prepared(*self.sim.motion_points[v['p']],v.get('t','car'),v['s']+ds)
-            for c,h in zip(g['center'],g['heading']):points.extend(body_corners(c,h,L,B,LATERAL_BUFFER))
-            hull=shapely.convex_hull(shapely.multipoints(np.array(points)))
+            centers=g['center'];headings=g['heading'];norm=np.linalg.norm(headings,axis=1)
+            if not np.isfinite(centers).all() or not np.isfinite(headings).all() or (norm<1e-9).any():raise ValueError('Corpo veicular inválido.')
+            headings=headings/norm[:,None];normal=np.column_stack((-headings[:,1],headings[:,0]))
+            longitudinal=np.array([-L/2,L/2,L/2,-L/2]);lateral=np.array([-B/2-LATERAL_BUFFER,-B/2-LATERAL_BUFFER,B/2+LATERAL_BUFFER,B/2+LATERAL_BUFFER])
+            corners=centers[:,None,:]+headings[:,None,:]*longitudinal[None,:,None]+normal[:,None,:]*lateral[None,:,None]
+            hull=shapely.convex_hull(shapely.multipoints(corners.reshape(-1,2)))
             return hull.buffer(.03) if np.linalg.norm(g['heading'][0]-g['heading'][-1])>.002 else hull
         for ds in np.linspace(0,forward,max(3,min(17,int(math.ceil(forward/.5))+1))):
             c,h=self.pose(v,float(ds),.2*float(ds)/forward);points.extend(body_corners(c,h,L,B,LATERAL_BUFFER))

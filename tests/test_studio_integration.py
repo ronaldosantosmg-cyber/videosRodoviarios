@@ -29,7 +29,7 @@ def test_pacote_atualizacao_valido_sem_projetos(tmp_path):
         names = archive.namelist()
         assert not any("projetos/" in n or n.endswith(".sqlite3") or "legado/" in n for n in names)
         manifest = json.loads(archive.read("pacote/manifest.json"))
-        assert manifest["version"] == "3.5.1"
+        assert manifest["version"] == "3.6"
         assert len(names) == len(manifest["files"]) + 1
         for name, digest in manifest["files"].items():
             assert hashlib.sha256(archive.read("pacote/" + name)).hexdigest() == digest

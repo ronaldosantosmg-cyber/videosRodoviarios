@@ -21,12 +21,17 @@ QUALITY={
  'maxima':{'nvenc':('p7','14','60M','120M',['-spatial-aq','1','-aq-strength','8']),'x264':('slow','12','60M','120M')},
 }
 
+def cpu_threads(cores=None):
+    """Orçamento compartilhado com os processos de montagem; deixa margem para a interface."""
+    available=max(1,int(cores if cores is not None else os.cpu_count() or 2))
+    return max(1,min(4,(available-1)//2))
+
 def options(encoder,cpu_preset='veryfast',quality='padrao'):
     q=QUALITY.get(quality,QUALITY['padrao'])
     if encoder=='h264_nvenc':
         preset,cq,maxrate,buf,extra=q['nvenc']
         return ['-c:v','h264_nvenc','-preset',preset,'-tune','hq','-rc','vbr','-cq',cq,'-b:v','0','-profile:v','high','-maxrate',maxrate,'-bufsize',buf]+extra
-    threads=str(max(2,min(12,os.cpu_count() or 4)))
+    threads=str(cpu_threads())
     preset,crf,maxrate,buf=q['x264']
     return ['-c:v','libx264','-preset',preset or cpu_preset,'-threads',threads,'-crf',crf,'-profile:v','high','-maxrate',maxrate,'-bufsize',buf]
 

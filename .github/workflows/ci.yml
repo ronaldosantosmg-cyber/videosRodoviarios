@@ -34,10 +34,18 @@ jobs:
         run: |
           python -m playwright install --with-deps chromium
           python scripts/verificar_interface.py
-      - name: Regressões selecionadas da versão 3.5
+          python scripts/verificar_janelas.py
+      - name: Regressões de tráfego, cancelamento e geometria
         working-directory: suporte/sistema
         run: >-
           python -m pytest -q
+          tests/test_v17_speed.py::test_plan_workers_by_cores_and_memory
+          tests/test_v14235_critical.py
+          tests/test_traffic_hydro.py::test_no_turn_at_grade_separated_crossing
+          tests/test_v14239_conflict_guard.py
+          tests/test_fila_semaforo.py
+          tests/test_desempenho_corredor.py
+          tests/test_v31_chegadas_aleatorias.py
           tests/test_v31_fantasmas.py
           tests/test_v31_dxf_preparo.py
           tests/test_v31_surgimento.py

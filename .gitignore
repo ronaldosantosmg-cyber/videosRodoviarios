@@ -18,3 +18,5 @@ suporte/logs/
 suporte/backups/
 suporte/sistema/pacotes/
 suporte/sistema/cache*/
+
+suporte/sistema/pacotes_ecw_log.txt

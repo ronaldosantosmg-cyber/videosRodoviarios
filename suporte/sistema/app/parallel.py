@@ -26,7 +26,9 @@ def available_memory():
 def plan_workers(requested,W,H,frames,cpu_encoder,cores=None,memory=None):
     """Quantidade de processos: pedida, ou automática por núcleos livres e memória disponível."""
     cores=cores or os.cpu_count() or 2;memory=memory if memory is not None else available_memory()
-    free_cores=max(1,cores-(1 if cpu_encoder else 0)-1)
+    from .encoding import cpu_threads
+    reserved=cpu_threads(cores) if cpu_encoder else 0
+    free_cores=max(1,cores-reserved-1)
     per=0.9*1024**3+W*H*3*40
     by_mem=max(1,int((memory-1.5*1024**3)//per))
     ceiling=max(1,min(free_cores,by_mem,12))
@@ -34,7 +36,7 @@ def plan_workers(requested,W,H,frames,cpu_encoder,cores=None,memory=None):
         wanted=max(1,min(int(requested),32));n=min(wanted,ceiling)
         return n,('definido na configuração' if n==wanted else f'pedido {wanted}, limitado a {n} por memória/núcleos disponíveis')
     if frames<120:return 1,'vídeo curto: um processo'
-    return ceiling,f'automático: {cores} núcleos, {memory/1024**3:.1f} GB livres'
+    return ceiling,f'automático: {cores} núcleos, {reserved} threads de encoder, {memory/1024**3:.1f} GB livres'
 
 class Pool:
     def __init__(self,snapshot,n,first,last,mode,logdir,*,key,stall_timeout=1800):

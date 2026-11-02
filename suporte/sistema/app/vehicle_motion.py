@@ -41,6 +41,22 @@ def axle_geometry(points,vehicle='car',stations=None):
     return axle_geometry_prepared(p,d,vehicle,stations)
 
 
+def axle_pose_prepared(p,d,vehicle,station):
+    """Centro e rumo de uma única posição, sem criar os arrays completos de uma frota."""
+    wb=PROFILES.get(vehicle,PROFILES['car'])[2]
+    at=np.array([station,station+wb/2,station-wb/2],float)
+    q=np.column_stack((np.interp(at,d,p[:,0]),np.interp(at,d,p[:,1])))
+    # Mesma extensão de tangentes usada por interpolate(), inclusive fora do percurso.
+    if at.min()<0 or at.max()>d[-1]:
+        for k,s in enumerate(at):
+            if s<0:
+                vec=p[1]-p[0];q[k]=p[0]+s*vec/max(float(np.linalg.norm(vec)),1e-9)
+            elif s>d[-1]:
+                vec=p[-1]-p[-2];q[k]=p[-1]+(s-d[-1])*vec/max(float(np.linalg.norm(vec)),1e-9)
+    delta=q[1]-q[2]
+    return q[0],delta/max(float(np.linalg.norm(delta)),1e-9)
+
+
 def axle_geometry_prepared(p,d,vehicle='car',stations=None):
     L,B,wb,_=PROFILES.get(vehicle,PROFILES['car'])
     s=d if stations is None else np.asarray(stations,float)

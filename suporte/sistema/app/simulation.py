@@ -394,7 +394,11 @@ class TrafficSim:
         L=self.link_of[path_i];j,lid,a,b,off=self.locate(path_i,s);acc=0.
         for k in range(j,len(L)):
             lid,a,b=L[k]
-            for o,w,wp,ws in occ.get(lid,[]):
+            rows=occ.get(lid,())
+            threshold=off-1e-6 if k==j else self.link_offsets[path_i][k] if hasattr(self,'link_offsets') else 0.
+            first=bisect.bisect_left(rows,threshold,key=lambda row:row[0])
+            for row_index in range(first,len(rows)):
+                o,w,wp,ws=rows[row_index]
                 if w is v:continue
                 if getattr(self,'shoulder_probe',None) and self.shoulder_probe.laterally_separated(v,w):continue
                 if k==j:

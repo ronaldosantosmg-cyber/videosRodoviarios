@@ -3,6 +3,9 @@
 let active=null,committing=false,closing=false,decision=null,closePending=null,resultsLoading=0;
 const clone=x=>JSON.parse(JSON.stringify(x));
 const originalSave=save,originalSchedule=scheduleSave,originalStart=start,originalLoad=load;
+function anchorOverlays(){const r=canvas.getBoundingClientRect();document.documentElement.style.setProperty('--rsOverlayLeft',Math.max(8,r.left+12)+'px');document.documentElement.style.setProperty('--rsOverlayTop',Math.max(8,r.top+12)+'px')}
+window.addEventListener('resize',()=>requestAnimationFrame(anchorOverlays));
+queueMicrotask(()=>requestAnimationFrame(anchorOverlays));
 function surface(){return active?.surface||dialog()}
 function panelStatus(text){const el=surface().querySelector('[data-rs-edit-status]')||$('rsPanelStatus');if(el)el.textContent=text}
 function controls(root=document){return [...root.querySelectorAll('input,select,textarea')].filter(e=>e.type!=='file'&&!e.matches('[data-rs-transient]')).map(e=>({el:e,value:e.value,checked:e.checked}))}
@@ -24,10 +27,15 @@ function dialog(){
  d.innerHTML='<header><h2 id="rsPanelTitle"></h2><button type="button" id="rsPanelClose" aria-label="Fechar janela">×</button></header><div id="rsPanelBody"></div><footer><span id="rsPanelStatus" data-rs-edit-status role="status">Alterações de configuração serão confirmadas ao salvar.</span><button type="button" id="rsPanelCancel">Cancelar</button><button type="button" id="rsPanelDiscard">Descartar alterações</button><button type="button" id="rsPanelApply">Aplicar</button><button type="button" id="rsPanelSave" class="primary">Salvar e fechar</button></footer>';
  document.body.appendChild(d);$('rsPanelClose').onclick=()=>void requestClose();$('rsPanelCancel').onclick=()=>void requestClose();$('rsPanelSave').onclick=()=>void commitClose();$('rsPanelApply').onclick=()=>void applyKeep();$('rsPanelDiscard').onclick=discardClose;
  d.addEventListener('cancel',e=>{e.preventDefault();void requestClose()});
+ const header=d.querySelector('header');let drag=null;
+ header.addEventListener('pointerdown',e=>{if(e.button!==0||e.target.closest('button'))return;const r=d.getBoundingClientRect();drag={x:e.clientX-r.left,y:e.clientY-r.top};d.style.transform='none';d.style.left=r.left+'px';d.style.top=r.top+'px';header.setPointerCapture(e.pointerId);e.preventDefault()});
+ header.addEventListener('pointermove',e=>{if(!drag)return;d.style.left=Math.max(0,Math.min(innerWidth-d.offsetWidth,e.clientX-drag.x))+'px';d.style.top=Math.max(0,Math.min(innerHeight-d.offsetHeight,e.clientY-drag.y))+'px'});
+ header.addEventListener('pointerup',()=>{drag=null});header.addEventListener('lostpointercapture',()=>{drag=null});
  d.addEventListener('input',e=>{if(e.target.matches('[data-rs-transient]'))return;scheduleSave();panelStatus('Alterações pendentes — salve ou descarte antes de fechar.')});return d;
 }
 function open(node,title,key){
  if(!node||closing)return;
+ anchorOverlays();
  if(active){if(active.key===key){dialog().focus();return}void requestClose().then(ok=>{if(ok)open(node,title,key)});return}
  pauseTimers();const base=state(node),placeholder=document.createComment('painel destacado');node.before(placeholder);
  active={...base,node,parent:placeholder.parentNode,placeholder,key,title,classes:node.className,hidden:node.hidden,project:pid};
@@ -146,7 +154,7 @@ const oldApi=api;api=async function(url,options={}){
 };
 document.addEventListener('click',e=>{const button=e.target.closest('[data-pspn]');if(!button)return;e.preventDefault();e.stopImmediatePropagation();const show=()=>{const id=button.dataset.pspn;pnAbrir(id);if($('psMore'))$('psMore').hidden=true;PS.extraOpen=false;const item=pnItens.find(i=>i.id===id);if(item)open(item.el,item.t,'more:'+id);psUpdateHubState()};if(active)void requestClose().then(ok=>{if(ok)show()});else show()},true);
 // Os cliques fora da janela precisam resolver a edição antes de voltar ao desenho.
-document.addEventListener('pointerdown',e=>{if(!active||e.target.closest('#rsPanelPopup,#rsPanelDecision,#atividades,.dockHead'))return;if(e.target.closest('dialog,button,a,[role=button]'))return;e.preventDefault();e.stopImmediatePropagation();void requestClose()},true);
+document.addEventListener('pointerdown',e=>{if(!active||e.target.closest('#rsPanelPopup,#rsPanelDecision,#atividades,.dockHead'))return;if(e.button===1)return;if(e.target.closest('dialog,button,a,[role=button]'))return;e.preventDefault();e.stopImmediatePropagation();void requestClose()},true);
 // Resolva a edição e execute o botão original uma única vez, já com os dados gravados.
 document.addEventListener('click',e=>{
  if(!active||committing||e.target.closest('#rsPanelPopup,#rsPanelDecision,#atividades,.dockHead,dialog'))return;

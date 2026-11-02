@@ -1,6 +1,6 @@
-Rodovia Studio 3.5.1
+Rodovia Studio 3.6
 
-Esta distribuição usa o código Studio 3.5, com correções de estado e progresso.
+Esta distribuição usa o código Studio 3.5, com janelas sobrepostas e redução de cálculos repetidos.
 
 Para abrir no Windows:
 1. Instale Python 3.12 x64 (comando py -3.12).
@@ -18,4 +18,4 @@ O cancelamento precisa terminar antes de aplicar a atualização.
 Para atualizar, coloque o ZIP em atualizacoes\ e use a opção Atualizar.
 A atualização preserva os projetos existentes.
 
-Consulte README.md e CORRECOES_3_5.md para instruções e limites de validação.
+Consulte README.md e ATUALIZACAO_3_6.md para instruções e limites de validação.

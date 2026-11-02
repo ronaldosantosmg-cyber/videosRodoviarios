@@ -125,9 +125,10 @@ def run(jid):
                         if _k in _ant:sc.report[_k]=_ant[_k]
                     sc.report.setdefault('warnings',[]).append('Prévia em vista geral: a simulação de tráfego não foi recalculada (veículos < 1 px); diagnósticos de tráfego mantidos da última simulação completa.')
                 except Exception as _e:_falha(__name__,_e)
-            store.write_json(d/'preview.json',meta);store.write_json(d/'analysis.json',sc.report)
+            store.write_json(d/'preview.json',meta)
             status(.94,'Montando dados dos fluxos para o editor')
             store.write_json(d/'editor.json',sc.editor_data())
+            store.write_json(d/'analysis.json',sc.report)
             status(.97,'Gravando vetores do editor')
             from .webmap import write_vectors
             try:write_vectors(d,sc.items,sc.axis,s.crs)

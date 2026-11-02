@@ -1,0 +1,31 @@
+{
+  "version": "3.6",
+  "base_version": "3.5",
+  "previous_version": "3.5.1",
+  "files": {
+    "LEIA-ME.txt": "d118e825350f323505994acd20e4fc046b6c819641ed663ff388014cf6c1eeb8",
+    "suporte/sistema/VERSAO.json": "cd5a9ede057df11bacd2e891644a3177d073a28f4f231921518a9a89b2f7c3fd",
+    "suporte/sistema/app/encoding.py": "acfcf47e837a4cf736b5449fe78a4e4ccb0cc213990fb27f15271b0bb02b3995",
+    "suporte/sistema/app/estilo.css": "bb6019d87fada1349e9e02bcf8f35a4ced62c81c1b52270b0dae9f9030f1da8e",
+    "suporte/sistema/app/index.html": "a312ab48e35328e404ed09907691f583ef9dc454459bb93a290f3cfbe92d89de",
+    "suporte/sistema/app/js/01_estado_configuracao.js": "4a9b8867334c5bbef7a2f83ba49ebeec52701e8d5177c163971bf0b7f8ddc0ba",
+    "suporte/sistema/app/js/36_videos_limpeza_atualizar.js": "a01afc9aa648c71cd20e8ebde75970b55601e2aa11bb42fb33adbb95b2bdce9b",
+    "suporte/sistema/app/js/54_vista_3d.js": "a9aafbe78775dc750b0de0c147ad71a1add4202fb10701ad32d7e7621d0cce40",
+    "suporte/sistema/app/js/59_paineis_destacados.js": "0c9b0976075a1caec7d1b2d8895d47097276e8e1ab8b01374564b504446b2279",
+    "suporte/sistema/app/js/76_politica_atualizacao.js": "0e051b39b23f4462eb1f10cd765c22261d8707e1ca8a162e766cb228ba93f107",
+    "suporte/sistema/app/models.py": "b97118be41e0ae8802d5c143e6625acf10f31bfdc7fac87ed4911d06a0e5c66f",
+    "suporte/sistema/app/parallel.py": "08f64adb371b29528661a9bef6f5aff3ce440d48f7b7c3c6bcf5fbfe5f8fcfd2",
+    "suporte/sistema/app/passing_zones.py": "0370458582761bd90b8504b37a9b9c64cda44e830f7d80411fe3e30dc8590ecc",
+    "suporte/sistema/app/progress_pulse.py": "3d8750940f9e0b1bc850ce354b63305ca26452d46640c74f1b637763ef0237ad",
+    "suporte/sistema/app/render.py": "48e01011d2f7540872fc7a0e48e925def05de47aeead9fc1cb8a840394358716",
+    "suporte/sistema/app/rotas/projetos.py": "05d4553e5adefc1b09bbcea6773cbe0b2521f898f1b7afba4727a48df384b3da",
+    "suporte/sistema/app/simulation.py": "b6f6f8c2280a500d42190e482a21ac8e731113895603977007b958832c217e8f",
+    "suporte/sistema/app/store.py": "bf02699acbbcece1bbe2ef4c4ed6a642b3c22f8a6d9da62595e2aee24a81a10e",
+    "suporte/sistema/app/traffic.py": "7ff00df7c2242488aca8d4d6fe31af31b3da548a1e1c27a3b591d0fb49ea251f",
+    "suporte/sistema/app/vehicle_motion.py": "9e73304e7bf3417a6dd4a393571d3f6f1080980019c80807ce5c31d97560dfb1",
+    "suporte/sistema/app/vehicle_safety.py": "bb5132cc0bb92039dd32dee19569093eb978f762d439f1e0a80ac675cb72c131",
+    "suporte/sistema/app/worker.py": "08913076c6fad016d8f908556a39b50ea9ee6a89361031603400e3107e0d6423",
+    "suporte/sistema/tests/test_v14239_conflict_guard.py": "525c8b16bb47421635bb7edb81e32e63f6f927939c0572a4f3d8319108c3ef50",
+    "suporte/sistema/tests/test_v17_speed.py": "400d95c0f1a287f1ad2427d0e43a51bb6a4be0762c3e2b032048a330b0b0429a"
+  }
+}

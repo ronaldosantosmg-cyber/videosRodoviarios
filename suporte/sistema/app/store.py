@@ -47,7 +47,8 @@ def _atomic_write_json(file,data):
     Mantém exatamente o mesmo formato/pasta das versões-base; a blindagem acontece somente durante a troca.
     """
     file=Path(file)
-    text=json.dumps(data,ensure_ascii=False,indent=2,allow_nan=False)
+    compact=file.name in ('editor.json','full_flows.json','vectors.json','traffic_network.json')
+    text=json.dumps(data,ensure_ascii=False,indent=None if compact else 2,separators=(',',':') if compact else None,allow_nan=False)
     # Não repetir o nome de destino: hashes de histórico + UUID ultrapassavam MAX_PATH no Windows.
     # .wip não entra na limpeza comum de .tmp enquanto uma gravação estiver em andamento.
     for attempt in range(3):

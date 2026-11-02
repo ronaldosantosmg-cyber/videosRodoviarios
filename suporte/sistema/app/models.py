@@ -1011,6 +1011,7 @@ class Settings(BaseModel):
         return migrate(data)
     @model_validator(mode='after')
     def ranges(self):
+        self.preview_time_s=min(self.preview_time_s,self.duration_s)
         if self.km_end_m <= self.km_start_m:
             raise ValueError('Km final deve ser maior que o inicial. O sentido do eixo é ajustado separadamente.')
         if self.reference_length_m is None:
