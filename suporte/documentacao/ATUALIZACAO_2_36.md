@@ -1,0 +1,2 @@
+# Atualização 2.36 (não validada pelo gate completo)
+Sentido das setas: a camada de apoio que desenhava seta sempre "para frente" por cima do trecho calculado (visto no vídeo, cor verde/amarela alternando) agora segue o sentido do trecho calculado, e a prévia de faixas não desenha seta contrária quando há trecho calculado. Janela "Conferência antes do vídeo": o botão Fechar passa a fechar. Novos testes: varredura de comandos e itens da faixa, abertura/fechamento/botões das 41 janelas, e sentido único das setas.

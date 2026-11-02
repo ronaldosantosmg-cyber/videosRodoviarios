@@ -1,0 +1,8 @@
+// Recuperação explícita, com revisão e conferência antes de substituir a configuração.
+async function openProjectHistory(){
+ requireProject();await save();const project=pid,rows=await api(`/api/projects/${project}/history`);if(pid!==project)return;
+ let dialog=$('rsProjectHistory');if(dialog)dialog.remove();dialog=document.createElement('dialog');dialog.id='rsProjectHistory';
+ dialog.innerHTML='<form method="dialog"><h2>Histórico do projeto</h2><p>Recupera configurações e marcações. Os arquivos originais e os vídeos são preservados.</p><label>Gravação <select id="rsHistoryRevision">'+rows.map(r=>`<option value="${esc(r.revision)}">${esc(new Date(r.modified*1000).toLocaleString('pt-BR'))} · ${esc(r.revision.slice(0,12))}${r.revision===projectSession.revision?' · atual':''}</option>`).join('')+'</select></label><p id="rsHistoryMessage">A configuração atual também ficará no histórico.</p><button value="cancel">Cancelar</button><button id="rsHistoryRestore" type="button">Recuperar configuração selecionada</button></form>';
+ document.body.appendChild(dialog);$('rsHistoryRestore').onclick=guard(async()=>{if(pid!==project)throw Error('O projeto mudou. Reabra o histórico.');if(savePending)throw Error('Existem novas edições. Feche e reabra o histórico para salvá-las antes de recuperar.');const options=json('POST',{revision:$('rsHistoryRevision').value});options.headers['If-Match']=projectSession.revision;await api(`/api/projects/${project}/history/restore`,options);dialog.close();await load(project,{resetHistory:true});msg('Configuração recuperada. A gravação anterior permanece no histórico.')});dialog.showModal();
+}
+itemArquivo('Salvar como…',['Histórico e recuperação…',()=>openProjectHistory()]);

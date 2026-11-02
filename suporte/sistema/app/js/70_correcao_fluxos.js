@@ -1,0 +1,52 @@
+// Central de correção: ações explícitas, mantendo barreiras e controles físicos.
+(()=>{'use strict';
+let dialog=null;
+async function closePanels(){return !window.RodoviaPanels||await RodoviaPanels.close()}
+function selected(id){const s=segById(id);if(!s)throw Error('O resultado mudou. Reabra a correção de fluxos.');return s}
+function close(){dialog?.close();dialog?.remove();dialog=null}
+async function action(id,kind){
+ const s=selected(id);const artifact=projectSession.artifacts?.editor;if(['auto','recover','reconstruct','cut'].includes(kind)&&artifact&&artifact.state!=='ready')throw Error('Atualize os fluxos antes de corrigir ou recortar um resultado antigo.');if(kind==='auto'){close();return RodoviaExecution.open({segment:id})}close();if(!await closePanels())return;
+ selSeg={id:s.id};vecOn.flows=true;if(window.RodoviaFlowStudy)RodoviaFlowStudy.editing=true;
+ if(kind==='locate'){setTool('pan');const p=s.technical_points?.[0]?.point||s.mid;zoomTo(P(p));draw();msg(s.technical_message||'Fluxo localizado.');return}
+ if(kind==='cut'){setTool('flowcut');msg('Clique no início e no fim do intervalo defeituoso do mesmo segmento. O eixo original será preservado.');return}
+ if(kind==='properties'){showSegProps();return}
+ if(kind==='recover'||kind==='reconstruct'){
+  if(s.disabled)throw Error('Este fluxo foi desativado manualmente. Reative-o nas propriedades antes de recuperar.');
+  const found=(M.flow_recoveries||[]).find(r=>r.enabled!==false&&r.target_key===s.origin_key&&distPolyline(r,s.points.map(P))<=6);
+  if(found&&kind==='reconstruct'&&!found.reconstruct){checkpoint();found.reconstruct=true;changed('Reconstrução contínua solicitada, mantendo as proteções físicas.');}
+  if(!found){checkpoint();M.flow_recoveries.push({id:uid(),x:s.mid[0],y:s.mid[1],target_key:s.origin_key||'',enabled:true,reconstruct:kind==='reconstruct'});changed('Recuperação: excluir partes inválidas e manter somente circulação revalidada.');}
+  const completed=await start('analyze');if(completed===false)return;msg('Correção recalculada. Confira o diagnóstico: reconstruções inseguras são recusadas e as partes excluídas continuam sem circulação.');
+ }
+}
+async function advancedOpen(){
+ requireProject();if(!editor?.segments?.length){if(!await closePanels())return;if(await start('analyze')===false)return;}
+ if(dialog?.open)return;dialog=document.createElement('dialog');dialog.className='winDlg rsFlowRepairDialog';dialog.style.width='min(1000px,94vw)';dialog.style.maxWidth='1000px';dialog.style.maxHeight='85vh';dialog.style.overflow='auto';dialog.setAttribute('aria-label','Corrigir fluxos');
+ dialog.innerHTML='<h3>Corrigir fluxos</h3><p>Linhas de bordo, marcações e linhas perpendiculares de referência não são barreiras. Se uma camada foi interpretada incorretamente, corrija seu tipo em Camadas e recalcule. Não é necessário refazer o projeto.</p><p><b>Proteções mantidas:</b> barreiras/canteiros físicos, colisões, sinal vermelho e interdições com pare e siga. Curvas impossíveis e coordenadas inválidas também precisam ser corrigidas.</p><div class="row"><button data-global="sections">Montar seção típica de fluxo</button><button data-global="layers">Revisar camadas que bloqueiam</button><button data-global="calculate">Recalcular fluxos</button><button data-global="criteria">Revisar critério automático de canteiro</button><button data-global="select">Selecionar fluxo em tela</button><button data-global="close">Fechar</button></div><p>Reconstruir tenta suavizar a ligação preservando início, fim e progressão, com desvio máximo de 8 m e conferência física. Barreiras, cortes explícitos e sentidos não são suspensos. Recuperar exclui somente partes reprovadas e revalida o restante. Recortar permite marcar início e fim do defeito. Ajustes automáticos de afastamento não movem o eixo DXF.</p><div data-flow-results></div>';
+ const restrictive=document.createElement('p');const names=Object.keys(cfg.layers||{}).length?['barrier','median'].flatMap(role=>(cfg.layers[role]||[]).map(name=>name+' ('+(role==='barrier'?'barreira':'canteiro')+')')):(analysis?.layers||[]).filter(l=>['barrier','median'].includes(l.suggested_role)).map(l=>l.name+' (sugestão)');restrictive.textContent='Camadas restritivas cadastradas/sugeridas: '+(names.join(', ')||'nenhuma listada; confira também as áreas desenhadas e proibições manuais.');dialog.querySelector('[data-flow-results]').appendChild(restrictive);
+ const gaps=(editor.section_continuity||[]).flatMap(route=>(route.gaps||[]).map(gap=>route.name+': '+Number(gap.start_m).toFixed(1)+' a '+Number(gap.end_m).toFixed(1)+' m'));if(gaps.length){const warning=document.createElement('p');warning.className='rsSectionGaps';warning.textContent='Intervalos sem seção cadastrada (não preenchidos automaticamente): '+gaps.slice(0,30).join('; ')+'. Use Montar seção típica para conferir e editar os limites.';dialog.querySelector('[data-flow-results]').appendChild(warning)}
+ const rows=document.createElement('div');const segments=[...(editor?.segments||[])].sort((a,b)=>(a.technical_status==='ok')-(b.technical_status==='ok'));
+ if(!segments.length){const p=document.createElement('p');p.textContent='Nenhuma trajetória foi criada. Use Revisar camadas: designe a camada Eixo e a área fechada de pavimento, ou selecione uma linha explicitamente como rota e indique o sentido. Depois recalcule. A densidade só controla veículos em trajetórias válidas.';rows.appendChild(p)}
+ for(const s of segments.slice(0,300)){
+  const row=document.createElement('section');row.style.padding='10px';row.style.marginBottom='8px';row.dataset.flowRepair=String(s.id);
+  const heading=document.createElement('b');heading.textContent=(s.route_name||s.source||'Fluxo')+' · '+s.id+' · '+({ok:'OK',problem:'Bloqueado',adjustment:'Revisar'}[s.technical_status]||'Revisar');row.appendChild(heading);
+  const text=document.createElement('p');text.textContent=s.technical_message||'Recalcule para obter um diagnóstico atualizado.';row.appendChild(text);
+  if(s.technical_lateral_fits?.length){const fit=document.createElement('p');fit.textContent=s.technical_lateral_fits.map(f=>'Afastamento: '+f.original_m+' → '+f.applied_m+' m.').join(' ');row.appendChild(fit)}
+  if(s.technical_assistant){const why=document.createElement('p');why.textContent=s.technical_assistant.title;row.appendChild(why)}
+  if(s.technical_circulation){const info=document.createElement('p');info.className='muted';info.textContent=s.technical_circulation.enabled?'Há circulação em trajetórias aprovadas; partes excluídas permanecem fora da simulação.':'Sem circulação neste resultado. Confira o motivo antes de alterar o traçado.';row.appendChild(info)}
+  const buttons=document.createElement('div');buttons.className='row';
+  const add=(target,kind,label)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.repairAction=kind;b.onclick=guard(()=>action(s.id,kind));if(['auto','recover','reconstruct'].includes(kind)&&(s.disabled||s.technical_status==='ok')){b.disabled=true;b.title=s.disabled?'Desligamento manual preservado.':'Este fluxo já está validado.'}target.appendChild(b)};
+  for(const [kind,label] of [['locate','Localizar'],['auto','Tentar correção automática'],['properties','Editar manualmente']])add(buttons,kind,label);row.appendChild(buttons);
+  const advanced=document.createElement('details');advanced.className='rsFlowRepairAdvanced';advanced.innerHTML='<summary>Opções avançadas de recuperação</summary>';const extra=document.createElement('div');extra.className='row';
+  for(const [kind,label] of [['reconstruct','Reconstruir ligação contínua'],['recover','Recuperar partes válidas'],['cut','Recortar início/fim']])add(extra,kind,label);advanced.appendChild(extra);row.appendChild(advanced);rows.appendChild(row);
+
+ }
+ if(segments.length>300){const p=document.createElement('p');p.textContent='Mostrando os primeiros 300 trechos, com problemas primeiro. Use a seleção em tela para os demais.';rows.appendChild(p)}
+ dialog.querySelector('[data-flow-results]').appendChild(rows);
+ dialog.addEventListener('click',guard(async e=>{const kind=e.target.closest('[data-global]')?.dataset.global;if(!kind)return;close();if(kind==='close')return;if(!await closePanels())return;if(kind==='criteria'){const d=document.createElement('dialog');d.className='winDlg';d.innerHTML='<h3>Critério automático de canteiro</h3><p>A proximidade de eixos pode sugerir uma troca de pista inexistente. Suspender essa inferência não remove barreiras ou canteiros físicos, proibições manuais, colisões, sinais nem pare e siga.</p><div class="row"><button data-mode="free">Suspender inferência e recalcular</button><button data-mode="returns">Restaurar critério e recalcular</button><button data-cancel>Cancelar</button></div>';document.body.appendChild(d);d.onclick=guard(async e=>{if(e.target.closest('[data-cancel]')){d.close();d.remove();return}const mode=e.target.closest('[data-mode]')?.dataset.mode;if(!mode)return;checkpoint();$('median_crossing').value=mode;cfg.median_crossing=mode;changed('Critério automático de canteiro ajustado; proteções físicas mantidas.');d.close();d.remove();await start('analyze')});d.oncancel=()=>d.remove();d.showModal();}else if(kind==='sections'){await RodoviaSections.chooseAxis();}else if(kind==='layers'){psOpenHub('layers');msg('Confira as camadas classificadas como Barreira e Canteiro. Para referências e bordos, escolha o tipo correto. Recalcule após salvar.');}else if(kind==='calculate')await start('analyze');else{vecOn.flows=true;if(window.RodoviaFlowStudy)RodoviaFlowStudy.editing=true;selSeg=null;setTool('pan');draw();msg('Clique sobre uma trajetória para editar; utilize Localizar defeito na central se não conseguir selecioná-la.');}}));
+ dialog.addEventListener('cancel',e=>{e.preventDefault();close()});document.body.appendChild(dialog);dialog.showModal();
+}
+const open=options=>RodoviaExecution.open(options);
+comando(['CORRIGIRFLUXOS'],open,'Diagnosticar, localizar, recortar e recuperar fluxos sem apagar o eixo');
+queueMicrotask(()=>queueMicrotask(()=>{const bar=$('rsTechnicalOptions');if(!bar||$('rsRepairFlows'))return;const button=document.createElement('button');button.type='button';button.id='rsRepairFlows';button.textContent='Corrigir fluxos…';button.title='Localizar defeitos, recuperar partes válidas, recortar e revisar camadas';button.onclick=guard(open);bar.prepend(button)}));
+window.RodoviaFlowRepair=Object.freeze({open,advanced:advancedOpen});
+})();

@@ -1,0 +1,111 @@
+{
+ "versao": "1",
+ "origem": "fotos de referência do usuário (recortes sem emenda)",
+ "texturas": {
+  "areia_acostamento": {
+   "arquivo": "areia_acostamento.jpg",
+   "sha256": "1f9e34e697b45f0ea9f4cf6fcfc2de4b53ef5d4a9d771c2f0c179c418341e268",
+   "tamanho": [
+    512,
+    512
+   ],
+   "ladrilho": true,
+   "escala_m": 1.5,
+   "media_rgb": [
+    178.8,
+    145.2,
+    109.0
+   ]
+  },
+  "asfalto_azulado": {
+   "arquivo": "asfalto_azulado.jpg",
+   "sha256": "45209249f6d30e311fad25b01e24d2403a971c84e1a1070080ef1abb2c97433d",
+   "tamanho": [
+    512,
+    512
+   ],
+   "ladrilho": true,
+   "escala_m": 0.6,
+   "media_rgb": [
+    118.3,
+    127.1,
+    134.3
+   ]
+  },
+  "asfalto_escuro": {
+   "arquivo": "asfalto_escuro.jpg",
+   "sha256": "b9b82343f6d5e1af988c8b1332ddee127bc1d60f0de2cba099372b3dded2feb3",
+   "tamanho": [
+    512,
+    512
+   ],
+   "ladrilho": true,
+   "escala_m": 0.3,
+   "media_rgb": [
+    62.9,
+    62.8,
+    66.5
+   ]
+  },
+  "asfalto_graudo": {
+   "arquivo": "asfalto_graudo.jpg",
+   "sha256": "3542071d5cc583f497c90cc45fd6fdc5e6f204b820bfd8b923e7f99be6e6484b",
+   "tamanho": [
+    512,
+    512
+   ],
+   "ladrilho": true,
+   "escala_m": 0.25,
+   "media_rgb": [
+    93.8,
+    90.6,
+    78.7
+   ]
+  },
+  "faixa_amarela_desgastada": {
+   "arquivo": "faixa_amarela_desgastada.jpg",
+   "sha256": "5d9c92a6f8ab5e99e5c90cc2ef73ecfb19a4dcd00dd03a174570b333f36bc22a",
+   "tamanho": [
+    480,
+    1000
+   ],
+   "ladrilho": false,
+   "escala_m": null,
+   "media_rgb": [
+    130.2,
+    100.8,
+    52.8
+   ]
+  },
+  "faixa_branca_trincada": {
+   "arquivo": "faixa_branca_trincada.jpg",
+   "sha256": "dd10cd563e51ef77b93cb873fdc33a01e08d2afab595b4fdff2d391ba670690a",
+   "tamanho": [
+    700,
+    1500
+   ],
+   "ladrilho": false,
+   "escala_m": null,
+   "media_rgb": [
+    177.0,
+    173.7,
+    166.4
+   ]
+  },
+  "vegetacao_seca": {
+   "arquivo": "vegetacao_seca.jpg",
+   "sha256": "c32b216e0960bddd19a3a074b634600d55d220e193f313b468677984f7561101",
+   "tamanho": [
+    512,
+    512
+   ],
+   "ladrilho": true,
+   "escala_m": 2.5,
+   "media_rgb": [
+    125.6,
+    94.2,
+    62.2
+   ]
+  }
+ }
+}

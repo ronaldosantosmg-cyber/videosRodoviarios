@@ -1,0 +1,92 @@
+"""Funções comuns às rotas da API (fila de tarefas, configuração do projeto, arquivos enviados)."""
+import asyncio,json,os,sys,uuid,shutil,subprocess,threading,time,zipfile,re
+from xml.etree.ElementTree import ParseError as ET_ERRORS
+from pathlib import Path
+from typing import List
+from fastapi import APIRouter,UploadFile,File,Form,HTTPException,Request
+from fastapi.responses import HTMLResponse,FileResponse,JSONResponse,Response
+from pydantic import BaseModel as _BM,ConfigDict,Field
+from .. import store
+from ..models import Settings
+from ..imagery import ASSETS
+BASE=Path(__file__).resolve().parents[2]
+# Despachante de tarefas (server.py) e cancelamento (rotas/tarefas.py) usam a mesma trava.
+stop=threading.Event();dispatch_lock=threading.RLock();maintenance_pending=threading.Event()
+VERSION=json.loads((BASE/'VERSAO.json').read_text(encoding='utf-8')).get('version','1.3.0') if (BASE/'VERSAO.json').exists() else '1.3.0'
+def idle(pid):
+    from ..small_ai import active as ai_active
+    if ai_active():raise HTTPException(409,'Consulta IA em andamento. Cancele ou aguarde o descarregamento antes de alterar arquivos ou iniciar cálculos.')
+    store.directory(pid)
+    with store.connect() as c:r=c.execute("SELECT id FROM jobs WHERE project=? AND state IN ('queued','running','cancel_requested')",(pid,)).fetchone()
+    if r:raise HTTPException(409,'Aguarde a tarefa atual terminar ou cancele-a.')
+def release_engine(pid,wait_s=40.):
+    """2.16: a PEDIDO do usuário (substituir o DXF), solta o motor: cancela a consulta de IA e as tarefas do projeto e espera o supervisor
+    encerrar o processo de cálculo (que pode manter o arquivo aberto). O projeto e os arquivos originais não são apagados."""
+    import time as _t
+    from ..small_ai import active as ai_active,cancel as ai_cancel
+    if ai_active():ai_cancel(None)
+    deadline=_t.monotonic()+float(wait_s);asked=False
+    while True:
+        with dispatch_lock:
+            with store.connect() as c:rows=c.execute("SELECT id,state FROM jobs WHERE project=? AND state IN ('queued','running','cancel_requested')",(pid,)).fetchall()
+            for r in rows:
+                jid,state=(r['id'],r['state']) if hasattr(r,'keys') else (r[0],r[1])
+                if state=='queued':store.update(jid,state='cancelled',message='Cancelado a pedido: substituição do DXF')
+                elif state=='running':store.update(jid,state='cancel_requested',message='Cancelamento solicitado: substituição do DXF');asked=True
+        if not rows:return {'released':True,'cancelled':asked}
+        if _t.monotonic()>deadline:raise HTTPException(409,'O motor não encerrou a tarefa em %d s. Aguarde ou reinicie o aplicativo; o projeto e os arquivos originais foram preservados.'%int(wait_s))
+        _t.sleep(.5)
+def enqueue(pid,kind):
+    with dispatch_lock:
+        from ..small_ai import active as ai_active
+        if ai_active():raise HTTPException(409,'Aguarde a IA descarregar ou cancele a consulta antes de iniciar o cálculo/vídeo.')
+        if maintenance_pending.is_set():raise HTTPException(409,'Atualização em preparação. Aguarde a conclusão.')
+        store.directory(pid);jid=uuid.uuid4().hex
+        with store.connect() as c:
+            c.execute('BEGIN IMMEDIATE')
+            busy=c.execute("SELECT id FROM jobs WHERE project=? AND state IN ('queued','running','cancel_requested')",(pid,)).fetchone()
+            if busy:raise HTTPException(409,'Aguarde a tarefa atual terminar ou cancele-a.')
+            c.execute('INSERT INTO jobs(id,project,kind,state,message) VALUES(?,?,?,?,?)',(jid,pid,kind,'queued','Na fila'))
+        return {'id':jid,'state':'queued'}
+
+def _files_meta(d):
+    f=d/'arquivos.json'
+    try:return json.loads(f.read_text(encoding='utf-8')) if f.exists() else {}
+    except ValueError:return {}
+def _files_info(d):
+    m=_files_meta(d);out={}
+    for k in ('dxf','kmz'):
+        f=d/('input.'+k)
+        out[k]=({'name':m.get(k,{}).get('name') or f.name,'bytes':f.stat().st_size,'sent':m.get(k,{}).get('sent') or time.strftime('%Y-%m-%d %H:%M',time.localtime(f.stat().st_mtime)),**({'convertido':m[k]['convertido']} if m.get(k,{}).get('convertido') else {})} if f.exists() else None)
+    return out
+
+def _config(pid):
+    from ..project_state import read_config
+    d=store.directory(pid);return d,Settings.model_validate(read_config(d))
+def _save_config(pid,s):
+    d=store.directory(pid);store.write_json(d/'config.json',s.model_dump() if hasattr(s,'model_dump') else s)
+async def _receive(file,dest,limit):
+    n=0;tmp=Path(str(dest)+'.tmp')
+    try:
+        with tmp.open('wb') as fo:
+            while chunk:=await file.read(1024*1024):
+                n+=len(chunk)
+                if n>limit:raise HTTPException(413,f'Limite de {limit//1024//1024} MB por arquivo.')
+                fo.write(chunk)
+        if n==0:raise HTTPException(422,'Arquivo vazio.')
+        store.replace(tmp,dest)
+    finally:tmp.unlink(missing_ok=True);await file.close()
+    return n
+
+# ---------------- 1.19: outras fontes web ----------------
+def _img_type(data):return 'image/png' if data[:8]==b'\x89PNG\r\n\x1a\n' else 'image/jpeg'
+
+# ---------------- 1.25: catálogo QuickMapServices ----------------
+def _project_wgs84(pid):
+    from ..qms import project_area_wgs84
+    d,s=_config(pid);a=d/'analysis.json'
+    if not a.exists():raise HTTPException(409,'Analise os arquivos primeiro: a busca usa a área do trecho.')
+    rep=json.loads(a.read_text(encoding='utf-8'))
+    try:return project_area_wgs84(s.crs,rep['bounds'],margin_m=200)
+    except Exception as e:raise HTTPException(422,f'Não foi possível converter a área do projeto para WGS84: {e}')
+__all__=['stop','dispatch_lock','BASE', 'VERSION', 'idle', 'release_engine', 'enqueue', '_config', '_save_config', '_receive', '_files_meta', '_files_info', '_img_type', '_project_wgs84', 'ASSETS', 'store', 'Settings', '_BM']

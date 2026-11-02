@@ -1,0 +1,2 @@
+# Atualização 2.37 (não validada pelo gate completo)
+Seção aplicada e sentido: a prévia das faixas geradas pela seção era calculada sem o sentido do eixo/layer e não se refazia quando o sentido mudava; agora usa o mesmo sentido do cálculo e se refaz a cada mudança. Janela de seções: o campo Fim era preenchido arredondado para cima e travava o "Salvar e fechar" sem aviso; corrigido, e todas as janelas passam a mostrar o erro visível (rola até a mensagem e marca o campo). Auditoria de janelas agora exige o efeito de cada botão, não só o fechamento.

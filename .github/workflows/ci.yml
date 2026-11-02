@@ -1,37 +1,52 @@
-name: CI
+name: Validar Rodovia Studio
 
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  test:
+  studio:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Configurar Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          cache: 'pip'
-
-      - name: Atualizar pip
-        run: python -m pip install --upgrade pip
-
-      - name: Instalar projeto e dependências de teste
-        run: python -m pip install -e '.[dev]'
-
-      - name: Validar importação e sintaxe
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: suporte/sistema/requirements*.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependências do Studio
+        run: python -m pip install -r suporte/sistema/requirements-dev.txt
+      - name: Conferir sintaxe e integração
         run: |
-          python -m compileall -q src tests
-          python -c "import videos_rodoviarios; print(videos_rodoviarios.__version__)"
-
-      - name: Ruff
-        run: python -m ruff check .
-
-      - name: Testes
-        run: python -m pytest -q
+          python -m compileall -q suporte/sistema scripts tests
+          python -m pytest -q tests
+          python scripts/verificar_servidor.py
+      - name: Conferir navegação e bloqueios no Chromium
+        run: |
+          python -m playwright install --with-deps chromium
+          python scripts/verificar_interface.py
+      - name: Regressões selecionadas da versão 3.5
+        working-directory: suporte/sistema
+        run: >-
+          python -m pytest -q
+          tests/test_v31_fantasmas.py
+          tests/test_v31_dxf_preparo.py
+          tests/test_v31_surgimento.py
+          tests/test_v14278_articulado.py
+          -k 'not api_relatorio and not relatorio_da_simulacao'
+      - name: Gerar atualização do código principal
+        run: python scripts/empacotar_studio.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RodoviaStudio-atualizacao
+          path: dist/*
+          if-no-files-found: error

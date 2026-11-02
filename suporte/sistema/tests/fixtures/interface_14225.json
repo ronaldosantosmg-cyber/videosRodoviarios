@@ -1,0 +1,1619 @@
+{
+  "origin_commit": "c6f3bee",
+  "ids": [
+    "menuBar",
+    "menuDrop",
+    "winLabel",
+    "twoWindows",
+    "oneWindow",
+    "layoutWide",
+    "layoutCompact",
+    "helpBtn",
+    "helpToggle",
+    "health",
+    "projects",
+    "new",
+    "dropZone",
+    "files",
+    "fileDxf",
+    "fileKmz",
+    "upload",
+    "fileState",
+    "analyze",
+    "saveProject",
+    "saveAsProject",
+    "resetWork",
+    "resetUndo",
+    "trashProject",
+    "name",
+    "origin",
+    "destination",
+    "km_start_m",
+    "km_end_m",
+    "reference_length_m",
+    "work_year",
+    "crs",
+    "units_to_m",
+    "imagery",
+    "webBox",
+    "webSource",
+    "wbBox",
+    "wbRelease",
+    "webCustom",
+    "webUrl",
+    "webLayers",
+    "webMaxZoom",
+    "webAttr",
+    "wbLoad",
+    "webApply",
+    "webInfo",
+    "qmsBox",
+    "qmsQ",
+    "qmsTipo",
+    "qmsCobre",
+    "qmsWorks",
+    "qmsImg",
+    "qmsBuscar",
+    "qmsTestTop",
+    "qmsMore",
+    "qmsInfo",
+    "qmsList",
+    "reverse_axis",
+    "coordinates_confirmed",
+    "hatchBox",
+    "hatch_auto",
+    "hatchList",
+    "layerProfile",
+    "profileApply",
+    "profileSave",
+    "profileEdit",
+    "profileDelete",
+    "layers",
+    "layer_split",
+    "roleColors",
+    "auto_earthworks",
+    "routes",
+    "save",
+    "import",
+    "configDownload",
+    "importFile",
+    "overlayFile",
+    "overlayUpload",
+    "overlayList",
+    "imgFiles",
+    "imgCrs",
+    "imgMode",
+    "imgUpload",
+    "imgConvert",
+    "ecwInfo",
+    "ecwInstall",
+    "imgInfo",
+    "imgList",
+    "liDetail",
+    "liEditor",
+    "liBright",
+    "liContrast",
+    "liSat",
+    "liNodata",
+    "elSource",
+    "elExag",
+    "elHill",
+    "elHillOp",
+    "elCont",
+    "elInt",
+    "elLevel",
+    "elFiles",
+    "elCrs",
+    "elUpload",
+    "elInfo",
+    "exportRun",
+    "packageLink",
+    "exportList",
+    "markFile",
+    "markImport",
+    "pkgFile",
+    "pkgImport",
+    "pngStart",
+    "pngEnd",
+    "pngEvery",
+    "pngRgba",
+    "pngRun",
+    "secObras",
+    "obTela",
+    "obImportar",
+    "obModelo",
+    "obExportar",
+    "obResumo",
+    "obRows",
+    "per_display",
+    "schedule_mode",
+    "schedule_start",
+    "schedule_end",
+    "schedule_show_planned",
+    "ambienteBox",
+    "ckAdd",
+    "ckInfo",
+    "ckRows",
+    "weather",
+    "wiVal",
+    "weather_intensity",
+    "sun_shadows",
+    "shVal",
+    "sun_hour",
+    "pedestrians",
+    "vehicle_mix",
+    "before_after",
+    "before_after_s",
+    "profileBox",
+    "style_profile",
+    "pavement_material",
+    "existing_material",
+    "shoulder_material",
+    "joint_spacing_m",
+    "pcVal",
+    "project_contrast",
+    "camera_mode",
+    "vehicle_paths",
+    "direction_reference",
+    "progress_indicator",
+    "technical_textures",
+    "texEditor",
+    "render_engine",
+    "callout_layout",
+    "advance_mode",
+    "advance_speed_kmh",
+    "advInfo",
+    "curve_speed",
+    "pavStyles",
+    "presetTech",
+    "presetInfo",
+    "encoder",
+    "cpu_preset",
+    "width",
+    "video_quality",
+    "fps",
+    "duration_s",
+    "view_width_m",
+    "imagery_pixels",
+    "visual_quality",
+    "hydrography",
+    "water_texture",
+    "water_texture_opacity",
+    "water_names",
+    "water_names_opacity",
+    "water_animated",
+    "headlights",
+    "day_night",
+    "night_start_s",
+    "night_transition_s",
+    "night_darkness",
+    "night_signage_glow",
+    "traffic_model",
+    "traffic_density",
+    "traffic_capacity_vphpl",
+    "traffic_demand_vphpl",
+    "rsTrafficStudy",
+    "queue_capacity_model",
+    "heavy_vehicle_reaction",
+    "min_route_segment_m",
+    "median_crossing",
+    "signage_style",
+    "flow_arrows",
+    "flow_arrow_spacing_m",
+    "signage_detail",
+    "lanes_per_direction",
+    "lane_width_m",
+    "lane_arrow_repeat",
+    "arrow_min_gap_m",
+    "dxf_signage",
+    "lane_arrows",
+    "gore_hatch",
+    "stop_lines",
+    "auto_signs",
+    "cities_radius_km",
+    "imagery_detail",
+    "detail_textures",
+    "texture_style",
+    "earthwork_look",
+    "detail_resolution_m",
+    "km_markers",
+    "direction_badge",
+    "median_grass",
+    "cities_show",
+    "traffic",
+    "render_workers",
+    "render_profile",
+    "short_video_mode",
+    "traffic_speed_kmh",
+    "cabinEnabled",
+    "cabinDuration",
+    "cabinHeight",
+    "cabinFov",
+    "cabinPitch",
+    "cabinSmooth",
+    "cabinSpeed",
+    "cabinHood",
+    "cabinState",
+    "cabinPreview",
+    "render",
+    "refInfo",
+    "compareRun",
+    "refProfile",
+    "compareTable",
+    "cacheSize",
+    "cacheClean",
+    "cacheInfo",
+    "editorSection",
+    "preview",
+    "preview_mode",
+    "renderView",
+    "fitView",
+    "updFlows",
+    "regenPreview",
+    "fullscreen",
+    "toggleSide",
+    "areaMaxBtn",
+    "timeLabel",
+    "preview_time_s",
+    "openAtTime",
+    "baseMode",
+    "tileAlpha",
+    "vecAlpha",
+    "vecLayers",
+    "baseInfo",
+    "toolbar",
+    "toolHint",
+    "canvas",
+    "selBar",
+    "sessList",
+    "sessSave",
+    "sessLoad",
+    "sessDel",
+    "sessAuto",
+    "cursor",
+    "undo",
+    "redo",
+    "saveState",
+    "cmdPrompt",
+    "cmdLine",
+    "snapOn",
+    "hudOn",
+    "orthoOn",
+    "toolOptions",
+    "propPanel",
+    "markList",
+    "alignMode",
+    "alignState",
+    "alignFit",
+    "alignApply",
+    "alignRevert",
+    "alignResult",
+    "pairList",
+    "pathName",
+    "pathKind",
+    "pathDirection",
+    "pathLevel",
+    "traffic_network_preview",
+    "pathList",
+    "warnings",
+    "geom",
+    "poiTitle",
+    "poiKind",
+    "poiSubtitle",
+    "poiKmMode",
+    "poiKm",
+    "poiX",
+    "poiY",
+    "bridgeSpan",
+    "bridgeWidth",
+    "bridgeAccess",
+    "rampFlight",
+    "busLength",
+    "busDepth",
+    "busSide",
+    "addPoi",
+    "poiList",
+    "message",
+    "progress",
+    "cancel",
+    "logs",
+    "download",
+    "video",
+    "logSection",
+    "logOpen",
+    "logPrompt2",
+    "logZip2",
+    "logInfo",
+    "bottomBar",
+    "statusBar",
+    "taskArea",
+    "cmdList",
+    "ctxMenu",
+    "logDlg",
+    "logTitle",
+    "logZip",
+    "logPrompt",
+    "logCopy",
+    "logClear",
+    "logView",
+    "logClose",
+    "cmdHelpDlg",
+    "cmdHelpBody",
+    "inputDlg",
+    "inputTitle",
+    "inputLabel",
+    "inputValue",
+    "inputErr",
+    "inputOk",
+    "inputCancel",
+    "texDlg",
+    "td_title",
+    "td_kind",
+    "td_mat",
+    "tdv_grao",
+    "td_grao",
+    "tdv_tom",
+    "td_tom",
+    "tdv_remendos",
+    "td_remendos",
+    "tdv_fissuras",
+    "td_fissuras",
+    "tdv_brilho",
+    "td_brilho",
+    "td_scope",
+    "td_img",
+    "td_surf",
+    "td_reset",
+    "td_ok",
+    "td_cancel",
+    "surfDlg",
+    "sd_title",
+    "sd_surf",
+    "sdv_grao",
+    "sd_grao",
+    "sdv_tom",
+    "sd_tom",
+    "sdv_remendos",
+    "sd_remendos",
+    "sdv_fissuras",
+    "sd_fissuras",
+    "sdv_brilho",
+    "sd_brilho",
+    "sd_colorrow",
+    "sd_color",
+    "sd_lookrow",
+    "sd_look",
+    "sd_scope",
+    "sd_note",
+    "sd_img",
+    "sd_wcolor",
+    "sd_wtex",
+    "sdv_wop",
+    "sd_wop",
+    "sd_wanim",
+    "sd_wnames",
+    "sd_wprev",
+    "sd_white",
+    "sd_yellow",
+    "sdv_wear",
+    "sd_wear",
+    "sdv_sop",
+    "sd_sop",
+    "sd_sprev",
+    "sd_reset",
+    "sd_ok",
+    "sd_cancel",
+    "aboutDlg",
+    "aboutBody",
+    "confirmDlg",
+    "confirmText",
+    "confirmYes",
+    "confirmNo",
+    "resetDialog",
+    "resetGroups",
+    "resetOutputs",
+    "resetGo",
+    "resetCancel",
+    "ruleDialog",
+    "ruleName",
+    "ruleText",
+    "ruleRoles",
+    "ruleSave",
+    "ruleCancel",
+    "helpDialog",
+    "helpBody",
+    "tip",
+    "logDialog",
+    "logText",
+    "openDlg",
+    "opSearch",
+    "opSort",
+    "opGrid",
+    "opInfo",
+    "opRename",
+    "opDup",
+    "opTpl",
+    "opDel",
+    "opNew",
+    "opOpen",
+    "opClose",
+    "tplDlg",
+    "tplTitle",
+    "tplRows",
+    "tplRename",
+    "tplDel",
+    "tplSave",
+    "tplApply",
+    "tplNewPrj",
+    "tplClose",
+    "tplSaveDlg",
+    "tsName",
+    "tsErr",
+    "tsDesc",
+    "tsMarks",
+    "tsOk",
+    "tsCancel",
+    "layerDlg",
+    "lmSearch",
+    "lmShow",
+    "lmAll",
+    "lmRows",
+    "lmInfo",
+    "lmUndo",
+    "lmClose",
+    "videosDlg",
+    "vdPasta",
+    "vdRows",
+    "vdPlayer",
+    "vdFolder",
+    "vdClose",
+    "cleanDlg",
+    "clRows",
+    "clInfo",
+    "clGo",
+    "clClose",
+    "updDlg",
+    "updBody",
+    "updFolder",
+    "updRestore",
+    "updGo",
+    "updClose"
+  ],
+  "fields": {
+    "layoutWide": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "layoutCompact": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "helpToggle": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "projects": [
+      "select",
+      null,
+      null
+    ],
+    "files": [
+      "input",
+      "file",
+      null
+    ],
+    "fileDxf": [
+      "input",
+      "file",
+      null
+    ],
+    "fileKmz": [
+      "input",
+      "file",
+      null
+    ],
+    "name": [
+      "input",
+      null,
+      "Novo trecho"
+    ],
+    "origin": [
+      "input",
+      null,
+      "Origem"
+    ],
+    "destination": [
+      "input",
+      null,
+      "Destino"
+    ],
+    "km_start_m": [
+      "input",
+      null,
+      "0+000"
+    ],
+    "km_end_m": [
+      "input",
+      null,
+      "1+000"
+    ],
+    "reference_length_m": [
+      "input",
+      null,
+      "1,000"
+    ],
+    "work_year": [
+      "input",
+      null,
+      "A informar"
+    ],
+    "crs": [
+      "input",
+      null,
+      "EPSG:31983"
+    ],
+    "units_to_m": [
+      "input",
+      "number",
+      "1"
+    ],
+    "imagery": [
+      "select",
+      null,
+      null
+    ],
+    "webSource": [
+      "select",
+      null,
+      null
+    ],
+    "wbRelease": [
+      "select",
+      null,
+      null
+    ],
+    "webUrl": [
+      "input",
+      null,
+      null
+    ],
+    "webLayers": [
+      "input",
+      null,
+      null
+    ],
+    "webMaxZoom": [
+      "input",
+      "number",
+      "19"
+    ],
+    "webAttr": [
+      "input",
+      null,
+      null
+    ],
+    "qmsQ": [
+      "input",
+      null,
+      null
+    ],
+    "qmsTipo": [
+      "select",
+      null,
+      null
+    ],
+    "qmsCobre": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "qmsWorks": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "qmsImg": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "reverse_axis": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "coordinates_confirmed": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "hatch_auto": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "layerProfile": [
+      "select",
+      null,
+      null
+    ],
+    "layer_split": [
+      "select",
+      null,
+      null
+    ],
+    "auto_earthworks": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "importFile": [
+      "input",
+      "file",
+      null
+    ],
+    "overlayFile": [
+      "input",
+      "file",
+      null
+    ],
+    "imgFiles": [
+      "input",
+      "file",
+      null
+    ],
+    "imgCrs": [
+      "input",
+      null,
+      null
+    ],
+    "imgMode": [
+      "select",
+      null,
+      null
+    ],
+    "liDetail": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "liEditor": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "liBright": [
+      "input",
+      "range",
+      null
+    ],
+    "liContrast": [
+      "input",
+      "range",
+      null
+    ],
+    "liSat": [
+      "input",
+      "range",
+      null
+    ],
+    "liNodata": [
+      "select",
+      null,
+      null
+    ],
+    "elSource": [
+      "select",
+      null,
+      null
+    ],
+    "elExag": [
+      "input",
+      "number",
+      "1"
+    ],
+    "elHill": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "elHillOp": [
+      "input",
+      "number",
+      "0.35"
+    ],
+    "elCont": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "elInt": [
+      "input",
+      "number",
+      "5"
+    ],
+    "elLevel": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "elFiles": [
+      "input",
+      "file",
+      null
+    ],
+    "elCrs": [
+      "input",
+      null,
+      null
+    ],
+    "markFile": [
+      "input",
+      "file",
+      null
+    ],
+    "pkgFile": [
+      "input",
+      "file",
+      null
+    ],
+    "pngStart": [
+      "input",
+      "number",
+      "0"
+    ],
+    "pngEnd": [
+      "input",
+      "number",
+      "5"
+    ],
+    "pngEvery": [
+      "input",
+      "number",
+      "1"
+    ],
+    "pngRgba": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "per_display": [
+      "select",
+      null,
+      null
+    ],
+    "schedule_mode": [
+      "select",
+      null,
+      null
+    ],
+    "schedule_start": [
+      "input",
+      "date",
+      null
+    ],
+    "schedule_end": [
+      "input",
+      "date",
+      null
+    ],
+    "schedule_show_planned": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "weather": [
+      "select",
+      null,
+      null
+    ],
+    "weather_intensity": [
+      "input",
+      "range",
+      "0.6"
+    ],
+    "sun_shadows": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "sun_hour": [
+      "input",
+      "range",
+      "15"
+    ],
+    "pedestrians": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "vehicle_mix": [
+      "select",
+      null,
+      null
+    ],
+    "before_after": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "before_after_s": [
+      "input",
+      "number",
+      "8"
+    ],
+    "style_profile": [
+      "select",
+      null,
+      null
+    ],
+    "pavement_material": [
+      "select",
+      null,
+      null
+    ],
+    "existing_material": [
+      "select",
+      null,
+      null
+    ],
+    "shoulder_material": [
+      "select",
+      null,
+      null
+    ],
+    "joint_spacing_m": [
+      "input",
+      "number",
+      "5"
+    ],
+    "project_contrast": [
+      "input",
+      "range",
+      "0"
+    ],
+    "camera_mode": [
+      "select",
+      null,
+      null
+    ],
+    "vehicle_paths": [
+      "select",
+      null,
+      null
+    ],
+    "direction_reference": [
+      "select",
+      null,
+      null
+    ],
+    "progress_indicator": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "technical_textures": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "render_engine": [
+      "select",
+      null,
+      null
+    ],
+    "callout_layout": [
+      "select",
+      null,
+      null
+    ],
+    "advance_mode": [
+      "select",
+      null,
+      null
+    ],
+    "advance_speed_kmh": [
+      "input",
+      "number",
+      "150"
+    ],
+    "curve_speed": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "encoder": [
+      "select",
+      null,
+      null
+    ],
+    "cpu_preset": [
+      "select",
+      null,
+      null
+    ],
+    "width": [
+      "select",
+      null,
+      null
+    ],
+    "video_quality": [
+      "select",
+      null,
+      null
+    ],
+    "fps": [
+      "select",
+      null,
+      null
+    ],
+    "duration_s": [
+      "input",
+      "number",
+      "202"
+    ],
+    "view_width_m": [
+      "input",
+      "number",
+      "750"
+    ],
+    "imagery_pixels": [
+      "select",
+      null,
+      null
+    ],
+    "visual_quality": [
+      "select",
+      null,
+      null
+    ],
+    "hydrography": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "water_texture": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "water_texture_opacity": [
+      "input",
+      "number",
+      "0.65"
+    ],
+    "water_names": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "water_names_opacity": [
+      "input",
+      "number",
+      "1"
+    ],
+    "water_animated": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "headlights": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "day_night": [
+      "select",
+      null,
+      null
+    ],
+    "night_start_s": [
+      "input",
+      "number",
+      "40"
+    ],
+    "night_transition_s": [
+      "input",
+      "number",
+      "8"
+    ],
+    "night_darkness": [
+      "input",
+      "number",
+      "0.78"
+    ],
+    "night_signage_glow": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "traffic_model": [
+      "select",
+      null,
+      null
+    ],
+    "traffic_density": [
+      "input",
+      "number",
+      "1"
+    ],
+    "traffic_capacity_vphpl": [
+      "input",
+      "number",
+      "1900"
+    ],
+    "traffic_demand_vphpl": [
+      "input",
+      "number",
+      null
+    ],
+    "queue_capacity_model": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "heavy_vehicle_reaction": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "min_route_segment_m": [
+      "select",
+      null,
+      null
+    ],
+    "median_crossing": [
+      "select",
+      null,
+      null
+    ],
+    "signage_style": [
+      "select",
+      null,
+      null
+    ],
+    "flow_arrows": [
+      "select",
+      null,
+      null
+    ],
+    "flow_arrow_spacing_m": [
+      "input",
+      "number",
+      "1000"
+    ],
+    "signage_detail": [
+      "select",
+      null,
+      null
+    ],
+    "lanes_per_direction": [
+      "select",
+      null,
+      null
+    ],
+    "lane_width_m": [
+      "input",
+      "number",
+      "3.5"
+    ],
+    "lane_arrow_repeat": [
+      "select",
+      null,
+      null
+    ],
+    "arrow_min_gap_m": [
+      "input",
+      "number",
+      "25"
+    ],
+    "dxf_signage": [
+      "select",
+      null,
+      null
+    ],
+    "lane_arrows": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "gore_hatch": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "stop_lines": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "auto_signs": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "cities_radius_km": [
+      "input",
+      "number",
+      "25"
+    ],
+    "imagery_detail": [
+      "select",
+      null,
+      null
+    ],
+    "detail_textures": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "texture_style": [
+      "select",
+      null,
+      null
+    ],
+    "earthwork_look": [
+      "select",
+      null,
+      null
+    ],
+    "detail_resolution_m": [
+      "select",
+      null,
+      null
+    ],
+    "km_markers": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "direction_badge": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "median_grass": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "cities_show": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "traffic": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "render_workers": [
+      "select",
+      null,
+      null
+    ],
+    "render_profile": [
+      "select",
+      null,
+      null
+    ],
+    "short_video_mode": [
+      "select",
+      null,
+      null
+    ],
+    "traffic_speed_kmh": [
+      "input",
+      "number",
+      "70"
+    ],
+    "cabinEnabled": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "cabinDuration": [
+      "input",
+      "number",
+      "20"
+    ],
+    "cabinHeight": [
+      "input",
+      "number",
+      "1.25"
+    ],
+    "cabinFov": [
+      "input",
+      "number",
+      "72"
+    ],
+    "cabinPitch": [
+      "input",
+      "number",
+      "4"
+    ],
+    "cabinSmooth": [
+      "input",
+      "number",
+      "1.2"
+    ],
+    "cabinSpeed": [
+      "input",
+      "number",
+      null
+    ],
+    "cabinHood": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "preview_mode": [
+      "select",
+      null,
+      null
+    ],
+    "preview_time_s": [
+      "input",
+      "range",
+      "30"
+    ],
+    "baseMode": [
+      "select",
+      null,
+      null
+    ],
+    "tileAlpha": [
+      "input",
+      "range",
+      null
+    ],
+    "vecAlpha": [
+      "input",
+      "range",
+      null
+    ],
+    "canvas": [
+      "canvas",
+      null,
+      null
+    ],
+    "sessList": [
+      "select",
+      null,
+      null
+    ],
+    "sessAuto": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "cmdLine": [
+      "input",
+      null,
+      null
+    ],
+    "snapOn": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "hudOn": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "orthoOn": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "alignMode": [
+      "select",
+      null,
+      null
+    ],
+    "alignState": [
+      "input",
+      null,
+      null
+    ],
+    "pathName": [
+      "input",
+      null,
+      "Fluxo"
+    ],
+    "pathKind": [
+      "select",
+      null,
+      null
+    ],
+    "pathDirection": [
+      "select",
+      null,
+      null
+    ],
+    "pathLevel": [
+      "input",
+      "number",
+      "0"
+    ],
+    "traffic_network_preview": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "poiTitle": [
+      "input",
+      null,
+      null
+    ],
+    "poiKind": [
+      "select",
+      null,
+      null
+    ],
+    "poiSubtitle": [
+      "input",
+      null,
+      null
+    ],
+    "poiKmMode": [
+      "select",
+      null,
+      null
+    ],
+    "poiKm": [
+      "input",
+      null,
+      null
+    ],
+    "poiX": [
+      "input",
+      "number",
+      null
+    ],
+    "poiY": [
+      "input",
+      "number",
+      null
+    ],
+    "bridgeSpan": [
+      "input",
+      "number",
+      null
+    ],
+    "bridgeWidth": [
+      "input",
+      "number",
+      "3"
+    ],
+    "bridgeAccess": [
+      "select",
+      null,
+      null
+    ],
+    "rampFlight": [
+      "input",
+      "number",
+      "24"
+    ],
+    "busLength": [
+      "input",
+      "number",
+      "30"
+    ],
+    "busDepth": [
+      "input",
+      "number",
+      "3"
+    ],
+    "busSide": [
+      "select",
+      null,
+      null
+    ],
+    "inputValue": [
+      "input",
+      null,
+      null
+    ],
+    "td_kind": [
+      "select",
+      null,
+      null
+    ],
+    "td_mat": [
+      "select",
+      null,
+      null
+    ],
+    "td_grao": [
+      "input",
+      "range",
+      null
+    ],
+    "td_tom": [
+      "input",
+      "range",
+      null
+    ],
+    "td_remendos": [
+      "input",
+      "range",
+      null
+    ],
+    "td_fissuras": [
+      "input",
+      "range",
+      null
+    ],
+    "td_brilho": [
+      "input",
+      "range",
+      null
+    ],
+    "td_scope": [
+      "select",
+      null,
+      null
+    ],
+    "sd_surf": [
+      "select",
+      null,
+      null
+    ],
+    "sd_grao": [
+      "input",
+      "range",
+      null
+    ],
+    "sd_tom": [
+      "input",
+      "range",
+      null
+    ],
+    "sd_remendos": [
+      "input",
+      "range",
+      null
+    ],
+    "sd_fissuras": [
+      "input",
+      "range",
+      null
+    ],
+    "sd_brilho": [
+      "input",
+      "range",
+      null
+    ],
+    "sd_color": [
+      "input",
+      "color",
+      null
+    ],
+    "sd_look": [
+      "select",
+      null,
+      null
+    ],
+    "sd_scope": [
+      "select",
+      null,
+      null
+    ],
+    "sd_wcolor": [
+      "input",
+      "color",
+      null
+    ],
+    "sd_wtex": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "sd_wop": [
+      "input",
+      "range",
+      null
+    ],
+    "sd_wanim": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "sd_wnames": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "sd_wprev": [
+      "canvas",
+      null,
+      null
+    ],
+    "sd_white": [
+      "input",
+      "color",
+      null
+    ],
+    "sd_yellow": [
+      "input",
+      "color",
+      null
+    ],
+    "sd_wear": [
+      "input",
+      "range",
+      null
+    ],
+    "sd_sop": [
+      "input",
+      "range",
+      null
+    ],
+    "sd_sprev": [
+      "canvas",
+      null,
+      null
+    ],
+    "resetOutputs": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "ruleName": [
+      "input",
+      null,
+      null
+    ],
+    "ruleText": [
+      "textarea",
+      null,
+      null
+    ],
+    "opSearch": [
+      "input",
+      "search",
+      null
+    ],
+    "opSort": [
+      "select",
+      null,
+      null
+    ],
+    "tsName": [
+      "input",
+      null,
+      null
+    ],
+    "tsDesc": [
+      "input",
+      null,
+      null
+    ],
+    "tsMarks": [
+      "input",
+      "checkbox",
+      null
+    ],
+    "lmSearch": [
+      "input",
+      "search",
+      null
+    ],
+    "lmShow": [
+      "select",
+      null,
+      null
+    ],
+    "lmAll": [
+      "input",
+      "checkbox",
+      null
+    ]
+  }
+}

@@ -1,0 +1,3 @@
+# Preserva os bytes importados do pacote e seus hashes, inclusive no Windows.
+* -text
+atualizacoes/*.zip binary

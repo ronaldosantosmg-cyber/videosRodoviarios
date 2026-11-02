@@ -1,0 +1,3 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" class="rs-icon rs-icon-correcao-remover-segmento-defeituoso" aria-hidden="true" focusable="false">
+  <path d="M4 17l6-6m4-4l6-6" /><line x1="16" y1="13" x2="22" y2="19" /><line x1="22" y1="13" x2="16" y2="19" />
+</svg>

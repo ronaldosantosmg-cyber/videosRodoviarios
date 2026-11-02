@@ -1,0 +1,116 @@
+/* Estrutura da interface. Cálculos, geometria e caches pertencem ao motor existente. */
+.rsInterface26 { --rs-focus: #1878d1; }
+.rsInterface26 *, .rsInterface26 *::before, .rsInterface26 *::after { box-sizing: border-box; }
+.rsSkipLink { position: fixed; left: 12px; top: -80px; z-index: 20000; padding: 10px 16px; border-radius: 6px; background: var(--panel); color: var(--text); }
+.rsSkipLink:focus { top: 8px; }
+.rsInterface26 button:focus-visible, .rsInterface26 summary:focus-visible,
+.rsInterface26 input:focus-visible, .rsInterface26 select:focus-visible,
+.rsInterface26 textarea:focus-visible { outline: 2px solid var(--rs-focus); outline-offset: 2px; }
+.rsInterface26 main:focus { outline: none; }
+.rsInterface26 main > div, .rsInterface26 .editorMain, .rsInterface26 .editorBody { min-width: 0; }
+.rsInterface26 #rsToolRibbon { border-radius: 0; border-inline: 0; }
+.rsInterface26 #rsToolTabs { scrollbar-width: thin; }
+.rsInterface26 #rsToolRibbon .rsToolPanel { padding-block: 3px; }
+.rsInterface26 #rsToolRibbon button { min-height: 30px; }
+.rsInterface26 .rsPrimaryAction { border-radius: 6px; }
+.rsInterface26 dialog { padding: 20px; max-width: calc(100vw - 24px); max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px); overflow: auto; overscroll-behavior: contain; }
+.rsInterface26 dialog > h2:first-child, .rsInterface26 dialog > h3:first-child { margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.rsInterface26 dialog .grid { min-width: 0; }
+.rsInterface26 dialog label { min-width: 0; overflow-wrap: anywhere; }
+.rsInterface26 dialog input:not([type=checkbox]):not([type=radio]), .rsInterface26 dialog select, .rsInterface26 dialog textarea { max-width: 100%; min-width: 0; }
+.rsInterface26 dialog::backdrop { background: rgb(7 17 26 / 65%); }
+.rsInterface26 .canvasWrap { isolation: isolate; border: 1px solid var(--border); }
+.rsInterface26 #canvas { display: block; touch-action: none; }
+.rsInterface26 #rsInterfaceNotice { margin: 0; padding: 5px 10px; font-size: 12px; background: var(--panel); color: var(--text); border-bottom: 1px solid var(--border); }
+.rsInterface26 #rsInterfaceNotice[hidden] { display: none; }
+@media (max-width: 760px) {
+  .rsInterface26 dialog { width: calc(100vw - 24px); padding: 14px; }
+  .rsInterface26 dialog .grid { grid-template-columns: minmax(0, 1fr); }
+  .rsInterface26 #rsToolTabs { flex-wrap: nowrap; overflow-x: auto; }
+  .rsInterface26 #rsToolTabs > button { flex-shrink: 0; }
+  .rsInterface26 #rsQuickNavigation { flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rsInterface26 *, .rsInterface26 *::before, .rsInterface26 *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+/* Diagnóstico de estudo: sobreposição DOM, nunca pintada no canvas exportável. */
+#rsFlowProblemOverlay { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 12; }
+#rsFlowProblemOverlay[hidden] { display: none; }
+.rsFlowProblemPoint { position: absolute; width: 16px; height: 16px; min-width: 16px; min-height: 16px; padding: 0; border: 2px solid #6b5000; border-radius: 50%; background: #ffdd25; box-shadow: 0 0 0 3px #fff9; transform: translate(-50%,-50%); pointer-events: auto; cursor: help; animation: rsProblemPulse 1.4s ease-in-out infinite; }
+.rsFlowProblemPoint:hover, .rsFlowProblemPoint:focus-visible { background: #fff080; outline: 3px solid #164b82; animation: none; }
+@keyframes rsProblemPulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+.rsVideoSettings .rsVideoTabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 0; margin-bottom: 10px; border-bottom: 1px solid var(--border); }
+.rsVideoTabs button { font-size: 13px; padding: 7px 12px; }
+.rsVideoTabs [aria-selected=true] { background: var(--accent); color: #102b35; font-weight: 600; }
+.rsVideoSettings .rsVideoPane[hidden] { display: none !important; }
+.rsVideoSettings .rsVideoFields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px 18px; }
+.rsVideoSettings .rsVideoFields > details, .rsVideoSettings .rsVideoFields > p { grid-column: 1 / -1; margin: 0; }
+.rsVideoSettings .rsVideoFields > label { margin: 0; min-width: 0; }
+.rsVideoSettings .grid { grid-template-columns: repeat(2,minmax(0,1fr)); align-items: start; gap: 12px 18px; }
+.rsVideoSettings details { padding: 10px; border: 1px solid var(--border); border-radius: 6px; }
+.rsVideoSettings details summary { line-height: 1.5; }
+.rsVideoSettings .rsVideoGenerate { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--border); }
+.rsVideoGenerate span { font-size: 12px; flex: 1; min-width: 170px; }
+.rsMoreCascade { min-width: 230px; }
+@media (max-width: 760px) { .rsVideoSettings .rsVideoFields, .rsVideoSettings .grid { grid-template-columns: minmax(0,1fr); } }
+@media (prefers-reduced-motion: reduce) { .rsFlowProblemPoint { animation: none !important; } }
+.rsInterface26 dialog.rsFlowIssue { width: min(720px,calc(100vw - 24px)); max-width: min(720px,calc(100vw - 24px)); }
+#rsPanelPopup:has(.rsVideoSettings) { height: auto; min-height: 0; max-height: calc(100dvh - 32px); }
+#rsPanelPopup .rsVideoSettings > h2 { display: none; }
+#rsPanelBody .rsVideoSettings .grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+@media (max-width: 760px) { #rsPanelBody .rsVideoSettings .grid { grid-template-columns: minmax(0,1fr); } }
+.rsInterface26 dialog.rsSmallAI { width: min(920px,calc(100vw - 24px)); }
+.rsSmallAI .rsMiniPrompt { max-height: 30vh; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; padding: 10px; border: 1px solid var(--border); }
+.rsSmallAI > select, .rsSmallAI > textarea { width: 100%; margin: 8px 0; }
+
+.rsSmallAI p { overflow-wrap: anywhere; }
+.rsInterface26 dialog.rsOnlineConnection { width: min(620px,calc(100vw - 24px)); }
+.rsOnlineConnection label { display: block; margin: 10px 0; }
+.rsOnlineConnection label input, .rsOnlineConnection label select { display: block; width: 100%; margin-top: 5px; }
+.rsOnlineConnection a { display: block; padding: 5px 0; color: var(--rs-focus); }
+.rsOnlineConnection p { overflow-wrap: anywhere; }
+.rsInterface26 dialog.rsTrafficHelp { width: min(900px,calc(100vw - 24px)); }
+.rsTrafficHelp p { overflow-wrap: anywhere; }
+/* Rodapés de confirmação sempre acessíveis; somente o conteúdo da edição rola. */
+.rsInterface26 #rsPanelPopup,
+.rsInterface26 #rsPanelPopup:has(.rsVideoSettings) {
+  height: min(780px, calc(100dvh - 24px));
+  min-height: min(240px, calc(100dvh - 24px));
+  max-height: calc(100dvh - 24px);
+  padding: 0;
+  overflow: hidden;
+}
+.rsInterface26 #rsPanelBody { flex: 1 1 0px; overflow: auto; min-height: 0; }
+.rsInterface26 #rsPanelPopup > header,
+.rsInterface26 #rsPanelPopup > footer { flex: 0 0 auto; }
+.rsInterface26 dialog.rsTransactionalDialog {
+  width: min(1080px, calc(100vw - 24px));
+  height: min(780px, calc(100dvh - 24px));
+  padding: 0;
+  overflow: hidden;
+}
+.rsInterface26 dialog.rsTransactionalDialog[open] { display: flex; flex-direction: column; }
+.rsTransactionalDialog > .rsCommitHeader,
+.rsTransactionalDialog > .rsCommitFooter { display: flex; align-items: center; gap: 8px; padding: 10px 14px; flex: 0 0 auto; flex-wrap: wrap; }
+.rsCommitHeader { border-bottom: 1px solid var(--border); }
+.rsCommitHeader > h3 { flex: 1; margin: 0; }
+.rsCommitFooter { border-top: 1px solid var(--border); }
+.rsCommitFooter > [data-rs-edit-status] { flex: 1; min-width: 150px; font-size: 12px; }
+.rsTransactionalDialog > .rsCommitBody { flex: 1 1 0px; overflow: auto; min-height: 0; padding: 12px 14px; }
+/* Nós e inspeção: ícones compactos, somente na aba Tráfego. */
+.rsNodeToolbar{display:inline-flex;flex-wrap:wrap;gap:3px;align-items:center;max-width:100%;vertical-align:middle;padding:2px 5px;border-right:1px solid var(--border,#d6dde2)}
+.rsNodeToolbar button{width:30px;height:30px;padding:4px;display:inline-flex;align-items:center;justify-content:center}
+.rsNodeToolbar svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.rsNodeToolbar button[aria-pressed=true]{background:#ffdf91;color:#332400;border-color:#b77d00}
+.rsNodeToolbar{flex:0 0 auto;flex-wrap:nowrap}
+.studio142:not(.rsCadMode) #rsToolRibbon [data-activity="Tráfego"]>.rsPrimaryAction{min-width:max-content!important;max-width:none!important;white-space:nowrap;flex:0 0 auto!important}
+body.rsInterface26 #rsToolRibbon [data-activity="Tráfego"]>.rsPrimaryAction{width:max-content!important;min-width:max-content!important;max-width:none!important;white-space:nowrap!important;flex:0 0 auto!important}
+body.rsInterface26 #rsToolRibbon [data-activity="Tráfego"]>.rsPrimaryAction>svg{width:18px!important;height:18px!important;flex:none}
+body.rsInterface26.rsCadMode #rsToolRibbon [data-activity="Tráfego"]>.rsPrimaryAction{width:32px!important;min-width:32px!important;max-width:32px!important}
+body.rsInterface26.rsCadMode #rsToolRibbon [data-activity="Tráfego"]>.rsPrimaryAction>span{display:none!important}
+
+/* 2.12: motivo do corte pela forma e cor (não só cor): impedimento = quadrado vermelho; vão sem pavimento = losango âmbar; veículo não cabe = círculo laranja. */
+.rsFlowProblemPoint[data-cat="impedimento_real"] { background: #e5484d; border-color: #5c0b10; border-radius: 3px; }
+.rsFlowProblemPoint[data-cat="sem_pavimento"] { background: #ffb020; border-color: #6b4200; border-radius: 2px; transform: translate(-50%,-50%) rotate(45deg); }
+.rsFlowProblemPoint[data-cat="fora_da_pista"] { background: #ff8a3d; border-color: #6b2c00; }
+.rsCutCat { padding: 6px 8px; border-left: 4px solid #ffb020; background: #fff8e6; color: #3a2a00; }

@@ -1,0 +1,125 @@
+"""1.14: perfis de mapeamento de camadas (DXF -> tipo) reutilizáveis entre projetos.
+
+Cada perfil é uma lista ordenada de regras {pattern, role}. O padrão aceita * (qualquer sequência) e
+? (um caractere), sem diferenciar maiúsculas/minúsculas nem acentos; a primeira regra que casar vale.
+O perfil "Padrão" reúne os nomes mais comuns; o usuário salva os seus (por exemplo, o padrão CAD da
+empresa) e aplica em qualquer projeto. Nada é fixo no código: o mapeamento final fica na configuração
+do projeto e pode ser alterado camada a camada.
+"""
+import json,re,unicodedata,fnmatch,threading
+from functools import lru_cache
+from pathlib import Path
+from .project_state import locked,revision
+from .store import write_json
+
+ROLE_LABELS={'axis':'Eixo','pavement':'Pista projetada','existing_pavement':'Pista existente','shoulder':'Acostamento',
+             'edge_line':'Bordo (linha de borda)','median':'Canteiro','terrain':'Terrapleno em grama','barrier':'Barreira','oae':'OAE','cut':'Corte','fill':'Aterro',
+             'earthwork':'Talude (corte/aterro pela proximidade)','domain':'Faixa de domínio','water':'Hidrografia',
+             'sign_h':'Sinalização horizontal (pintura)','sign_v':'Sinalização vertical (placas)'}
+
+from .asset_catalog import ASSET_ROLES,DXF_RULES,CATALOG
+ROLE_LABELS.update(ASSET_ROLES)
+
+BUILTIN={'name':'Padrão (nomes comuns)','builtin':True,'rules':[
+    {'pattern':'*DESAPROP*','role':'domain'},
+    *DXF_RULES,
+    {'pattern':'*SINALIZ*HORIZ*','role':'sign_h'},{'pattern':'*PINTURA*','role':'sign_h'},{'pattern':'*FAIXA*PEDEST*','role':'sign_h'},{'pattern':'*ZEBRAD*','role':'sign_h'},
+    {'pattern':'*SINALIZ*VERT*','role':'sign_v'},{'pattern':'*PLACA*','role':'sign_v'},
+    {'pattern':'*DOMIN*','role':'domain'},{'pattern':'*FAIXA*FD*','role':'domain'},{'pattern':'FD_*','role':'domain'},
+    {'pattern':'*EIXO*','role':'axis'},{'pattern':'*AXIS*','role':'axis'},{'pattern':'*CENTERLINE*','role':'axis'},
+    {'pattern':'*NEWJERSEY*','role':'barrier'},{'pattern':'*NEW*JERSEY*','role':'barrier'},{'pattern':'*BARREIRA*','role':'barrier'},{'pattern':'*DEFENSA*','role':'barrier'},
+    {'pattern':'*GRAMADO*','role':'terrain'},{'pattern':'*AREA*VERDE*','role':'terrain'},{'pattern':'*CANTEIRO*','role':'median'},{'pattern':'*MEDIAN*','role':'median'},
+    {'pattern':'*ACOST*','role':'shoulder'},{'pattern':'*SHOULDER*','role':'shoulder'},
+    {'pattern':'*BORDO*','role':'edge_line'},{'pattern':'*LBO*','role':'edge_line'},{'pattern':'*EDGE*LINE*','role':'edge_line'},
+    {'pattern':'*HOAE*','role':'oae'},{'pattern':'OAE','role':'oae'},{'pattern':'*OAE*','role':'oae'},{'pattern':'*PONTE*','role':'oae'},{'pattern':'*VIADUTO*','role':'oae'},
+    {'pattern':'*HATCH*PAV*EXI*','role':'existing_pavement'},{'pattern':'*PAV*EXITENTE*','role':'existing_pavement'},{'pattern':'*HATCH*PISTA*EXIST*','role':'existing_pavement'},
+    {'pattern':'*HPAV*EXIST*','role':'existing_pavement'},{'pattern':'*PAV*EXIST*','role':'existing_pavement'},{'pattern':'*PISTA*EXIST*','role':'existing_pavement'},
+    {'pattern':'*HATCH*PAV*','role':'pavement'},{'pattern':'*HATCH*PISTA*','role':'pavement'},
+    {'pattern':'*HPAV*','role':'pavement'},{'pattern':'*PAVIMENTO*','role':'pavement'},{'pattern':'*PISTA*PROJ*','role':'pavement'},
+    {'pattern':'*CORTE*','role':'cut'},{'pattern':'*ATERRO*','role':'fill'},
+    {'pattern':'*HIDRO*','role':'water'},{'pattern':'RIO*','role':'water'},{'pattern':'*_RIO*','role':'water'},{'pattern':'*-RIO*','role':'water'},{'pattern':'* RIO*','role':'water'},{'pattern':'*CORREGO*','role':'water'},{'pattern':'*LAGO*','role':'water'},{'pattern':'*AGUA*','role':'water'},{'pattern':'*DRENAGEM*NATURAL*','role':'water'},
+]}
+
+_lock=threading.Lock()
+
+def _normalize(text):
+    return ''.join(c for c in unicodedata.normalize('NFKD',text.upper()) if not unicodedata.combining(c))
+
+@lru_cache(maxsize=2048)
+def _normalized_name(text):
+    return _normalize(text)
+
+def norm(s):
+    text=str(s)
+    # Limita também o tamanho de cada entrada; não retém documentos ou logs.
+    return _normalized_name(text) if len(text)<=1024 else _normalize(text)
+
+def matches(pattern,name):
+    return fnmatch.fnmatchcase(norm(name),norm(pattern))
+
+# 1.42.43: layers que o nome denuncia como NÃO operacionais (eixo descomissionado, estacas/marcações de estaca, juntas de corte) nunca
+# viram eixo, corte etc. por um padrão genérico como *EIXO* ou *CORTE*; ficam sem papel até o usuário decidir.
+NOT_OPERATIONAL=('*DESCOMIS*','*DESATIV*','*DEMOLID*','*A RETIRAR*','*ESTACAS*','*JUNTA*')
+def not_operational(name):
+    n=norm(name);return any(fnmatch.fnmatchcase(n,norm(p)) for p in NOT_OPERATIONAL)
+
+def role_for(name,rules):
+    normalized=norm(name)
+    if not_operational(name):return None
+    for r in rules:
+        if r.get('role') in ROLE_LABELS and fnmatch.fnmatchcase(normalized,norm(r.get('pattern',''))):return r['role']
+    return None
+
+def apply(layer_names,profile):
+    out={}
+    for n in layer_names:
+        r=role_for(n,profile['rules'])
+        if r:out.setdefault(r,[]).append(n)
+    return out
+
+def _file(root):return Path(root)/'_perfis_camadas.json'
+
+def load(root):
+    f=_file(root);user=[]
+    if f.exists():
+        try:user=[p for p in json.loads(f.read_text(encoding='utf-8')) if isinstance(p,dict) and p.get('name')]
+        except (OSError,ValueError):user=[]
+    return [BUILTIN]+user
+
+def validate(p):
+    name=str(p.get('name','')).strip()
+    if not name or len(name)>80:raise ValueError('Dê um nome ao perfil (até 80 caracteres).')
+    if name==BUILTIN['name']:raise ValueError('Esse nome é do perfil padrão; escolha outro.')
+    rules=[]
+    for r in p.get('rules') or []:
+        pat=str(r.get('pattern','')).strip();role=r.get('role')
+        if not pat:continue
+        if role not in ROLE_LABELS:raise ValueError(f'Tipo inválido na regra "{pat}".')
+        if len(pat)>200:raise ValueError('Padrão longo demais.')
+        material=r.get('material')
+        if material is not None and material not in CATALOG:raise ValueError('Material não cadastrado no catálogo local.')
+        rules.append({'pattern':pat,'role':role,**({'material':material} if material else {})})
+    if not rules:raise ValueError('O perfil precisa de pelo menos uma regra.')
+    if len(rules)>500:raise ValueError('Perfil com regras demais (máximo 500).')
+    return {'name':name,'rules':rules}
+
+def save(root,p,*,create_only=False,expected=None):
+    p=validate(p)
+    with _lock,locked(root):
+        previous=next((x for x in load(root)[1:] if x['name']==p['name']),None)
+        if create_only and previous is not None:raise ValueError('Já existe um perfil com esse nome. Escolha outro em Salvar como.')
+        if expected is not None and (previous is None or revision(validate(previous))!=expected):raise ValueError('O perfil mudou. Reabra antes de salvar; o rascunho foi preservado.')
+        user=[x for x in load(root)[1:] if x['name']!=p['name']]+[p]
+        f=_file(root)
+        if f.is_symlink():raise ValueError('Perfil não pode ser um link simbólico.')
+        write_json(f,user)
+    return p
+
+def delete(root,name):
+    with _lock,locked(root):
+        user=load(root)[1:];left=[x for x in user if x['name']!=name]
+        if len(left)==len(user):return False
+        f=_file(root)
+        if f.is_symlink():raise ValueError('Perfil não pode ser um link simbólico.')
+        write_json(f,left)
+    return True

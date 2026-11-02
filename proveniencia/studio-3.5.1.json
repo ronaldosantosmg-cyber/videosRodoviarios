@@ -1,0 +1,17 @@
+{
+  "version": "3.5.1",
+  "base_version": "3.5",
+  "description": "Hashes dos arquivos alterados em relação à importação 3.5. Demais arquivos mantêm os hashes de studio-3.5.json.",
+  "files": {
+    "LEIA-ME.txt": "6a58b3468d79d238b555161b2f0bdf530b5702cab2011e6c2cf325e60436234f",
+    "suporte/sistema/VERSAO.json": "9e385e22e033e1c8ed56ddbf8fff7bb73801cb1edaa4b37d4601fc563a44e1cd",
+    "suporte/sistema/app/js/01_estado_configuracao.js": "9b242a061fdac9774565c067f218347ca3d16d40a8b8131dac46824fa103a799",
+    "suporte/sistema/app/js/36_videos_limpeza_atualizar.js": "a01afc9aa648c71cd20e8ebde75970b55601e2aa11bb42fb33adbb95b2bdce9b",
+    "suporte/sistema/app/js/54_vista_3d.js": "a9aafbe78775dc750b0de0c147ad71a1add4202fb10701ad32d7e7621d0cce40",
+    "suporte/sistema/app/progress_pulse.py": "3d8750940f9e0b1bc850ce354b63305ca26452d46640c74f1b637763ef0237ad",
+    "suporte/sistema/app/render.py": "bb97f4ed55e6c5d7a1a47c6053b829be4ccb5e0e9d09b2e5211da35b35be11d0",
+    "suporte/sistema/app/rotas/projetos.py": "05d4553e5adefc1b09bbcea6773cbe0b2521f898f1b7afba4727a48df384b3da",
+    "suporte/sistema/app/simulation.py": "6b8e8b3f3b34c73d834f3cddf51d392525ed9222e881d517ad85fa0a908b16b8",
+    "suporte/sistema/app/worker.py": "135d4c1988471a4dd37585feff0abadaf48300c38a58fb24cf9bdaa1f70b38cf"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "label": "Vídeo TH57 aprovado (referência histórica)",
+  "status": "parcial",
+  "note": "Dados do arquivo registrados na validação 1.0. As métricas de imagem são medidas no computador do usuário pela ação 'Gerar ficha técnica e remover o vídeo de referência' enquanto o arquivo referencia.mp4 ainda existir.",
+  "file": {
+    "bytes": 456658115,
+    "width": 2560,
+    "height": 1440,
+    "fps": 30.0,
+    "frames": 6060,
+    "duration_s": 202.0,
+    "codec": "h264",
+    "profile": "High",
+    "pix_fmt": "yuv420p",
+    "bitrate_avg_mbps": 18.085,
+    "bits_per_pixel": 0.1635,
+    "sha256": "1d8cc8267015132a80ec4363bb1e5a66f39361d2a7e897ba509c7974f97e488b"
+  },
+  "image_median": {},
+  "samples": {}
+}

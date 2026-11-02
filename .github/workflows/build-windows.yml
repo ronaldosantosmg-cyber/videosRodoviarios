@@ -1,145 +1,41 @@
-name: Build Windows
+name: Pacote Windows Rodovia Studio
 
 on:
   push:
     branches: [main]
-    tags: ['REV*']
+    tags: ['studio-v*']
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  build:
+  pacote:
     runs-on: windows-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-
-      - name: Identificar revisão
-        id: revision
-        shell: pwsh
-        run: |
-          $meta = python -c "import sys; sys.path.insert(0, 'src'); import videos_rodoviarios as v; print(f'{v.__version__}|{v.__revision__}|{v.__revision_name__}')"
-          $parts = $meta.Trim().Split('|')
-          $version = $parts[0]
-          $revision = $parts[1]
-          $revisionName = $parts[2]
-          "version=$version" >> $env:GITHUB_OUTPUT
-          "revision=$revision" >> $env:GITHUB_OUTPUT
-          "revision_name=$revisionName" >> $env:GITHUB_OUTPUT
-          "package=VideosRodoviarios-$revision-Windows-SemAdmin" >> $env:GITHUB_OUTPUT
-
-      - name: Instalar dependências
-        shell: pwsh
-        run: |
-          python -m pip install -U pip
-          pip install -e .[dev]
-          pip install pyinstaller
-
-      - name: Testar motor
-        shell: pwsh
-        run: |
-          ruff check .
-          pytest -q
-          python -m compileall -q src
-
-      - name: Teste rápido do renderizador
-        shell: pwsh
-        run: |
-          python -c "import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())"
-
-      - name: Gerar executável Windows portátil sem elevação
-        shell: pwsh
-        run: |
-          pyinstaller --noconfirm --clean --onedir --windowed `
-            --name VideosRodoviarios `
-            --contents-directory runtime `
-            --manifest build/windows_portable.manifest `
-            --collect-all ezdxf `
-            --collect-all shapely `
-            --collect-all pyproj `
-            --collect-all imageio_ffmpeg `
-            --collect-all PIL `
-            src/videos_rodoviarios/app_final.py
-
-      - name: Montar pacote portátil da revisão
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path pacote | Out-Null
-          New-Item -ItemType Directory -Force -Path pacote/texturas | Out-Null
-          New-Item -ItemType Directory -Force -Path pacote/projetos_salvos | Out-Null
-          New-Item -ItemType Directory -Force -Path pacote/banco_dados | Out-Null
-          New-Item -ItemType Directory -Force -Path pacote/apoio/gdal | Out-Null
-          New-Item -ItemType Directory -Force -Path pacote/apoio/ecw/plugins | Out-Null
-          New-Item -ItemType Directory -Force -Path pacote/apoio/cache_tiles | Out-Null
-
-          Copy-Item dist/VideosRodoviarios/VideosRodoviarios.exe pacote/VideosRodoviarios.exe
-          Copy-Item dist/VideosRodoviarios/runtime pacote/runtime -Recurse -Force
-          Copy-Item GUIA_RAPIDO.txt pacote/apoio/GUIA_RAPIDO.txt
-          Copy-Item README.md pacote/apoio/README.md
-          Copy-Item SEM_ADMIN.txt pacote/apoio/SEM_ADMIN.txt
-          if (Test-Path REVISOES.md) { Copy-Item REVISOES.md pacote/apoio/REVISOES.md }
-
-          Set-Content -Path pacote/texturas/LEIA-ME.txt -Value "Texturas e materiais visuais do projeto."
-          Set-Content -Path pacote/projetos_salvos/LEIA-ME.txt -Value "Projetos, analises, previas, imagens convertidas e videos gerados pelo aplicativo."
-          Set-Content -Path pacote/banco_dados/LEIA-ME.txt -Value "Configuracoes e bancos de dados locais do aplicativo."
-          Set-Content -Path pacote/apoio/gdal/LEIA-ME.txt -Value "Runtime GDAL portatil. Coloque aqui gdal_translate, gdalinfo, DLLs e dados do GDAL sem instalar no Windows."
-          Set-Content -Path pacote/apoio/ecw/LEIA-ME.txt -Value "Componentes ECW Desktop Read-Only redistribuiveis/autorizados. O aplicativo detecta o driver automaticamente."
-          Set-Content -Path pacote/apoio/cache_tiles/LEIA-ME.txt -Value "Cache local dos mosaicos XYZ/QMS. Pode ser apagado a qualquer momento; o aplicativo recria quando necessario."
-          Set-Content -Path pacote/apoio/ESTRUTURA.txt -Value "Execução portátil: nenhum instalador, nenhuma elevação UAC e nenhum componente gravado em Program Files, Windows, System32 ou Registro. Por exigência do PyInstaller, a pasta runtime deve permanecer ao lado de VideosRodoviarios.exe e não pode ser movida."
-
-          @"
-          Produto: Vídeos Rodoviários
-          Versão: ${{ steps.revision.outputs.version }}
-          Revisão: ${{ steps.revision.outputs.revision }}
-          Nome: ${{ steps.revision.outputs.revision_name }}
-          Perfil: Windows portátil / asInvoker / sem instalação / sem administrador
-          Fundo: motor XYZ compatível com provedores QuickMapServices / mosaico contínuo sem linhas entre tiles
-          Runtime: pasta runtime obrigatoriamente ao lado do executável
-          Commit: $env:GITHUB_SHA
-          Build UTC: $(Get-Date -AsUTC -Format 'yyyy-MM-ddTHH:mm:ssZ')
-          "@ | Set-Content -Path pacote/REVISAO.txt
-
-          $zip = "${{ steps.revision.outputs.package }}.zip"
-          Compress-Archive -Path pacote/* -DestinationPath $zip -Force
-
-      - name: Validar pacote e inicialização
-        shell: pwsh
-        run: |
-          if (-not (Test-Path pacote/VideosRodoviarios.exe)) { throw "Executável ausente" }
-          if (-not (Test-Path pacote/runtime/python311.dll)) { throw "python311.dll ausente do caminho esperado pelo bootloader" }
-          if (-not (Test-Path pacote/runtime/VCRUNTIME140.dll)) { throw "VCRUNTIME140.dll ausente" }
-          if (Test-Path pacote/setup.exe) { throw "Pacote não deve conter instalador" }
-          if (Test-Path pacote/*.msi) { throw "Pacote não deve conter MSI" }
-
-          $p = Start-Process -FilePath (Resolve-Path pacote/VideosRodoviarios.exe) -WorkingDirectory (Resolve-Path pacote) -PassThru
-          Start-Sleep -Seconds 4
-          if ($p.HasExited) {
-            if ($p.ExitCode -ne 0) { throw "Executável encerrou durante o teste de abertura. Código: $($p.ExitCode)" }
-          } else {
-            Stop-Process -Id $p.Id -Force
-          }
-          Write-Host "Pacote validado: runtime no caminho esperado e executável iniciou sem falha imediata."
-
-      - name: Publicar pacote para download
-        uses: actions/upload-artifact@v4
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
         with:
-          name: ${{ steps.revision.outputs.package }}
-          path: ${{ steps.revision.outputs.package }}.zip
+          node-version: '22'
+      - name: Instalar dependências Windows com hashes
+        run: |
+          python -m pip install --require-hashes -r suporte/sistema/requirements-windows.lock
+          python -m pip install pytest==9.1.1 httpx==0.28.1
+          python -m pip check
+      - name: Validar código e inicialização local
+        run: |
+          python -m compileall -q suporte/sistema scripts tests
+          python -m pytest -q tests
+          python scripts/verificar_servidor.py
+      - name: Gerar pacote Studio (requer Python 3.12 no destino)
+        run: python scripts/empacotar_studio.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RodoviaStudio-Windows-Python312
+          path: dist/*
           if-no-files-found: error
           retention-days: 90
-
-      - name: Publicar revisão permanente no GitHub Releases
-        if: startsWith(github.ref, 'refs/tags/REV')
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          $zip = "${{ steps.revision.outputs.package }}.zip"
-          gh release create "${{ steps.revision.outputs.revision }}" $zip `
-            --title "${{ steps.revision.outputs.revision }} · ${{ steps.revision.outputs.revision_name }}" `
-            --notes "Pacote Windows portátil, sem instalação e sem solicitação de elevação UAC, da revisão ${{ steps.revision.outputs.revision }}. Versão ${{ steps.revision.outputs.version }}."

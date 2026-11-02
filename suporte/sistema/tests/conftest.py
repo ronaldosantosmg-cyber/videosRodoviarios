@@ -1,0 +1,40 @@
+"""Impede que a coleta de testes abra um banco de projeto dentro do pacote."""
+import os
+import tempfile
+
+if not os.environ.get('RODOVIA_DATA'):
+    os.environ['RODOVIA_DATA']=tempfile.mkdtemp(prefix='rodovia_pytest_')
+
+# Instâncias de workers não compartilham o banco de tarefas durante a coleta.
+import re
+from pathlib import Path
+_worker=os.environ.get('PYTEST_XDIST_WORKER','')
+if re.fullmatch(r'gw\d+',_worker):os.environ['RODOVIA_DATA']=str(Path(os.environ['RODOVIA_DATA'])/_worker)
+
+# 2.28: testes que abrem navegador (Playwright) recebem o marcador "navegador".
+# Gate rápido: pytest -m "not navegador"   |   só navegador: pytest -m navegador
+_CACHE={}
+def pytest_configure(config):
+    config.addinivalue_line('markers','navegador: abre o navegador (Playwright); lento')
+def pytest_collection_modifyitems(config,items):
+    import pytest
+    for item in items:
+        path=str(item.fspath)
+        if path not in _CACHE:
+            try:text=open(path,encoding='utf-8').read()
+            except OSError:text=''
+            _CACHE[path]=any(k in text for k in ('playwright','chromium','gl_page','visual_harness','test_v14234_nodes_ui_video'))
+        if _CACHE[path] or {'live','gl_page','page','browser'}&set(getattr(item,'fixturenames',())):item.add_marker(pytest.mark.navegador)
+
+# 3.3: a faixa antiga de ferramentas (abas Projeto/Editar/...) fica atrás do botão "Todas" da barra de comandos.
+# Os testes de navegador escritos para ela a recebem aberta, como antes (aplicado na importação: vale para fixtures de módulo).
+try:
+    from playwright.sync_api import Page as _Page
+    _goto=_Page.goto
+    def _goto_com_faixa(self,*a,**k):
+        try:self.add_init_script("try{localStorage.setItem('rodovia_barra_v1',JSON.stringify({todas:true,grupos:[]}))}catch(e){}")
+        except Exception:pass
+        return _goto(self,*a,**k)
+    _Page.goto=_goto_com_faixa
+except Exception:
+    pass
