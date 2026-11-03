@@ -254,11 +254,31 @@ class TrafficSim:
         x=np.interp(fut,d,q[:,0]);y=np.interp(fut,d,q[:,1])
         return bool((((x-c[0])**2+(y-c[1])**2)<=r*r).any())
 
+    def seed_forward_gap(self,following,leading,look):
+        """Folga longitudinal na rede dirigida, inclusive entre itinerários.
+
+        Só caminha pelos links locais do seguidor dentro do horizonte. O filtro
+        espacial da semeadura fornece os pares; não reconstrói/sorta a ocupação.
+        """
+        path=following['p'];j,lid,_,_,offset=self.locate(path,following['s'])
+        _,other,_,_,other_offset=self.locate(leading['p'],leading['s'])
+        half=(following['L']+leading['L'])/2
+        if lid==other:return other_offset-offset-half if other_offset>=offset-1e-6 else math.inf
+        distance=0.
+        for k in range(j,len(self.link_of[path])):
+            identity,a,b=self.link_of[path][k]
+            origin=self.link_offsets[path][k]
+            if k>j and identity==other:
+                if other_offset>=origin-1e-6:return distance+other_offset-origin-half
+            distance+=(b-a)-(offset-origin if k==j else 0.)
+            if distance>look:break
+        return math.inf
+
     def semear_percurso(self,V,vid,t0,rng,status=lambda *a:None):
         """O corredor já começa povoado em toda a extensão (os veículos percorrem TODO o modelo desde o 1º quadro).
         Densidade solicitada = taxa de entrada × tempo de percurso; limitada pelo espaçamento inicial da regra contra comboios."""
-        n=len(self.paths);semeados=0;self.seed_requested=0;self.seed_spaced_capacity=0
-        _grade={}
+        n=len(self.paths);semeados=0;self.seed_requested=0;self.seed_spaced_capacity=0;self.seed_shared_spacing_rejected=0
+        _grade={};max_seed_speed=0.;max_seed_length=0.
         for j in range(n):
             status(.22,f'Distribuindo veículos: percurso {j+1}/{n}, {semeados} veículos admitidos')
             r=float(self.rate[j]) if j<len(self.rate) else 0.
@@ -286,8 +306,14 @@ class TrafficSim:
                 if getattr(self.s,'vehicle_mix','')=='rodovia_br':self.driver_variety(new,vid,vt)
                 # Índice espacial da semeadura: sem ele a admissão compara cada candidato com TODOS os já semeados (O(n²), horas em trechos longos).
                 _c=self.polygon_safety.pose(new)[0];_ck=(int(_c[0]//50),int(_c[1]//50))
-                _perto=[w for dx in range(-2,3) for dy in range(-2,3) for w in _grade.get((_ck[0]+dx,_ck[1]+dy),())]
+                max_seed_speed=max(max_seed_speed,new['v0']);max_seed_length=max(max_seed_length,Lv)
+                radius=max(100.,3.*max_seed_speed+max_seed_length+5.);cells=math.ceil(radius/50.)
+                _perto=[w for dx in range(-cells,cells+1) for dy in range(-cells,cells+1) for w in _grade.get((_ck[0]+dx,_ck[1]+dy),())]
                 if any(w['p']==j and abs(w['s']-pos)<max(35.,3.*new['v0']+(w['L']+Lv)/2) for w in _perto):vid+=1;continue
+                # A pista física é compartilhada; geometria sem colisão não basta
+                # para garantir os 12 m e o headway exigidos no primeiro quadro.
+                if any(self.seed_forward_gap(new,w,radius)<max(14.,3.*new['v0']) or
+                       self.seed_forward_gap(w,new,radius)<max(14.,3.*w['v0']) for w in _perto):self.seed_shared_spacing_rejected+=1;vid+=1;continue
                 if not self.polygon_safety.admission(new,V,vehicle_check=getattr(self.s,'traffic_prevent_collisions',True),near=_perto):vid+=1;continue
                 # nunca semear dentro de travessia de ferrovia, área de semáforo ou faixa de pedestres (mesmas regras da entrada normal)
                 if not self.transport.admission_allowed(j,t0,Lv+2*pos) or not self.pedestrians.admission_allowed(j,Lv+2*pos):vid+=1;continue
@@ -691,7 +717,7 @@ class TrafficSim:
                     if t-last_admit[self.entry[j]] < min_headway:continue
                 gap,vl=self.leader(new,occ)
                 behind=[w for o,w,wp,ws in occ.get(self.link_of[j][0][0],[]) if o<Lv+IDM['s0']]
-                if gap<max(IDM['s0']+1,3.*new['v0']) or behind:continue
+                if gap<max(14.,3.*new['v0']) or behind:continue
                 new['v']=min(.9*new['v0'],math.sqrt(max(0.,2*IDM['b']*(gap-IDM['s0'])))+vl*.5) if gap<math.inf else .9*new['v0']
                 V.append(new)
                 if entry_centers is not None:entry_centers.add(new)
@@ -1020,7 +1046,7 @@ class TrafficSim:
         except Exception as exc:return [{'erro':str(exc)}]
     def report(self):
         r=self._relatorio_base()
-        r['initialization']={'mode':'seeded' if self.s.traffic_semear else 'entries','warmup_seconds':self.warmup_seconds,'seeded_vehicles':getattr(self,'semeados',0),'simulation_seconds':round(self.simulation_seconds,3),'requested_seed_vehicles':getattr(self,'seed_requested',0),'spaced_seed_capacity':getattr(self,'seed_spaced_capacity',0),'scope':'População inicial pode ser menor que a demanda para manter espaçamento; chegadas continuam na taxa solicitada, aguardando entrada segura.'}
+        r['initialization']={'mode':'seeded' if self.s.traffic_semear else 'entries','warmup_seconds':self.warmup_seconds,'seeded_vehicles':getattr(self,'semeados',0),'simulation_seconds':round(self.simulation_seconds,3),'requested_seed_vehicles':getattr(self,'seed_requested',0),'spaced_seed_capacity':getattr(self,'seed_spaced_capacity',0),'shared_spacing_rejected':getattr(self,'seed_shared_spacing_rejected',0),'scope':'População inicial pode ser menor que a demanda para manter espaçamento; chegadas continuam na taxa solicitada, aguardando entrada segura.'}
         r['gold_rule']=self.fleet_audit
         r['terminal_outflow']={'policy':'front_reaches_sink','internal_links_preserved':True,'exited_by_path':list(self.exited_by_path)}
         try:

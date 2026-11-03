@@ -24,16 +24,23 @@ RULES=[
 def guidance(kind,message,point=None):
     defaults={'analyze':'Conferir camadas, eixo e pavimento antes de analisar fluxos.','preview':'Conferir imagem, enquadramento e configurações da prévia.','render':'Conferir FFmpeg, configuração do vídeo e pasta de saída.','scene3d':'Conferir geometria, memória e atualização da cena 3D.','convert_imagery':'Conferir imagem, CRS e drivers de leitura.','alignment':'Conferir alinhamento e pares de pontos de controle.'}
     kind=str(kind or 'cálculo')[:80];message=str(message or '')[:8000];text=(kind+' '+(message or defaults.get(kind,''))).casefold()
-    matches=[(title,steps) for terms,title,steps in RULES if any(term in text for term in terms)]
+    gold='regra de ouro' in text or 'comboio sem semáforo' in text
+    if gold:
+        if any(term in text for term in ('modelo de tráfego simulado','microssimulação validada','modo clássico')):
+            matches=[('Conferir o motor protegido de tráfego',['Use o motor simulado com prevenção de colisões e respeito à sinalização.','Preserve os fluxos cadastrados e confira a versão instalada antes de repetir a geração.'])]
+        else:
+            matches=[('Conferir espaçamento e retenção da frota',['Localize o percurso, a posição e o instante indicados na auditoria.','No instante zero, confira a distribuição inicial entre itinerários que compartilham a mesma pista.','Nos demais instantes, confira aproximações, mudanças de faixa, confluências e demanda; mantenha a regra de ouro ativa.'])]
+    else:
+        matches=[(title,steps) for terms,title,steps in RULES if any(term in text for term in terms)]
     if not matches:matches=[('Conferir entradas e relatório do cálculo',['Confira os arquivos, as configurações e a mensagem original do processamento.','Corrija a causa indicada, salve e repita uma prévia curta; preserve o projeto e o histórico.'])]
     actions=[]
     def action(code,label):
         if code not in [a['id'] for a in actions]:actions.append({'id':code,'label':label})
     if any(t in text for t in ('config.json','corromp','historico','histórico','.estado','errno 2','no such file','pasta ausente')):action('protection','Conferir proteção e recuperação')
-    if any(t in text for t in ('fluxo','trajetória','barreira','colisão','contramão','interdição','esterco','ziguezague')):action('flow','Abrir correção assistida dos fluxos')
+    if gold or any(t in text for t in ('fluxo','trajetória','barreira','colisão','contramão','interdição','esterco','ziguezague')):action('flow','Abrir correção assistida dos fluxos')
     if any(t in text for t in ('seção','secao','faixa','acostamento')):action('sections','Escolher eixo e conferir seção')
     if any(t in text for t in ('textura','material','hachura','oae')):action('materials','Conferir materiais')
-    if any(t in text for t in ('ffmpeg','encoder','mp4','vídeo','render')):action('video','Conferir configuração de vídeo')
+    if not gold and any(t in text for t in ('ffmpeg','encoder','mp4','vídeo','render')):action('video','Conferir configuração de vídeo')
     if any(t in text for t in ('enospc','no space','espaço insuficiente','disco cheio','memory','memória')):action('maintenance','Revisar manutenção e recursos')
     action('logs','Reabrir diagnóstico dos logs')
     location=None
