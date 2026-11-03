@@ -30,10 +30,25 @@ def inspect(sim, vehicles, occ, dt=1.):
                 'reason': v.get('_why', 'desconhecido')})
 
 
+def _normalize_legacy_mode(settings):
+    """Mantém o seletor atual e a antiga flag ``traffic_classic`` coerentes.
+
+    A interface atual grava ``traffic_model``; projetos antigos também podem carregar
+    ``traffic_classic``. Quando os dois campos divergem, a flag antiga não pode fazer
+    um projeto escolhido como ``simulado`` voltar silenciosamente ao motor clássico.
+    """
+    model = getattr(settings, 'traffic_model', 'simulado')
+    if hasattr(settings, 'traffic_classic'):
+        settings.traffic_classic = model == 'anterior'
+    return model
+
+
 def validate_mode(settings):
     """Recusa configurações incompatíveis antes de gastar tempo preparando a cena."""
-    if not settings.traffic:return
-    if settings.traffic_classic or settings.traffic_model!='simulado':
+    model = _normalize_legacy_mode(settings)
+    if not settings.traffic:
+        return
+    if model != 'simulado':
         raise ValueError('A regra de ouro exige o modelo de tráfego simulado para exportar veículos.')
     if not settings.traffic_prevent_collisions or not settings.traffic_respect_signals:
         raise ValueError('Ative prevenção de colisões e respeito à sinalização para exportar a frota.')
