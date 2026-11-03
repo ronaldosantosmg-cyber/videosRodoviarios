@@ -67,6 +67,9 @@ class Codec:
     def __init__(self,sim,directory=None):
         self.directory=Path(directory).resolve() if directory is not None else None
         self.sim=sim;self.nodes=[];self.arrays={};self.memo={};self.allowed=_allowed()
+        # Keep temporary state dictionaries alive: CPython may otherwise reuse
+        # their ids and incorrectly alias an RNG state to an earlier history.
+        self._objects=[]
         self.external={'sim':sim,'net':sim.net,'settings':sim.s,'paths':sim.net.paths}
         self.external_ids={id(v):k for k,v in self.external.items()}
 
@@ -80,7 +83,7 @@ class Codec:
         if id(value) in self.external_ids:return {'external':self.external_ids[id(value)]}
         if id(value) in self.memo:return {'ref':self.memo[id(value)]}
         if len(self.nodes)>=MAX_NODES:raise ValueError('Cache excede limite de objetos.')
-        index=len(self.nodes);self.memo[id(value)]=index;self.nodes.append(None)
+        index=len(self.nodes);self.memo[id(value)]=index;self.nodes.append(None);self._objects.append(value)
         enc=self.encode
         if type(value).__module__==__package__+'.traffic_history':
             from .traffic_history import FrameArchive,FrameSequence,WarningSequence
@@ -109,7 +112,7 @@ class Codec:
                 if factory is None:raise ValueError('Fábrica de dicionário não suportada.')
                 node['factory']=factory
         elif isinstance(value,(list,tuple,set,frozenset)):
-            node={'kind':type(value).__name__,'items':[enc(v) for v in (sorted(value,key=_order) if isinstance(value,set) else value)]}
+            node={'kind':type(value).__name__,'items':[enc(v) for v in (sorted(value,key=_order) if isinstance(value,(set,frozenset)) else value)]}
         else:
             name=next((k for k,c in self.allowed.items() if type(value) is c),None)
             if name is None:raise ValueError('Objeto não permitido: '+type(value).__name__)

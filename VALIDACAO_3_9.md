@@ -1,10 +1,11 @@
 # Validação dirigida — Studio 3.9
 
-Testes em Linux/Python 3.12 no aplicativo existente: **177 testes dirigidos passaram**, com dois testes históricos de relatório/API desmarcados. Sintaxe Python/JavaScript e ajuda no Chromium conferidas. O pacote passou pela instalação, importação, reversão, componentes e servidor real; o portão usa `--sem-suite`, pois a seleção dirigida foi executada separadamente.
+Testes em Linux/Python 3.12 no aplicativo existente: **178 testes dirigidos passaram**, com dois testes históricos de relatório/API desmarcados. Sintaxe Python/JavaScript e ajuda no Chromium conferidas. O pacote passou pela instalação, importação, reversão, componentes e servidor real; o portão usa `--sem-suite`, pois a seleção dirigida foi executada separadamente.
 
 - Migração das duas configurações antigas preserva rotas, demanda e semente; configurações atuais com proteções explicitamente desligadas continuam bloqueadas.
 - Exportação real do modo antigo: MP4 de 3 segundos, 72 quadros integralmente decodificados, motor simulado e auditoria sem violações da regra de ouro.
 - Blocos versus execução integral: estados, semente aleatória, saídas e auditoria comparados. Retomada preserva a sequência da física.
+- Cenário adicional de 90 segundos: checkpoints completos e reprodução do cache comparados com a execução integral, incluindo estados, saídas e auditoria. O serializador mantém referências temporárias vivas para impedir reutilização indevida de identificadores de objetos.
 - Cache: invalidação física, reutilização visual, corrupção, aliases de controladores, instantâneos parciais e completos, limites e histórico em disco.
 - Vídeo com dois processos: exportação incremental e cache completo produzem os mesmos hashes de quadros decodificados. Falha tardia remove o parcial e preserva o vídeo final anterior.
 

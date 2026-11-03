@@ -40,7 +40,7 @@
     "suporte/sistema/app/simulation.py": "254ad1f666db605d4938affd9fb205ca4040cb4e1fb0d2028518a7ac8490882b",
     "suporte/sistema/app/store.py": "bf02699acbbcece1bbe2ef4c4ed6a642b3c22f8a6d9da62595e2aee24a81a10e",
     "suporte/sistema/app/traffic.py": "7ff00df7c2242488aca8d4d6fe31af31b3da548a1e1c27a3b591d0fb49ea251f",
-    "suporte/sistema/app/traffic_cache.py": "79359753fd6f21416311f783fa9802d4562b57cfaa753cdbc4e84e6057c773bb",
+    "suporte/sistema/app/traffic_cache.py": "2d7df41a4bca1b64f60d139f3b18a616cf2778051c1854ec69a4a7900859a732",
     "suporte/sistema/app/traffic_history.py": "b18a3eb090105af6c56a54bbeb5be988aadc1dc65a2fbb4d5add1ee49439f7c2",
     "suporte/sistema/app/traffic_pipeline.py": "6c8a6f8f1c1536c8926bbc4f495670986fc3dcefa31d60f2b5c0b3cdddb939e4",
     "suporte/sistema/app/transport.py": "9e04b457bffd8e8f7ea44b90ceecb346b53326860b86797bb24670c94fd6313a",

@@ -180,3 +180,17 @@ def test_cache_write_failure_uses_isolated_replay_without_changing_physics(tmp_p
         assert_frames_equal(result,baseline)
         require_export(result,settings)
     finally:pipeline.close()
+
+
+def test_ninety_second_checkpoint_roundtrip_and_hot_replay(tmp_path):
+    settings=project(tmp_path).model_copy(update={'duration_s':90.})
+    baseline=full_simulation(Scene(tmp_path,settings))
+    for expected_status in ('miss','hit'):
+        pipeline=TrafficPipeline(Scene(tmp_path,settings))
+        try:
+            pipeline.ensure(0.)
+            result=pipeline.finish()
+            assert pipeline.info['status']==expected_status
+            assert not pipeline.info.get('cache_write_failed')
+            assert_frames_equal(result,baseline)
+        finally:pipeline.close()
