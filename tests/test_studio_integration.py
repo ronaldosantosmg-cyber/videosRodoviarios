@@ -29,7 +29,7 @@ def test_pacote_atualizacao_valido_sem_projetos(tmp_path):
         names = archive.namelist()
         assert not any("projetos/" in n or n.endswith(".sqlite3") or "legado/" in n for n in names)
         manifest = json.loads(archive.read("pacote/manifest.json"))
-        assert manifest["version"] == json.loads((ROOT / "suporte/sistema/VERSAO.json").read_text())["version"]
+        assert manifest["version"] == json.loads((ROOT / "suporte/sistema/VERSAO.json").read_text(encoding="utf-8"))["version"]
         assert "suporte/sistema/app/fleet_policy.py" in manifest["files"]
         assert "suporte/sistema/app/js/99_frota_iluminacao.js" in manifest["files"]
         assert len(names) == len(manifest["files"]) + 1
