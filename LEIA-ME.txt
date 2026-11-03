@@ -1,4 +1,4 @@
-Rodovia Studio 3.11
+Rodovia Studio 3.12
 
 Esta distribuição usa o código Studio 3.5, com taludes em grama conforme a classificação DXF, zebrados corrigidos e otimizações de imagem/tráfego.
 
@@ -18,4 +18,4 @@ O cancelamento precisa terminar antes de aplicar a atualização.
 Para atualizar, coloque o ZIP em atualizacoes\ e use a opção Atualizar.
 A atualização preserva os projetos existentes.
 
-Consulte README.md e ATUALIZACAO_3_11.md para instruções e limites de validação.
+Consulte README.md e ATUALIZACAO_3_12.md para instruções e limites de validação.

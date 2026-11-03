@@ -17,8 +17,9 @@
    const ruidoFino=(rnd()-.5);let g=ruidoFino*(asfalto?30:veg?26:20)*p.grao+(r3(u*32,v*32)-.5)*(asfalto?14:18)*p.grao+(r1(u*16,v*16)-.5)*6*p.grao;
    if(sup==='pista_nova'&&rnd()>.925)g+=(34+rnd()*40)*p.grao;// agregado britado claro sobre ligante preto
    let t=(r2(u*4,v*4)-.5)*(asfalto?9:veg?14:12)*p.tom;
-   let rem=0;const rm=r2(u*4+7,v*4+3);if(rm>.8)rem=(rm-.8)*60*p.remendos*(asfalto?-1:.5);
-   let fis=0;if(asfalto){const f=Math.abs(r1(u*16+3,v*16+9)-.5);if(f<.012*p.fissuras)fis=-26*Math.min(1.4,p.fissuras)}
+   if(p.artistic&&asfalto){g*=.35;t*=.35;}
+   let rem=0;const rm=r2(u*4+7,v*4+3);if(!p.artistic&&rm>.8)rem=(rm-.8)*60*p.remendos*(asfalto?-1:.5);
+   let fis=0;if(asfalto&&!p.artistic){const f=Math.abs(r1(u*16+3,v*16+9)-.5);if(f<.012*p.fissuras)fis=-26*Math.min(1.4,p.fissuras)}
    if(veg){g*=1.1}
    const br=p.brilho*60;const k=g+t+rem+fis+br;const i=(y*lado+x)*4;
    px[i]=cor[0]+k*(veg?.6:1);px[i+1]=cor[1]+k;px[i+2]=cor[2]+k*(veg?.4:1);px[i+3]=255}
@@ -67,9 +68,10 @@
   const pxTile=TILE_M/mpx*view.s;
   const mat=MATERIAL_DE[role]?A[MATERIAL_DE[role]]:null,rigido=mat==='rigido';
   let tp=A.tp||{};
+  if(A.texture_style==='artistico'){const sup=SUP[role];tp={...tp,[sup]:{...(tp[sup]||{}),artistic:true,...(role==='existing_pavement'?{baseColor:[86,91,96]}:{})}};}
   // A cor manual muda a base, mantendo o grão de grama e os contornos DXF.
   const manual=(A.rc||A.role_colors||{})[role];
-  if((role==='cut'||role==='fill')&&/^#[0-9a-f]{6}$/i.test(manual||''))tp={...tp,[SUP[role]]:{...(tp[SUP[role]]||{}),baseColor:[1,3,5].map(i=>parseInt(manual.slice(i,i+2),16))}};
+  if(/^#[0-9a-f]{6}$/i.test(manual||''))tp={...tp,[SUP[role]]:{...(tp[SUP[role]]||{}),baseColor:[1,3,5].map(i=>parseInt(manual.slice(i,i+2),16))}};
   if(pxTile<14){c.save();c.globalAlpha=Math.min(1,projected?1:(typeof vecAlpha==='number'?vecAlpha:1)*.8);c.fillStyle=corMedia(SUP[role],tp[SUP[role]],rigido);c.fill(v.fill,'evenodd');c.restore();return}
 const pt=rigido?ladrilho(SUP[role],'rigido',A.joint_spacing_m||5):padrao(SUP[role],tp[SUP[role]]);if(!pt)return;
   const k=rigido?Math.max(.5,Number(A.joint_spacing_m)||5)/mpx/LADO:TILE_M/mpx/LADO;if(pt.setTransform&&typeof DOMMatrix!=='undefined')pt.setTransform(new DOMMatrix().scale(k,k));

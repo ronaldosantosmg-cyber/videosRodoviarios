@@ -53,13 +53,19 @@ with tempfile.TemporaryDirectory(prefix='studio-ajuda-') as temporary:
                  const meshes=v.scene.children.filter(x=>['cut','fill'].includes(x.userData.role));
                  const colors=meshes.map(x=>x.material.color.getHexString());
                  const grass=v.texture('grass','leaf');const textured=meshes.every(x=>x.material.map===grass);
-                 v.render();v.dispose();host.remove();return {fill,cut,sample,hole,colors,textured};
+                 v.data.texture_style='artistico';const art=v.texture('asphalt_old');
+                 v.data.texture_style='realistic';const real=v.texture('asphalt_old');
+                 const variance=t=>{const a=Array.from(t.image.data).filter((_,i)=>i%4===0),m=a.reduce((s,x)=>s+x,0)/a.length;return a.reduce((s,x)=>s+(x-m)**2,0)/a.length};
+                 const separate=art!==real&&variance(art)<variance(real);
+                 v.data.texture_style='artistico';const reused=v.texture('asphalt_old')===art;
+                 v.render();v.dispose();host.remove();return {fill,cut,sample,hole,colors,textured,separate,reused};
                 }""")
                 assert result['fill'][1]>180 and result['fill'][1]>result['fill'][0]>result['fill'][2],result
                 assert result['cut'][0]>175 and result['cut'][0]>result['cut'][1]>result['cut'][2],result
                 assert result['sample'][2]>result['sample'][1]>result['sample'][0],result
                 assert result['hole']==[255,255,255,255],result
                 assert result['colors']==['b76954','9cbd75','3456ab'] and result['textured'],result
+                assert result['separate'] and result['reused'],result
                 browser.close()
                 print('Taludes2D/3D: grama, paleta clara/avermelhada, cor manual e vazio DXF preservado: OK')
         finally:

@@ -254,8 +254,8 @@ class Scene:
                 from .pavement import TECH_RIGID,ART_RIGID
                 c=TECH_RIGID[role][0] if getattr(self.s,'style_profile','padrao')=='tecnico' else ART_RIGID[role];return '#%02x%02x%02x'%c
         if getattr(self.s,'style_profile','padrao')=='tecnico' and role in visual.TECH_FILL:return visual.TECH_FILL[role]
-        from .presentation import ART_COLORS
-        default=ART_COLORS.get(role,COLORS[role]) if self.s.style_profile!='tecnico' else COLORS[role]
+        from .presentation import palette
+        default=palette(self.s).get(role,COLORS[role]) if self.s.style_profile!='tecnico' else COLORS[role]
         return (getattr(self.s,'role_colors',None) or {}).get(role) or default
     def worldpx(self,p):
         return np.column_stack([(p[:,0]-self.box[0])/self.px,(self.box[3]-p[:,1])/self.px])
@@ -279,6 +279,7 @@ class Scene:
                         while chunk:=f.read(1024*1024):signature.update(chunk)
             dump=self.s.model_dump();config={k:dump[k] for k in ['layers','crs','units_to_m','reverse_axis','exclusions','dxf_alignment','overlays']}
             config['realism_profile']=dump.get('realism_profile','ultra_realista')
+            config['texture_style']=dump.get('texture_style','artistico')
             if dump.get('earthwork_look','hatch')!='hatch':config['earthwork_look']=dump['earthwork_look']
             if dump.get('accesses'):config['accesses']=dump['accesses']
             if dump.get('style_profile','padrao')!='padrao':config['style_profile']=dump['style_profile']
@@ -350,7 +351,7 @@ class Scene:
                                 np.bitwise_or(mask[by0:by1,bx0:bx1],temp,out=mask[by0:by1,bx0:bx1])
                         else:cv2.polylines(lines,[q],False,255,1,cv2.LINE_AA)
                 if role in ['cut','fill']:
-                    earth_color,alpha=earthwork_style(mask,lines,role,self.px,look=getattr(self.s,'earthwork_look','hatch'),base_color=self.s.role_colors.get(role))
+                    earth_color,alpha=earthwork_style(mask,lines,role,self.px,look=getattr(self.s,'earthwork_look','hatch'),base_color=self.s.role_colors.get(role),artistic=self.s.texture_style=='artistico' and self.s.style_profile!='tecnico')
                     if not self.exclusion.is_empty:
                         # Final raster clip also removes widened offset strokes in cleaned areas.
                         geoms=list(self.exclusion.geoms) if hasattr(self.exclusion,'geoms') else [self.exclusion]
@@ -379,7 +380,7 @@ class Scene:
                 from .pavement import chosen,paint_style
                 st=chosen(self.s,role) if role in ('pavement','existing_pavement','shoulder') else None
                 if st is not None:color=paint_style(color,mask>0,role,self.box[0],self.box[3],self.px,st,getattr(self,'joint_field',None) or JointField(self.axes),float(getattr(self.s,'joint_spacing_m',5)))  # 1.21: representação escolhida pelo usuário
-                if getattr(self.s,'texture_relief',True) and getattr(self.s,'texture_style','artistico')!='anterior' and getattr(self.s,'style_profile','padrao')!='tecnico' :
+                if getattr(self.s,'texture_relief',True) and getattr(self.s,'texture_style','artistico')=='realistic' and getattr(self.s,'style_profile','padrao')!='tecnico' :
                     from . import relevo   # 2.48/2.49: relevo iluminado por material (flexível/rígido; novo/existente)
                     if role in relevo.MATERIAIS or role in relevo.RIGIDOS:color=relevo.acabar_misto(color,mask>0,rmask,role,self.box[0],self.box[3],self.px,quality=self.s.realism_profile)
                 if not phase:np.maximum(self.projected_mask,alpha,out=self.projected_mask)
@@ -396,7 +397,7 @@ class Scene:
                 if rmask is not None:self.surface[(mask>0)&(rmask>0)]=visual.SURF['oae']   # textura de concreto
                 for kind,km_ in kmasks.items():                                              # 1.42.40: OAE nova / existente / alargada
                     sel_=(mask>0)&(km_>0);self.surface[sel_]=visual.OAE_KIND_SURF[kind];self.overlay[sel_,:3]=visual.OAE_KIND_RGB[kind]
-                    if getattr(self.s,'texture_relief',True) and getattr(self.s,'texture_style','artistico')!='anterior' and getattr(self.s,'style_profile','padrao')!='tecnico' and sel_.any():
+                    if getattr(self.s,'texture_relief',True) and getattr(self.s,'texture_style','artistico')=='realistic' and getattr(self.s,'style_profile','padrao')!='tecnico' and sel_.any():
                         from . import relevo;self.overlay[:,:,:3]=np.where(sel_[...,None],relevo.acabar_oae(self.overlay[:,:,:3],sel_,kind,self.box[0],self.box[3],self.px),self.overlay[:,:,:3])   # 2.50
                 if role in ['pavement','existing_pavement','shoulder','oae']:roadmask=np.maximum(roadmask,mask)
             for e in self.items:
@@ -764,10 +765,7 @@ class Scene:
                 if not hasattr(self,'tex_lut'):self.tex_lut=visual.texture_lut(getattr(self.s,'texture_params',None),[(e['tex_code'],e['tex_base'],e['tex_p']) for e in {e['tex_code']:e for e in self.items if e.get('tex_code')}.values()]+[(c,b,p) for c,b,p,_ in self.texture_areas()])
                 from .presentation import strength
                 amount=strength(self.s);unshaded=view.copy() if amount<1 else None
-                visual.shade_surface(view,surf,Av,m,alpha>.5,self.s.median_grass,lut=self.tex_lut,arte=getattr(self.s,'texture_style','')=='artistico',sol=self.sol_ambiente())
-                ts=getattr(self.s,'texture_style','anterior')
-                if ts in ('realistic','artistico'):visual.shade_realistic(view,surf,Av,m,alpha>.5,lut=self.tex_lut,earth_grass=getattr(self.s,'earthwork_look','')=='textura')
-                if ts=='artistico':visual.shade_artistic(view,surf,Av,m,alpha>.5,lut=self.tex_lut)   # 1.34
+                visual.shade_style(view,surf,Av,m,alpha>.5,self.s,lut=self.tex_lut,sol=self.sol_ambiente())
                 if unshaded is not None:view[:]=cv2.addWeighted(view,amount,unshaded,1-amount,0)
             if self.water_mask is not None:
                 wm=cv2.warpAffine(self.water_mask,mat,(self.W,self.H),flags=cv2.INTER_LINEAR|cv2.WARP_INVERSE_MAP)[y0:y1]
@@ -848,7 +846,7 @@ class Scene:
         from . import relevo
         painted=relevo.tinta(im,pre,A,m)
         return cv2.addWeighted(im,.65,painted,.35,0) if getattr(self.s,'signage_emphasis',True) else painted
-    def _tinta_on(self):return getattr(self.s,'texture_relief',True) and getattr(self.s,'texture_style','artistico')!='anterior' and getattr(self.s,'style_profile','padrao')!='tecnico'
+    def _tinta_on(self):return getattr(self.s,'texture_relief',True) and getattr(self.s,'texture_style','artistico')=='realistic' and getattr(self.s,'style_profile','padrao')!='tecnico'
     def paint_wear(self,im,pre,mat,m,sp):
         """1.29: tinta gasta/transparente: mistura a pintura com o que havia antes, com manchas fixas no terreno."""
         diff=np.any(im!=pre,axis=2)

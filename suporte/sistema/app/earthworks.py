@@ -2,9 +2,9 @@
 import cv2
 import numpy as np
 
-def earthwork_style(mask, lines, role, meters_per_pixel, phase=(0,0), look='hatch',base_color=None):
+def earthwork_style(mask, lines, role, meters_per_pixel, phase=(0,0), look='hatch',base_color=None,artistic=False):
     if role not in ('cut','fill'):raise ValueError('Categoria de talude inválida')
-    if look in ('natural','textura'):return natural_style(mask,lines,role,meters_per_pixel,look,base_color)
+    if look in ('natural','textura'):return natural_style(mask,lines,role,meters_per_pixel,look,base_color,artistic)
     h,w=mask.shape
     pitch=max(7,round(4/meters_per_pixel))
     thickness=max(2,min(5,round(.65/meters_per_pixel)))
@@ -24,7 +24,7 @@ def earthwork_style(mask, lines, role, meters_per_pixel, phase=(0,0), look='hatc
     color[edge]=np.array((110,40,33) if role=='cut' else (24,89,45),np.uint8)
     return color,alpha
 
-def natural_style(mask, lines, role, meters_per_pixel, look='natural',base_color=None):
+def natural_style(mask, lines, role, meters_per_pixel, look='natural',base_color=None,artistic=False):
     """1.16: talude com aparência de terreno (corte: avermelhado com grama; aterro: verde claro com grama), com contorno fino na cor do tipo.
     A textura (grão do solo e da grama) é aplicada no quadro, ancorada em metros."""
     h,w=mask.shape
@@ -37,6 +37,11 @@ def natural_style(mask, lines, role, meters_per_pixel, look='natural',base_color
     if base_color:rgb=np.array([int(base_color[k:k+2],16) for k in (1,3,5)],np.uint8)
     color=np.broadcast_to(rgb,(h,w,3)).copy()
     line=np.array((176,72,60) if role=='cut' else (40,120,62),np.uint8)
-    color[offsets]=line;alpha[offsets&(mask>0)]=np.maximum(alpha[offsets&(mask>0)],150)
+    if artistic:
+        # A maquete mantém só o contorno; offsets técnicos ficam no DXF.
+        alpha=np.where(mask>0,255,0).astype(np.uint8)
+        line=(rgb.astype(np.float32)*.86).astype(np.uint8)
+    else:
+        color[offsets]=line;alpha[offsets&(mask>0)]=np.maximum(alpha[offsets&(mask>0)],150)
     color[edge]=line;alpha[edge]=230
     return color,alpha

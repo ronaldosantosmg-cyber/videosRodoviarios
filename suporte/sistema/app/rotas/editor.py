@@ -85,13 +85,17 @@ def texture_preview(surface:str='pista_nova',p:str='{}',m_px:float=.02,realistic
     m_px=min(max(m_px,.005),.5)
     base={'pista_nova':COLORS['pavement'],'pista_existente':COLORS['existing_pavement'],'concreto':COLORS['oae'],'acostamento':COLORS['shoulder'],
           'canteiro':COLORS['median'],'trilhas':COLORS['existing_pavement'],'talude_corte':'#a85642','talude_aterro':'#54803e',**{f'oae_{k}':'#%02x%02x%02x'%visual.OAE_KIND_RGB[k] for k in visual.OAE_KIND_SURF}}[surface]
+    if estilo=='artistico':
+        from ..presentation import ART_COLORS
+        role={'pista_nova':'pavement','pista_existente':'existing_pavement','talude_corte':'cut','talude_aterro':'fill'}.get(surface)
+        base=ART_COLORS.get(role,base)
     H,W=200,360;im=np.zeros((H,W,3),np.uint8);im[:]=[int(base[i:i+2],16) for i in (1,3,5)]
     code=visual.TEX_SURF[surface][0];surf=np.full((H,W),2 if surface=='trilhas' else code,np.uint8)
     if surface=='trilhas':surf[:,int(W*.3):int(W*.42)]=8;surf[:,int(W*.58):int(W*.7)]=8
     A=np.array([[m_px,0,704000.],[0,-m_px,7811000.]]);valid=np.ones((H,W),bool);lut=visual.texture_lut(params)
-    visual.shade_surface(im,surf,A,m_px,valid,True,lut=lut,arte=estilo=='artistico')
-    if realistic:visual.shade_realistic(im,surf,A,m_px,valid,lut=lut)
-    if estilo=='artistico':visual.shade_artistic(im,surf,A,m_px,valid,lut=lut)   # 1.34
+    from types import SimpleNamespace
+    style=estilo or ('realistic' if realistic else 'anterior')
+    visual.shade_style(im,surf,A,m_px,valid,SimpleNamespace(texture_style=style,median_grass=True,earthwork_look='textura'),lut=lut)
     ok,buf=cv2.imencode('.png',cv2.cvtColor(im,cv2.COLOR_RGB2BGR))
     return Response(buf.tobytes(),media_type='image/png',headers={'Cache-Control':'no-store'})
 

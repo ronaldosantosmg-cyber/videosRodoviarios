@@ -55,5 +55,5 @@ function initHelp(){for(const [id,text] of Object.entries(HELP)){const el=$(id);
  let on=true;try{on=localStorage.getItem('rodovia_help')!=='0'}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('ajuda_dicas',_e)}$('helpToggle').checked=on;document.body.classList.toggle('nohelp',!on);
  $('helpToggle').onchange=()=>{document.body.classList.toggle('nohelp',!$('helpToggle').checked);try{localStorage.setItem('rodovia_help',$('helpToggle').checked?'1':'0')}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('ajuda_dicas',_e)}}}
 $('helpBtn').onclick=guard(async()=>{if(window.RodoviaHelp)return RodoviaHelp.open();const r=await fetch('/ajuda',{cache:'no-store'});if(!r.ok)throw Error('Ajuda indisponível nesta revisão.');$('helpBody').innerHTML=await r.text();if(!$('helpDialog').open)$('helpDialog').showModal()});
+if(typeof HELP!=='undefined')HELP.texture_style='Artístico: asfalto uniforme, pintura limpa e taludes com grama. Realista: agregado, remendos, fissuras e desgaste. Materiais rígidos e cores manuais continuam sendo respeitados.';
 initHelp();
-

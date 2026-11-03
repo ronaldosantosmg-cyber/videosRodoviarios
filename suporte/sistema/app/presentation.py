@@ -1,7 +1,12 @@
 """Política de apresentação; não modifica geometria, rede ou simulação."""
 import numpy as np
 
-ART_COLORS={'pavement':'#30373d','existing_pavement':'#858279','shoulder':'#596168','cut':'#b76954','fill':'#9cbd75','terrain':'#6f8c55'}
+ART_COLORS={'pavement':'#30373d','existing_pavement':'#565b60','shoulder':'#596168','cut':'#b76954','fill':'#9cbd75','terrain':'#6f8c55'}
+
+REAL_COLORS={**ART_COLORS,'existing_pavement':'#858279'}
+
+def palette(settings):
+    return ART_COLORS if getattr(settings,'texture_style','artistico')=='artistico' else REAL_COLORS
 
 def guides(settings):
     return settings.style_profile=='tecnico' or getattr(settings,'presentation_guides',False)
@@ -178,9 +183,7 @@ def existing_backdrop(scene,image,cam,width,mat,det=None,weight=0.):
             if not hasattr(scene,'_existing_tex_lut'):scene._existing_tex_lut=visual.texture_lut(scene.s.texture_params,[(e['tex_code'],e['tex_base'],e['tex_p']) for e in {e['tex_code']:e for e in scene.items if e.get('tex_code')}.values()]+[(c,b,p) for c,b,p,_ in scene.texture_areas()])
             lut=scene._existing_tex_lut
             mask=alpha[:,:,0]>.5;unshaded=out.copy() if strength(scene.s)<1 else None
-            visual.shade_surface(out,surf,A,width/scene.W,mask,scene.s.median_grass,lut=lut,arte=scene.s.texture_style=='artistico',sol=scene.sol_ambiente())
-            if scene.s.texture_style in ('artistico','realistic'):visual.shade_realistic(out,surf,A,width/scene.W,mask,lut=lut,earth_grass=scene.s.earthwork_look=='textura')
-            if scene.s.texture_style=='artistico':visual.shade_artistic(out,surf,A,width/scene.W,mask,lut=lut)
+            visual.shade_style(out,surf,A,width/scene.W,mask,scene.s,lut=lut,sol=scene.sol_ambiente())
             if unshaded is not None:out[:]=cv2.addWeighted(out,strength(scene.s),unshaded,1-strength(scene.s),0)
     # Feições existentes cadastradas também pertencem à subcamada, não só as pistas.
     clone=copy.copy(scene);clone.items=[e for e in scene.items if is_existing(e)]

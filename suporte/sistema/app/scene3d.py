@@ -84,11 +84,15 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
         state='existing' if is_existing(e) else 'projected'
         key_mesh=state+'|'+e['role']+'|'+str(e.get('layer',''))+'|'+str(material)
         labels[key_mesh]={'presentation_state':state,'role':e['role'],'layer':str(e.get('layer','')),'name':str(e.get('layer') or e['role'])}
-        from .presentation import ART_COLORS
+        from .presentation import palette
+        ART_COLORS=palette(settings)
         color=settings.role_colors.get(e['role']) or ART_COLORS.get(e['role'])
         if color:labels[key_mesh]['color']=color
         from .asset_catalog import CATALOG
         if material in CATALOG:labels[key_mesh].update(asset_material=material,texture_pattern=CATALOG[material]['pattern'],color=settings.role_colors.get(e['role']) or ART_COLORS.get(e['role']) or CATALOG[material]['color'])
+        if material=='concrete' and e['role'] in ('pavement','existing_pavement','shoulder') and not settings.role_colors.get(e['role']):
+            from .pavement import ART_RIGID
+            labels[key_mesh]['color']='#%02x%02x%02x'%ART_RIGID[e['role']]
         for triangle in shapely.constrained_delaunay_triangles(geom).geoms:
             q=np.asarray(triangle.exterior.coords)[:3,:2];total+=3
             if total>MAX_VERTICES:raise ValueError('Cena 3D muito detalhada. Divida o desenho em trechos menores.')
@@ -106,6 +110,9 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
         geom=Polygon()
         for ring in rings:
             if len(ring)>=3:geom=geom.symmetric_difference(shapely.make_valid(Polygon(ring)))
+        if material=='concrete' and e['role'] in ('pavement','existing_pavement','shoulder') and not settings.role_colors.get(e['role']):
+            from .pavement import ART_RIGID
+            labels[key_mesh]['color']='#%02x%02x%02x'%ART_RIGID[e['role']]
         for triangle in shapely.constrained_delaunay_triangles(geom).geoms:
             total+=3
             if total>MAX_VERTICES:raise ValueError('Pintura excede o orçamento 3D. Divida o trecho.')
@@ -256,7 +263,7 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
     fractions=np.clip(scene.ch[scene.tree.query(points)[1]]/max(scene.length,1e-9),0,1)
     reveal={'size':n_reveal,'bounds':rb,'stations':np.rint(fractions*65534).astype(np.uint16).tolist(),'existing':settings.existing_visibility}
     for mesh in context_meshes+meshes:mesh.setdefault('presentation_state','existing' if is_existing(mesh) else 'projected')
-    data={'reveal':reveal,'simulation_mode':'protegido' if not settings.traffic_classic and settings.traffic_prevent_collisions and settings.traffic_respect_signals and not settings.heavy_shoulder_overtake else 'ensaio','format':'rodovia-scene3d-1','realism_profile':settings.realism_profile,'revision':rev0,'origin_crs':origin.tolist(),'crs':settings.crs,'coordinates_confirmed':settings.coordinates_confirmed,'span_m':span,'meshes':context_meshes+meshes,'terrain':terrain,'markings':markings,'marking_width_m':marking_width_m,'diagnostics':diagnostics,'vehicles':list(tracks.values())+list(train_tracks.values()),'pedestrians':list(person_tracks.values()),'pedestrian_report':people.report(),'rail_smoke':settings.rail_smoke,'transport':transport_data,'duration_s':duration,'source_duration_s':settings.duration_s,'simulation_report':sim.report() if sim else None,'warnings':warnings[-25:],'scope':'Visualização de projeto e tráfego. Diagnósticos técnicos não integram a captura de apresentação.'}
+    data={'reveal':reveal,'simulation_mode':'protegido' if not settings.traffic_classic and settings.traffic_prevent_collisions and settings.traffic_respect_signals and not settings.heavy_shoulder_overtake else 'ensaio','format':'rodovia-scene3d-1','realism_profile':settings.realism_profile,'texture_style':settings.texture_style,'revision':rev0,'origin_crs':origin.tolist(),'crs':settings.crs,'coordinates_confirmed':settings.coordinates_confirmed,'span_m':span,'meshes':context_meshes+meshes,'terrain':terrain,'markings':markings,'marking_width_m':marking_width_m,'diagnostics':diagnostics,'vehicles':list(tracks.values())+list(train_tracks.values()),'pedestrians':list(person_tracks.values()),'pedestrian_report':people.report(),'rail_smoke':settings.rail_smoke,'transport':transport_data,'duration_s':duration,'source_duration_s':settings.duration_s,'simulation_report':sim.report() if sim else None,'warnings':warnings[-25:],'scope':'Visualização de projeto e tráfego. Diagnósticos técnicos não integram a captura de apresentação.'}
     if not np.isfinite(origin).all():raise ValueError('Origem 3D inválida.')
     if rev0!=revision(d):raise ValueError('O projeto mudou durante o processamento. Reconstrua o 3D.')
     encoded=json.dumps(data,ensure_ascii=False,allow_nan=False,separators=(',',':')).encode()

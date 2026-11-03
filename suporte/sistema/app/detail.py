@@ -66,7 +66,7 @@ class Detail:
         self.enabled_imagery=getattr(s,'imagery_detail','auto')!='off' and (self.esri_ok or self.local is not None)
         self.x0=float(scene.box[0]);self.y1=float(scene.box[3])
         sig=getattr(scene,'geometry_signature','') or hashlib.sha256(repr(scene.box).encode()).hexdigest()
-        extra=json.dumps([VERSION,self.R,T,s.visual_quality,getattr(s,'median_grass',True),s.water_texture,s.water_texture_opacity])
+        extra=json.dumps([VERSION,self.R,T,s.visual_quality,s.texture_style,getattr(s,'median_grass',True),s.water_texture,s.water_texture_opacity])
         # 1.16: só acrescenta à chave quando muda algo (projetos anteriores reaproveitam o cache).
         self.realistic=getattr(s,'texture_style','anterior') in ('realistic','artistico');look=getattr(s,'earthwork_look','hatch')   # 1.34: artístico usa o mesmo detalhe
         if self.realistic or look!='hatch':
@@ -173,7 +173,7 @@ class Detail:
                     else:cv2.polylines(lines,[q(o['p'])],False,255,max(1,round(.25/self.R)),cv2.LINE_AA,4)
                 if role in ('cut','fill'):
                     hard=(mask>127).astype(np.uint8)*255
-                    color,alpha=earthwork_style(hard,lines,role,self.R,phase=(i*n,j*n),look=getattr(sc.s,'earthwork_look','hatch'),base_color=sc.s.role_colors.get(role))
+                    color,alpha=earthwork_style(hard,lines,role,self.R,phase=(i*n,j*n),look=getattr(sc.s,'earthwork_look','hatch'),base_color=sc.s.role_colors.get(role),artistic=sc.s.texture_style=='artistico' and sc.s.style_profile!='tecnico')
                     if excl is not None:alpha[excl>0]=0
                 else:alpha=mask
                 rgb=_rgb(sc.color(role) if hasattr(sc,'color') else COLORS[role])
@@ -198,7 +198,7 @@ class Detail:
                     net=getattr(sc,'network',None);f=JointField.from_network(net) if net is not None else None
                     sc.joint_field_net=f if f is not None and f.ok else JointField(sc.axes)
                 if st is not None:color=paint_style(color,mask>127,role,x0,y1,self.R,st,getattr(sc,'joint_field_net',None),float(getattr(sc.s,'joint_spacing_m',5)))  # 1.21: representação escolhida pelo usuário
-                if getattr(sc.s,'texture_relief',True) and getattr(sc.s,'texture_style','artistico')!='anterior' and getattr(sc.s,'style_profile','padrao')!='tecnico' :
+                if getattr(sc.s,'texture_relief',True) and getattr(sc.s,'texture_style','artistico')=='realistic' and getattr(sc.s,'style_profile','padrao')!='tecnico' :
                     from . import relevo   # 2.48/2.49: relevo iluminado por material (flexível/rígido; novo/existente)
                     if role in relevo.MATERIAIS or role in relevo.RIGIDOS:color=relevo.acabar_misto(color,mask>127,rmask,role,x0,y1,self.R,quality=sc.s.realism_profile)
                 color=phase_color(color,phase,sc.s,role)
@@ -213,7 +213,7 @@ class Detail:
                 if rmask is not None:surf[m&(rmask>127)]=visual.SURF['oae']
                 for kind,km_ in kmasks.items():
                     sel_=m&(km_>127);surf[sel_]=visual.OAE_KIND_SURF[kind];ov[sel_,:3]=visual.OAE_KIND_RGB[kind]
-                    if getattr(sc.s,'texture_relief',True) and getattr(sc.s,'texture_style','artistico')!='anterior' and getattr(sc.s,'style_profile','padrao')!='tecnico' and sel_.any():
+                    if getattr(sc.s,'texture_relief',True) and getattr(sc.s,'texture_style','artistico')=='realistic' and getattr(sc.s,'style_profile','padrao')!='tecnico' and sel_.any():
                         from . import relevo;ov[:,:,:3]=np.where(sel_[...,None],relevo.acabar_oae(ov[:,:,:3],sel_,kind,x0,y1,self.R),ov[:,:,:3])   # 2.50: OAE com concreto novo/existente/alargado
                 if role in ('pavement','existing_pavement','shoulder','oae'):road=np.maximum(road,mask)
             for o in near:
@@ -239,7 +239,7 @@ class Detail:
                 a=(mask.astype(np.float32)*st['opacity']).astype(np.uint8);sel=a>0
                 if not sel.any():continue
                 f=a[sel,None]/255;old=ov[sel,:3].astype(np.float32);ov[sel,:3]=(old*(1-f)+rgb*f).astype(np.uint8);ov[:,:,3]=np.maximum(ov[:,:,3],a)
-        if self.realistic and (surf==2).any():self.wheel_paths(surf,i,j)
+        if sc.s.texture_style=='realistic' and (surf==2).any():self.wheel_paths(surf,i,j)
         if road.any():
             shadow=cv2.GaussianBlur(road,(0,0),1.0/self.R);outside=(ov[:,:,3]==0)&(shadow>0)
             ov[outside,:3]=0;ov[outside,3]=(shadow[outside]*.18).astype(np.uint8)

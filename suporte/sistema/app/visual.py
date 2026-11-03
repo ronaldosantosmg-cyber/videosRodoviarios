@@ -704,12 +704,9 @@ def texture_lut(params,areas=None):
     L['bright']=bright if bright.any() else None
     return L
 
-# ---------------- 1.34: texturas “artístico realista” ----------------
-# Camada a mais sobre as realistas (só com texture_style='artistico'; os outros estilos não mudam):
-#  • bordas da pista com sujeira/oclusão suave e grama mais seca junto ao pavimento;
-#  • variação de cor quente/fria no asfalto em grande escala e pedriscos claros de perto;
-#  • grama em duas tonalidades (manchas) com folhagem fina; concreto com placas de tom diferente e manchas;
-#  • taludes de corte com pedras e veios do solo.
+# ---------------- acabamento artístico independente ----------------
+# Grão fino, variação discreta do asfalto e grama contínua. O desgaste
+# fotográfico fica exclusivamente em shade_realistic().
 _PAVED=np.zeros(256,bool);_PAVED[[1,2,3,4,8]]=True
 _ASPH=np.zeros(256,bool);_ASPH[[1,2,4,8]]=True
 _STONE=None
@@ -755,8 +752,20 @@ def shade_artistic(im,surface,s2w,m_per_px,valid,lut=None):
         n=_low(grass(),A,shape,m_per_px,.22)*G;out[:,:,0]+=7*np.clip(n,0,None);out[:,:,1]+=6*n;out[:,:,2]-=3*np.clip(n,0,None)
         if m_per_px<.3:
             f=grass().sample(A*np.array([[3.],[3.]]),shape,m_per_px*3)*G;out*=(1+.07*f*float(np.clip((.3-m_per_px)/.2,0,1)))[:,:,None]
-    CT=S==6
-    if CT.any():
-        st=stones().sample(A,shape,m_per_px)*CT;out*=(1-.16*np.clip(st-1.6,0,1)*CT)[:,:,None]
-        v=_low(soil(),A*np.array([[1.],[4.]]),shape,m_per_px,.3)*CT;out[:,:,0]+=5*v;out[:,:,1]+=2.5*v
+    # Taludes: grama contínua, com a cor-base do tipo DXF preservada.
+    E=(S==6)|(S==7)
+    if E.any():
+        n=grass().sample(A,shape,m_per_px)
+        out*=(1+.09*n*E)[:,:,None]
+        out[:,:,1]+=((S==6)*np.clip(n,0,1)*10+(S==7)*2)
     roi[:]=np.clip(out,0,255).astype(np.uint8)
+
+
+def shade_style(im,surface,s2w,m_per_px,valid,settings,lut=None,sol=None):
+    """Artístico limpo e realista com desgaste são caminhos distintos."""
+    style=getattr(settings,'texture_style','anterior')
+    shade_surface(im,surface,s2w,m_per_px,valid,getattr(settings,'median_grass',True),lut=lut,arte=style=='artistico',sol=sol)
+    if style=='artistico':
+        shade_artistic(im,surface,s2w,m_per_px,valid,lut=lut)
+    elif style=='realistic':
+        shade_realistic(im,surface,s2w,m_per_px,valid,lut=lut,earth_grass=getattr(settings,'earthwork_look','')=='textura')
