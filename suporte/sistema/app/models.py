@@ -867,6 +867,7 @@ class Settings(BaseModel):
     # 1.12: tráfego simulado (sem colisão), densidade, interdições e travessias do canteiro.
     traffic_classic: bool = False
     traffic_model: Literal['simulado','anterior'] = 'simulado'
+    traffic_legacy_migrated: bool = False
     traffic_density: float = Field(default=1.0,ge=.2,le=8)
     traffic_seed: int = Field(default=1729,ge=0,le=10**9)   # 2.23: mesma semente = mesma animação de tráfego
     # 1.40.5: capacidade e reação a veículos pesados. Mantidos neutros para projetos antigos.
@@ -1010,7 +1011,11 @@ class Settings(BaseModel):
     @classmethod
     def upgrade(cls,data):
         data=migrate(data)
-        if isinstance(data,dict):data={**data,'traffic_sem_comboio':True}
+        if isinstance(data,dict):
+            data={**data,'traffic_sem_comboio':True}
+            if data.get('traffic_classic',False) or data.get('traffic_model')=='anterior':
+                data.update(traffic_model='simulado',traffic_classic=False,traffic_prevent_collisions=True,
+                            traffic_respect_signals=True,traffic_legacy_migrated=True)
         return data
     @model_validator(mode='after')
     def ranges(self):

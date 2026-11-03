@@ -19,6 +19,8 @@ import numpy as np
 from shapely.geometry import Polygon,Point,LineString
 from shapely import contains_xy
 
+def _negative_inf():return -math.inf
+
 DT=.2
 WARMUP=90.
 WARMUP_SEMEADO=25.   # só na prévia (janela): corredor já semeado, o IDM só precisa assentar
@@ -85,7 +87,7 @@ class TrafficSim:
     LC_COOLDOWN=5.0
     LC_GAIN=12.0
 
-    def __init__(self,network,settings,vtype,duration=None,status=lambda *a:None,janela=None):
+    def __init__(self,network,settings,vtype,duration=None,status=lambda *a:None,janela=None,*,defer=False):
         self.net=network;s=settings;self.s=s
         # janela=(centro_xy,raio_m): só na PRÉVIA — semeia apenas o entorno do enquadramento (o resto nunca aparece no quadro). Vídeo final: None.
         self.janela=(np.asarray(janela[0],float),float(janela[1])) if janela else None
@@ -110,7 +112,8 @@ class TrafficSim:
         from .pedestrian_traffic import PedestrianTraffic
         self.pedestrians=PedestrianTraffic(settings,network,self.transport,self)
         self.lane_events=[]
-        self.run(status)
+        self.frames=[];self.warning_frames=[];self.t_first=0.;self._continuation=None;self.simulation_complete=False;self.simulation_seconds=0.
+        if not defer:self.run(status)
 
     # ---------- preparação ----------
     def prepare(self):
@@ -597,21 +600,42 @@ class TrafficSim:
         return occ
 
     # ---------- simulação ----------
-    def run(self,status):
-        rng=np.random.default_rng(int(getattr(self.s,'traffic_seed',1729)));n=len(self.paths);t0=-math.ceil(float(getattr(self.s,'traffic_warmup_s',0.))/DT)*DT;steps=int(math.ceil((self.duration-t0)/DT))+2
-        self.warmup_seconds=-t0
-        self.fleet_audit={'enabled':True,'violations':[],'samples':0,'definition':'Par compacto: folga <max(12 m, 2 s de percurso), sem controle permitido, em qualquer amostra.'};self._fleet_seconds={}
-        nextspawn=[t0 if r>0 and getattr(self.s,'traffic_route_only',False) else t0+self.interarrival(rng,r) if r>0 else math.inf for r in self.rate];pending=[0]*n;V=[]
-        last_admit=collections.defaultdict(lambda:-math.inf);queue_area=[0.0]*n;max_queue_lane=[0]*n;queue_discharged=[0]*n
-        self.info={};self.exited_by_path=[0]*n;self.node_transfers=collections.Counter();self.spawned_by_path=[0]*n;frames=[];self.warning_frames=[];vid=0;first=int(round(-t0/DT))
-        self.collisions=0;self.side_collisions=0;self.min_gap=math.inf;self.max_queue=0;self.rerouted=0;self.spawned=0
-        self.safety_interventions=0;self.lane_changes=0;self.lane_returns=0;self.lc_blocked_rules=0;self.lc_blocked_safety=0
-        if getattr(self.s,'traffic_semear',True) and not getattr(self.s,'traffic_route_only',False):
-            vid=self.semear_percurso(V,vid,t0,rng,status)
-        self.time=t0;self.initialize_speeds(V,t0)
+    def run(self,status=lambda *a:None):
+        """Interface síncrona histórica: esgota os mesmos blocos incrementais."""
+        for _ in self.run_blocks(status):pass
+
+    def run_blocks(self,status=lambda *a:None,block_seconds=5.):
+        """Avança sem threads e publica checkpoints pausáveis entre blocos.
+
+        Cada yield traz start_s/end_s utilizáveis e available_until_s com a
+        amostra extra DT necessária à interpolação. Só retomar um gerador por
+        instância; um checkpoint restaurado pode abrir um novo gerador, porque
+        toda a continuação física/RNG fica em _continuation, nunca no gerador.
+        A duração é fixa; não estender um checkpoint para outro vídeo.
+        """
         from time import monotonic
-        simulation_started=monotonic()
-        for k in range(steps):
+        block_seconds=float(block_seconds)
+        if not math.isfinite(block_seconds) or block_seconds<=0:raise ValueError('O bloco de simulação deve ter duração positiva e finita.')
+        if self._continuation is None:
+            rng=np.random.default_rng(int(getattr(self.s,'traffic_seed',1729)));n=len(self.paths);t0=-math.ceil(float(getattr(self.s,'traffic_warmup_s',0.))/DT)*DT;steps=int(math.ceil((self.duration-t0)/DT))+2
+            self.warmup_seconds=-t0
+            self.fleet_audit={'enabled':True,'violations':[],'samples':0,'definition':'Par compacto: folga <max(12 m, 2 s de percurso), sem controle permitido, em qualquer amostra.'};self._fleet_seconds={}
+            nextspawn=[t0 if r>0 and getattr(self.s,'traffic_route_only',False) else t0+self.interarrival(rng,r) if r>0 else math.inf for r in self.rate];pending=[0]*n;V=[]
+            last_admit=collections.defaultdict(_negative_inf);queue_area=[0.0]*n;max_queue_lane=[0]*n;queue_discharged=[0]*n
+            self.info={};self.exited_by_path=[0]*n;self.node_transfers=collections.Counter();self.spawned_by_path=[0]*n;frames=getattr(self,'_history_frames',[]);self.warning_frames=getattr(self,'_history_warnings',[]);vid=0;first=int(round(-t0/DT))
+            self.collisions=0;self.side_collisions=0;self.min_gap=math.inf;self.max_queue=0;self.rerouted=0;self.spawned=0
+            self.safety_interventions=0;self.lane_changes=0;self.lane_returns=0;self.lc_blocked_rules=0;self.lc_blocked_safety=0
+            if getattr(self.s,'traffic_semear',True) and not getattr(self.s,'traffic_route_only',False):
+                vid=self.semear_percurso(V,vid,t0,rng,status)
+            self.time=t0;self.initialize_speeds(V,t0)
+            self._continuation={'rng':rng,'n':n,'t0':t0,'steps':steps,'nextspawn':nextspawn,'pending':pending,'V':V,'last_admit':last_admit,'queue_area':queue_area,'max_queue_lane':max_queue_lane,'queue_discharged':queue_discharged,'frames':frames,'vid':vid,'first':first,'k':0,'duration':self.duration,'next_block_end':min(self.duration,block_seconds),'block_start':0.,'compute_seconds':0.,'complete':False}
+        c=self._continuation
+        if c['duration']!=self.duration:raise ValueError('A duração do checkpoint não pode ser alterada durante a continuação.')
+        if c['complete']:return
+        rng=c['rng'];n=c['n'];t0=c['t0'];steps=c['steps'];nextspawn=c['nextspawn'];pending=c['pending'];V=c['V'];last_admit=c['last_admit'];queue_area=c['queue_area'];max_queue_lane=c['max_queue_lane'];queue_discharged=c['queue_discharged'];frames=c['frames'];vid=c['vid'];first=c['first']
+        self.frames=frames;self.t_first=t0+first*DT
+        active_started=monotonic()
+        for k in range(c['k'],steps):
             t=t0+k*DT;self.time=t
             for i in range(n):
                 while nextspawn[i]<=t:
@@ -707,12 +731,20 @@ class TrafficSim:
                 from .fleet_policy import inspect
                 inspect(self,V,self.occupancy(V),DT)
             if k%5==0:
-                elapsed=max(.001,monotonic()-simulation_started);remaining=elapsed*max(0,steps-k-1)/(k+1)
+                elapsed=max(.001,c['compute_seconds']+monotonic()-active_started);remaining=elapsed*max(0,steps-k-1)/(k+1)
                 etapa=f'Aquecendo tráfego: {tempo(t-t0)} de {tempo(-t0)}' if t<0 else f'Simulando tráfego: {tempo(t)} de {tempo(self.duration)}'
                 status(.22+.03*k/steps,etapa+f' · etapa {100*(k+1)/steps:.0f}% · falta ~{tempo(remaining)}')
-        self.simulation_seconds=monotonic()-simulation_started
-        self.active_end=len(V);self.frames=frames;self.t_first=t0+first*DT
-        self.queue_area_vehicle_s=queue_area;self.max_queue_lane=max_queue_lane;self.queue_discharged=queue_discharged;self.current_queue=list(pending)
+            c.update(k=k+1,V=V,vid=vid)
+            complete=k+1==steps
+            if k>=first and (t+1e-9>=c['next_block_end']+DT or complete):
+                c['compute_seconds']+=monotonic()-active_started;c['complete']=complete
+                self.simulation_seconds=c['compute_seconds'];self.simulation_complete=complete
+                self.active_end=len(V);self.frames=frames;self.t_first=t0+first*DT
+                self.queue_area_vehicle_s=queue_area;self.max_queue_lane=max_queue_lane;self.queue_discharged=queue_discharged;self.current_queue=list(pending)
+                start=c['block_start'];end=self.duration if complete else c['next_block_end']
+                c['block_start']=end;c['next_block_end']=min(self.duration,end+block_seconds)
+                yield {'start_s':start,'end_s':end,'available_until_s':t,'complete':complete,'next_step':k+1}
+                active_started=monotonic()
 
     def initialize_speeds(self,vehicles,t):
         """Distribuição inicial já em movimento, com frenagem possível antes dos controles."""

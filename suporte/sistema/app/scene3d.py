@@ -133,7 +133,11 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
     duration=min(float(settings.duration_s),PREVIEW_SECONDS)
     if settings.traffic_classic:
         from .classic_traffic import ClassicTraffic as TrafficSim
-    sim=TrafficSim(scene.network,settings,partial(visual.vehicle_type,mix=settings.vehicle_mix),duration=duration,status=lambda p,m:progress(.55+.25*p,m)) if settings.traffic and scene.network.paths else None
+    if settings.traffic and scene.network.paths and not settings.traffic_classic:
+        from .traffic_pipeline import cached_simulation
+        sim=cached_simulation(scene,status=lambda p,m:progress(.55+.25*p,m),duration=duration)
+    else:
+        sim=TrafficSim(scene.network,settings,partial(visual.vehicle_type,mix=settings.vehicle_mix),duration=duration,status=lambda p,m:progress(.55+.25*p,m)) if settings.traffic and scene.network.paths else None
     scene._sim=sim
     from .fleet_policy import require_export
     require_export(sim,settings)

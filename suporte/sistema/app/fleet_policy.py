@@ -39,11 +39,13 @@ def validate_mode(settings):
         raise ValueError('Ative prevenção de colisões e respeito à sinalização para exportar a frota.')
 
 
-def require_export(sim, settings=None):
+def require_export(sim, settings=None, *, allow_partial=False):
     if sim is None:
         if settings is not None and settings.traffic:
             raise ValueError('A frota exige microssimulação validada para exportação.')
         return
+    if not allow_partial and getattr(sim,'simulation_complete',True) is not True:
+        raise ValueError('A simulação ainda não terminou; o vídeo não pode ser publicado.')
     if not hasattr(sim, 'fleet_audit'):
         raise ValueError('A regra de ouro exige microssimulação validada; o modo clássico não pode ser exportado com veículos.')
     settings = sim.s

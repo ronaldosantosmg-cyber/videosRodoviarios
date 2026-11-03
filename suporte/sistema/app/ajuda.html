@@ -3,6 +3,7 @@
 <p class="muted">Passo a passo do projeto ao vídeo. Passe o mouse (ou toque) nos <span class="help">?</span> ao lado dos campos para ver a explicação de cada um.</p>
 
 <h3>1. Projeto e arquivos</h3>
+<p>Projetos com tráfego anterior ou clássico são migrados para o motor simulado ao carregar/exportar. Os fluxos cadastrados são preservados e as verificações de colisão e sinalização ficam ativas nessa migração. A exportação não é liberada por ignorar conflitos.</p>
 <ol>
 <li><b>Novo projeto</b> (ou <b>Abrir projeto</b> para continuar um salvo).</li>
 <li>Selecione o DXF (e o KMZ, se houver) e clique <b>Enviar arquivos</b>. DWG precisa ser salvo como DXF.</li>
@@ -84,6 +85,11 @@
 <li><b>↶ Travessia permitida / ⛔ proibida</b>: onde os veículos podem (ou não) passar de uma pista para a outra do canteiro. Por padrão só em retornos em desnível, rotatórias e aberturas de retorno.</li>
 </ul>
 <h3>Dia e noite</h3>
+<h3>Reutilização do tráfego e retomada da geração</h3>
+<p>A física mantém o passo de <b>0,2 segundo</b>, independentemente da resolução ou dos quadros por segundo do vídeo. O aplicativo guarda automaticamente os resultados de tráfego em disco. Mudar apenas a apresentação — cores, dia/noite, resolução, FPS ou câmera — permite reutilizar os resultados compatíveis. Alterar física, trajetórias, sinais ou demanda invalida esse reaproveitamento.</p>
+<p>O cache vale para a <b>mesma duração e janela de simulação</b>. Ele não estende um vídeo nem inventa movimentos além do período calculado. O histórico mantém até <b>duas entradas recentes</b> por LRU: ao atingir o limite, descarta a menos recentemente usada.</p>
+<p>A geração prepara blocos de <b>5 segundos</b>. Quando dois blocos aguardam a montagem, a produção espera para limitar o trabalho adiantado. Isso limita essa fila; outras partes do aplicativo continuam usando memória. A câmera <b>Tráfego</b> precisa conhecer movimentos futuros e, na primeira execução sem cache compatível, ainda calcula a simulação inteira antes da montagem. Nas próximas execuções compatíveis, usa o cache.</p>
+<p>Após cancelar, uma nova geração compatível continua a preparação a partir do <b>último bloco validado</b>. A codificação do MP4 começa de novo: o arquivo de vídeo interrompido não é retomado. Um cache parcial <b>não é um vídeo válido</b>. O arquivo final só é publicado depois da auditoria final e da decodificação de conferência. O tempo restante depende do projeto, da máquina e das etapas ainda necessárias.</p>
 <p>Em Iluminação, escolha <b>Dia</b>, <b>Transição</b> ou <b>Noite</b>. Os comandos <b>DIA</b>, <b>NOITE</b> e <b>ANOITECER</b> salvam o modo no projeto. ANOITECER mantém o instante configurado quando ele cabe no vídeo; caso contrário, usa a metade da duração. O comando limita a transição ao tempo restante do vídeo. Ajuste início e duração da transição no formulário. A próxima prévia e o vídeo usam a configuração salva; a imagem renderizada anterior não é uma nova verificação. À noite a apresentação destaca faróis, lanternas e pintura. A vista 3D e sua exportação acompanham a transição temporal do projeto. O botão de iluminação 3D alterna os modos manuais; DIA, NOITE ou ANOITECER retomam a configuração do projeto.</p>
 <h3>Duas janelas</h3>
 <p><b>🗗 Duas janelas</b> abre a visualização e os resultados (editor, progresso, vídeo) numa segunda janela — por exemplo no outro monitor — e deixa a configuração na atual. As duas ficam sincronizadas: campos alterados na configuração chegam à visualização e marcações feitas no editor chegam à configuração; um processamento iniciado numa aparece na outra. <b>▣ Janela única</b> volta ao modo normal. Se o navegador bloquear a nova janela, permita pop-ups para 127.0.0.1.</p>

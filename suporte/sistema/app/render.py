@@ -1003,7 +1003,11 @@ class Scene:
             mix=getattr(self.s,'vehicle_mix','classico')   # 1.37: frota variada
             import functools
             _kw={'janela':self.sim_window} if getattr(self,'sim_window',None) is not None and not self.s.traffic_classic else {}
-            self._sim=TrafficSim(self.network,self.s,functools.partial(visual.vehicle_type,mix=mix),getattr(self,'sim_duration',None) or self.s.duration_s,status,**_kw)
+            if self.s.traffic_classic:
+                self._sim=TrafficSim(self.network,self.s,functools.partial(visual.vehicle_type,mix=mix),getattr(self,'sim_duration',None) or self.s.duration_s,status,**_kw)
+            else:
+                from .traffic_pipeline import cached_simulation
+                self._sim=cached_simulation(self,status)
             self.report['traffic_simulation']=self._sim.report()
             from .fleet_compatibility import compatibility
             self.report['fleet_compatibility']=compatibility(self._sim,self.network,self.s,complete=False)
@@ -1323,6 +1327,18 @@ class Scene:
         return im,{'traffic_visibility':self._vehicle_visibility,'camera':cam.tolist(),'width_m':width,'screen_width':self.W,'screen_height':self.H,'right':self.right.tolist(),'up':self.up.tolist()}
 
 def render(directory,s,status=lambda *a:None,cancel=lambda:False):
+    from contextlib import ExitStack
+    try:
+        with ExitStack() as resources:return _render(directory,s,status,cancel,resources)
+    except BaseException:
+        try:(Path(directory)/'video.partial.mp4').unlink(missing_ok=True)
+        except OSError:pass
+        raise
+
+
+def _render(directory,s,status,cancel,resources):
+    from .models import Settings
+    s=Settings.model_validate(s.model_dump())
     from .fleet_policy import validate_mode
     validate_mode(s)
     directory=Path(directory)
@@ -1333,6 +1349,8 @@ def render(directory,s,status=lambda *a:None,cancel=lambda:False):
     ssaa=getattr(s,'video_quality','padrao')=='maxima' and s.width<=2560 and not s.cabin.enabled
     start=time.monotonic();scene=Scene(directory,s.model_copy(update={'width':s.width*3//2}) if ssaa else s,lambda p,m:status(min(.18,.02+.64*max(0.,p)),m));prepared=time.monotonic()-start
     s=scene.s.model_copy(update={'width':OW}) if ssaa else scene.s   # 1.27: com avanço por velocidade, a duração é a calculada pela cena
+    if getattr(s,'traffic_legacy_migrated',False):
+        scene.report['warnings'].append('Compatibilidade: projeto anterior/clássico migrado para o motor simulado com prevenção de colisões e respeito à sinalização.')
     cabin=None
     if s.cabin.enabled:
         from .cabin import CabinView
@@ -1345,17 +1363,29 @@ def render(directory,s,status=lambda *a:None,cancel=lambda:False):
             if scene.detail.offline:scene.report['warnings'].append('Imagem detalhada indisponível (sem internet e sem cache): o vídeo usa o mosaico base; texturas do projeto seguem em alta resolução.')
         except Exception as e:scene.report['warnings'].append('Imagem detalhada não pré-carregada: '+str(e)[:120])
     detail_finished=time.monotonic()
-    if s.traffic:scene.traffic(lambda p,m:status(min(.45,max(.22,.22+(p-.22)*(.23/.03))),m))
+    pipeline=None
+    if s.traffic:
+        if not scene.network.paths:
+            from .traffic_presentation import route_problem
+            raise ValueError('Vídeo não gerado: não há itinerário válido. '+route_problem(scene))
+        # A câmera de acompanhamento escolhe seu alvo usando início/meio/fim.
+        if s.camera_mode=='trafego':scene.traffic(status)
+        from .traffic_pipeline import TrafficPipeline
+        pipeline=TrafficPipeline(scene,status,cancel,duration=max(s.duration_s,cabin.c.duration_s if cabin else s.duration_s))
+        resources.callback(pipeline.close)
+        pipeline.ensure(0.)
+        if s.camera_mode=='trafego':pipeline.info['full_simulation_reason']='camera_requires_future'
     traffic_finished=time.monotonic()
     from .fleet_policy import require_export
-    require_export(getattr(scene,'_sim',None),s)
-    from .traffic_presentation import record_preflight
-    scene.report['traffic_presentation']=record_preflight(scene)
-    if scene.report['traffic_presentation']['status']=='sem_itinerarios':
-        raise ValueError('Vídeo não gerado: veículos estão ativados, mas não há itinerário válido. '+scene.report['traffic_presentation']['notice'])
-    if scene.report['traffic_presentation']['status']=='sem_veiculos' and s.camera_mode=='trafego':
-        raise ValueError('Vídeo não gerado: a câmera de tráfego não tem veículos ativos. '+scene.report['traffic_presentation']['notice'])
-    if scene.report['traffic_presentation']['status'] not in ('visivel','desativado'):scene.report['warnings'].append(scene.report['traffic_presentation']['notice'])
+    require_export(getattr(scene,'_sim',None),s,allow_partial=True)
+    if pipeline is None or pipeline.complete:
+        from .traffic_presentation import record_preflight
+        scene.report['traffic_presentation']=record_preflight(scene)
+        if scene.report['traffic_presentation']['status']=='sem_itinerarios':
+            raise ValueError('Vídeo não gerado: veículos estão ativados, mas não há itinerário válido. '+scene.report['traffic_presentation']['notice'])
+        if scene.report['traffic_presentation']['status']=='sem_veiculos' and s.camera_mode=='trafego':
+            raise ValueError('Vídeo não gerado: a câmera de tráfego não tem veículos ativos. '+scene.report['traffic_presentation']['notice'])
+        if scene.report['traffic_presentation']['status'] not in ('visivel','desativado'):scene.report['warnings'].append(scene.report['traffic_presentation']['notice'])
     status(.45,'Testando aceleração NVIDIA / NVENC')
     encoding=select_encoder(ff,OW,OH,s.fps,s.encoder,s.cpu_preset,quality=getattr(s,'video_quality','padrao'))
     (directory/'encoder.json').write_text(json.dumps({k:v for k,v in encoding.items() if k!='args'},ensure_ascii=False,indent=2),encoding='utf-8')
@@ -1363,10 +1393,10 @@ def render(directory,s,status=lambda *a:None,cancel=lambda:False):
     from .parallel import plan_workers,Pool
     workers,why=plan_workers(s.render_workers,scene.W,scene.H,frames,encoding['encoder']!='h264_nvenc')
     snap=directory/'render_tmp'
-    if workers>1:
-        status(.45,f'Preparando {workers} processos de montagem ({why})')
-        shutil.rmtree(snap,ignore_errors=True);snapshot_key=scene.snapshot(snap)
+    first_frame_seconds=None
+    if workers>1:status(.45,f'Preparando {workers} processos de montagem ({why})')
     def encode_attempt(profile):
+        nonlocal first_frame_seconds
         log=open(directory/'ffmpeg.log','ab')
         log.write(('\nEncoder: '+profile['label']+' — '+profile['reason']+'\n').encode('utf-8'));log.flush()
         cmd=[ff,'-y','-v','error','-f','rawvideo','-pix_fmt','rgb24','-s',f'{OW}x{OH}','-r',str(s.fps),'-i','-','-an']+profile['args']+['-g','250','-pix_fmt','yuv420p','-movflags','+faststart',str(out)]
@@ -1378,12 +1408,22 @@ def render(directory,s,status=lambda *a:None,cancel=lambda:False):
         # Reset callout state if GPU failed and a CPU retry is required.
         scene.shown_poi=None;scene.poi_since=-100
         try:
-            pool=Pool(snap,workers,0,frames-1,'cabin' if cabin else 'aerial',snap,key=snapshot_key) if workers>1 else None
+            pool_last=-1
             previous=None;last_scene=None;fade_from=None;fade_start=0
             for k in range(frames):
                 if cancel():raise InterruptedError('Geração cancelada pelo usuário.')
                 t=k/s.fps
-                if pool is not None:im=pool.frame(k,nbytes,shape,cancel=cancel)
+                if pipeline is not None:pipeline.ensure(t)
+                if workers>1 and k>pool_last:
+                    if pool is not None:
+                        if any(pool.close()):raise RuntimeError('Processo auxiliar terminou com erro.')
+                        pool=None
+                    pool_last=min(frames-1,max(k,int(math.ceil((pipeline.render_until if pipeline else frames/s.fps)*s.fps-1e-9))-1))
+                    shutil.rmtree(snap,ignore_errors=True);snapshot_key=scene.snapshot(snap)
+                    pool=Pool(snap,workers,k,pool_last,'cabin' if cabin else 'aerial',snap,key=snapshot_key)
+                if pool is not None:
+                    if cabin is None:scene.advance_state(t)
+                    im=pool.frame(k,nbytes,shape,cancel=cancel)
                 elif cabin is not None:im=cabin.frame(t)[0]
                 else:im=scene.frame(t)[0]
                 if ssaa:im=cv2.resize(im,(OW,OH),interpolation=cv2.INTER_AREA)
@@ -1396,11 +1436,13 @@ def render(directory,s,status=lambda *a:None,cancel=lambda:False):
                         a=(t-fade_start)/.8;a=a*a*(3-2*a);im=cv2.addWeighted(fade_from,1-a,im,a,0)
                     last_scene=key;previous=im.copy()
                 writer.write(im.tobytes())
+                if k==0 and first_frame_seconds is None:first_frame_seconds=time.monotonic()-start
                 if os.environ.get('RODOVIA_FRAME_LOG'):
                     with open(os.environ['RODOVIA_FRAME_LOG'],'a') as fl:fl.write(f'{k} {hashlib.sha256(im.tobytes()).hexdigest()[:12]}\n')
                 if k%max(1,s.fps)==0:
                     elapsed=max(.001,time.monotonic()-run_start);speed=(k+1)/elapsed;remaining=((frames-k-1) / (speed))
                     status(.45+.54*(k+1)/frames,f"{profile['label']}{tag}{' · cabine' if cabin else ''} · {k+1}/{frames} quadros · {speed:.1f} q/s · falta ~{tempo(remaining)}")
+            if pipeline is not None:pipeline.finish()
             writer.finish()
             if enc.wait(timeout=120)!=0:raise RuntimeError('FFmpeg falhou. Consulte ffmpeg.log do projeto.')
             if pool is not None and any(pool.close()):raise RuntimeError('Processo auxiliar terminou com erro.')
@@ -1426,6 +1468,15 @@ def render(directory,s,status=lambda *a:None,cancel=lambda:False):
             encoding['reason']='Retorno automático à CPU após falha de NVENC: '+str(e)
             frames=encode_attempt(encoding)
     finally:shutil.rmtree(snap,ignore_errors=True)
+    if pipeline is not None:pipeline.finish()
+    require_export(getattr(scene,'_sim',None),s)
+    from .traffic_presentation import record_preflight
+    scene.report['traffic_presentation']=record_preflight(scene)
+    if scene.report['traffic_presentation']['status']=='sem_itinerarios':
+        raise ValueError('Vídeo não gerado: veículos estão ativados, mas não há itinerário válido. '+scene.report['traffic_presentation']['notice'])
+    if scene.report['traffic_presentation']['status']=='sem_veiculos' and s.camera_mode=='trafego':
+        raise ValueError('Vídeo não gerado: a câmera de tráfego não tem veículos ativos. '+scene.report['traffic_presentation']['notice'])
+    if scene.report['traffic_presentation']['status'] not in ('visivel','desativado'):scene.report['warnings'].append(scene.report['traffic_presentation']['notice'])
     encoding_finished=time.monotonic()
     status(.995,'Conferindo o vídeo gravado (decodificação completa)')
     from .encoding import validate_mp4
@@ -1444,6 +1495,8 @@ def render(directory,s,status=lambda *a:None,cancel=lambda:False):
     meta={'frames':frames,'fps':s.fps,'duration_s':frames/s.fps,'width':OW,'height':OH,'video_quality':getattr(s,'video_quality','padrao'),'superamostragem':1.5 if ssaa else 1,'codec':'H.264 High','encoder':encoding['encoder'],'encoder_reason':encoding['reason'],'quality':encoding['quality'],'pix_fmt':'yuv420p','geometric_length_m':scene.length,'reference_length_m':s.reference_length_m,'geometry_cache_hit':scene.geometry_cache_hit,'visual_quality':s.visual_quality,'render_profile':s.render_profile,'workers':workers,'workers_reason':why,'camera':'cabin' if cabin else 'aerial','cabin_reaches_path_end':bool(cabin.reaches_end) if cabin else None,'preparation_seconds':round(prepared,3),'total_seconds':round(time.monotonic()-start,3),'validation':check,'motion_audit':scene.report.get('traffic_simulation'),'network_safety':{'rejected_paths':len(getattr(scene.network,'rejected_paths',[])),'rejected_connections':dict(getattr(scene.network,'rejected_connectors',{}))}}
     ped_control=scene._sim.pedestrians if getattr(scene,'_sim',None) is not None else getattr(scene,'_ped_control',None)
     meta['stage_seconds']={'scene':round(prepared,3),'detail_images':round(detail_finished-start-prepared,3),'traffic':round(traffic_finished-detail_finished,3),'render_and_encode':round(encoding_finished-traffic_finished,3),'validation':round(time.monotonic()-encoding_finished,3)}
+    meta['traffic_processing']={**(pipeline.info if pipeline else {'status':'disabled','streaming':False}),'first_frame_seconds':None if first_frame_seconds is None else round(first_frame_seconds,3),'simulation_compute_seconds':round(getattr(getattr(scene,'_sim',None),'simulation_seconds',0.),3),'stage_overlap':bool(pipeline and pipeline.info.get('streaming'))}
+    meta['traffic_processing']['legacy_mode_migrated']=bool(getattr(s,'traffic_legacy_migrated',False))
     meta['traffic_presentation']=scene.report.get('traffic_presentation')
     meta['traffic_operation_notice']=scene.report.get('traffic_operation_notice','')
     meta['pedestrian_audit']=ped_control.report() if ped_control else None

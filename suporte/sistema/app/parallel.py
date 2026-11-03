@@ -108,7 +108,7 @@ def main(snapshot,index,n,first,last,mode):
     if mode=='cabin':
         from .cabin import CabinView
         cab=CabinView(sc)
-    sc.shown_poi=None;sc.poi_since=-100
+    # O snapshot leva a chamada em vigor na fronteira do bloco.
     for k in range(first,last+1):
         t=k/fps
         if k%n==index:

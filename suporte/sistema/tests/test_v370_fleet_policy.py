@@ -45,7 +45,6 @@ def test_missing_simulator_blocks_enabled_fleet():
 
 
 @pytest.mark.parametrize('setting',[
-    {'traffic_classic':True},{'traffic_model':'anterior'},
     {'traffic_prevent_collisions':False},{'traffic_respect_signals':False}])
 def test_export_fails_before_loading_project_for_unsafe_mode(tmp_path,setting):
     from app.models import Settings

@@ -58,6 +58,7 @@ jobs:
           tests/test_v370_pedestrian_seed.py
           tests/test_v268_zebrados_dxf.py
           tests/test_v113.py::test_night_factor_transition
+          tests/test_v380_traffic_cache.py
           tests/test_v380_earthwork_dxf.py
           tests/test_v380_zebra_clipping.py
           tests/test_v267_zebrados.py
