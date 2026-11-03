@@ -708,12 +708,13 @@ class HatchRole(BaseModel):
     oae_kind: Literal['auto','nova','existente','alargada'] = 'auto'   # 1.42.40: textura própria da OAE nova, existente ou alargada
 
 class CustomAxis(BaseModel):
-    """1.22: alinhamento (eixo de referência) definido por cliques sobre o eixo da via no editor."""
+    """Alinhamento local; substituir a referência principal exige escolha explícita."""
     model_config=ConfigDict(allow_inf_nan=False)
     name: str = Field(default='Alinhamento do editor',min_length=1,max_length=80)
     points: list[Point] = Field(min_length=2,max_length=20000)
     smooth: bool = True
     enabled: bool = True
+    use_as_reference: bool = False  # Local por padrão, inclusive em configurações antigas.
     source: Literal['cliques','linha','continua'] = 'cliques'   # 1.26: como foi criado
 
 class LaneRange(BaseModel):

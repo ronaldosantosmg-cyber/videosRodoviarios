@@ -1,8 +1,8 @@
-# Rodovia Studio 3.15
+# Rodovia Studio 3.16
 
-Editor e gerador de vídeos rodoviários a partir de DXF, com KML/KMZ e imagens como referências opcionais. A base principal agora é o **Rodovia Studio 3.15**, baseado na atualização 3.5 fornecida pelo proprietário. Consulte [as correções e medições da 3.15](ATUALIZACAO_3_15.md).
+Editor e gerador de vídeos rodoviários a partir de DXF, com KML/KMZ e imagens como referências opcionais. A base principal agora é o **Rodovia Studio 3.16**, baseado na atualização 3.5 fornecida pelo proprietário. Consulte [as correções e medições da 3.16](ATUALIZACAO_3_16.md).
 
-Pacote: [atualização 3.15](atualizacoes/RodoviaStudio_3_15_atualizacao.zip). [Validação e limites](VALIDACAO_3_15.md).
+Pacote: [atualização 3.16](atualizacoes/RodoviaStudio_3_16_atualizacao.zip). [Validação e limites](VALIDACAO_3_16.md).
 
 ## Abrir no Windows
 
@@ -45,4 +45,4 @@ python -m pytest -q tests
 
 A CI executa integração e regressões selecionadas; não equivale à suíte completa. Para executar todos os testes Studio: `cd suporte/sistema` e `python -m pytest tests`. Testes de navegador exigem `python -m playwright install chromium`. O portão original está em `suporte/sistema/portao.py`.
 
-O workflow Windows gera um ZIP de atualização 3.15 com manifesto e hashes, validado pelo atualizador. O pacote não contém bancos ou projetos do usuário. Os tempos em [ATUALIZACAO_3_5.md](ATUALIZACAO_3_5.md) são medições históricas da origem, não garantias para outros computadores. Windows/WebView2 e o empreendimento completo precisam de validação no ambiente de destino.
+O workflow Windows gera um ZIP de atualização 3.16 com manifesto e hashes, validado pelo atualizador. O pacote não contém bancos ou projetos do usuário. Os tempos em [ATUALIZACAO_3_5.md](ATUALIZACAO_3_5.md) são medições históricas da origem, não garantias para outros computadores. Windows/WebView2 e o empreendimento completo precisam de validação no ambiente de destino.

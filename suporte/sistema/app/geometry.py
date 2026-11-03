@@ -453,8 +453,8 @@ def analyze(directory,settings,preview=None,hatch_preview=None):
         raise ValueError('Nenhum eixo encontrado. Em Projeto → Camadas, associe uma camada com linha ao papel Eixo, ou escolha explicitamente um alinhamento. Camadas cadastradas: '+configured+'. Candidatas: '+hint+'. Hachuras e polígonos KMZ não autorizam circulação.')
     axes.sort(key=lambda e:LineString(e['points']).length,reverse=True);axis=axes[0]['points'].copy()
     ca=getattr(settings,'custom_axis',None)
-    if ca is not None and ca.enabled and len(ca.points)>=2:
-        # 1.22: alinhamento clicado no editor vira o eixo de referência (estaqueamento, câmera, sentido).
+    if ca is not None and ca.enabled and len(ca.points)>=2 and ca.use_as_reference:
+        # A referência principal só muda por escolha explícita; alinhamento local não governa outros eixos.
         axis=custom_axis_points(ca);warnings.append(f'Eixo de referência: “{ca.name}” ({len(ca.points)} pontos clicados no editor, {LineString(axis).length:.1f} m).')
     if settings.reverse_axis: axis=axis[::-1].copy()
     ds=np.r_[0,np.cumsum(np.linalg.norm(np.diff(axis,axis=0),axis=1))]

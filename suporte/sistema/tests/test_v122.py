@@ -18,7 +18,7 @@ def test_custom_axis_from_clicks(junction):
     assert any(np.allclose(q,[500200,7800004]) for q in p)          # passa exatamente pelos pontos clicados
     assert p[:,1].max()>7800004-1e-6 and np.max(np.linalg.norm(np.diff(p,axis=0),axis=1))<=1.01
     straight=custom_axis_points(CustomAxis(points=ca.points,smooth=False));assert len(straight)==3
-    _,axis,ds,_,rep=analyze(junction,S(custom_axis=ca.model_dump()))
+    _,axis,ds,_,rep=analyze(junction,S(custom_axis={**ca.model_dump(),'use_as_reference':True}))
     assert np.allclose(axis[0],[500000,7800001]) and abs(ds[-1]-400.1)<1 and any('Eixo de referência' in w for w in rep['warnings'])
     _,axis2,_,_,_=analyze(junction,S(custom_axis={**ca.model_dump(),'enabled':False}));assert np.allclose(axis2[0],[500000,7800000])
     assert Settings.model_validate({'schema_version':20,'km_start_m':0,'km_end_m':100}).custom_axis is None
