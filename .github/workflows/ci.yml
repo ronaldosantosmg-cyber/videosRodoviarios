@@ -53,6 +53,7 @@ jobs:
           tests/test_v31_fantasmas.py
           tests/test_v31_dxf_preparo.py
           tests/test_v31_surgimento.py
+          tests/test_v14241_estabilidade.py
           tests/test_v14278_articulado.py
           tests/test_v370_fleet_policy.py
           tests/test_v370_pedestrian_seed.py

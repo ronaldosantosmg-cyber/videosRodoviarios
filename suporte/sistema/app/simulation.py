@@ -476,6 +476,16 @@ class TrafficSim:
         if not math.isfinite(gap):return a_c*free
         star=float(dyn['s0'])+max(0.,vv*float(dyn['T'])*v.get('T_k',1.)+vv*(vv-vl)/(2*math.sqrt(max(a_c*b_c,1e-6))))
         return a_c*(free-(star/max(gap,.1))**2)
+    def lane_change_clearance(self,speed,front_gap,front_speed,rear_gap,rear_speed):
+        """Folga em ambas as pontas até completar a troca, sem esperar uma
+        colisão para frear. A previsão conserva velocidades durante 4 s e
+        deixa margem de integração; o IDM continua acompanhando ambos os líderes.
+        """
+        horizon=self.LC_DURATION+DT
+        front_need=max(12.,2*max(0.,speed))+2.+max(0.,speed-front_speed)*horizon
+        rear_need=max(12.,2*max(0.,rear_speed))+2.+max(0.,rear_speed-speed)*horizon
+        return front_gap>=front_need and rear_gap>=rear_need
+
     def is_left_move(self,src,dst):
         a=self.paths[src].get('route_lane');b=self.paths[dst].get('route_lane')
         return a is not None and b is not None and b<a
@@ -522,6 +532,7 @@ class TrafficSim:
                 if self.target_blocked(target,st,travel,t):continue
                 fg,fv=self.leader(v,occ,look=180.,path_i=target,s=st)
                 rg,rv,rL=self.follower_on_path(v,V,target,st)
+                if not self.lane_change_clearance(v['v'],fg,fv,rg,rv):self.lc_blocked_safety+=1;continue
                 front_need=max(8.,IDM['s0']+v['v']*1.5)
                 rear_need=max(8.,IDM['s0']+rv*.8)
                 if returning:front_need=max(front_need,35.);rear_need=max(rear_need,35.)
@@ -587,6 +598,7 @@ class TrafficSim:
                 st=self.map_s(v['p'],target,v['s'])
                 fg,fv=self.leader(v,occ,look=180.,path_i=target,s=st)
                 rg,rv,rL=self.follower_on_path(v,V,target,st)
+                if not self.lane_change_clearance(v['v'],fg,fv,rg,rv):self.lc_blocked_safety+=1;continue
                 front_need=max(8.,IDM['s0']+v['v']*1.1)
                 rear_need=max(8.,IDM['s0']+rv*1.1)
                 if returning:rear_need=max(rear_need,6.+v['v']*1.2)
@@ -848,6 +860,10 @@ class TrafficSim:
             if bl.mode=='partial' and a-40<=s<=b:v0=min(v0,bl.speed);T=max(T,2.4)
             elif bl.mode=='total' and s<a:v['_stop']=a-2-v['L']/2-s
         gap,vl,lead=self.leader_state(v,occ)
+        if v.get('lc') is not None:
+            target=v['lc']['to'];station=self.map_s(v['p'],target,v['s'])
+            target_gap,target_speed,target_lead=self.leader_state(v,occ,path_i=target,s=station)
+            if target_gap<gap:gap,vl,lead=target_gap,target_speed,target_lead
         transport_gap=self.transport.stop_gap(v,t,gap,vl)
         _src=(('bloqueio',v.pop('_stop',math.inf)),(v.get('_transport_kind','caixa_cruzamento'),transport_gap),('pare_e_siga',self.alternating.stop_gap(v)),('pedestres',self.pedestrians.stop_gap(v)))
         _why=min(_src,key=lambda x:x[1]);stop=_why[1]
@@ -860,7 +876,9 @@ class TrafficSim:
         if mg<gap:
             gap,vl=mg,mv
             if getattr(self,'_merge_roundabout',False):v['_why']='rotatoria'
-        braking=max(12.,v['v']**2/(2*max(b_comf,.1))+v['v']*T)
+        # A propagação da origem da fila precisa alcançar também a folga
+        # de parada livre (12,5 m); caso contrário perde-se a causa do sinal.
+        braking=max(15.,v['v']**2/(2*max(b_comf,.1))+v['v']*T)
         # Uma fila pertence à linha que a criou, mesmo quando o líder (e não o
         # sinal) é o obstáculo mais próximo. O verde não apaga sua origem.
         queue=v.get('_signal_queue')
@@ -871,7 +889,8 @@ class TrafficSim:
             if queue is None or queue['path']!=v['p'] or abs(queue['station']-station)>.1:
                 queue={'path':v['p'],'station':station,'span':float(origin.get('clear_span',25.)) if origin else 25.,'released':None}
                 v['_signal_queue']=queue
-        if queue is None and lead is not None and gap<=braking and t<=lead.get('_control_until',-math.inf):
+        signal_follow_range=max(braking,15.+3.*max(v['v'],lead['v'] if lead is not None else 0.))
+        if queue is None and lead is not None and gap<=signal_follow_range and t<=lead.get('_control_until',-math.inf):
             source=lead.get('_signal_queue')
             if source is not None:
                 station=source['station'] if source['path']==v['p'] else self.map_s(source['path'],v['p'],source['station'])
@@ -902,7 +921,11 @@ class TrafficSim:
         # a aceleração física calibrada da classe, inclusive a dos pesados.
         if discharging:a_comf=float(dyn['a'])
         permitted=v.get('_control_cause') in ('semaforo','pedestres','rotatoria') and t<=v.get('_control_until',-math.inf)
-        if not (discharging or permitted and v.get('_control_cause')!='semaforo'):T=max(T,3.)
+        if not (discharging or permitted and v.get('_control_cause')!='semaforo'):
+            T=max(T,3.)
+            # O IDM não pode buscar 2,3 m parado enquanto a auditoria exige
+            # pelo menos 12 m fora das filas autorizadas. Margem numérica de 0,5 m.
+            s0=max(s0,12.5)
         vv=v['v'];dv=vv-vl;star=s0+max(0.,vv*T+vv*dv/(2*math.sqrt(max(a_comf*b_comf,1e-6))));free=1-(vv/max(v0,.1))**4
         a=a_comf*(free-(star/max(gap,.1))**2) if gap<math.inf else a_comf*free
         return max(-9.,min(a_comf,a))

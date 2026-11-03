@@ -86,3 +86,13 @@ def test_queue_exception_expires_and_cannot_be_inherited_in_free_downstream_road
                     _control_cause='semaforo', _control_until=70.)
     sim.accel(vehicle, None, 63.)
     assert '_signal_queue' not in vehicle
+
+
+def test_signal_queue_origin_crosses_the_free_stopping_clearance():
+    sim,vehicle=fixture();sim.transport.red=False
+    vehicle.update(s=70.,v=2.)
+    sim.gap=18.;sim.lead.update(v=1.,_control_cause='semaforo',_control_until=1.,
+        _signal_queue={'path':0,'station':100.,'span':25.,'released':None})
+    sim.accel(vehicle,None,0.)
+    assert vehicle['_signal_queue']['station']==100.
+    assert vehicle['_control_cause']=='semaforo'

@@ -1,0 +1,42 @@
+{
+  "environment": "Linux/Python 3.12",
+  "scenario": {
+    "duration_s": 220,
+    "traffic_density": 1,
+    "speed_kmh": 70,
+    "seed": 1729,
+    "vehicle_mix": "variado"
+  },
+  "before": {
+    "failed_at_simulation_s": 174.0,
+    "path": 8,
+    "station_m": 8232.35,
+    "path_length_m": 9145.40880787337,
+    "gap_m": 29.219,
+    "speed_kmh": 56.27,
+    "lane_change_started_s": 170.0
+  },
+  "after": {
+    "samples": 1102,
+    "gold_violations": 0,
+    "rear_collisions": 0,
+    "side_collisions": 0,
+    "exited_vehicles": 55
+  },
+  "timings_s": {
+    "physics_only": 14.71,
+    "cold_pipeline": 45.55,
+    "first_block": 2.84
+  },
+  "mp4_sample": {
+    "from_s": 172,
+    "to_s": 175,
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "decoded_frames": 90,
+    "supersampling_width": 2880,
+    "background": "neutral; imagery not supplied"
+  },
+  "scope": "Not full 6600-frame encoding; timings exclude online imagery and video composition. Private project inputs are not published."
+}

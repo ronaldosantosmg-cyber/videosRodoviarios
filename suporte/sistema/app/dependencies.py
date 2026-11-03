@@ -82,7 +82,10 @@ def engine_geometria():
 
 def geometry_cache_key(directory,settings):
     d=Path(directory)
-    s=Settings.model_validate(settings.model_dump() if hasattr(settings,'model_dump') else settings).model_dump()
+    # A cena Final já validou a configuração pública e usa largura interna
+    # superamostrada (ex.: 2880 para saída 1920). Não revalidar essa cópia
+    # como resolução pública; dados externos continuam sendo validados.
+    s=settings.model_dump() if isinstance(settings,Settings) else Settings.model_validate(settings).model_dump()
     inputs,_=input_stamps(d);geo={k:v for k,v in s.items() if k not in TRAFFIC|CAMERA|VISUAL}
     geo['route_sources']=[{k:r.get(k) for k in ('id','name','enabled','points')} for r in s.get('route_alignments',[])]
     return digest([engine_geometria(),inputs,geo])
@@ -92,7 +95,10 @@ def revisions(directory,settings=None):
     if settings is None:
         from .project_state import read_config
         settings=read_config(d)
-    s=Settings.model_validate(settings.model_dump() if hasattr(settings,'model_dump') else settings).model_dump()
+    # A cena Final já validou a configuração pública e usa largura interna
+    # superamostrada (ex.: 2880 para saída 1920). Não revalidar essa cópia
+    # como resolução pública; dados externos continuam sendo validados.
+    s=settings.model_dump() if isinstance(settings,Settings) else Settings.model_validate(settings).model_dump()
     inputs,images=input_stamps(d);engine=engine_revision()
     geo={k:v for k,v in s.items() if k not in TRAFFIC|CAMERA|VISUAL}
     geo['route_sources']=[{k:r.get(k) for k in ('id','name','enabled','points')} for r in s.get('route_alignments',[])];geometry=digest([engine,inputs,geo]);topology=digest([geometry,{k:s.get(k) for k in sorted(TRAFFIC-SIMULATION)}]);traffic=digest([topology,{k:s.get(k) for k in sorted(SIMULATION)}])
