@@ -81,13 +81,18 @@ class JointField:
 
 TECH_RIGID={'pavement':((190,192,186),(60,66,70)),'existing_pavement':((168,182,194),(62,74,86)),'shoulder':((182,178,164),(70,68,60))}
 ART_RIGID={'pavement':(176,177,172),'existing_pavement':(160,162,158),'shoulder':(170,169,162)}
+ART_RIGID_CLEAN={'pavement':(194,194,187),'existing_pavement':(184,185,179),'shoulder':(187,187,179),'oae':(194,194,187)}
+
+def rigid_palette(settings):
+    return ART_RIGID_CLEAN if getattr(settings,'texture_style','artistico')=='artistico' else ART_RIGID
+
 TECH_RIGID['oae']=((190,192,186),(60,66,70))
 ART_RIGID['oae']=(182,183,178)
 
 def _hash(a,b):
     h=(a.astype(np.int64)*73856093)^(b.astype(np.int64)*19349663);return ((h%1000+1000)%1000)/1000.
 
-def paint_rigid(color,rmask,role,x0,y1,px,field,spacing=5.,tech=False):
+def paint_rigid(color,rmask,role,x0,y1,px,field,spacing=5.,tech=False,artistic=False):
     """Pinta as placas de concreto em `color` (H,W,3 uint8/float) onde rmask (bool) — mosaico ou ladrilho.
     x0,y1: canto superior esquerdo (m); px: metros por pixel. Retorna o novo array uint8."""
     out=np.array(color,np.float32,copy=True)
@@ -95,7 +100,7 @@ def paint_rigid(color,rmask,role,x0,y1,px,field,spacing=5.,tech=False):
     if not rmask.any():return out.astype(np.uint8)
     if role not in TECH_RIGID or role not in ART_RIGID:return np.clip(out,0,255).astype(np.uint8)
     if not np.isfinite([px,spacing,x0,y1]).all() or px<=0 or spacing<=0:raise ValueError('Escala e espaçamento das juntas devem ser positivos e finitos.')
-    base=np.array(TECH_RIGID[role][0] if tech else ART_RIGID[role],np.float32)
+    base=np.array(TECH_RIGID[role][0] if tech else (ART_RIGID_CLEAN[role] if artistic else ART_RIGID[role]),np.float32)
     ys,xs=np.nonzero(rmask)
     vals=np.broadcast_to(base,(len(ys),3)).copy()
     if field is not None and field.ok and px<=1.2:
@@ -103,13 +108,13 @@ def paint_rigid(color,rmask,role,x0,y1,px,field,spacing=5.,tech=False):
         slab=np.floor(s/spacing)
         if not tech:
             # Variação de tom por placa (concreto real não é uniforme) e grão leve.
-            tone=1+(_hash(slab,ax)-.5)*.07;vals*=tone[:,None]
+            tone=1+(_hash(slab,ax)-.5)*(.04 if artistic else .07);vals*=tone[:,None]
         # Distância (m) até a junta transversal mais próxima.
         r=np.mod(s,spacing);dj=np.minimum(r,spacing-r)
         # Técnico: traço de desenho (≥10 cm); artístico: junta selada (~3 cm), com no mínimo meio pixel para aparecer.
-        width=max(.10,.9*px) if tech else max(.04,.6*px)
+        width=max(.10,.9*px) if tech else max(.025,.5*px) if artistic else max(.04,.6*px)
         cover=np.clip((width/2-dj)/max(px,1e-6)+.5,0,1)
-        joint=np.array(TECH_RIGID[role][1] if tech else (62,64,64),np.float32);k=.95 if tech else .8
+        joint=np.array(TECH_RIGID[role][1] if tech else ((102,104,100) if artistic else (62,64,64)),np.float32);k=.95 if tech else (.6 if artistic else .8)
         vals=vals*(1-cover[:,None]*k)+joint*cover[:,None]*k
         if tech and px<=.25:
             # Pontilhado de concreto (símbolo de desenho), ancorado nas coordenadas.

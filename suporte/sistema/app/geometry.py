@@ -406,7 +406,12 @@ def analyze(directory,settings,preview=None,hatch_preview=None):
     # Classificar antes do material impede que talude verde receba o solo padrão do asset genérico.
     for entity in entities:
         overrides=getattr(settings,'layer_materials',{})
-        if entity['role'] in ('cut','fill') and entity['layer'] not in overrides:continue
+        if entity['role'] in ('cut','fill') and entity['layer'] not in overrides:
+            # Nome inequívoco ou cadastro explícito; nunca tornar todo corte rocha.
+            from .asset_catalog import CATALOG
+            from .layer_profiles import matches
+            if entity['role']=='cut' and any(matches(a,entity['layer']) for a in CATALOG['rock']['aliases']):entity['asset_material']='rock'
+            continue
         material=material_for(entity['role'],entity['layer'],overrides)
         if material:entity['asset_material']=material
     # 1.40.8: KMZ é input técnico rastreável. Nunca é ignorado silenciosamente.

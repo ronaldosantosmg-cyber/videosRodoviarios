@@ -45,3 +45,12 @@ def natural_style(mask, lines, role, meters_per_pixel, look='natural',base_color
         color[offsets]=line;alpha[offsets&(mask>0)]=np.maximum(alpha[offsets&(mask>0)],150)
     color[edge]=line;alpha[edge]=230
     return color,alpha
+
+
+def rock_base(color,mask,settings,role='cut'):
+    """Rocha só em máscaras cadastradas, preservando a cor manual do usuário."""
+    out=np.array(color,copy=True)
+    if out.ndim==1:out=np.broadcast_to(out,mask.shape+(3,)).copy()
+    base=(getattr(settings,'role_colors',None) or {}).get(role) or '#8a8781'
+    out[mask]=[int(base[i:i+2],16) for i in (1,3,5)]
+    return out

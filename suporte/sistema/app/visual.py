@@ -79,6 +79,7 @@ def concrete():
 SURF={'pavement':1,'existing_pavement':2,'oae':3,'shoulder':4,'median':5,'terrain':5}
 OAE_KIND_SURF={'nova':9,'existente':10,'alargada':11}   # 1.42.40: texturas distintas por tipo de OAE
 OAE_KIND_RGB={'nova':(156,158,154),'existente':(128,130,126),'alargada':(146,143,132)}
+ROCK_SURF=12
 EARTH_SURF={'cut':6,'fill':7}  # só com taludes 'naturais'
 
 # ---------------- 1.16: texturas realistas ----------------
@@ -203,7 +204,7 @@ def shade_surface(im,surface,s2w,m_per_px,valid,grass_on=True,lut=None,arte=Fals
         tone=cv2.resize(asphalt().sample(As*np.array([[.07],[.07]]),small,m_per_px*k*.07),(shape[1],shape[0]),interpolation=cv2.INTER_LINEAR)
         F+=_LUT_TONE[surface[y0:y1,x0:x1]]*(G>0)*tone*(.45 if arte else 1)
     C=c[y0:y1,x0:x1]
-    if C.any():F+=C*tx_c.sample(A,shape,m_per_px)
+    if C.any():F+=C*(.45 if arte else 1.)*tx_c.sample(A,shape,m_per_px)
     GR=gr[y0:y1,x0:x1];roi=im[y0:y1,x0:x1]
     NEW=(surface[y0:y1,x0:x1]==1)&valid[y0:y1,x0:x1]
     if NEW.any():
@@ -769,3 +770,25 @@ def shade_style(im,surface,s2w,m_per_px,valid,settings,lut=None,sol=None):
         shade_artistic(im,surface,s2w,m_per_px,valid,lut=lut)
     elif style=='realistic':
         shade_realistic(im,surface,s2w,m_per_px,valid,lut=lut,earth_grass=getattr(settings,'earthwork_look','')=='textura')
+    shade_rock(im,surface,s2w,m_per_px,valid,realistic=style=='realistic')
+
+
+def shade_rock(im,surface,s2w,m_per_px,valid,realistic=False):
+    """Fraturas ilustrativas em rocha cinza-bege, fixas no terreno (sem alterar relevo)."""
+    mask=(surface==ROCK_SURF)&valid
+    ys,xs=np.nonzero(mask)
+    if not len(ys):return
+    y0,y1,x0,x1=ys.min(),ys.max()+1,xs.min(),xs.max()+1
+    M=mask[y0:y1,x0:x1];A=_crop(s2w,x0,y0);shape=M.shape
+    noise=soil().sample(A*.2,shape,m_per_px*.2)
+    warp=soil().sample(A*.035,shape,m_per_px*.035)
+    x=np.arange(shape[1],dtype=float)[None,:];y=np.arange(shape[0],dtype=float)[:,None]
+    X=A[0,0]*x+A[0,1]*y+A[0,2];Y=A[1,0]*x+A[1,1]*y+A[1,2]
+    # Duas famílias não ortogonais: nada de malha regular parecendo placas de concreto.
+    vein=np.exp(-(np.sin(np.pi*(X/1.7+Y/3.9+.4*warp))/.13)**2)
+    cross=np.exp(-(np.sin(np.pi*(X/4.1-Y/2.3+.25*warp))/.11)**2)
+    cross*=np.clip(warp+.35,0,1)
+    factor=1+.09*noise-.26*np.maximum(vein,.45*cross)
+    if realistic:factor+=.035*speckle().sample(A,shape,m_per_px)
+    roi=im[y0:y1,x0:x1];out=np.clip(roi.astype(np.float32)*factor[:,:,None],0,255).astype(np.uint8)
+    roi[M]=out[M]

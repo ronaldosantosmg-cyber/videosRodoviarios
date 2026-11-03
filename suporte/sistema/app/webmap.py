@@ -258,7 +258,7 @@ def vectors(items,axis,kmz_lines=(),tol=.25,derived_contours=False):
             p=np.round(np.asarray(g.coords),2)
             if len(p)>=2:
                 from .presentation import is_existing
-                rec={'existing':is_existing(e),'p':p.tolist(),'c':bool(e.get('closed')),'l':lnames.setdefault(str(e.get('layer','')),len(lnames))}
+                rec={'asset_material':e.get('asset_material'),'existing':is_existing(e),'p':p.tolist(),'c':bool(e.get('closed')),'l':lnames.setdefault(str(e.get('layer','')),len(lnames))}
                 from .dxf_trim import source_id,vector_stations
                 try:
                     stations,length=vector_stations(r,np.asarray(g.coords),bool(e.get('closed')))

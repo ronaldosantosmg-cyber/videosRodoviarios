@@ -25,7 +25,7 @@ ROWS=[
 ('asphalt_old','Asfalto existente','existing_pavement','#858887','grain',[]),
 ('soil_red','Solo vermelho','fill','#a55b3f','soil',[]),
 ('soil_sand','Solo arenoso','fill','#bca475','soil',[]),
-('rock','Rocha aparente','cut','#8a8781','stone',[]),
+('rock','Rocha exposta — corte','cut','#8a8781','stone',['*CORTE*ROCHA*','*CORTE*ROCHOS*','*TALUDE*ROCHA*']),
 ('riprap','Enrocamento','fill','#83897f','stone',['*ENROC*']),
 ('shotcrete','Concreto projetado','anchored_wall','#999d98','grain',['*CONCRETO*PROJET*']),
 ('geomat','Biomanta e geomanta','erosion','#a89b72','grid',['*GEOMANTA*','*BIOMANTA*']),
@@ -55,6 +55,9 @@ EXTRA=[('edge_white','Bordo — pintura branca','edge_line','#e8e8e0','stripe',[
 for _k,_n,_r,_c,_p,_a in EXTRA:
     if _k not in CATALOG:CATALOG[_k]={'id':_k,'name':_n,'role':_r,'color':_c,'pattern':_p,'aliases':_a}
 
+# Corte genérico é solo; rocha exige nome inequívoco ou escolha explícita.
+DEFAULT['cut']='cut_soil'
+
 def material_for(role,name='',overrides=None):
     if overrides and name in overrides and overrides[name] in CATALOG:return overrides[name]
     from .layer_profiles import matches
@@ -74,6 +77,9 @@ def image(key,size=128):
     elif kind=='water':noise+=12*np.sin(y*.35+np.cos(x*.09))
     elif kind=='wood':noise+=14*np.sin(x*.4+np.sin(y*.04))
     elif kind=='rail':noise-=((x%40<3)|(y%16<3))*50
+    if key=='rock':
+        phase=2*np.pi*(3*x/size+y/size+.06*np.sin(2*np.pi*y/size))
+        noise=rng.normal(0,3,(size,size))-35*(np.abs(np.sin(phase))<.13)
     rgb=np.array([int(row['color'][i:i+2],16) for i in (1,3,5)])
     return np.clip(rgb+noise[:,:,None],0,255).astype(np.uint8)
 

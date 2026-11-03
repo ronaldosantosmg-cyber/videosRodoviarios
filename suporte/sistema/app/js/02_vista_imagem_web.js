@@ -80,7 +80,7 @@ function buildVectorPaths(){vecPaths={};if(!vec||!geo)return;const L=vec.layers|
  const part=(role,list,existing)=>{const path=new Path2D(),fill=new Path2D();let nf=0;
   for(const r of list){for(const stroke of (window.RodoviaTrimController?.records(r.hatch_outline?{...r,k:cfg.derived_contours?r.source_k:Array.from({length:r.p.length},(_,i)=>i)}:r)||[r])){const sk=stroke.k?new Set(stroke.k):null;stroke.p.forEach((q,i)=>{const [x,y]=worldToImg({x:q[0],y:q[1]});if(i&&!(sk&&sk.has(i-1)))path.lineTo(x,y);else path.moveTo(x,y)});if(stroke.c&&!(sk&&sk.has(stroke.p.length-1))){if(sk&&sk.size&&stroke.p.length>1){const [x0,y0]=worldToImg({x:stroke.p[0][0],y:stroke.p[0][1]});path.lineTo(x0,y0)}else path.closePath()}}   /* 3.2.1: closePath volta ao último moveTo (reinício após trecho oculto), não ao 1º vértice: gerava corda fantasma */if(r.c){r.p.forEach((q,i)=>{const [x,y]=worldToImg({x:q[0],y:q[1]});if(i)fill.lineTo(x,y);else{fill.moveTo(x,y);nf++}});fill.closePath()}}
   return {path,fill:nf?fill:null,n:list.length,color:role==='overlay'&&list[0]?.color?list[0].color:VSTYLE[role]?.[0],existing}};
- for(const [role,list] of Object.entries(L)){if(!list.length)continue;const v=part(role,list,null);v.phases=[true,false].map(existing=>part(role,list.filter(r=>(r.existing??(role==='existing_pavement'))===existing),existing));vecPaths[role]=v;if(vecOn[role]===undefined)vecOn[role]=true}
+ for(const [role,list] of Object.entries(L)){if(!list.length)continue;const v=part(role,list,null);v.phases=[true,false].map(existing=>part(role,list.filter(r=>(r.existing??(role==='existing_pavement'))===existing),existing));for(const phase of v.phases)phase.rock=part(role,list.filter(r=>r.asset_material==='rock'&&(r.existing??(role==='existing_pavement'))===phase.existing),phase.existing);vecPaths[role]=v;if(vecOn[role]===undefined)vecOn[role]=true}
  buildSignage()}
 function buildSignage(){if(!vecPaths||!geo)return;delete vecPaths.signage;delete vecPaths.signage_y;delete vecPaths.arrows;if(!editor)return;
  const w={signage:new Path2D(),signage_y:new Path2D()};let n=0;
@@ -149,7 +149,7 @@ function drawTiles(){const z=tileZoom(),n=2**z,size=2*MERC/n;
 function drawVectors(){if(!vecPaths)return;ctx.save();ctx.setTransform(view.s,0,0,view.s,view.ox,view.oy);ctx.lineJoin='round';ctx.lineCap='round';ctx.globalAlpha=vecAlpha;const k=1/view.s;
  for(const phase of [true,false])for(const role of Object.keys(VSTYLE)){const base=vecPaths[role],v=base?.phases?.find(p=>p.existing===phase)||(phase===false?base:null);if(!v||!v.n||vecOn[role]===false)continue;const st=VSTYLE[role];
   if(v.fill&&st[3]){ctx.fillStyle=v.color+Math.round(st[3]*255).toString(16).padStart(2,'0');ctx.fill(v.fill,'evenodd')}
-  try{window.RodoviaTexturasVivas?.pintarRole?.(ctx,role,v)}catch(e){window.RodoviaErros?.avisar('textura 2D',e)}
+  try{window.RodoviaTexturasVivas?.pintarRole?.(ctx,role,v);if(v.rock?.n)window.RodoviaTexturasVivas?.pintarRole?.(ctx,'rock',v.rock)}catch(e){window.RodoviaErros?.avisar('textura 2D',e)}
   ctx.setLineDash([]);ctx.strokeStyle='#05101a';ctx.globalAlpha=vecAlpha*.55;ctx.lineWidth=(st[1]+2)*k;ctx.stroke(v.path);ctx.globalAlpha=vecAlpha;
   ctx.setLineDash(st[2].map(d=>d*k));ctx.strokeStyle=v.color;ctx.lineWidth=st[1]*k;ctx.stroke(v.path)}
  ctx.setLineDash([]);const mpx=geo.R0/geo.k;// metros por pixel do espaço de imagem

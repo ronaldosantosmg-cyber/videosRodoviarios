@@ -251,8 +251,8 @@ class Scene:
                 ents=[e for e in getattr(self,'items',[]) if e.get('closed') and e.get('role') in ('pavement','existing_pavement','shoulder')]
                 self._rigid_roles={r for r in ('pavement','existing_pavement','shoulder') if any(e['role']==r for e in ents) and all(e.get('material')=='rigido' for e in ents if e['role']==r)}
             if role in self._rigid_roles:
-                from .pavement import TECH_RIGID,ART_RIGID
-                c=TECH_RIGID[role][0] if getattr(self.s,'style_profile','padrao')=='tecnico' else ART_RIGID[role];return '#%02x%02x%02x'%c
+                from .pavement import TECH_RIGID,rigid_palette
+                c=TECH_RIGID[role][0] if getattr(self.s,'style_profile','padrao')=='tecnico' else rigid_palette(self.s)[role];return '#%02x%02x%02x'%c
         if getattr(self.s,'style_profile','padrao')=='tecnico' and role in visual.TECH_FILL:return visual.TECH_FILL[role]
         from .presentation import palette
         default=palette(self.s).get(role,COLORS[role]) if self.s.style_profile!='tecnico' else COLORS[role]
@@ -321,7 +321,7 @@ class Scene:
         for phase in (True,False):
             for role in ['water','cut','fill','terrain','existing_pavement','pavement','shoulder','median','barrier','oae']:
                 if not any(e['role']==role and is_existing(e)==phase for e in self.items):continue
-                mask=np.zeros((n,n),np.uint8);lines=np.zeros_like(mask);rmask=None;kmasks={}
+                mask=np.zeros((n,n),np.uint8);lines=np.zeros_like(mask);rmask=None;kmasks={};rockmask=None
                 for e in self.items:
                     if is_existing(e)!=phase:continue
                     if e['role']!=role:continue
@@ -349,6 +349,9 @@ class Scene:
                                 temp=np.zeros((by1-by0,bx1-bx0),np.uint8);off=(-bx0,-by0);cv2.fillPoly(temp,[q],255,offset=off)
                                 for hole in e.get('holes',[]):cv2.fillPoly(temp,[np.rint(self.worldpx(hole)).astype(np.int32)],0,offset=off)
                                 np.bitwise_or(mask[by0:by1,bx0:bx1],temp,out=mask[by0:by1,bx0:bx1])
+                                if e.get('asset_material')=='rock' and role in ('cut','fill'):
+                                    if rockmask is None:rockmask=np.zeros_like(mask)
+                                    np.bitwise_or(rockmask[by0:by1,bx0:bx1],temp,out=rockmask[by0:by1,bx0:bx1])
                         else:cv2.polylines(lines,[q],False,255,1,cv2.LINE_AA)
                 if role in ['cut','fill']:
                     earth_color,alpha=earthwork_style(mask,lines,role,self.px,look=getattr(self.s,'earthwork_look','hatch'),base_color=self.s.role_colors.get(role),artistic=self.s.texture_style=='artistico' and self.s.style_profile!='tecnico')
@@ -376,13 +379,16 @@ class Scene:
                     color=(base_c*(1-hm[:,:,None]*.85)+hc*hm[:,:,None]*.85).astype(np.uint8);del hm
                 if rmask is not None:
                     if getattr(self,'joint_field',None) is None:self.joint_field=JointField(self.axes)
-                    color=paint_rigid(color,rmask>0,role,self.box[0],self.box[3],self.px,self.joint_field,float(getattr(self.s,'joint_spacing_m',5)),getattr(self.s,'style_profile','padrao')=='tecnico')
+                    color=paint_rigid(color,rmask>0,role,self.box[0],self.box[3],self.px,self.joint_field,float(getattr(self.s,'joint_spacing_m',5)),getattr(self.s,'style_profile','padrao')=='tecnico',artistic=self.s.texture_style=='artistico')
                 from .pavement import chosen,paint_style
                 st=chosen(self.s,role) if role in ('pavement','existing_pavement','shoulder') else None
                 if st is not None:color=paint_style(color,mask>0,role,self.box[0],self.box[3],self.px,st,getattr(self,'joint_field',None) or JointField(self.axes),float(getattr(self.s,'joint_spacing_m',5)))  # 1.21: representação escolhida pelo usuário
                 if getattr(self.s,'texture_relief',True) and getattr(self.s,'texture_style','artistico')=='realistic' and getattr(self.s,'style_profile','padrao')!='tecnico' :
                     from . import relevo   # 2.48/2.49: relevo iluminado por material (flexível/rígido; novo/existente)
                     if role in relevo.MATERIAIS or role in relevo.RIGIDOS:color=relevo.acabar_misto(color,mask>0,rmask,role,self.box[0],self.box[3],self.px,quality=self.s.realism_profile)
+                if rockmask is not None and self.s.earthwork_look!='hatch' and self.s.style_profile!='tecnico':
+                    from .earthworks import rock_base
+                    color=rock_base(color,(rockmask>0)&(mask>0)&(alpha>0),self.s,role)
                 if not phase:np.maximum(self.projected_mask,alpha,out=self.projected_mask)
                 color=phase_color(color,phase,self.s,role)
                 select=alpha>0;old=self.overlay[select,:3].astype(np.float32);a=alpha[select,None]/255
@@ -394,6 +400,7 @@ class Scene:
                 if role in visual.SURF:self.surface[mask>0]=visual.SURF[role]
                 elif role in visual.EARTH_SURF and getattr(self.s,'earthwork_look','hatch') in ('natural','textura'):self.surface[mask>0]=visual.EARTH_SURF[role]
                 elif role in ['median','barrier']:self.surface[mask>0]=0
+                if rockmask is not None and self.s.earthwork_look!='hatch' and self.s.style_profile!='tecnico':self.surface[(rockmask>0)&(mask>0)&(alpha>0)]=visual.ROCK_SURF
                 if rmask is not None:self.surface[(mask>0)&(rmask>0)]=visual.SURF['oae']   # textura de concreto
                 for kind,km_ in kmasks.items():                                              # 1.42.40: OAE nova / existente / alargada
                     sel_=(mask>0)&(km_>0);self.surface[sel_]=visual.OAE_KIND_SURF[kind];self.overlay[sel_,:3]=visual.OAE_KIND_RGB[kind]

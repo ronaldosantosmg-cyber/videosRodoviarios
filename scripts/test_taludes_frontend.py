@@ -46,6 +46,8 @@ with tempfile.TemporaryDirectory(prefix='studio-ajuda-') as temporary:
                  window.RodoviaAparencia={leitura:()=>({rc:{fill:'#3456ab'},tp:{}})};
                  T.pintarRole(c,'fill',{fill:polygon});
                  const sample=Array.from(c.getImageData(10,10,1,1).data),hole=Array.from(c.getImageData(64,64,1,1).data);
+                 T.pintarRole(c,'rock',{fill:polygon});const rockSample=Array.from(c.getImageData(10,10,1,1).data),rockHole=Array.from(c.getImageData(64,64,1,1).data);
+                 const cleanConcrete=T.corMedia('pista_existente',{artistic:true},true);
                  document.body.appendChild(cv);
                  const {RoadViewer}=await import('/webgl/viewer.mjs');
                  const host=document.createElement('div');host.style.cssText='width:320px;height:240px';document.body.appendChild(host);
@@ -58,7 +60,7 @@ with tempfile.TemporaryDirectory(prefix='studio-ajuda-') as temporary:
                  const variance=t=>{const a=Array.from(t.image.data).filter((_,i)=>i%4===0),m=a.reduce((s,x)=>s+x,0)/a.length;return a.reduce((s,x)=>s+(x-m)**2,0)/a.length};
                  const separate=art!==real&&variance(art)<variance(real);
                  v.data.texture_style='artistico';const reused=v.texture('asphalt_old')===art;
-                 v.render();v.dispose();host.remove();return {fill,cut,sample,hole,colors,textured,separate,reused};
+                 v.render();v.dispose();host.remove();return {fill,cut,sample,hole,colors,textured,separate,reused,rockSample,rockHole,cleanConcrete};
                 }""")
                 assert result['fill'][1]>180 and result['fill'][1]>result['fill'][0]>result['fill'][2],result
                 assert result['cut'][0]>175 and result['cut'][0]>result['cut'][1]>result['cut'][2],result
@@ -66,6 +68,8 @@ with tempfile.TemporaryDirectory(prefix='studio-ajuda-') as temporary:
                 assert result['hole']==[255,255,255,255],result
                 assert result['colors']==['b76954','9cbd75','3456ab'] and result['textured'],result
                 assert result['separate'] and result['reused'],result
+                assert result['rockHole']==[255,255,255,255] and abs(result['rockSample'][0]-result['rockSample'][1])<12,result
+                assert int(result['cleanConcrete'].split('(')[1].split(',')[0])>180,result
                 browser.close()
                 print('Taludes2D/3D: grama, paleta clara/avermelhada, cor manual e vazio DXF preservado: OK')
         finally:

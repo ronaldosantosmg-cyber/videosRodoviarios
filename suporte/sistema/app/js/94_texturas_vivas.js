@@ -1,8 +1,8 @@
 // 2.26: texturas ao vivo no editor 2D. Cada tipo de superfície ganha um padrão procedural contínuo
 // (grão, tom, remendos, fissuras, brilho) ancorado no mundo, que reage na hora aos ajustes de texturas.
 (()=>{'use strict';
- const SUP={pavement:'pista_nova',existing_pavement:'pista_existente',shoulder:'acostamento',median:'canteiro',cut:'talude_corte',fill:'talude_aterro',oae:'oae_nova'};
- const BASE={pista_nova:[44,45,48],pista_existente:[118,118,114],acostamento:[138,128,106],canteiro:[112,142,92],talude_corte:[183,105,84],talude_aterro:[156,189,117],oae_nova:[176,176,171]};
+ const SUP={rock:'rocha_exposta',pavement:'pista_nova',existing_pavement:'pista_existente',shoulder:'acostamento',median:'canteiro',cut:'talude_corte',fill:'talude_aterro',oae:'oae_nova'};
+ const BASE={rocha_exposta:[138,135,129],pista_nova:[44,45,48],pista_existente:[118,118,114],acostamento:[138,128,106],canteiro:[112,142,92],talude_corte:[183,105,84],talude_aterro:[156,189,117],oae_nova:[176,176,171]};
  const LADO=128,TILE_M=4;// 128 px = 4 m de terreno
  let ligado=true,forca=.85;const cache=new Map();
  function lcg(s){s=(s>>>0)||1;return()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296}}
@@ -20,6 +20,7 @@
    if(p.artistic&&asfalto){g*=.35;t*=.35;}
    let rem=0;const rm=r2(u*4+7,v*4+3);if(!p.artistic&&rm>.8)rem=(rm-.8)*60*p.remendos*(asfalto?-1:.5);
    let fis=0;if(asfalto&&!p.artistic){const f=Math.abs(r1(u*16+3,v*16+9)-.5);if(f<.012*p.fissuras)fis=-26*Math.min(1.4,p.fissuras)}
+   if(sup==='rocha_exposta'){g=(rnd()-.5)*8+(r2(u*4,v*4)-.5)*20;t=0;rem=0;fis=Math.abs(Math.sin(Math.PI*2*(3*u+v+.1*r1(u*16,v*16))))<.13?-35:0;}
    if(veg){g*=1.1}
    const br=p.brilho*60;const k=g+t+rem+fis+br;const i=(y*lado+x)*4;
    px[i]=cor[0]+k*(veg?.6:1);px[i+1]=cor[1]+k;px[i+2]=cor[2]+k*(veg?.4:1);px[i+3]=255}
@@ -32,12 +33,12 @@
  /* 2.43: o TIPO de textura (material flexível/rígido, perfil técnico/artístico, estilo de representação por pista, ajustes de grão/tom...) vale na hora no editor 2D.
     Tudo vem de RodoviaAparencia.leitura() (caixas da tela + rascunho de quem está arrastando), igual ao que o vídeo usa depois de salvar. */
  const CONCRETO=[168,167,160],MATERIAL_DE={pavement:'pavement_material',existing_pavement:'existing_material',shoulder:'shoulder_material'};
- function ladrilho(sup,mat,junta){const ch='mat|'+sup+'|'+mat+'|'+junta;if(cache.has(ch))return cache.get(ch);if(typeof document==='undefined')return null;
-  const L=LADO,cv=document.createElement('canvas');cv.width=cv.height=L;const c=cv.getContext('2d');if(!c)return null;
-  const im=c.createImageData(L,L);im.data.set(gerar(sup,{grao:.7,tom:1,remendos:.4,fissuras:.2,brilho:0}));
+ function ladrilho(sup,mat,junta,artistic=false){const ch='mat|'+sup+'|'+mat+'|'+junta+'|'+artistic;if(cache.has(ch))return cache.get(ch);if(typeof document==='undefined')return null;
+  const C=artistic?[194,194,187]:CONCRETO,L=LADO,cv=document.createElement('canvas');cv.width=cv.height=L;const c=cv.getContext('2d');if(!c)return null;
+  const im=c.createImageData(L,L);im.data.set(gerar(sup,{grao:.7,tom:1,remendos:.4,fissuras:.2,brilho:0,artistic}));
   // concreto: cor clara (a base de asfalto é escura) e juntas das placas no espaçamento configurado
-  for(let i=0;i<L*L;i++){const k=(im.data[i*4]-BASE[sup][0]);im.data[i*4]=CONCRETO[0]+k;im.data[i*4+1]=CONCRETO[1]+k;im.data[i*4+2]=CONCRETO[2]+k}
-  c.putImageData(im,0,0);c.strokeStyle='rgba(60,60,58,.75)';c.lineWidth=2;c.strokeRect(1,1,L-2,L-2);
+  for(let i=0;i<L*L;i++){const k=(im.data[i*4]-BASE[sup][0]);im.data[i*4]=C[0]+k;im.data[i*4+1]=C[1]+k;im.data[i*4+2]=C[2]+k}
+  c.putImageData(im,0,0);c.strokeStyle=artistic?'rgba(102,104,100,.4)':'rgba(60,60,58,.75)';c.lineWidth=artistic?1:2;c.strokeRect(1,1,L-2,L-2);
   const pt=ctx.createPattern(cv,'repeat');cache.set(ch,pt);return pt}
  function ladrilhoEstilo(st,mpx){const esp=Math.max(.3,Number(st.spacing_m)||3),K=32,px=Math.max(8,Math.min(512,Math.round(esp*K)));
   const ch='est|'+JSON.stringify(st)+'|'+px;if(cache.has(ch))return cache.get(ch);if(typeof document==='undefined')return null;
@@ -51,7 +52,7 @@
  // 2.54: afastado (ladrilho < 14 px) a textura não cabe, mas o TIPO escolhido tem de aparecer: preenche com a cor média do padrão (muda ao trocar material/ajustes)
  function corMedia(sup,p,rigido){const ch='med|'+sup+'|'+(rigido?'r':'f')+JSON.stringify(p||{});if(cache.has(ch))return cache.get(ch);
   const d=gerar(sup,rigido?{grao:.7,tom:1,remendos:.4,fissuras:.2,brilho:0}:p,32);let r=0,g=0,b=0;const n=d.length/4;for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2]}
-  let m=[r/n,g/n,b/n];if(rigido){const o=BASE[sup]||[100,100,100];m=[CONCRETO[0]+(m[0]-o[0]),CONCRETO[1]+(m[1]-o[1]),CONCRETO[2]+(m[2]-o[2])]}
+  let m=[r/n,g/n,b/n];if(rigido){const o=BASE[sup]||[100,100,100];const C=p?.artistic?[194,194,187]:CONCRETO;m=[C[0]+(m[0]-o[0]),C[1]+(m[1]-o[1]),C[2]+(m[2]-o[2])]}
   const css='rgb('+m.map(x=>Math.max(0,Math.min(255,Math.round(x)))).join(',')+')';cache.set(ch,css);return css}
  function pintarRole(c,role,v){
   if(!ligado||!SUP[role]||!v||!v.fill||typeof geo==='undefined'||!geo)return;
@@ -70,10 +71,10 @@
   let tp=A.tp||{};
   if(A.texture_style==='artistico'){const sup=SUP[role];tp={...tp,[sup]:{...(tp[sup]||{}),artistic:true,...(role==='existing_pavement'?{baseColor:[86,91,96]}:{})}};}
   // A cor manual muda a base, mantendo o grão de grama e os contornos DXF.
-  const manual=(A.rc||A.role_colors||{})[role];
+  const manual=(A.rc||A.role_colors||{})[role==='rock'?'cut':role];
   if(/^#[0-9a-f]{6}$/i.test(manual||''))tp={...tp,[SUP[role]]:{...(tp[SUP[role]]||{}),baseColor:[1,3,5].map(i=>parseInt(manual.slice(i,i+2),16))}};
   if(pxTile<14){c.save();c.globalAlpha=Math.min(1,projected?1:(typeof vecAlpha==='number'?vecAlpha:1)*.8);c.fillStyle=corMedia(SUP[role],tp[SUP[role]],rigido);c.fill(v.fill,'evenodd');c.restore();return}
-const pt=rigido?ladrilho(SUP[role],'rigido',A.joint_spacing_m||5):padrao(SUP[role],tp[SUP[role]]);if(!pt)return;
+const pt=rigido?ladrilho(SUP[role],'rigido',A.joint_spacing_m||5,A.texture_style==='artistico'):padrao(SUP[role],tp[SUP[role]]);if(!pt)return;
   const k=rigido?Math.max(.5,Number(A.joint_spacing_m)||5)/mpx/LADO:TILE_M/mpx/LADO;if(pt.setTransform&&typeof DOMMatrix!=='undefined')pt.setTransform(new DOMMatrix().scale(k,k));
   c.save();c.globalAlpha=Math.min(1,projected?1:(typeof vecAlpha==='number'?vecAlpha:1)*forca);c.fillStyle=pt;c.fill(v.fill,'evenodd');c.restore()}
  function pintar(){return}

@@ -162,12 +162,13 @@ class Detail:
             for role in ['water','cut','fill','terrain','existing_pavement','pavement','shoulder','median','barrier','oae']:
                 items=[o for o in near if o['role']==role and is_existing(o['e'])==phase]
                 if not items:continue
-                mask=np.zeros((n,n),np.uint8);lines=np.zeros_like(mask);rmask=None;kmasks={}
+                mask=np.zeros((n,n),np.uint8);lines=np.zeros_like(mask);rmask=None;kmasks={};rockmask=None
                 for o in items:
                     if o['closed']:
                         tmp=np.zeros_like(mask);cv2.fillPoly(tmp,[q(o['p'])],255,cv2.LINE_AA,4)
                         for h in o['holes']:cv2.fillPoly(tmp,[q(np.asarray(h))],0,cv2.LINE_AA,4)
                         mask=np.maximum(mask,tmp)
+                        if o['e'].get('asset_material')=='rock' and role in ('cut','fill'):rockmask=tmp if rockmask is None else np.maximum(rockmask,tmp)
                         if o['e'].get('material')=='rigido':rmask=tmp if rmask is None else np.maximum(rmask,tmp)
                         if role=='oae' and o['e'].get('oae_kind') in visual.OAE_KIND_SURF:kmasks[o['e']['oae_kind']]=tmp if o['e']['oae_kind'] not in kmasks else np.maximum(kmasks[o['e']['oae_kind']],tmp)
                     else:cv2.polylines(lines,[q(o['p'])],False,255,max(1,round(.25/self.R)),cv2.LINE_AA,4)
@@ -190,7 +191,7 @@ class Detail:
                     if getattr(sc,'joint_field_net',None) is None:
                         net=getattr(sc,'network',None);f=JointField.from_network(net) if net is not None else None
                         sc.joint_field_net=f if f is not None and f.ok else JointField(sc.axes)
-                    color=paint_rigid(color,rmask>127,role,x0,y1,self.R,sc.joint_field_net,float(getattr(sc.s,'joint_spacing_m',5)),getattr(sc.s,'style_profile','padrao')=='tecnico')
+                    color=paint_rigid(color,rmask>127,role,x0,y1,self.R,sc.joint_field_net,float(getattr(sc.s,'joint_spacing_m',5)),getattr(sc.s,'style_profile','padrao')=='tecnico',artistic=sc.s.texture_style=='artistico')
                 from .pavement import chosen,paint_style
                 st=chosen(sc.s,role) if role in ('pavement','existing_pavement','shoulder') else None
                 if st is not None and st.pattern=='placas' and getattr(sc,'joint_field_net',None) is None:
@@ -201,6 +202,9 @@ class Detail:
                 if getattr(sc.s,'texture_relief',True) and getattr(sc.s,'texture_style','artistico')=='realistic' and getattr(sc.s,'style_profile','padrao')!='tecnico' :
                     from . import relevo   # 2.48/2.49: relevo iluminado por material (flexível/rígido; novo/existente)
                     if role in relevo.MATERIAIS or role in relevo.RIGIDOS:color=relevo.acabar_misto(color,mask>127,rmask,role,x0,y1,self.R,quality=sc.s.realism_profile)
+                if rockmask is not None and sc.s.earthwork_look!='hatch' and sc.s.style_profile!='tecnico':
+                    from .earthworks import rock_base
+                    color=rock_base(color,(rockmask>127)&(mask>127)&(alpha>0),sc.s,role)
                 color=phase_color(color,phase,sc.s,role)
                 sel=alpha>0;a=alpha[sel,None].astype(np.float32)/255;old=ov[sel,:3].astype(np.float32)
                 c=color[sel] if getattr(color,'ndim',1)==3 else color
@@ -210,6 +214,7 @@ class Detail:
                 if role in visual.SURF:surf[m]=visual.SURF[role]
                 elif role in visual.EARTH_SURF and getattr(sc.s,'earthwork_look','hatch') in ('natural','textura'):surf[m]=visual.EARTH_SURF[role]
                 elif role in ('median','barrier'):surf[m]=0
+                if rockmask is not None and sc.s.earthwork_look!='hatch' and sc.s.style_profile!='tecnico':surf[(rockmask>127)&m&(alpha>0)]=visual.ROCK_SURF
                 if rmask is not None:surf[m&(rmask>127)]=visual.SURF['oae']
                 for kind,km_ in kmasks.items():
                     sel_=m&(km_>127);surf[sel_]=visual.OAE_KIND_SURF[kind];ov[sel_,:3]=visual.OAE_KIND_RGB[kind]
