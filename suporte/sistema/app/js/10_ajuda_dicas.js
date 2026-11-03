@@ -11,7 +11,7 @@ const HELP={
  crs:'Sistema de coordenadas projetado do DXF, em metros (ex.: EPSG:31983 = SIRGAS 2000 / UTM 23S). Errado = desenho fora da imagem.',
  units_to_m:'Multiplicador para converter a unidade do DXF em metros: 1 para metros, 0,001 para milímetros.',
  imagery:'Fundo do vídeo: Esri online (baixa e guarda), imagem guardada no pacote, fundo neutro (teste rápido) ou imagem local georreferenciada.',
- reverse_axis:'Inverte início e fim do eixo principal: muda o sentido da câmera, o km e o que Crescente/Decrescente significam em TODOS os eixos de uma vez. Para inverter só um eixo use Sentido de cada eixo (SENTIDOEIXO).',
+ reverse_axis:'Inverte início e fim do eixo principal: muda o sentido da câmera, o km e o que Crescente/Decrescente significam em TODOS os eixos de uma vez. Para inverter só um eixo use Sentido de cada eixo (SENTIDOEIXO). Se uma seção conservar a identidade de uma fonte anterior, sua escolha aparece separadamente nessa janela e não é apagada ao aplicar.',
  coordinates_confirmed:'Confirme depois de conferir na prévia que o desenho está sobre a imagem. É exigido para gerar o vídeo.',
  preview_mode:'Vista geral: todo o trecho. Câmera do vídeo: o quadro no instante escolhido. Vista do editor: detalhe do enquadramento atual.',
  preview_time_s:'Instante do vídeo usado por “Abrir neste instante”.',

@@ -7,7 +7,7 @@ const FLUXO=(()=>{
  function definir(chave,valor){if(!chave)throw Error('Eixo sem identificação para definir o sentido.');const rd=todos();if(VALIDOS.includes(valor))rd[chave]=valor;else delete rd[chave];cfg.route_directions=rd;sync();return rd}
  function definirLayer(layer,valor,chavesEixos=[]){const rd=todos();const k='layer:'+layer;if(VALIDOS.includes(valor))rd[k]=valor;else delete rd[k];for(const c of chavesEixos)delete rd[c];cfg.route_directions=rd;sync();return rd}
  function obter(chave,layer=''){const rd=todos();if(VALIDOS.includes(rd[chave]))return rd[chave];if(layer&&VALIDOS.includes(rd['layer:'+layer]))return rd['layer:'+layer];return 'auto'}
- function limparOrfas(vivas){const rd=todos();let n=0;for(const k of Object.keys(rd))if(k.startsWith('axis:')&&!vivas.has(k)){delete rd[k];n++}cfg.route_directions=rd;sync();return n}
+ function limparOrfas(vivas){vivas=new Set(vivas);for(const r of (typeof M!=='undefined'?M.route_alignments:cfg.route_alignments)||[])if(r.source_axis_fingerprint)vivas.add('axis:'+r.source_axis_fingerprint);const rd=todos();let n=0;for(const k of Object.keys(rd))if(k.startsWith('axis:')&&!vivas.has(k)){delete rd[k];n++}cfg.route_directions=rd;sync();return n}
  const chaveTrecho=sg=>sg?((sg.origin_key||'')+'@'+Math.round(Number(sg.points?.[0]?.[0]))+','+Math.round(Number(sg.points?.[0]?.[1]))):'';
  return Object.freeze({todos,definir,definirLayer,obter,limparOrfas,sync,chaveTrecho,VALIDOS});
 })();

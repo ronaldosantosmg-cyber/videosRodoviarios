@@ -26,6 +26,15 @@ def direction_for(route_directions,key,layer=''):
     if lv in ('forward','reverse','off'):return lv
     return v or 'auto'
 
+def route_direction_keys(settings):
+    """Registered alignments retain their source identity, even after a DXF change.
+
+    Disabled alignments also retain their settings for subsequent reactivation.
+    """
+    return {'axis:'+r.source_axis_fingerprint for r in getattr(settings,'route_alignments',[]) or []
+            if getattr(r,'source_axis_fingerprint','')}
+
+
 def direction_diagnostics(axes,settings):
     """Eixos sem escolha aplicada e chaves salvas que não casam com nenhum eixo (sentido que não chega ao motor)."""
     rd=getattr(settings,'route_directions',{}) or {}
@@ -33,7 +42,8 @@ def direction_diagnostics(axes,settings):
     for a in axes:
         try:atuais['axis:'+axis_fingerprint(a['points'],a.get('layer',''),a.get('level',0))]=a
         except (ValueError,TypeError,KeyError,OverflowError):continue
-    orfas=[k for k,v in rd.items() if k.startswith('axis:') and k not in atuais and v!='auto']
+    retained=route_direction_keys(settings)
+    orfas=[k for k,v in rd.items() if k.startswith('axis:') and k not in atuais and k not in retained and v!='auto']
     sem=[]
     for k,a in atuais.items():
         if a.get('role') not in (None,'axis') or a.get('reference_only'):continue
@@ -46,6 +56,7 @@ def needs_direction_review(axes,settings):
     for axis in axes:
         try:current.add('axis:'+axis_fingerprint(axis['points'],axis.get('layer',''),axis.get('level',0)))
         except (ValueError,TypeError,KeyError,OverflowError):continue
+    current.update(route_direction_keys(settings))
     return any(v!='auto' and (str(k).isdigit() or str(k).startswith('axis:') and k not in current) for k,v in settings.route_directions.items())
 
 

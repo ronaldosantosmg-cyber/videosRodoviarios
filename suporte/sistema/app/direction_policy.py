@@ -14,7 +14,7 @@ Ordem (do mais forte ao mais fraco):
 Modificadores: inverter no trecho (flow_overrides 'reverse') troca o resultado; 'disable' tira os veículos;
 inverter eixo (reverse_axis) muda o sentido do km (referência), não escolhe o sentido do tráfego.
 """
-from .native_axes import axis_fingerprint,direction_for
+from .native_axes import axis_fingerprint,direction_for,route_direction_keys
 
 ROTULO={'forward':'Crescente (km)','reverse':'Decrescente (km)','off':'Sem veículos','auto':'Automático'}
 ORIGEM={'seta':'seta desenhada','rota':'rota cadastrada','oae':'OAE','eixo':'escolha do eixo','layer':'escolha do layer','auto':'automático'}
@@ -48,6 +48,7 @@ def relatorio(axes,settings):
         except (ValueError,TypeError,KeyError,OverflowError):continue
         vistas.add(it['chave']);itens.append(it)
     rd=getattr(settings,'route_directions',None) or {}
+    vistas.update(route_direction_keys(settings))
     orfas=sorted(k for k,v in rd.items() if k.startswith('axis:') and k not in vistas and v!='auto')
     avisos=[]
     if orfas:avisos.append(f'{len(orfas)} escolha(s) antiga(s) por eixo não correspondem a nenhum eixo atual (o desenho mudou). Elas não têm efeito.')

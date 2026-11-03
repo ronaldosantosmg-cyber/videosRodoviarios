@@ -83,6 +83,8 @@ def _chaves_orfas(d,settings):
     try:a=json.loads((Path(d)/'analysis.json').read_text(encoding='utf-8'))
     except (OSError,ValueError):return None   # sem análise: não dá para saber
     vivas={r.get('direction_key') for r in a.get('routes',[]) if r.get('direction_key')}
+    from .native_axes import route_direction_keys
+    vivas.update(route_direction_keys(settings))
     ro=sorted(k for k,v in rd.items() if k.startswith('axis:') and k not in vivas and v!='auto')
     to=sorted(k for k,v in at.items() if k.startswith('axis:') and k not in vivas and v!='auto')
     return {'route_directions':ro,'axis_types':to}
