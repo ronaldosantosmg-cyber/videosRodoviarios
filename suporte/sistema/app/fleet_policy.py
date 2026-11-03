@@ -27,7 +27,10 @@ def inspect(sim, vehicles, occ, dt=1.):
                 row['vehicle'] == v['id'] for row in sim.fleet_audit['violations']):
             sim.fleet_audit['violations'].append({'vehicle': int(v['id']), 'path': int(v['p']),
                 'station_m': round(float(v['s']), 2), 'time_s': round(float(sim.time), 2),
-                'reason': v.get('_why', 'desconhecido')})
+                'reason': v.get('_why', 'desconhecido'),
+                'gap_m': round(float(gap),3), 'speed_kmh': round(float(v['v'])*3.6,2),
+                'leader_vehicle': int(lead['id']),
+                'remaining_to_exit_m': round(max(0.,sim.exit_station(v['p'],v.get('t','car'))-v['s']),3) if hasattr(sim,'exit_station') and getattr(sim,'paths',None) else None})
 
 
 def validate_mode(settings):
@@ -55,4 +58,4 @@ def require_export(sim, settings=None, *, allow_partial=False):
         raise ValueError('Conflito veicular detectado; exportação bloqueada.')
     if sim.fleet_audit['violations']:
         row = sim.fleet_audit['violations'][0]
-        raise ValueError(f"Regra de ouro: comboio sem semáforo, pedestre ou preferência de rotatória no percurso {row['path']}, posição {row['station_m']} m. Revise a demanda e os fluxos; vídeo bloqueado.")
+        raise ValueError(f"Regra de ouro: comboio sem semáforo, pedestre ou preferência de rotatória no percurso {row['path']}, posição {row['station_m']} m. Instante {row['time_s']} s; causa {row['reason']}; folga {row.get('gap_m','?')} m; restante até saída {row.get('remaining_to_exit_m','?')} m. Vídeo bloqueado.")

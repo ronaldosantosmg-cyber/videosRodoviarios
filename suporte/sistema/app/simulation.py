@@ -184,6 +184,16 @@ class TrafficSim:
         # O recuo de 5 m é do centro; um corpo longo precisa de espaço adicional.
         return max(0.,PROFILES.get(vehicle,PROFILES['car'])[0]/2-float(self.s.traffic_entry_inset_m)+.2)
 
+    def exit_station(self,path_i,vehicle):
+        """Portal de saída: retirar o corpo quando sua frente chega ao fim.
+
+        É o fim do itinerário completo, não cada aresta/conector interno. A
+        integração ainda respeita semáforos, pedestres e reservas até o portal.
+        """
+        length=PROFILES.get(vehicle,PROFILES['car'])[0]
+        margin=max(.5+self.terminal_padding(path_i,vehicle),length/2)
+        return max(0.,float(self.paths[path_i]['length'])-margin)
+
     def motion_valid(self,path_i,vehicle):
         key=(path_i,vehicle)
         if key not in self.motion_cache:
@@ -696,8 +706,8 @@ class TrafficSim:
                     safe=max(0.,gap-self.HARD_GAP)
                     if ds>safe+1e-9:
                         ds=safe;nv=min(nv,ds/DT if DT>0 else 0.);self.safety_interventions+=1
-                if self.paths[v['p']].get('terminal_inset_applied'):
-                    ds=min(ds,max(0.,self.paths[v['p']]['length']-.5-self.terminal_padding(v['p'],v.get('t','car'))-v['s']))
+                # O portal é um sumidouro, não uma parede para o centro.
+                ds=min(ds,max(0.,self.exit_station(v['p'],v.get('t','car'))-v['s']))
                 planned.append((nv,ds))
             planned=self.polygon_safety.resolve(V,planned,vehicle_check=getattr(self.s,'traffic_prevent_collisions',True))
             alive=[]
@@ -712,7 +722,7 @@ class TrafficSim:
                     self.advance_maneuver(lc,ds,DT)
                     if lc['elapsed']>=lc['duration']:
                         target=lc['to'];v['s']=self.map_s(v['p'],target,v['s']);v['p']=target;v['lc']=None;v['lc_cooldown']=t+(self.cooldown_for(v['id']) if self.stability else self.LC_COOLDOWN)
-                if v['s']<self.paths[v['p']]['length']-.5-self.terminal_padding(v['p'],v.get('t','car'))-1e-6:alive.append(v)
+                if v['s']<self.exit_station(v['p'],v.get('t','car'))-1e-6:alive.append(v)
                 else:self.exited_by_path[v['p']]+=1
             V=alive
             if getattr(self.s,'traffic_route_only',False):
@@ -989,6 +999,7 @@ class TrafficSim:
         r=self._relatorio_base()
         r['initialization']={'mode':'seeded' if self.s.traffic_semear else 'entries','warmup_seconds':self.warmup_seconds,'seeded_vehicles':getattr(self,'semeados',0),'simulation_seconds':round(self.simulation_seconds,3),'requested_seed_vehicles':getattr(self,'seed_requested',0),'spaced_seed_capacity':getattr(self,'seed_spaced_capacity',0),'scope':'População inicial pode ser menor que a demanda para manter espaçamento; chegadas continuam na taxa solicitada, aguardando entrada segura.'}
         r['gold_rule']=self.fleet_audit
+        r['terminal_outflow']={'policy':'front_reaches_sink','internal_links_preserved':True,'exited_by_path':list(self.exited_by_path)}
         try:
             from .desempenho_corredor import analisar as _desempenho
             r['desempenho_corredor']=_desempenho(self)

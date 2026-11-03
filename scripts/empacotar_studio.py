@@ -15,7 +15,7 @@ from atualizador import validate_package
 def empacotar(output):
     origem = json.loads((ROOT / "proveniencia/studio-3.5.json").read_text(encoding="utf-8"))
     versao = json.loads((ROOT / "suporte/sistema/VERSAO.json").read_text(encoding="utf-8"))["version"]
-    nomes = sorted(set(origem["files"]) | {"CORRECOES_3_5.md", "ATUALIZACAO_3_6.md", "ATUALIZACAO_3_7.md", "VALIDACAO_3_7.md", "ATUALIZACAO_3_8.md", "VALIDACAO_3_8.md", "ATUALIZACAO_3_9.md", "VALIDACAO_3_9.md", "suporte/sistema/app/traffic_cache.py", "suporte/sistema/app/traffic_history.py", "suporte/sistema/app/traffic_pipeline.py", "suporte/sistema/app/fleet_policy.py", "suporte/sistema/app/js/99_frota_iluminacao.js"})
+    nomes = sorted(set(origem["files"]) | {"CORRECOES_3_5.md", "ATUALIZACAO_3_6.md", "ATUALIZACAO_3_7.md", "VALIDACAO_3_7.md", "ATUALIZACAO_3_8.md", "VALIDACAO_3_8.md", "ATUALIZACAO_3_9.md", "VALIDACAO_3_9.md", "ATUALIZACAO_3_10.md", "VALIDACAO_3_10.md", "suporte/sistema/app/traffic_cache.py", "suporte/sistema/app/traffic_history.py", "suporte/sistema/app/traffic_pipeline.py", "suporte/sistema/app/fleet_policy.py", "suporte/sistema/app/js/99_frota_iluminacao.js"})
     with tempfile.TemporaryDirectory(prefix="studio-pacote-") as tmp:
         pacote = Path(tmp) / "pacote"
         hashes = {}
@@ -27,7 +27,7 @@ def empacotar(output):
             target.write_bytes(data)
             hashes[rel] = hashlib.sha256(data).hexdigest()
         manifest = {"app": "Rodovia Studio", "version": versao,
-                    "description": "Studio 3.9: cache validado, tráfego em blocos e migração segura de projetos antigos. Requer Python 3.12.",
+                    "description": "Studio 3.10: saída da frota nos extremos e diagnóstico físico de comboios. Requer Python 3.12.",
                     "files": hashes}
         (pacote / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         validate_package(pacote)
@@ -47,5 +47,5 @@ def empacotar(output):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output", type=Path, default=ROOT / "dist/RodoviaStudio_3_9_atualizacao.zip")
+    parser.add_argument("--output", type=Path, default=ROOT / "dist/RodoviaStudio_3_10_atualizacao.zip")
     empacotar(parser.parse_args().output)

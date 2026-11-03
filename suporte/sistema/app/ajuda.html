@@ -85,6 +85,8 @@
 <li><b>↶ Travessia permitida / ⛔ proibida</b>: onde os veículos podem (ou não) passar de uma pista para a outra do canteiro. Por padrão só em retornos em desnível, rotatórias e aberturas de retorno.</li>
 </ul>
 <h3>Dia e noite</h3>
+<h3>Saída da frota nos extremos</h3>
+<p>No fim do itinerário completo, o veículo sai da simulação quando sua frente chega ao portal. O extremo não é um estacionamento. Conexões internas continuam sendo percorridas e controles antes da saída permanecem ativos. Ocultar veículos fora do pavimento é apenas uma opção visual, não substitui a retirada física da frota.</p>
 <h3>Reutilização do tráfego e retomada da geração</h3>
 <p>A física mantém o passo de <b>0,2 segundo</b>, independentemente da resolução ou dos quadros por segundo do vídeo. O aplicativo guarda automaticamente os resultados de tráfego em disco. Mudar apenas a apresentação — cores, dia/noite, resolução, FPS ou câmera — permite reutilizar os resultados compatíveis. Alterar física, trajetórias, sinais ou demanda invalida esse reaproveitamento.</p>
 <p>O cache vale para a <b>mesma duração e janela de simulação</b>. Ele não estende um vídeo nem inventa movimentos além do período calculado. O histórico mantém até <b>duas entradas recentes</b> por LRU: ao atingir o limite, descarta a menos recentemente usada.</p>
