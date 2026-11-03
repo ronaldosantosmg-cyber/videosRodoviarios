@@ -1,5 +1,6 @@
 /* ---------- 1.8: Como usar e dicas nos campos ---------- */
 const HELP={
+ signage_emphasis:'Realça a pintura na apresentação: mantém cobertura mínima proporcional à resolução para as linhas sobreviverem à redução do vídeo. Não altera o traçado do DXF. Desgaste e transparência definidos em pintura continuam valendo.',
  projects:'Projetos já criados neste computador. Cada projeto guarda arquivos, configuração, marcações e vídeos na pasta “projetos”.',
  files:'DXF do projeto (obrigatório para pavimento, OAE etc.) e KMZ opcional (eixo e pontos). DWG deve ser salvo como DXF no CAD.',
  name:'Nome do trecho: aparece no cabeçalho do vídeo.',origin:'Cidade/ponto de origem, mostrado no cabeçalho.',destination:'Cidade/ponto de destino, mostrado no cabeçalho.',

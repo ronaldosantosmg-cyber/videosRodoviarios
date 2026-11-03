@@ -799,8 +799,13 @@ class Scene:
             if len(segments):
                 coords=self.screen(segments.reshape(-1,2),cam,width).reshape(-1,2,2)
                 if not hasattr(self,'marking_chains'):self.marking_chains=self.ch[self.tree.query(self.marking_centers)[1]]
+                from .signage import marking_pixels
+                paint_width=marking_pixels(m,self.W,getattr(self.s,'signage_emphasis',True))
                 for seg,ch,color in zip(coords,self.marking_chains[near],self.marking_colors[near]):
-                    if ch<=progress*self.length:cv2.line(im,tuple(seg[0].astype(int)),tuple(seg[1].astype(int)),tuple(map(int,color)),max(1,round((.15 if getattr(self.s,'signage_emphasis',True) else .13)/m)),cv2.LINE_AA)
+                    if ch<=progress*self.length:
+                        # Fixed-point coordinates retain subpixel placement during camera motion.
+                        q=np.rint(seg*16).astype(np.int32)
+                        cv2.line(im,tuple(q[0]),tuple(q[1]),tuple(map(int,color)),paint_width,cv2.LINE_AA,4)
         if pre is not None and self._tinta_on() and width<3000:im=self.tinta_real(im,pre,mat,m)
         if wear:im=self.paint_wear(im,pre,mat,m,sp);pre=None
         pre=None

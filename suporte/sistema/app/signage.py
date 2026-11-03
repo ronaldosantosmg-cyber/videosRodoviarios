@@ -20,6 +20,16 @@ from shapely.ops import unary_union
 from shapely import contains_xy
 
 WHITE=(244,242,226);YELLOW=(244,200,70)
+def marking_pixels(meters_per_pixel, image_width, emphasis=True):
+    """Real width plus a presentation floor that survives HD/4K downsampling.
+
+    This changes raster coverage only; DXF paths and 3D widths stay in metres.
+    """
+    physical=(.15 if emphasis else .13)/meters_per_pixel
+    floor=max(1.,image_width/1920.) if emphasis else 1.
+    return max(1,math.ceil(max(physical,floor)))
+
+
 SIGN_CODES={'R-1':'PARE','R-2':'Dê a preferência','R-19':'Velocidade máxima','A':'Advertência','OBRAS':'Obras',
             'I':'Indicação','S':'Serviço'}
 
