@@ -14,8 +14,11 @@ def _net(L):
 
 def test_fila_do_semaforo_descarrega_varios_veiculos_por_verde_e_cruzam_em_movimento():
     L,X,dur=2400.,1200.,300.;sig=TrafficSignal(id='s1',point={'x':X,'y':0.},heading_deg=0,lanes_a=2,lanes_b=2)
-    s=Settings(traffic_density=2.0,traffic_speed_kmh=70,duration_s=dur,vehicle_mix='variado',traffic_signals=[sig])
+    s=Settings(traffic_density=6.0,traffic_speed_kmh=70,duration_s=dur,vehicle_mix='variado',traffic_signals=[sig])
+    # Com semeadura já espaçada, demanda 6 mantém uma fila real em todos os verdes.
     sim=TrafficSim(_net(L),s,functools.partial(visual.vehicle_type,mix='variado'),duration=dur)
+    assert sim.collisions==sim.side_collisions==0
+    assert not sim.fleet_audit['violations']
     sg=sim.transport.signals[0];dt=.2
     from app.transport import timings
     verde=timings(sg)[0][0];assert verde>=20

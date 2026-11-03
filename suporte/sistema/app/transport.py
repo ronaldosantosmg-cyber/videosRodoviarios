@@ -147,7 +147,7 @@ class Transport:
                 stops.append({'kind':'signal','s':0.,'signal':signal,'axis':axis,'entry_only':True})
             self.stops.append(sorted(stops,key=lambda r:r['s']))
     def stop_gap(self,v,t,leader_gap=math.inf,leader_v=math.inf):
-        best=math.inf
+        best=math.inf;v['_transport_kind']='caixa_cruzamento'
         targets=[(v['p'],v['s'])]
         if v.get('lc') is not None:
             position,_=at(np.asarray(self.path_lines[v['p']].coords),stations(np.asarray(self.path_lines[v['p']].coords)),v['s']);target=v['lc']['to'];targets.append((target,self.path_lines[target].project(Point(position))))
@@ -160,9 +160,14 @@ class Transport:
                     signal=stop['signal'];other=signal.lanes_a if stop['axis']==0 else signal.lanes_b
                     state=self.signal_state(signal,t)[stop['axis']]
                     # Amarelo: quem consegue parar com frenagem aceitável freia; quem já não consegue (zona de dilema) atravessa.
-                    closed=(state!='green' and not (state=='amber' and not can_stop(v.get('v',0.),gap))) or (leader_v<BOX_V and leader_gap<stop['s']+stop.get('clear_span',other*signal.lane_width_m+16)+v['L']/2-station)
-                else:closed=self.rail_stop_closed(stop,t) or leader_gap<stop['cross']+stop.get('clear_after_m',12)+v['L']/2-station
-                if closed:best=min(best,max(0.,gap))
+                    red=state!='green' and not (state=='amber' and not can_stop(v.get('v',0.),gap))
+                    closed=red or (leader_v<BOX_V and leader_gap<stop['s']+stop.get('clear_span',other*signal.lane_width_m+16)+v['L']/2-station)
+                    kind='semaforo' if red else 'caixa_cruzamento'
+                else:
+                    closed=self.rail_stop_closed(stop,t) or leader_gap<stop['cross']+stop.get('clear_after_m',12)+v['L']/2-station
+                    kind='ferrovia'
+                if closed and max(0.,gap)<best:
+                    best=max(0.,gap);v['_transport_kind']=kind
         return best
     def admission_allowed(self,path,t,length):
         for stop in self.stops[path]:

@@ -47,6 +47,19 @@ class PedestrianTraffic:
             if any(network.allowed.buffer(.5).covers(Point(end)) or any(rail['corridor'].buffer(.5).covers(Point(end)) for rail in transport.rails) for end in endpoints):
                 self.warnings.append('Vão da passarela não alcança área segura fora da pista/ferrovia; ajuste o vão.');self.rejected+=1;continue
             self.add(endpoints,'passarela',str(poi.id or i),3,height=height,width=float(poi.bridge_width_m))
+        # Passarelas e passeios já podem estar ocupados no primeiro quadro; faixas começam na espera.
+        initial_reservations=SpatialReservations()
+        for r in self.routes:
+            if r['kind'] not in ('passarela','calcada'):continue
+            count=min(3,max(1,int(r['d'][-1]/2)))
+            for station in np.linspace(r['d'][-1]*.2,r['d'][-1]*.8,count):
+                if len(self.agents)>=MAX_PEOPLE:break
+                agent=dict(id=self.next_id,route=r,s=float(station),direction=1 if self.rng.random()>.5 else -1,speed=1.3,state='crossing')
+                person=Point(self.pose(agent)[0]).buffer(.35);level=round(r['height'])
+                if not initial_reservations.clear(agent['id'],person,level):continue
+                initial_reservations.add(agent['id'],person,level)
+                self.agents.append(agent)
+                self.next_id+=1;self.admitted+=1
 
     def add(self,p,kind,identity,density,signal=None,height=0.,width=3.):
         if len(self.routes)>=300:
@@ -123,6 +136,7 @@ class PedestrianTraffic:
                     station=LineString(self.net.paths[c['path']]['p']).project(Point(point))
                 front=station+v['L']/2;rear=station-v['L']/2
                 if front>=c['a'] and rear<=c['b']+1:return False
+                if v['v']<.3 and front<c['a']-1:continue
                 if front<c['a'] and c['a']-front<max(5.,v['v']**2/4+v['v']*1.5+4):return False
         if self.owner and r['kind']!='passarela':
             for v in vehicles:
@@ -133,7 +147,11 @@ class PedestrianTraffic:
     def stop_gap(self,v):
         best=math.inf
         for a in self.agents:
-            if a['state']!='crossing' or a['route']['kind']=='passarela':continue
+            r=a['route'];waiting=a['state']=='waiting';now=getattr(self.owner,'time',0.)
+            if r['kind']=='passarela' or r['kind']=='calcada':continue
+            if waiting and (now<r['release_after'] or r['burst'] is not None and now-r['burst']>10):continue
+            if waiting and r['signal'] is not None and not self.transport.signal_state(r['signal'],now)[2]:continue
+            if a['state'] not in ('waiting','crossing'):continue
             for c in a['route']['conflicts']:
                 targets=[(v['p'],v['s'])]
                 if v.get('lc'):
@@ -141,7 +159,7 @@ class PedestrianTraffic:
                     targets.append((v['lc']['to'],LineString(self.net.paths[v['lc']['to']]['p']).project(Point(q))))
                 for pi,s in targets:
                     gap=c['a']-s-v['L']/2
-                    if pi==c['path'] and gap>=-.01:best=min(best,max(0.,gap))
+                    if pi==c['path'] and gap>=-.01 and (not waiting or gap>=max(2.,v['v']**2/4+v['v'])):best=min(best,max(0.,gap))
         return best
 
     def lane_change_allowed(self,v,target,travel):

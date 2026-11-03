@@ -4,7 +4,7 @@ Os veículos seguem os itinerários validados da rede (arestas + conectores). Ca
 compartilhado por todos os itinerários que passam por ele, então o veículo de trás sempre "vê" o da
 frente, mesmo vindo de outra origem. Nas convergências, quem vem da via principal tem prioridade e o
 ramo cede passagem (sem sobreposição). A simulação é calculada uma vez, antes da montagem, com passo de
-0,2 s e aquecimento de 90 s, e o quadro t só interpola posições: o resultado é idêntico em qualquer
+0,2 s e população inicial distribuída sem aquecimento padrão, e o quadro t só interpola posições: o resultado é idêntico em qualquer
 número de processos.
 
 Limitações: uma trajetória por sentido em cada pista (sem troca de faixa); ilustrativo, não é um
@@ -243,22 +243,25 @@ class TrafficSim:
 
     def semear_percurso(self,V,vid,t0,rng,status=lambda *a:None):
         """O corredor já começa povoado em toda a extensão (os veículos percorrem TODO o modelo desde o 1º quadro).
-        Densidade = taxa de entrada × tempo de percurso; posições estratificadas com sorteio, afastadas o suficiente para o IDM assentar no aquecimento."""
-        n=len(self.paths);semeados=0
-        _grade={};_ultimo={}
+        Densidade solicitada = taxa de entrada × tempo de percurso; limitada pelo espaçamento inicial da regra contra comboios."""
+        n=len(self.paths);semeados=0;self.seed_requested=0;self.seed_spaced_capacity=0
+        _grade={}
         for j in range(n):
             status(.22,f'Distribuindo veículos: percurso {j+1}/{n}, {semeados} veículos admitidos')
             r=float(self.rate[j]) if j<len(self.rate) else 0.
             L=float(self.paths[j]['length'])
             if not math.isfinite(r) or r<=0 or L<=60:continue
             vl=max(self.v0*.9,3.);qtd=int(round(r*L/vl))
+            self.seed_requested+=qtd
+            qtd=min(qtd,max(0,int((L-80)/max(70.,(3.*self.v0+40.)/.8))))
+            self.seed_spaced_capacity+=qtd
             if qtd<=0:continue
             inicio=min(float(getattr(self.s,'traffic_entry_inset_m',5))+30,L*.2);fim=L-40
             if fim<=inicio:continue
             cortes=np.linspace(inicio,fim,qtd+1)
             for candidato,(a,b) in enumerate(zip(cortes[:-1],cortes[1:])):
                 if candidato%50==0:status(.22,f'Distribuindo veículos: percurso {j+1}/{n}, candidato {candidato+1}/{qtd}')
-                pos=float(a+(b-a)*rng.random())
+                pos=float((a+b)/2+(b-a)*(.2*rng.random()-.1))
                 ident=(j,vid,0);vt=self.vtype(self.paths[j]['kinds'],ident)
                 if self.janela is not None and not self._na_janela(j,pos):rng.random();vid+=1;continue   # mantém a sequência aleatória: os veículos retidos são os mesmos do vídeo
                 if not self.motion_valid(j,vt):vid+=1;continue
@@ -270,20 +273,20 @@ class TrafficSim:
                 if getattr(self.s,'vehicle_mix','')=='rodovia_br':self.driver_variety(new,vid,vt)
                 # Índice espacial da semeadura: sem ele a admissão compara cada candidato com TODOS os já semeados (O(n²), horas em trechos longos).
                 _c=self.polygon_safety.pose(new)[0];_ck=(int(_c[0]//50),int(_c[1]//50))
-                _perto=[w for dx in (-1,0,1) for dy in (-1,0,1) for w in _grade.get((_ck[0]+dx,_ck[1]+dy),())]
-                _ids={id(w) for w in _perto};_estr=_perto+[w for q,w in _ultimo.items() if q!=j and id(w) not in _ids]
-                if not self.polygon_safety.admission(new,V,vehicle_check=getattr(self.s,'traffic_prevent_collisions',True),near=_perto,narrow=_estr):vid+=1;continue
+                _perto=[w for dx in range(-2,3) for dy in range(-2,3) for w in _grade.get((_ck[0]+dx,_ck[1]+dy),())]
+                if any(w['p']==j and abs(w['s']-pos)<max(35.,3.*new['v0']+(w['L']+Lv)/2) for w in _perto):vid+=1;continue
+                if not self.polygon_safety.admission(new,V,vehicle_check=getattr(self.s,'traffic_prevent_collisions',True),near=_perto):vid+=1;continue
                 # nunca semear dentro de travessia de ferrovia, área de semáforo ou faixa de pedestres (mesmas regras da entrada normal)
                 if not self.transport.admission_allowed(j,t0,Lv+2*pos) or not self.pedestrians.admission_allowed(j,Lv+2*pos):vid+=1;continue
                 if any(st['s']-15-Lv<=pos<=st.get('cross',st['s'])+st.get('clear_after_m',st.get('clear_span',25))+Lv+4 for st in self.transport.stops[j] if st.get('kind') in ('rail','signal') and not st.get('entry_only')):vid+=1;continue
-                V.append(new);_grade.setdefault(_ck,[]).append(new);_ultimo[j]=new;self.profile_counts[_prof or 'convencional']+=1;self.polygon_safety.admitted(new);self.info[vid]=(j,vt,ident);vid+=1;self.spawned+=1;self.spawned_by_path[j]+=1;semeados+=1
+                V.append(new);_grade.setdefault(_ck,[]).append(new);self.profile_counts[_prof or 'convencional']+=1;self.polygon_safety.admitted(new);self.info[vid]=(j,vt,ident);vid+=1;self.spawned+=1;self.spawned_by_path[j]+=1;semeados+=1
         self.semeados=semeados
         return vid
 
     def admission_headway(self,path_i,vtype):
         """Headway mínimo de entrada pela capacidade da faixa, ponderado por equivalente veicular (PCU)."""
         dyn=TYPE_DYN.get(vtype,TYPE_DYN['car'])
-        return (1.0/max(self.capacity_rate[path_i],1e-6))*float(dyn['pcu'])
+        return max(3.,(1.0/max(self.capacity_rate[path_i],1e-6))*float(dyn['pcu']))
 
     def admission_order(self,pending,rng):
         # Uma cabeça de fila por entrada física; a escolha não muda a cada
@@ -595,7 +598,9 @@ class TrafficSim:
 
     # ---------- simulação ----------
     def run(self,status):
-        rng=np.random.default_rng(int(getattr(self.s,'traffic_seed',1729)));n=len(self.paths);t0=0. if getattr(self.s,'traffic_route_only',False) else -(WARMUP_SEMEADO if (self.janela is not None and getattr(self.s,'traffic_semear',True)) else WARMUP);steps=int(math.ceil((self.duration-t0)/DT))+2
+        rng=np.random.default_rng(int(getattr(self.s,'traffic_seed',1729)));n=len(self.paths);t0=-math.ceil(float(getattr(self.s,'traffic_warmup_s',0.))/DT)*DT;steps=int(math.ceil((self.duration-t0)/DT))+2
+        self.warmup_seconds=-t0
+        self.fleet_audit={'enabled':True,'violations':[],'samples':0,'definition':'Par compacto: folga <max(12 m, 2 s de percurso), sem controle permitido, em qualquer amostra.'};self._fleet_seconds={}
         nextspawn=[t0 if r>0 and getattr(self.s,'traffic_route_only',False) else t0+self.interarrival(rng,r) if r>0 else math.inf for r in self.rate];pending=[0]*n;V=[]
         last_admit=collections.defaultdict(lambda:-math.inf);queue_area=[0.0]*n;max_queue_lane=[0]*n;queue_discharged=[0]*n
         self.info={};self.exited_by_path=[0]*n;self.node_transfers=collections.Counter();self.spawned_by_path=[0]*n;frames=[];self.warning_frames=[];vid=0;first=int(round(-t0/DT))
@@ -603,6 +608,9 @@ class TrafficSim:
         self.safety_interventions=0;self.lane_changes=0;self.lane_returns=0;self.lc_blocked_rules=0;self.lc_blocked_safety=0
         if getattr(self.s,'traffic_semear',True) and not getattr(self.s,'traffic_route_only',False):
             vid=self.semear_percurso(V,vid,t0,rng,status)
+        self.time=t0;self.initialize_speeds(V,t0)
+        from time import monotonic
+        simulation_started=monotonic()
         for k in range(steps):
             t=t0+k*DT;self.time=t
             for i in range(n):
@@ -610,6 +618,7 @@ class TrafficSim:
                     pending[i]+=1;nextspawn[i]=math.inf if getattr(self.s,'traffic_route_only',False) else nextspawn[i]+self.interarrival(rng,self.rate[i])
             self.reroute_at_shared_approach(V,t)
             occ=self.occupancy(V)
+            entry_centers=None
             for i in self.admission_order(pending,rng):
                 if not pending[i]:continue
                 j=self.choose_path(i,t,rng)
@@ -625,7 +634,10 @@ class TrafficSim:
                 new={'id':vid,'p':j,'s':self.terminal_padding(j,vt) if self.paths[j].get('terminal_inset_applied') else min(float(getattr(self.s,'traffic_entry_inset_m',5)),max(0.,self.paths[j]['length']-Lv/2-1)), 'v':0.,'L':Lv,'v0':v0,'t':vt,'li':0,'lc':None,'lc_cooldown':-math.inf,'entered_s':t,'prof':_prof,'acc_k':_acc_k}
                 if getattr(self.s,'vehicle_mix','')=='rodovia_br':self.driver_variety(new,vid,vt)
                 dyn=TYPE_DYN.get(vt,TYPE_DYN['car'])
-                if not self.polygon_safety.admission(new,V,vehicle_check=getattr(self.s,'traffic_prevent_collisions',True)):continue
+                if entry_centers is None and getattr(self.s,'traffic_prevent_collisions',True):
+                    from .vehicle_safety import SpatialCenters
+                    entry_centers=SpatialCenters(self.polygon_safety.pose,V)
+                if not self.polygon_safety.admission(new,V,vehicle_check=getattr(self.s,'traffic_prevent_collisions',True),near=entry_centers.nearby if entry_centers is not None else None):continue
                 if not self.transport.admission_allowed(j,t,Lv+2*new['s']) or not self.pedestrians.admission_allowed(j,Lv+2*new['s']):continue
                 if self.capacity_model:
                     # Capacidade da faixa: a fila permanece na entrada e é descarregada por headway equivalente PCU.
@@ -633,9 +645,11 @@ class TrafficSim:
                     if t-last_admit[self.entry[j]] < min_headway:continue
                 gap,vl=self.leader(new,occ)
                 behind=[w for o,w,wp,ws in occ.get(self.link_of[j][0][0],[]) if o<Lv+IDM['s0']]
-                if gap<IDM['s0']+1 or behind:continue
-                new['v']=min(.9*v0,math.sqrt(max(0.,2*IDM['b']*(gap-IDM['s0'])))+vl*.5) if gap<math.inf else .9*v0
-                V.append(new);self.profile_counts[_prof or 'convencional']+=1;self.polygon_safety.admitted(new);self.info[vid]=(j,vt,ident);vid+=1;pending[i]-=1;self.spawned+=1;self.spawned_by_path[j]+=1;self._entry_choices.pop(self.entry[i],None);last_admit[self.entry[j]]=t;queue_discharged[j]+=1;occ=self.occupancy(V)
+                if gap<max(IDM['s0']+1,3.*new['v0']) or behind:continue
+                new['v']=min(.9*new['v0'],math.sqrt(max(0.,2*IDM['b']*(gap-IDM['s0'])))+vl*.5) if gap<math.inf else .9*new['v0']
+                V.append(new)
+                if entry_centers is not None:entry_centers.add(new)
+                self.profile_counts[_prof or 'convencional']+=1;self.polygon_safety.admitted(new);self.info[vid]=(j,vt,ident);vid+=1;pending[i]-=1;self.spawned+=1;self.spawned_by_path[j]+=1;self._entry_choices.pop(self.entry[i],None);last_admit[self.entry[j]]=t;queue_discharged[j]+=1;occ=self.occupancy(V)
             self.max_queue=max(self.max_queue,sum(pending))
             for qi,q in enumerate(pending):
                 queue_area[qi]+=q*DT;max_queue_lane[qi]=max(max_queue_lane[qi],q)
@@ -690,11 +704,37 @@ class TrafficSim:
                 to=np.array([v['lc']['to'] if v.get('lc') is not None else -1 for v in V],np.int32)
                 al=np.array([min(1.,v['lc']['elapsed']/v['lc']['duration']) if v.get('lc') is not None else 0. for v in V],np.float64)
                 frames.append((ids,ss,ps,to,al));self.warning_frames.append({v['id'] for v in V if v['v']<.3 and (v.get('_risk_stop') or math.isfinite(self.alternating.stop_gap(v)) or any(self.blocks[bi].active(t) and a-120<v['s']<b for bi,a,b in self.zones[v['p']]))});self.check(V)
-            if k%25==0:
+                from .fleet_policy import inspect
+                inspect(self,V,self.occupancy(V),DT)
+            if k%5==0:
+                elapsed=max(.001,monotonic()-simulation_started);remaining=elapsed*max(0,steps-k-1)/(k+1)
                 etapa=f'Aquecendo tráfego: {tempo(t-t0)} de {tempo(-t0)}' if t<0 else f'Simulando tráfego: {tempo(t)} de {tempo(self.duration)}'
-                status(.22+.03*k/steps,etapa)
+                status(.22+.03*k/steps,etapa+f' · etapa {100*(k+1)/steps:.0f}% · falta ~{tempo(remaining)}')
+        self.simulation_seconds=monotonic()-simulation_started
         self.active_end=len(V);self.frames=frames;self.t_first=t0+first*DT
         self.queue_area_vehicle_s=queue_area;self.max_queue_lane=max_queue_lane;self.queue_discharged=queue_discharged;self.current_queue=list(pending)
+
+    def initialize_speeds(self,vehicles,t):
+        """Distribuição inicial já em movimento, com frenagem possível antes dos controles."""
+        occ=self.occupancy(vehicles);targets={}
+        for v in vehicles:
+            target=v['v0'];i=v['p'];s=v['s']
+            for a,b,speed in self.speedz[i]:
+                if a-30<=s<=b:target=min(target,speed)
+            if self.curve_env[i] is not None:
+                idx=min(len(self.curve_env[i])-1,int(np.searchsorted(self.paths[i]['d'],s)))
+                target=min(target,float(self.curve_env[i][idx]))
+            gap,vl=self.leader(v,occ)
+            stop=min(self.transport.stop_gap(v,t,gap,vl),self.alternating.stop_gap(v),self.pedestrians.stop_gap(v))
+            if math.isfinite(stop):target=min(target,math.sqrt(4.*max(0.,stop-self.HARD_GAP)))
+            targets[v['id']]=max(0.,target)
+        # Resolver do líder para trás; a ocupação inclui itinerários que partilham a pista.
+        for v in reversed(sorted(vehicles,key=lambda w:w['s'])):
+            gap,_,lead=self.leader_state(v,occ)
+            if lead is not None:
+                available=max(0.,gap-IDM['s0'])
+                targets[v['id']]=min(targets[v['id']],available/3.,math.sqrt(targets[lead['id']]**2+4.*available))
+            v['v']=targets[v['id']]
 
     def enforce_hard_separation(self,V):
         for _ in range(3):
@@ -717,6 +757,7 @@ class TrafficSim:
             if links[m][0][0]=='e':return self.priority(links[m][0])
         return 0
     def merge_conflict(self,v,occ,look=70.):
+        self._merge_roundabout=False
         L=self.link_of[v['p']];j=v['li'];best=(math.inf,0.)
         for k in range(j+1,len(L)):
             nl=L[k][0];dist=L[k][1]-v['s']
@@ -740,10 +781,12 @@ class TrafficSim:
                 if other>mine or (other==mine and (tw<tv or (tw==tv and w['id']<v['id']))):
                     if other>mine and tw-tv>4.:continue
                     gap,vl=(dist-dw-(w['L']+v['L'])/2,w['v']) if dw<dist else (dist-v['L']/2-1.5,0.)
-                    if gap<best[0]:best=(gap,vl)
+                    if gap<best[0]:best=(gap,vl);self._merge_roundabout=other>=10
         return best
     def priority(self,lid):
         if lid[0]!='e':return 0
+        edges=getattr(getattr(self,'net',None),'edges',[])
+        if 0<=lid[1]<len(edges) and edges[lid[1]].get('flow_role')=='rotatoria':return 10.
         category=2 if self.kind.get(lid)=='main' else 1 if self.kind.get(lid)=='marginal' else 0
         edges=getattr(getattr(self,'net',None),'edges',[]);length=0.
         if 0<=lid[1]<len(edges):
@@ -763,7 +806,8 @@ class TrafficSim:
             if bl.mode=='partial' and a-40<=s<=b:v0=min(v0,bl.speed);T=max(T,2.4)
             elif bl.mode=='total' and s<a:v['_stop']=a-2-v['L']/2-s
         gap,vl,lead=self.leader_state(v,occ)
-        _src=(('bloqueio',v.pop('_stop',math.inf)),('semaforo',self.transport.stop_gap(v,t,gap,vl)),('pare_e_siga',self.alternating.stop_gap(v)),('pedestres',self.pedestrians.stop_gap(v)))
+        transport_gap=self.transport.stop_gap(v,t,gap,vl)
+        _src=(('bloqueio',v.pop('_stop',math.inf)),(v.get('_transport_kind','caixa_cruzamento'),transport_gap),('pare_e_siga',self.alternating.stop_gap(v)),('pedestres',self.pedestrians.stop_gap(v)))
         _why=min(_src,key=lambda x:x[1]);stop=_why[1]
         v['_why']=_why[0] if stop<gap and stop<math.inf else ('lider' if math.isfinite(gap) else 'livre')
         if self.heavy_reaction and lead is not None and TYPE_DYN.get(lead.get('t'),{}).get('heavy'):
@@ -771,7 +815,52 @@ class TrafficSim:
             T=max(T,2.05 if not TYPE_DYN.get(v.get('t'),TYPE_DYN['car'])['heavy'] else 2.35);s0=max(s0,3.2)
         if stop<gap:gap,vl=stop,0.
         mg,mv=self.merge_conflict(v,occ)
-        if mg<gap:gap,vl=mg,mv
+        if mg<gap:
+            gap,vl=mg,mv
+            if getattr(self,'_merge_roundabout',False):v['_why']='rotatoria'
+        braking=max(12.,v['v']**2/(2*max(b_comf,.1))+v['v']*T)
+        # Uma fila pertence à linha que a criou, mesmo quando o líder (e não o
+        # sinal) é o obstáculo mais próximo. O verde não apaga sua origem.
+        queue=v.get('_signal_queue')
+        if v.get('_transport_kind')=='semaforo' and transport_gap<=braking:
+            stops=[st for st in self.transport.stops[v['p']] if st['kind']=='signal' and st['s']>=s+v['L']/2-.01]
+            origin=min(stops,key=lambda st:abs(st['s']-s-v['L']/2-transport_gap)) if stops else None
+            station=origin['s'] if origin else s+v['L']/2+transport_gap
+            if queue is None or queue['path']!=v['p'] or abs(queue['station']-station)>.1:
+                queue={'path':v['p'],'station':station,'span':float(origin.get('clear_span',25.)) if origin else 25.,'released':None}
+                v['_signal_queue']=queue
+        if queue is None and lead is not None and gap<=braking and t<=lead.get('_control_until',-math.inf):
+            source=lead.get('_signal_queue')
+            if source is not None:
+                station=source['station'] if source['path']==v['p'] else self.map_s(source['path'],v['p'],source['station'])
+                if s+v['L']/2<=station+source['span']:
+                    queue={'path':v['p'],'station':station,'span':source['span'],'released':None}
+                    v['_signal_queue']=queue
+        signal_queue=False;discharging=False
+        if queue is not None and queue['path']==v['p']:
+            front=s+v['L']/2;origin=queue['station'];clear=origin+queue['span']+v['L']
+            if front>origin and queue['released'] is None:queue['released']=t
+            released=queue['released']
+            expired=released is not None and (t-released>60. or front>clear+max(100.,10*v['v0']))
+            settled=front>clear and (lead is None or gap>=max(12.,2*v['v'])+2.)
+            if not expired and not settled:
+                signal_queue=True;discharging=front<=clear
+                v['_control_cause']='semaforo';v['_control_until']=t+2*DT
+            else:
+                v.pop('_signal_queue',None)
+                if v.get('_control_cause')=='semaforo':v['_control_until']=-math.inf
+        if not signal_queue:
+            if v['_why'] in ('semaforo','pedestres','rotatoria') and gap<=braking:
+                v['_control_cause']=v['_why'];v['_control_until']=t+3.
+            elif lead is not None and gap<=braking and t<lead.get('_control_until',-math.inf) and lead.get('_control_cause')!='semaforo':
+                v['_control_cause']=lead.get('_control_cause');v['_control_until']=lead['_control_until']
+        # Headway de saturação somente até liberar a área controlada. Depois,
+        # T=3 abre a folga; a causa rastreada dura só até essa dissolução ocorrer.
+        # Na descarga, retirar a hesitação individual (acc_k) sem exceder
+        # a aceleração física calibrada da classe, inclusive a dos pesados.
+        if discharging:a_comf=float(dyn['a'])
+        permitted=v.get('_control_cause') in ('semaforo','pedestres','rotatoria') and t<=v.get('_control_until',-math.inf)
+        if not (discharging or permitted and v.get('_control_cause')!='semaforo'):T=max(T,3.)
         vv=v['v'];dv=vv-vl;star=s0+max(0.,vv*T+vv*dv/(2*math.sqrt(max(a_comf*b_comf,1e-6))));free=1-(vv/max(v0,.1))**4
         a=a_comf*(free-(star/max(gap,.1))**2) if gap<math.inf else a_comf*free
         return max(-9.,min(a_comf,a))
@@ -866,6 +955,8 @@ class TrafficSim:
         except Exception as exc:return [{'erro':str(exc)}]
     def report(self):
         r=self._relatorio_base()
+        r['initialization']={'mode':'seeded' if self.s.traffic_semear else 'entries','warmup_seconds':self.warmup_seconds,'seeded_vehicles':getattr(self,'semeados',0),'simulation_seconds':round(self.simulation_seconds,3),'requested_seed_vehicles':getattr(self,'seed_requested',0),'spaced_seed_capacity':getattr(self,'seed_spaced_capacity',0),'scope':'População inicial pode ser menor que a demanda para manter espaçamento; chegadas continuam na taxa solicitada, aguardando entrada segura.'}
+        r['gold_rule']=self.fleet_audit
         try:
             from .desempenho_corredor import analisar as _desempenho
             r['desempenho_corredor']=_desempenho(self)

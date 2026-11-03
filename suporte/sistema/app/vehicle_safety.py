@@ -47,14 +47,39 @@ class SpatialReservations:
                     return False
         return True
 
+class SpatialCenters:
+    """Índice transitório para uma fase de admissão sem movimento da frota.
+
+    Usa a pose física (inclusive troca de faixa/acostamento), nunca a estação
+    longitudinal. O chamador adiciona cada novo veículo e descarta antes de mover.
+    """
+    def __init__(self,pose,vehicles=()):
+        self.pose=pose;self.cells=defaultdict(list);self.count=0
+        for vehicle in vehicles:self.add(vehicle)
+    def add(self,vehicle):
+        center=self.pose(vehicle)[0]
+        key=(math.floor(float(center[0])/40),math.floor(float(center[1])/40))
+        self.cells[key].append((self.count,vehicle));self.count+=1
+    def nearby(self,vehicle):
+        center=self.pose(vehicle)[0]
+        x,y=math.floor(float(center[0])/40),math.floor(float(center[1])/40)
+        rows=[row for dx in (-1,0,1) for dy in (-1,0,1) for row in self.cells.get((x+dx,y+dy),())]
+        return [v for _,v in sorted(rows,key=lambda row:row[0])]
+
 class PolygonSafety:
-    def __init__(self,sim):self.sim=sim;self.interventions=0;self.narrow_holds=0;self.waiting={};self.bursts={};self.corridor_cache={};self.waiting_widths={};self.pose_cache={}
+    def __init__(self,sim):self.sim=sim;self.interventions=0;self.narrow_holds=0;self.waiting={};self.bursts={};self.corridor_cache={};self.waiting_widths={};self.pose_cache={};self.level_cache={}
     def level(self,v):
+        # A rede é imutável durante a simulação; cota depende só da rota/estação.
+        key=(v['p'],v['s'])
+        if key in self.level_cache:return self.level_cache[key]
+        result=None
         try:
-            _,link,_,_,_=self.sim.locate(v['p'],v['s'])
-            if link[0]=='e' and link[1]>=0:return int(self.sim.net.edges[link[1]].get('level',0))
+            _,link,_,_,_=self.sim.locate(*key)
+            if link[0]=='e' and link[1]>=0:result=int(self.sim.net.edges[link[1]].get('level',0))
         except (AttributeError,KeyError,IndexError) as _e:_falha(__name__,_e)
-        return None
+        if len(self.level_cache)>=8192:self.level_cache.clear()
+        self.level_cache[key]=result
+        return result
     def corridor_conflict(self,p,q,width,other_width):
         from shapely.geometry import LineString
         key=(p,q,width,other_width)
@@ -84,12 +109,19 @@ class PolygonSafety:
                 phase,since=self.bursts.get(pair,(None,-1e9))
                 if phase==p and getattr(self.sim,'time',0)-since<10:continue
                 self.narrow_holds+=1;return False
+        level=self.level(new);conflicts={}
         for other in vehicles:
             q=other['p'];other_width=PROFILES.get(other.get('t','car'),PROFILES['car'])[1]
             if p==q:continue
-            if self.level(new) is not None and self.level(other) is not None and self.level(new)!=self.level(other):continue
+            # Corredores sem conflito são independentes da posição/cota dos veículos.
+            # Nos conflitantes, mantém TODOS os veículos e a ordem para try_pair.
+            key=(q,other_width)
+            if key not in conflicts:conflicts[key]=self.corridor_conflict(p,q,width,other_width)
+            if not conflicts[key]:continue
+            other_level=self.level(other)
+            if level is not None and other_level is not None and level!=other_level:continue
             pair=tuple(sorted((p,q)))
-            if self.corridor_conflict(p,q,width,other_width):
+            if conflicts[key]:
                 probe=getattr(self.sim,'shoulder_probe',None)
                 if probe and probe.try_pair(new,other):continue
                 self.waiting.setdefault(pair,p);self.waiting_widths[pair]={p:width,q:other_width};self.bursts.setdefault(pair,(q,other.get('entered_s',getattr(self.sim,'time',0))));self.narrow_holds+=1;return False
@@ -124,8 +156,8 @@ class PolygonSafety:
     def footprint(self,v,forward=0.,dt=.2):
         c,h=self.pose(v,forward,dt);L,B,_,_=PROFILES.get(v.get('t','car'),PROFILES['car']);return body(c,h,L,B,LATERAL_BUFFER)
     def admission(self,new,vehicles,vehicle_check=True,near=None,narrow=None):
-        """near/narrow (opcionais): listas reduzidas para a semeadura inicial — `near` = veículos a menos de 40 m (teste de sobreposição),
-        `narrow` = vizinhos + 1 representante por percurso (teste de corredor estreito). Sem eles, o comportamento é o original."""
+        """near/narrow (opcionais): filtros conservadores. `near` é lista ou consulta callable que inclui todos os centros a menos de 40 m (teste de sobreposição),
+        `narrow` deve conter todos os veículos de corredores potencialmente conflitantes, na ordem original. Sem eles, o comportamento é o original."""
         pedestrians=getattr(self.sim,'pedestrians',None)
         if getattr(pedestrians,'agents',[]):
             poly=self.footprint(new);level=self.level(new)
@@ -136,7 +168,7 @@ class PolygonSafety:
         if not vehicle_check or not vehicles:return True
         if not self.narrow_admission(new,vehicles if narrow is None else narrow):return False
         poly=self.footprint(new);level=self.level(new);pn=self.pose(new)[0]
-        if near is not None:vehicles=near
+        if near is not None:vehicles=near(new) if callable(near) else near
         return all(poly.intersection(self.footprint(v)).area<1e-7 for v in vehicles if v['id']!=new['id'] and (level is None or self.level(v) is None or self.level(v)==level) and np.linalg.norm(self.pose(v)[0]-pn)<40)
     def sweep(self,v,forward):
         if forward<1e-9:return self.footprint(v)

@@ -897,6 +897,7 @@ class Settings(BaseModel):
     traffic_stability: bool = True
     traffic_semear: bool = True          # corredor já povoado em toda a extensão no 1º quadro
     traffic_sem_comboio: bool = True     # faixa sem ultrapassagem: velocidades quase iguais (sem pelotão); pelotões só em parada controlada
+    traffic_warmup_s: float = Field(default=0.,ge=0,le=10)
     signal_amber_auto: bool = True   # 1.42.43: amarelo = reação + v/(2a), entre 3 e 6 s
     traffic_bridge_gaps: bool = True   # 1.42.43: fluxo do eixo atravessa vazios de pavimento oculto (5 m antes até o retorno do pavimento)
     traffic_bridge_lead_m: float = Field(5.0,ge=0,le=30)
@@ -1008,7 +1009,9 @@ class Settings(BaseModel):
     @model_validator(mode='before')
     @classmethod
     def upgrade(cls,data):
-        return migrate(data)
+        data=migrate(data)
+        if isinstance(data,dict):data={**data,'traffic_sem_comboio':True}
+        return data
     @model_validator(mode='after')
     def ranges(self):
         self.preview_time_s=min(self.preview_time_s,self.duration_s)

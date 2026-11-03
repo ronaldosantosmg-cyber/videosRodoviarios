@@ -15,19 +15,19 @@ from atualizador import validate_package
 def empacotar(output):
     origem = json.loads((ROOT / "proveniencia/studio-3.5.json").read_text(encoding="utf-8"))
     versao = json.loads((ROOT / "suporte/sistema/VERSAO.json").read_text(encoding="utf-8"))["version"]
-    nomes = sorted(set(origem["files"]) | {"CORRECOES_3_5.md", "ATUALIZACAO_3_6.md"})
+    nomes = sorted(set(origem["files"]) | {"CORRECOES_3_5.md", "ATUALIZACAO_3_6.md", "ATUALIZACAO_3_7.md", "VALIDACAO_3_7.md", "suporte/sistema/app/fleet_policy.py", "suporte/sistema/app/js/99_frota_iluminacao.js"})
     with tempfile.TemporaryDirectory(prefix="studio-pacote-") as tmp:
         pacote = Path(tmp) / "pacote"
         hashes = {}
         for nome in nomes:
-            rel = nome if nome.startswith("suporte/") or nome.startswith(("ATUALIZACAO_", "CORRECOES_")) else "raiz/" + nome
+            rel = nome if nome.startswith("suporte/") or nome.startswith(("ATUALIZACAO_", "CORRECOES_", "VALIDACAO_")) else "raiz/" + nome
             data = (ROOT / nome).read_bytes()
             target = pacote / rel
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(data)
             hashes[rel] = hashlib.sha256(data).hexdigest()
         manifest = {"app": "Rodovia Studio", "version": versao,
-                    "description": "Studio 3.6: janelas sobrepostas, reutilização do editor e tráfego otimizado. Requer Python 3.12.",
+                    "description": "Studio 3.7: frota inicial sem aquecimento obrigatório, admissões espaciais e iluminação dia/noite. Requer Python 3.12.",
                     "files": hashes}
         (pacote / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         validate_package(pacote)
@@ -47,5 +47,5 @@ def empacotar(output):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output", type=Path, default=ROOT / "dist/RodoviaStudio_3_6_atualizacao.zip")
+    parser.add_argument("--output", type=Path, default=ROOT / "dist/RodoviaStudio_3_7_atualizacao.zip")
     empacotar(parser.parse_args().output)

@@ -1,0 +1,743 @@
+{
+  "scenario": {
+    "paths": 3,
+    "length_m": 4000,
+    "density": 8,
+    "speed_kmh": 70,
+    "mix": "classico",
+    "rendering_included": false,
+    "profiling": false
+  },
+  "versions": {
+    "36": [
+      {
+        "source": "/workspace/work/revisao37/old36/suporte/sistema",
+        "paths": 3,
+        "duration": 3,
+        "repeat": 0,
+        "seconds": 23.730088558999796,
+        "seeded": 282,
+        "spawned": 395,
+        "frames": 17,
+        "collisions": 0,
+        "side": 0,
+        "warmup": null,
+        "fleet_violations": 0
+      },
+      {
+        "source": "/workspace/work/revisao37/old36/suporte/sistema",
+        "paths": 3,
+        "duration": 3,
+        "repeat": 1,
+        "seconds": 15.216416431000653,
+        "seeded": 282,
+        "spawned": 395,
+        "frames": 17,
+        "collisions": 0,
+        "side": 0,
+        "warmup": null,
+        "fleet_violations": 0
+      },
+      {
+        "source": "/workspace/work/revisao37/old36/suporte/sistema",
+        "paths": 3,
+        "duration": 3,
+        "repeat": 2,
+        "seconds": 14.667277054999431,
+        "seeded": 282,
+        "spawned": 395,
+        "frames": 17,
+        "collisions": 0,
+        "side": 0,
+        "warmup": null,
+        "fleet_violations": 0
+      },
+      {
+        "source": "/workspace/work/revisao37/old36/suporte/sistema",
+        "paths": 3,
+        "duration": 180,
+        "repeat": 0,
+        "seconds": 49.722632508999595,
+        "seeded": 282,
+        "spawned": 607,
+        "frames": 902,
+        "collisions": 0,
+        "side": 0,
+        "warmup": null,
+        "fleet_violations": 0
+      },
+      {
+        "source": "/workspace/work/revisao37/old36/suporte/sistema",
+        "paths": 3,
+        "duration": 180,
+        "repeat": 1,
+        "seconds": 49.22609418600041,
+        "seeded": 282,
+        "spawned": 607,
+        "frames": 902,
+        "collisions": 0,
+        "side": 0,
+        "warmup": null,
+        "fleet_violations": 0
+      },
+      {
+        "source": "/workspace/work/revisao37/old36/suporte/sistema",
+        "paths": 3,
+        "duration": 180,
+        "repeat": 2,
+        "seconds": 49.08572372599974,
+        "seeded": 282,
+        "spawned": 607,
+        "frames": 902,
+        "collisions": 0,
+        "side": 0,
+        "warmup": null,
+        "fleet_violations": 0
+      }
+    ],
+    "37": [
+      {
+        "source": "/workspace/videosRodoviarios/suporte/sistema",
+        "paths": 3,
+        "duration": 3,
+        "repeat": 0,
+        "seconds": 0.4395322979999037,
+        "seeded": 93,
+        "spawned": 96,
+        "frames": 17,
+        "collisions": 0,
+        "side": 0,
+        "warmup": -0.0,
+        "fleet_violations": 0
+      },
+      {
+        "source": "/workspace/videosRodoviarios/suporte/sistema",
+        "paths": 3,
+        "duration": 3,
+        "repeat": 1,
+        "seconds": 0.22786785799962672,
+        "seeded": 93,
+        "spawned": 96,
+        "frames": 17,
+        "collisions": 0,
+        "side": 0,
+        "warmup": -0.0,
+        "fleet_violations": 0
+      },
+      {
+        "source": "/workspace/videosRodoviarios/suporte/sistema",
+        "paths": 3,
+        "duration": 3,
+        "repeat": 2,
+        "seconds": 0.22703066400026728,
+        "seeded": 93,
+        "spawned": 96,
+        "frames": 17,
+        "collisions": 0,
+        "side": 0,
+        "warmup": -0.0,
+        "fleet_violations": 0
+      },
+      {
+        "source": "/workspace/videosRodoviarios/suporte/sistema",
+        "paths": 3,
+        "duration": 180,
+        "repeat": 0,
+        "seconds": 14.774136424000062,
+        "seeded": 93,
+        "spawned": 228,
+        "frames": 902,
+        "collisions": 0,
+        "side": 0,
+        "warmup": -0.0,
+        "fleet_violations": 0
+      },
+      {
+        "source": "/workspace/videosRodoviarios/suporte/sistema",
+        "paths": 3,
+        "duration": 180,
+        "repeat": 1,
+        "seconds": 14.829402084000321,
+        "seeded": 93,
+        "spawned": 228,
+        "frames": 902,
+        "collisions": 0,
+        "side": 0,
+        "warmup": -0.0,
+        "fleet_violations": 0
+      },
+      {
+        "source": "/workspace/videosRodoviarios/suporte/sistema",
+        "paths": 3,
+        "duration": 180,
+        "repeat": 2,
+        "seconds": 14.883334903000105,
+        "seeded": 93,
+        "spawned": 228,
+        "frames": 902,
+        "collisions": 0,
+        "side": 0,
+        "warmup": -0.0,
+        "fleet_violations": 0
+      }
+    ]
+  },
+  "methodology": {
+    "measurement": "time.perf_counter around TrafficSim construction; no profiler; no renderer or encoder",
+    "repetitions": 3,
+    "environment": "Shared managed Linux environment; initial runs may include cold imports/cache and concurrent tests. Medians are illustrative, not a user-machine latency guarantee.",
+    "versions": {
+      "36": "git archive HEAD 8948410a829cd6778248cffda5c3a6906e0075a7",
+      "37": "uncommitted working tree before signal-queue correction"
+    },
+    "population_caveat": "3.7 seeds 93 vehicles versus 282 in 3.6 on identical network/settings. Its smaller initial fleet and zero default warmup both contribute; this is not an isolated algorithm or equal-population comparison.",
+    "quality_caveat": "Equal saved traffic-frame counts and no detected collisions in this simple road scenario do not establish identical traffic appearance or rendering quality."
+  },
+  "summary": {
+    "3": {
+      "median36_s": 15.216416431000653,
+      "median37_s": 0.22786785799962672,
+      "reduction_percent": 98.50248671207902
+    },
+    "180": {
+      "median36_s": 49.22609418600041,
+      "median37_s": 14.829402084000321,
+      "reduction_percent": 69.87491628328759
+    }
+  },
+  "signal_demand6_before_queue_fix": {
+    "por_verde": [
+      3,
+      3,
+      3
+    ],
+    "crossings": 13,
+    "seeded": 18,
+    "spawned": 93,
+    "collisions": 0,
+    "side": 0,
+    "fleet_audit": {
+      "enabled": true,
+      "violations": [
+        {
+          "vehicle": 0,
+          "path": 0,
+          "station_m": 1134.8,
+          "time_s": 75.6,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 1,
+          "path": 0,
+          "station_m": 1148.52,
+          "time_s": 75.6,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 2,
+          "path": 0,
+          "station_m": 1153.82,
+          "time_s": 75.6,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 3,
+          "path": 0,
+          "station_m": 1160.43,
+          "time_s": 75.6,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 4,
+          "path": 0,
+          "station_m": 1172.21,
+          "time_s": 75.6,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 18,
+          "path": 0,
+          "station_m": 1116.29,
+          "time_s": 75.6,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 19,
+          "path": 0,
+          "station_m": 1103.95,
+          "time_s": 75.6,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 20,
+          "path": 0,
+          "station_m": 1091.79,
+          "time_s": 75.6,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 21,
+          "path": 0,
+          "station_m": 1076.92,
+          "time_s": 81.2,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 22,
+          "path": 0,
+          "station_m": 1064.72,
+          "time_s": 85.8,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 23,
+          "path": 0,
+          "station_m": 1056.12,
+          "time_s": 90.0,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 24,
+          "path": 0,
+          "station_m": 1047.76,
+          "time_s": 94.0,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 25,
+          "path": 0,
+          "station_m": 1040.92,
+          "time_s": 97.8,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 26,
+          "path": 0,
+          "station_m": 1051.34,
+          "time_s": 107.4,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 27,
+          "path": 0,
+          "station_m": 1035.65,
+          "time_s": 107.4,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 28,
+          "path": 0,
+          "station_m": 1062.3,
+          "time_s": 148.0,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 29,
+          "path": 0,
+          "station_m": 1050.45,
+          "time_s": 148.0,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 30,
+          "path": 0,
+          "station_m": 1043.26,
+          "time_s": 148.0,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 31,
+          "path": 0,
+          "station_m": 1036.53,
+          "time_s": 148.0,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 32,
+          "path": 0,
+          "station_m": 1031.23,
+          "time_s": 148.0,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 33,
+          "path": 0,
+          "station_m": 1025.66,
+          "time_s": 148.0,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 34,
+          "path": 0,
+          "station_m": 1018.88,
+          "time_s": 148.0,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 35,
+          "path": 0,
+          "station_m": 1007.68,
+          "time_s": 148.0,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 36,
+          "path": 0,
+          "station_m": 995.83,
+          "time_s": 148.0,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 37,
+          "path": 0,
+          "station_m": 988.63,
+          "time_s": 148.0,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 38,
+          "path": 0,
+          "station_m": 973.2,
+          "time_s": 148.0,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 39,
+          "path": 0,
+          "station_m": 953.87,
+          "time_s": 148.0,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 40,
+          "path": 0,
+          "station_m": 939.3,
+          "time_s": 148.0,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 41,
+          "path": 0,
+          "station_m": 932.6,
+          "time_s": 151.2,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 42,
+          "path": 0,
+          "station_m": 923.63,
+          "time_s": 156.4,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 43,
+          "path": 0,
+          "station_m": 912.88,
+          "time_s": 161.2,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 44,
+          "path": 0,
+          "station_m": 902.81,
+          "time_s": 164.4,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 45,
+          "path": 0,
+          "station_m": 899.15,
+          "time_s": 171.8,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 46,
+          "path": 0,
+          "station_m": 876.48,
+          "time_s": 171.8,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 47,
+          "path": 0,
+          "station_m": 864.69,
+          "time_s": 173.8,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 48,
+          "path": 0,
+          "station_m": 872.1,
+          "time_s": 185.8,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 49,
+          "path": 0,
+          "station_m": 860.54,
+          "time_s": 185.8,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 50,
+          "path": 0,
+          "station_m": 844.59,
+          "time_s": 185.8,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 51,
+          "path": 0,
+          "station_m": 829.88,
+          "time_s": 186.4,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 52,
+          "path": 0,
+          "station_m": 827.48,
+          "time_s": 200.4,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 53,
+          "path": 0,
+          "station_m": 812.21,
+          "time_s": 200.4,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 54,
+          "path": 0,
+          "station_m": 804.41,
+          "time_s": 200.4,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 55,
+          "path": 0,
+          "station_m": 792.95,
+          "time_s": 200.4,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 56,
+          "path": 0,
+          "station_m": 792.97,
+          "time_s": 207.2,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 57,
+          "path": 0,
+          "station_m": 783.27,
+          "time_s": 207.2,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 58,
+          "path": 0,
+          "station_m": 769.36,
+          "time_s": 209.4,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 59,
+          "path": 0,
+          "station_m": 769.46,
+          "time_s": 220.6,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 60,
+          "path": 0,
+          "station_m": 756.84,
+          "time_s": 220.6,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 61,
+          "path": 0,
+          "station_m": 744.68,
+          "time_s": 220.6,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 62,
+          "path": 0,
+          "station_m": 731.15,
+          "time_s": 222.4,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 63,
+          "path": 0,
+          "station_m": 724.59,
+          "time_s": 226.2,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 64,
+          "path": 0,
+          "station_m": 718.67,
+          "time_s": 230.4,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 65,
+          "path": 0,
+          "station_m": 711.44,
+          "time_s": 234.4,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 66,
+          "path": 0,
+          "station_m": 699.73,
+          "time_s": 238.0,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 67,
+          "path": 0,
+          "station_m": 702.69,
+          "time_s": 249.8,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 68,
+          "path": 0,
+          "station_m": 695.13,
+          "time_s": 249.8,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 69,
+          "path": 0,
+          "station_m": 673.5,
+          "time_s": 249.8,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 70,
+          "path": 0,
+          "station_m": 656.92,
+          "time_s": 252.8,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 71,
+          "path": 0,
+          "station_m": 661.19,
+          "time_s": 265.4,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 72,
+          "path": 0,
+          "station_m": 654.31,
+          "time_s": 265.4,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 73,
+          "path": 0,
+          "station_m": 638.64,
+          "time_s": 265.4,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 74,
+          "path": 0,
+          "station_m": 631.0,
+          "time_s": 273.0,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 75,
+          "path": 0,
+          "station_m": 619.89,
+          "time_s": 273.0,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 76,
+          "path": 0,
+          "station_m": 598.59,
+          "time_s": 274.6,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 77,
+          "path": 0,
+          "station_m": 600.02,
+          "time_s": 291.0,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 78,
+          "path": 0,
+          "station_m": 591.24,
+          "time_s": 291.0,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 79,
+          "path": 0,
+          "station_m": 583.31,
+          "time_s": 291.0,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 80,
+          "path": 0,
+          "station_m": 571.06,
+          "time_s": 291.0,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 81,
+          "path": 0,
+          "station_m": 552.59,
+          "time_s": 291.0,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 82,
+          "path": 0,
+          "station_m": 538.27,
+          "time_s": 292.0,
+          "reason": "lider"
+        },
+        {
+          "vehicle": 83,
+          "path": 0,
+          "station_m": 526.79,
+          "time_s": 297.6,
+          "reason": "lider"
+        }
+      ],
+      "samples": 1502,
+      "definition": "Par compacto: folga <max(12 m, 2 s de percurso), sem controle permitido, em qualquer amostra."
+    }
+  },
+  "signal_demand6_after_queue_fix": {
+    "por_verde": [
+      5,
+      4,
+      6
+    ],
+    "crossings": 19,
+    "seeded": 18,
+    "spawned": 92,
+    "collisions": 0,
+    "side": 0,
+    "fleet_audit": {
+      "enabled": true,
+      "violations": [],
+      "samples": 1502,
+      "definition": "Par compacto: folga <max(12 m, 2 s de percurso), sem controle permitido, em qualquer amostra."
+    }
+  },
+  "signal_demand6_fix": "Track signal stop-line origin through queue departure and bounded downstream dissolution; use calibrated class acceleration without individual hesitation during discharge; preserve T>=3 in free road and after controlled area."
+}

@@ -25,6 +25,8 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
     from . import visual
     from functools import partial
     settings=Settings.model_validate(settings.model_dump())
+    from .fleet_policy import validate_mode
+    validate_mode(settings)
     d=Path(directory);rev0=revision(d,settings)
     if (d/'config.json').exists() and Settings.model_validate_json((d/'config.json').read_text(encoding='utf-8')).model_dump()!=settings.model_dump():raise ValueError('A configuração mudou. Gere a cena novamente.')
     def progress(p,text):
@@ -133,6 +135,8 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
         from .classic_traffic import ClassicTraffic as TrafficSim
     sim=TrafficSim(scene.network,settings,partial(visual.vehicle_type,mix=settings.vehicle_mix),duration=duration,status=lambda p,m:progress(.55+.25*p,m)) if settings.traffic and scene.network.paths else None
     scene._sim=sim
+    from .fleet_policy import require_export
+    require_export(sim,settings)
     tracks={};samples=0;ghost_hidden={};ghost_segment={}
     if sim:
         for t in np.r_[np.arange(0,duration,.2),duration]:

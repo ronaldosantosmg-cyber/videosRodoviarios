@@ -5,6 +5,7 @@ import pytest
 from shapely.geometry import Polygon
 from app.simulation import TrafficSim
 from app.vehicle_safety import PolygonSafety
+from app.shoulder_probe import ShoulderProbe
 from tests.test_v14212_traffic_safety import network,configuration
 
 
@@ -35,10 +36,26 @@ def test_guarda_resolve_sobreposicao_quando_as_outras_barreiras_falham(monkeypat
     monkeypatch.setattr(TrafficSim,'enforce_hard_separation',lambda self,V:None)
     monkeypatch.setattr(TrafficSim,'leader_state',lambda self,v,occ,look=150.,path_i=None,s=None:(math.inf,0.,None))
     monkeypatch.setattr(TrafficSim,'check',lambda self,V:None)
-    # O cenário de falha exige velocidades distintas, sem a semeadura uniforme da 3.5.
-    sem=_sim(60,guard=False,traffic_density=6,traffic_sem_comboio=False,traffic_semear=False)
+    # Dois veículos determinísticos no mesmo percurso; o controlador avariado
+    # mantém o seguidor a 15 m/s e o líder a 2 m/s, ignorando sua aproximação.
+    seed=TrafficSim.semear_percurso
+    def seed_pair(self,V,vid,t,rng,status):
+        next_id=seed(self,V,vid,t,rng,status)
+        path=V[0]['p']
+        V[:]=[v for v in V if v['p']==path][:2]
+        assert len(V)==2
+        for v,station,speed in zip(V,(100.,140.),(15.,2.)):
+            v['s']=station;v['v']=speed;v['v0']=speed
+        return next_id
+    monkeypatch.setattr(TrafficSim,'semear_percurso',seed_pair)
+    monkeypatch.setattr(TrafficSim,'initialize_speeds',lambda self,V,t:None)
+    monkeypatch.setattr(TrafficSim,'consider_lane_changes',lambda self,V,t,occ:occ)
+    monkeypatch.setattr(ShoulderProbe,'prepare',lambda self,V:None)
+    monkeypatch.setattr(TrafficSim,'interarrival',lambda self,rng,rate:math.inf)
+    monkeypatch.setattr(TrafficSim,'accel',lambda self,v,occ,t:(v['v0']-v['v'])/.2)
+    sem=_sim(60,guard=False,traffic_density=6,traffic_semear=True)
     assert _min_clear(sem,60)<0,'o cenário precisa produzir sobreposição sem a guarda'
-    com=_sim(60,guard=True,traffic_density=6,traffic_sem_comboio=False,traffic_semear=False)
+    com=_sim(60,guard=True,traffic_density=6,traffic_semear=True)
     assert com.conflict_guard.interventions>0 and com.conflict_guard.unresolved==0
     assert _min_clear(com,60)>=-1e-6
 

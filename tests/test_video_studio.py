@@ -1,3 +1,5 @@
+import json
+import pytest
 import ezdxf
 
 from app.encoding import ffmpeg_exe, validate_mp4
@@ -5,7 +7,8 @@ from app.models import Settings
 from app.render import render
 
 
-def test_mp4_hd_com_eixo_autorizado_decodifica_todos_os_quadros(tmp_path):
+@pytest.mark.parametrize('lighting',['off','night'])
+def test_mp4_hd_com_eixo_autorizado_decodifica_todos_os_quadros(tmp_path,lighting):
     document = ezdxf.new()
     document.layers.new('EIXO')
     document.layers.new('PAVIMENTO')
@@ -16,8 +19,14 @@ def test_mp4_hd_com_eixo_autorizado_decodifica_todos_os_quadros(tmp_path):
     document.saveas(tmp_path / 'input.dxf')
     settings = Settings(width=1280, fps=24, duration_s=3, imagery='neutral', hydrography=False,
                         coordinates_confirmed=True, route_directions={'layer:EIXO': 'forward'},
-                        render_profile='rapido', render_workers=1, encoder='cpu')
+                        render_profile='rapido', render_workers=1, encoder='cpu',day_night=lighting)
     output = render(tmp_path, settings)
     check = validate_mp4(ffmpeg_exe(), output, 72, 1280, 720, 24)
     assert check['ok'], check
     assert check['frames_decoded'] == 72
+
+    metadata=json.loads((tmp_path/'video.json').read_text())
+    assert set(metadata['stage_seconds'])=={'scene','detail_images','traffic','render_and_encode','validation'}
+    assert metadata['motion_audit']['initialization']['warmup_seconds']==0.
+    assert metadata['motion_audit']['flow_balance']['conserved']
+    assert not metadata['motion_audit']['gold_rule']['violations']

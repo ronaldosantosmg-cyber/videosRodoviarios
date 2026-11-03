@@ -35,6 +35,9 @@ jobs:
           python -m playwright install --with-deps chromium
           python scripts/verificar_interface.py
           python scripts/verificar_janelas.py
+          python scripts/ajuda_validar_interface.py
+          python scripts/imagens_validar_pipeline.py
+          python scripts/pool_validar_3d.py
       - name: Regressões de tráfego, cancelamento e geometria
         working-directory: suporte/sistema
         run: >-
@@ -50,6 +53,10 @@ jobs:
           tests/test_v31_dxf_preparo.py
           tests/test_v31_surgimento.py
           tests/test_v14278_articulado.py
+          tests/test_v370_fleet_policy.py
+          tests/test_v370_pedestrian_seed.py
+          tests/test_v268_zebrados_dxf.py
+          tests/test_v113.py::test_night_factor_transition
           -k 'not api_relatorio and not relatorio_da_simulacao'
       - name: Gerar atualização do código principal
         run: python scripts/empacotar_studio.py

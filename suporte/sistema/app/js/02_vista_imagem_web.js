@@ -34,7 +34,27 @@ function evtCanvas(e){const r=canvas.getBoundingClientRect();return [(e.clientX-
 /* ---------- 1.9: base de edição sobre imagem web (Esri) + vetores simplificados ---------- */
 let localInfo=null,geo=null,vec=null,geoPid='',baseMode='map',vecPaths=null,tileState={ok:0,fail:0};
 let directTiles=true;const ESRI_DIRECT=(z,y,x)=>`https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`;
-const tiles=new Map(),TILE_MAX_Z=19,MERC=20037508.342789244;
+// Um único limite inclui rede e decodificação das duas bases.
+const tilePipeline={active:0,queue:[],limit:6,enqueue(job){this.queue.push(job);this.pump()},pump(){while(this.active<this.limit&&this.queue.length){const job=this.queue.shift();if(!job.current())continue;this.active++;Promise.resolve().then(()=>job.current()?job.run():undefined).catch(()=>{}).finally(()=>{this.active--;this.pump()})}}};
+class PixelTileCache extends Map{
+ constructor(budget){super();this.budget=budget;this.bytes=0}
+ get(k){const t=super.get(k);if(t){t.used=performance.now();super.delete(k);super.set(k,t)}return t}
+ set(k,t){if(super.has(k))this.delete(k);t.bytes=t.bytes||256*256*4;super.set(k,t);this.bytes+=t.bytes;this.trim();return this}
+ resize(k,t){if(super.get(k)!==t)return;this.bytes-=t.bytes;t.bytes=Math.max(1,t.img.naturalWidth||t.img.width)*Math.max(1,t.img.naturalHeight||t.img.height)*4;this.bytes+=t.bytes;this.trim()}
+ trim(){while(this.bytes>this.budget&&this.size)this.delete(this.keys().next().value)}
+ delete(k){const t=super.get(k);if(!t)return false;this.bytes-=t.bytes;t.cancelled=true;t.controller.abort();t.img.removeAttribute('src');return super.delete(k)}
+ clear(){for(const k of [...this.keys()])this.delete(k)}
+}
+const tiles=new PixelTileCache(64*1024*1024),TILE_MAX_Z=19,MERC=20037508.342789244;
+function tileEntry(){const img=new Image();img.decoding='async';return {img,ok:false,fail:false,empty:false,used:performance.now(),controller:new AbortController(),cancelled:false}}
+async function decodeTileImage(t,url,current){
+ if(!current())return false;
+ await new Promise((resolve,reject)=>{const abort=()=>{t.img.removeAttribute('src');finish(Error('Imagem cancelada'))},finish=error=>{t.img.onload=t.img.onerror=null;t.controller.signal.removeEventListener('abort',abort);error?reject(error):resolve()};t.img.onload=()=>finish();t.img.onerror=()=>finish(Error('Imagem indisponível'));t.controller.signal.addEventListener('abort',abort,{once:true});t.img.src=url});
+ if(!current())return false;
+ if(typeof t.img.decode==='function')await t.img.decode();
+ return current();
+}
+async function fetchTileImage(t,url,current){let objectUrl=null;try{const response=await fetch(url,{signal:t.controller.signal});if(!current())return false;if(response.status===204)return false;if(!response.ok)throw Error('Imagem HTTP '+response.status);const blob=await response.blob();if(!current())return false;objectUrl=URL.createObjectURL(blob);return await decodeTileImage(t,objectUrl,current)}finally{if(objectUrl)URL.revokeObjectURL(objectUrl)}}
 const VSTYLE={water:['#4aa8ff',1.6,[],.25],edge_line:['#f4f2e2',1.2,[],0],cut:['#ff7a66',1.3,[],0],fill:['#86e08f',1.3,[],0],existing_pavement:['#d9d9d9',1.5,[],.10],pavement:['#ffffff',1.9,[],.14],shoulder:['#efe4b8',1.2,[],0],median:['#66e07a',1.5,[],.12],barrier:['#ffb347',1.7,[],0],oae:['#5ad8ff',2.2,[],.18],domain:['#ffe14d',1.4,[8,6],0],axis:['#ff4fd8',1.6,[10,6],0],overlay:['#c3b2ff',1.4,[],0],kmz:['#3fe0c5',2.2,[5,4],0]};
 const VNAME={water:'Hidrografia (DXF)',edge_line:'Bordos (DXF)',pavement:'Pavimento',existing_pavement:'Pavimento existente',shoulder:'Acostamento',median:'Canteiro',barrier:'Barreira',oae:'OAE',cut:'Corte',fill:'Aterro',domain:'Faixa de domínio',axis:'Eixos',overlay:'DXF adicionais',kmz:'KMZ'};
 const SIGN={signage:['Sinalização do vídeo','#f4f2e2'],arrows:['Setas de fluxo do vídeo','#ffffff'],flows:['Trajetórias e sentidos','#61e6d7']};
@@ -77,22 +97,27 @@ const tileMaxZ=()=>webSrc()==='esri'?TILE_MAX_Z:Math.min(22,cfg.web_imagery.max_
 let tileDrawPending=false;function tileRedraw(){if(tileDrawPending)return;tileDrawPending=true;requestAnimationFrame(()=>{tileDrawPending=false;draw()})}
 function tilePlaceholder(img){try{const c=document.createElement('canvas');c.width=c.height=16;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(img,0,0,16,16);const d=g.getImageData(0,0,16,16).data;let r=0,gg=0,b=0,n=d.length/4;for(let i=0;i<d.length;i+=4){r+=d[i];gg+=d[i+1];b+=d[i+2]}r/=n;gg/=n;b/=n;
   if(Math.abs(r-gg)>4||Math.abs(gg-b)>4||r<190||r>215)return false;let v=0;for(let i=0;i<d.length;i+=4)v+=(d[i]-r)**2;return Math.sqrt(v/n)<12}catch{return false}}
-function getTile(z,x,y){const k=tileKey(z,x,y);let t=tiles.get(k);if(t&&t.fail&&performance.now()-t.failAt>30000){tiles.delete(k);t=null}if(t){t.used=performance.now();return t}
- t={img:new Image(),ok:false,fail:false,used:performance.now()};t.img.decoding='async';const current=()=>tileKey(z,x,y)===k;
- t.img.onload=()=>{
-  // 1.42.43: a Esri devolve um ladrilho cinza “Map data not yet available” onde não há imagem naquele nível. Não é imagem: usa o nível acima ampliado.
-  if(tilePlaceholder(t.img)){t.ok=false;t.placeholder=true;if(z>8)getTile(z-1,x>>1,y>>1);if(current())tileRedraw();return}
-  t.ok=true;if(current()){tileState.ok++;if(t.direct)tileState.direct=(tileState.direct||0)+1;tileRedraw()}};
- t.img.onerror=()=>{if(!current()){t.fail=true;t.failAt=performance.now();return}if(!t.direct&&directTiles!==false){t.direct=true;t.img.src=ESRI_DIRECT(z,y,x);return}t.fail=true;t.failAt=performance.now();tileState.fail++;tileRedraw()};
- t.img.src=webSrc()==='esri'?`/tiles/esri/${z}/${y}/${x}`:`/api/projects/${pid}/web_tiles/${z}/${y}/${x}?k=${encodeURIComponent(webKey())}`;if(webSrc()!=='esri')t.direct=true;tiles.set(k,t);
- if(tiles.size>900){const now=performance.now(),old=[...tiles.entries()].filter(([kk,v])=>now-v.used>2500).sort((a,b)=>a[1].used-b[1].used).slice(0,200);for(const [kk] of old)tiles.delete(kk)}return t}
-/* 1.17: imagem local em ladrilhos Web Mercator (servidor local), por cima da Esri, até o zoom da resolução dela. */
-const localTiles=new Map();
+function getTile(z,x,y){const k=tileKey(z,x,y),project=pid,context=projectSession.context,source=webKey();let t=tiles.get(k);
+ if(t&&(t.project!==project||t.context!==context)){tiles.delete(k);t=null}
+ if(t&&t.fail&&performance.now()-t.failAt>30000){tiles.delete(k);t=null}if(t)return t;
+ t=tileEntry();t.project=project;t.context=context;tiles.set(k,t);
+ const current=()=>!t.cancelled&&pid===project&&projectSession.context===context&&webKey()===source&&tiles.get(k)===t;
+ const url=webSrc()==='esri'?`/tiles/esri/${z}/${y}/${x}`:`/api/projects/${project}/web_tiles/${z}/${y}/${x}?k=${encodeURIComponent(source)}`,esri=webSrc()==='esri';
+ tilePipeline.enqueue({current,run:async()=>{try{
+  let loaded=false;try{loaded=await fetchTileImage(t,url,current)}catch(error){if(!current())return;if(!esri||directTiles===false)throw error;t.direct=true;loaded=await decodeTileImage(t,ESRI_DIRECT(z,y,x),current)}
+  if(!loaded||!current())return;tiles.resize(k,t);if(!current())return;
+  if(tilePlaceholder(t.img)){t.placeholder=true;if(z>8)getTile(z-1,x>>1,y>>1);tileRedraw();return}
+  t.ok=true;tileState.ok++;if(t.direct)tileState.direct=(tileState.direct||0)+1;tileRedraw();
+ }catch(error){if(!current())return;t.fail=true;t.failAt=performance.now();tileState.fail++;tileRedraw()}}});return t}
+/* Imagem local usa a mesma fila e um orçamento próprio de pixels decodificados. */
+const localTiles=new PixelTileCache(32*1024*1024);
 function localTileKey(z,x,y){return pid+'|'+(localInfo?.key||'')+'|'+z+'/'+x+'/'+y}
-function getLocalTile(z,x,y){const project=pid,context=projectSession.context,source=localInfo?.key;const k=localTileKey(z,x,y);let t=localTiles.get(k);if(t){t.used=performance.now();return t}
- t={img:new Image(),ok:false,empty:false,used:performance.now()};t.img.onload=()=>{t.ok=true;if(t.img.src.startsWith('blob:'))URL.revokeObjectURL(t.img.src);if(pid===project&&projectSession.context===context&&localInfo?.key===source)tileRedraw()};t.img.onerror=()=>{t.empty=true};
- fetch(`/api/projects/${pid}/local_tiles/${z}/${y}/${x}.png?k=${localInfo?.key||''}`).then(r=>{if(r.status===204){t.empty=true;return null}if(!r.ok){t.empty=true;return null}return r.blob()}).then(b=>{if(b&&pid===project&&projectSession.context===context&&localInfo?.key===source)t.img.src=URL.createObjectURL(b);else t.empty=true}).catch(()=>{t.empty=true});
- localTiles.set(k,t);if(localTiles.size>256){const old=[...localTiles.entries()].sort((a,b)=>a[1].used-b[1].used).slice(0,64);for(const [kk,v] of old){if(v.img.src.startsWith('blob:'))URL.revokeObjectURL(v.img.src);localTiles.delete(kk)}}return t}
+function getLocalTile(z,x,y){const project=pid,context=projectSession.context,source=localInfo?.key,k=localTileKey(z,x,y);let t=localTiles.get(k);
+ if(t&&t.context!==context){localTiles.delete(k);t=null}
+ if(t&&t.fail&&performance.now()-t.failAt>30000){localTiles.delete(k);t=null}if(t)return t;
+ t=tileEntry();t.context=context;localTiles.set(k,t);
+ const current=()=>!t.cancelled&&pid===project&&projectSession.context===context&&localInfo?.key===source&&localTiles.get(k)===t;
+ tilePipeline.enqueue({current,run:async()=>{try{const loaded=await fetchTileImage(t,`/api/projects/${project}/local_tiles/${z}/${y}/${x}.png?k=${encodeURIComponent(source||'')}`,current);if(!current())return;if(!loaded){t.empty=true;tileRedraw();return}localTiles.resize(k,t);if(!current())return;t.ok=true;tileRedraw()}catch(error){if(!current())return;t.empty=true;t.fail=true;t.failAt=performance.now();tileRedraw()}}});return t}
 function drawLocalTiles(){if(!localInfo||!localInfo.sources?.length||localInfo.editor===false||!geo)return;
  const res=geo.R0/view.s;const z=Math.max(10,Math.min(localInfo.max_zoom,Math.ceil(Math.log2(2*MERC/256/res)-.25))),n=2**z,size=2*MERC/n;
  const corners=[[0,0],[canvas.width,0],[0,canvas.height],[canvas.width,canvas.height]].map(([cx,cy])=>[geo.m0x+(cx-view.ox)/view.s*geo.R0,geo.m0y-(cy-view.oy)/view.s*geo.R0]);
