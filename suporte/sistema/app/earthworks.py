@@ -25,15 +25,15 @@ def earthwork_style(mask, lines, role, meters_per_pixel, phase=(0,0), look='hatc
     return color,alpha
 
 def natural_style(mask, lines, role, meters_per_pixel, look='natural',base_color=None):
-    """1.16: talude com aparência de terreno (corte: solo exposto; aterro: grama), com contorno fino na cor do tipo.
+    """1.16: talude com aparência de terreno (corte: avermelhado com grama; aterro: verde claro com grama), com contorno fino na cor do tipo.
     A textura (grão do solo e da grama) é aplicada no quadro, ancorada em metros."""
     h,w=mask.shape
     alpha=np.where(mask>0,200,0).astype(np.uint8)
     boundary=cv2.morphologyEx(mask,cv2.MORPH_GRADIENT,np.ones((3,3),np.uint8));edge=(boundary>0)&(mask>0)
     lineweight=max(1,min(3,round(.35/meters_per_pixel)))
     offsets=cv2.dilate(lines,np.ones((lineweight,lineweight),np.uint8))>0
-    if look=='textura':rgb=np.array((168,86,66) if role=='cut' else (84,128,62),np.uint8)   # 1.42.40: corte vermelho e aterro verde, ambos com grama
-    else:rgb=np.array((168,86,66) if role=='cut' else (84,128,62),np.uint8)
+    if look=='textura':rgb=np.array((183,105,84) if role=='cut' else (156,189,117),np.uint8)   # 1.42.40: corte vermelho e aterro verde, ambos com grama
+    else:rgb=np.array((183,105,84) if role=='cut' else (156,189,117),np.uint8)
     if base_color:rgb=np.array([int(base_color[k:k+2],16) for k in (1,3,5)],np.uint8)
     color=np.broadcast_to(rgb,(h,w,3)).copy()
     line=np.array((176,72,60) if role=='cut' else (40,120,62),np.uint8)

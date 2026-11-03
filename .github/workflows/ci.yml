@@ -38,6 +38,7 @@ jobs:
           python scripts/ajuda_validar_interface.py
           python scripts/imagens_validar_pipeline.py
           python scripts/pool_validar_3d.py
+          python scripts/test_taludes_frontend.py
       - name: Regressões de tráfego, cancelamento e geometria
         working-directory: suporte/sistema
         run: >-
@@ -57,6 +58,9 @@ jobs:
           tests/test_v370_pedestrian_seed.py
           tests/test_v268_zebrados_dxf.py
           tests/test_v113.py::test_night_factor_transition
+          tests/test_v380_earthwork_dxf.py
+          tests/test_v380_zebra_clipping.py
+          tests/test_v267_zebrados.py
           -k 'not api_relatorio and not relatorio_da_simulacao'
       - name: Gerar atualização do código principal
         run: python scripts/empacotar_studio.py

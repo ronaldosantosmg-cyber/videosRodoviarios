@@ -2,7 +2,7 @@
 // (grão, tom, remendos, fissuras, brilho) ancorado no mundo, que reage na hora aos ajustes de texturas.
 (()=>{'use strict';
  const SUP={pavement:'pista_nova',existing_pavement:'pista_existente',shoulder:'acostamento',median:'canteiro',cut:'talude_corte',fill:'talude_aterro',oae:'oae_nova'};
- const BASE={pista_nova:[44,45,48],pista_existente:[118,118,114],acostamento:[138,128,106],canteiro:[112,142,92],talude_corte:[150,108,82],talude_aterro:[104,128,78],oae_nova:[176,176,171]};
+ const BASE={pista_nova:[44,45,48],pista_existente:[118,118,114],acostamento:[138,128,106],canteiro:[112,142,92],talude_corte:[183,105,84],talude_aterro:[156,189,117],oae_nova:[176,176,171]};
  const LADO=128,TILE_M=4;// 128 px = 4 m de terreno
  let ligado=true,forca=.85;const cache=new Map();
  function lcg(s){s=(s>>>0)||1;return()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296}}
@@ -10,9 +10,9 @@
  function ruido(rnd,n){const g=Array.from({length:n*n},()=>rnd());return(x,y)=>{x=((x%n)+n)%n;y=((y%n)+n)%n;const x0=Math.floor(x),y0=Math.floor(y),fx=x-x0,fy=y-y0,sx=fx*fx*(3-2*fx),sy=fy*fy*(3-2*fy),X=(x0+1)%n,Y=(y0+1)%n;
   const a=g[y0*n+x0],b=g[y0*n+X],c=g[Y*n+x0],d=g[Y*n+X];return a+(b-a)*sx+(c-a)*sy+(a-b-c+d)*sx*sy}}
  function gerar(sup,p,lado=LADO){
-  p=Object.assign({grao:1,tom:1,remendos:1,fissuras:1,brilho:0},p||{});const cor=BASE[sup]||[100,100,100];
+  p=Object.assign({grao:1,tom:1,remendos:1,fissuras:1,brilho:0},p||{});const cor=Array.isArray(p.baseColor)&&p.baseColor.length===3?p.baseColor:BASE[sup]||[100,100,100];
   const rnd=lcg(sup.length*7919+13),r1=ruido(rnd,16),r2=ruido(rnd,4),r3=ruido(rnd,32);const px=new Uint8ClampedArray(lado*lado*4);
-  const asfalto=/pista|oae/.test(sup),veg=/canteiro|aterro/.test(sup);
+  const asfalto=/pista|oae/.test(sup),veg=/canteiro|aterro|corte/.test(sup);
   for(let y=0;y<lado;y++)for(let x=0;x<lado;x++){const u=x/lado,v=y/lado;
    const ruidoFino=(rnd()-.5);let g=ruidoFino*(asfalto?30:veg?26:20)*p.grao+(r3(u*32,v*32)-.5)*(asfalto?14:18)*p.grao+(r1(u*16,v*16)-.5)*6*p.grao;
    if(sup==='pista_nova'&&rnd()>.925)g+=(34+rnd()*40)*p.grao;// agregado britado claro sobre ligante preto
@@ -66,7 +66,10 @@
    c.save();c.globalAlpha=Math.min(1,(typeof vecAlpha==='number'?vecAlpha:1));c.fillStyle=e.pat;c.fill(v.fill,'evenodd');c.restore();return}
   const pxTile=TILE_M/mpx*view.s;
   const mat=MATERIAL_DE[role]?A[MATERIAL_DE[role]]:null,rigido=mat==='rigido';
-  const tp=A.tp||{};
+  let tp=A.tp||{};
+  // A cor manual muda a base, mantendo o grão de grama e os contornos DXF.
+  const manual=(A.rc||A.role_colors||{})[role];
+  if((role==='cut'||role==='fill')&&/^#[0-9a-f]{6}$/i.test(manual||''))tp={...tp,[SUP[role]]:{...(tp[SUP[role]]||{}),baseColor:[1,3,5].map(i=>parseInt(manual.slice(i,i+2),16))}};
   if(pxTile<14){c.save();c.globalAlpha=Math.min(1,projected?1:(typeof vecAlpha==='number'?vecAlpha:1)*.8);c.fillStyle=corMedia(SUP[role],tp[SUP[role]],rigido);c.fill(v.fill,'evenodd');c.restore();return}
 const pt=rigido?ladrilho(SUP[role],'rigido',A.joint_spacing_m||5):padrao(SUP[role],tp[SUP[role]]);if(!pt)return;
   const k=rigido?Math.max(.5,Number(A.joint_spacing_m)||5)/mpx/LADO:TILE_M/mpx/LADO;if(pt.setTransform&&typeof DOMMatrix!=='undefined')pt.setTransform(new DOMMatrix().scale(k,k));

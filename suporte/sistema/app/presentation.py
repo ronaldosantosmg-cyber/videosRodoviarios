@@ -1,7 +1,7 @@
 """Política de apresentação; não modifica geometria, rede ou simulação."""
 import numpy as np
 
-ART_COLORS={'pavement':'#30373d','existing_pavement':'#858279','shoulder':'#596168','cut':'#a85642','fill':'#54803e','terrain':'#6f8c55'}
+ART_COLORS={'pavement':'#30373d','existing_pavement':'#858279','shoulder':'#596168','cut':'#b76954','fill':'#9cbd75','terrain':'#6f8c55'}
 
 def guides(settings):
     return settings.style_profile=='tecnico' or getattr(settings,'presentation_guides',False)

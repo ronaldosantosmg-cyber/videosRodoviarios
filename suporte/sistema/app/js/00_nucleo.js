@@ -31,7 +31,7 @@ const $=id=>document.getElementById(id);
 let fileMutationPending=false;
 let pid='',cfg={},analysis=null,meta=null,task='',baseImage=null,editingPoi=null,lastRender=null,editor=null,alignResult=null;
 const canvas=$('canvas');let ctx=canvas.getContext('2d',{alpha:false});
-const roles={axis:'Eixo',pavement:'Pista projetada',existing_pavement:'Pista existente',shoulder:'Acostamento',edge_line:'Bordo (linha de borda)',median:'Canteiro',terrain:'Terrapleno em grama',barrier:'Barreira',oae:'OAE',cut:'Corte',fill:'Aterro',earthwork:'Talude (corte/aterro pela proximidade)',domain:'Faixa de domínio',water:'Hidrografia'};
+const roles={axis:'Eixo',pavement:'Pista projetada',existing_pavement:'Pista existente',shoulder:'Acostamento',edge_line:'Bordo (linha de borda)',median:'Canteiro',terrain:'Terrapleno em grama',barrier:'Barreira',oae:'OAE',cut:'Corte',fill:'Aterro',earthwork:'Talude (tipo pela cor DXF; proximidade como apoio)',domain:'Faixa de domínio',water:'Hidrografia'};
 const ROLE_COLOR={edge_line:'#f4f2e2',water:'#2a80b9',existing_pavement:'#a4a8a9',pavement:'#454c4e',shoulder:'#858983',median:'#7f9b6e',barrier:'#e0ddd2',oae:'#b9bcb7',cut:'#df6262',fill:'#53bb77',domain:'#ffd56b'};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2));

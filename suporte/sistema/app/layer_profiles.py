@@ -14,7 +14,7 @@ from .store import write_json
 
 ROLE_LABELS={'axis':'Eixo','pavement':'Pista projetada','existing_pavement':'Pista existente','shoulder':'Acostamento',
              'edge_line':'Bordo (linha de borda)','median':'Canteiro','terrain':'Terrapleno em grama','barrier':'Barreira','oae':'OAE','cut':'Corte','fill':'Aterro',
-             'earthwork':'Talude (corte/aterro pela proximidade)','domain':'Faixa de domínio','water':'Hidrografia',
+             'earthwork':'Talude (tipo pela cor DXF; proximidade como apoio)','domain':'Faixa de domínio','water':'Hidrografia',
              'sign_h':'Sinalização horizontal (pintura)','sign_v':'Sinalização vertical (placas)'}
 
 from .asset_catalog import ASSET_ROLES,DXF_RULES,CATALOG
@@ -36,7 +36,7 @@ BUILTIN={'name':'Padrão (nomes comuns)','builtin':True,'rules':[
     {'pattern':'*HPAV*EXIST*','role':'existing_pavement'},{'pattern':'*PAV*EXIST*','role':'existing_pavement'},{'pattern':'*PISTA*EXIST*','role':'existing_pavement'},
     {'pattern':'*HATCH*PAV*','role':'pavement'},{'pattern':'*HATCH*PISTA*','role':'pavement'},
     {'pattern':'*HPAV*','role':'pavement'},{'pattern':'*PAVIMENTO*','role':'pavement'},{'pattern':'*PISTA*PROJ*','role':'pavement'},
-    {'pattern':'*CORTE*','role':'cut'},{'pattern':'*ATERRO*','role':'fill'},
+    {'pattern':'*CORTE*','role':'cut'},{'pattern':'*ATERRO*','role':'fill'},{'pattern':'*TALUDE*','role':'earthwork'},
     {'pattern':'*HIDRO*','role':'water'},{'pattern':'RIO*','role':'water'},{'pattern':'*_RIO*','role':'water'},{'pattern':'*-RIO*','role':'water'},{'pattern':'* RIO*','role':'water'},{'pattern':'*CORREGO*','role':'water'},{'pattern':'*LAGO*','role':'water'},{'pattern':'*AGUA*','role':'water'},{'pattern':'*DRENAGEM*NATURAL*','role':'water'},
 ]}
 

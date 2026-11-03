@@ -14,7 +14,7 @@ from shapely.ops import unary_union
 from shapely import make_valid
 
 ROLES=['axis','pavement','existing_pavement','shoulder','median','terrain','barrier','oae','cut','fill','domain','edge_line','water','earthwork','sign_h','sign_v']
-COLORS={'sign_h':'#ffffff','sign_v':'#ff5d5d','edge_line':'#f4f2e2','water':'#2a80b9','existing_pavement':'#a4a8a9','pavement':'#3a3c3f','shoulder':'#858983','median':'#76905f','terrain':'#6f9a52','barrier':'#e0ddd2','oae':'#b9bcb7','cut':'#df6262','fill':'#53bb77','domain':'#ffd56b'}
+COLORS={'sign_h':'#ffffff','sign_v':'#ff5d5d','edge_line':'#f4f2e2','water':'#2a80b9','existing_pavement':'#a4a8a9','pavement':'#3a3c3f','shoulder':'#858983','median':'#76905f','terrain':'#6f9a52','barrier':'#e0ddd2','oae':'#b9bcb7','cut':'#b76954','fill':'#9cbd75','domain':'#ffd56b'}
 from .asset_catalog import ASSET_ROLES,CATALOG,DEFAULT,material_for
 ROLES.extend(ASSET_ROLES)
 COLORS.update({role:CATALOG[DEFAULT[role]]['color'] for role in ASSET_ROLES})
@@ -73,6 +73,9 @@ def read_kmz(path,crs,stats=None):
 def convert(e,layer,role,units,entities,warnings,extra=None):
     """Converte uma entidade DXF em polilinhas/polígonos (metros, coordenadas do desenho)."""
     extra=extra or {}
+    if role in ('earthwork','earth_pending'):
+        rgb=earthwork_source_rgb(e,getattr(e,'doc',None))
+        if rgb is not None:extra={**extra,'earthwork_source_color':'#%02x%02x%02x'%rgb}
     try:
         if e.dxftype()=='POINT' and role in ASSET_ROLES:
             p=e.dxf.location;entities.append({'layer':layer,'role':role,'closed':False,'points':np.array([[p.x*units,p.y*units]]),'holes':[],**extra});return
@@ -213,6 +216,60 @@ def _aci(e,doc):
         except Exception:c=7
     return abs(int(c))
 
+def earthwork_source_rgb(entity,doc):
+    """Cor efetiva do DXF; respeita true_color, ACI da entidade e BYLAYER."""
+    color=entity.dxf.get('true_color',None)
+    aci=int(entity.dxf.get('color',256))
+    if color is None and aci==256 and doc is not None:
+        try:
+            layer=doc.layers.get(entity.dxf.layer)
+            color=layer.dxf.get('true_color',None);aci=int(layer.dxf.color)
+        except (KeyError,AttributeError):return None
+    if color is not None:return ((int(color)>>16)&255,(int(color)>>8)&255,int(color)&255)
+    if aci in (0,256):return None  # BYBLOCK sem evidência da cor herdada.
+    return _rgb_of('ACI '+str(abs(aci)))
+
+
+def earthwork_color_role(color):
+    """Vermelho/verde só tipificam uma entidade já identificada como talude."""
+    if not color:return None
+    import colorsys
+    rgb=_rgb_of(color)
+    if rgb is None:return None
+    hue,light,saturation=colorsys.rgb_to_hls(*(v/255 for v in rgb));hue*=360
+    if saturation<.2 or light<.1:return None
+    if 75<=hue<=165:return 'fill'
+    if hue<=40 or hue>=335:return 'cut'
+    return None
+
+
+def resolve_earthworks(entities,warnings,enabled=True):
+    """Cadastro explícito > nome/cor DXF do talude > proximidade tipificada não ambígua."""
+    pending=[]
+    for entity in entities:
+        if entity['role'] not in ('earth_pending','earthwork'):continue
+        layer=norm(entity['layer']);cut='CORTE' in layer;fill='ATERRO' in layer
+        role=('cut' if cut else 'fill') if cut!=fill else None
+        source='layer_name' if role else 'dxf_color'
+        if role is None and enabled:role=earthwork_color_role(entity.get('earthwork_source_color'))
+        if role:entity.update(role=role,earthwork_type_source=source)
+        else:pending.append(entity)
+    # Não construir árvores em modelos sem taludes por resolver.
+    if not pending:return
+    from scipy.spatial import cKDTree
+    samples={role:np.concatenate([e['points'] for e in entities if e['role']==role])
+             for role in ('cut','fill') if any(e['role']==role for e in entities)}
+    trees={role:cKDTree(points) for role,points in samples.items()}
+    ambiguous=set()
+    for entity in pending:
+        choices=sorted((float(np.median(tree.query(entity['points'][::max(1,len(entity['points'])//40)])[0])),role) for role,tree in trees.items()) if enabled else []
+        if choices and choices[0][0]<=30 and (len(choices)==1 or choices[1][0]-choices[0][0]>1):
+            entity.update(role=choices[0][1],earthwork_type_source='nearby_typed_offset')
+        else:
+            entity.update(role='earthwork',earthwork_type_source='unresolved');ambiguous.add(entity['layer'])
+    for layer in sorted(ambiguous):warnings.append('Talude “'+layer+'”: cor/tipo ambíguo; classifique como corte ou aterro. Contorno DXF preservado.')
+
+
 def eff_layer(e,split,doc):
     """Nome usado no mapeamento: o da camada, ou 'camada · cor N · TIPO' quando a camada é separada."""
     l=e.dxf.layer
@@ -281,6 +338,8 @@ def analyze(directory,settings,preview=None,hatch_preview=None):
                 named=guess(layer)
                 if named in ASSET_ROLES or named in ('oae','water'):
                     role=named;guessed=True
+            if role is None and getattr(settings,'auto_earthworks',True) and (guess(layer)=='earthwork' or e.dxftype() in HATCH_TYPES and 'HATCH_MATERIAL' in norm(layer)):
+                role='earth_pending'
             if e.dxftype() in HATCH_TYPES:
                 # 1.24: leitura automática das hachuras pela assinatura (camada + padrão + cor).
                 sig,info=hatch_signature(e,layer,doc,settings.units_to_m);rec=hsig.setdefault(sig,info);rec['count']+=1;rec['area_m2']+=info['_area']
@@ -290,7 +349,7 @@ def analyze(directory,settings,preview=None,hatch_preview=None):
                     hp=hatch_preview.setdefault(sig,{'n':0,'p':[]})
                     for r in _last_rings:
                         if hp['n']+len(r)<=6000:hp['p'].append(np.round(LineString(r).simplify(.3).coords,2).tolist());hp['n']+=len(r)
-                rec['current_role']=role
+                rec['current_role']='earthwork' if role=='earth_pending' else role
                 if role in ASSET_ROLES:
                     rec['suggested_layer_role']=role;rec['suggested_role']=None;rec['suggested_material']=None
                 if sig in hroles:
@@ -335,9 +394,6 @@ def analyze(directory,settings,preview=None,hatch_preview=None):
         if axes0:
             ax0=max(axes0,key=lambda e:LineString(e['points']).length)['points']
             entities.extend(access_items(settings,entities,ax0,warnings))
-    for entity in entities:
-        material=material_for('earthwork' if entity['role']=='earth_pending' else entity['role'],entity['layer'],getattr(settings,'layer_materials',{}))
-        if material:entity['asset_material']=material
     from .pavement import tag_materials
     tag_materials(entities,settings)
     if getattr(settings,'pavement_areas',None) or getattr(settings,'shoulder_marks',None):
@@ -346,15 +402,13 @@ def analyze(directory,settings,preview=None,hatch_preview=None):
         for a in settings.pavement_areas:
             if a.enabled and 'DESAPROP' in norm(a.name):warnings.append('Área “'+a.name+'” está como pista/acostamento, mas indica desapropriação. Use REVISARCONTORNOS para conferir; os dados foram preservados.')
     if settings.overlays:entities.extend(read_overlays(directory,settings,warnings))
-    # Native earthwork material hatches inherit the nearest typed cut/fill offset.
-    from scipy.spatial import cKDTree
-    samples={r:np.concatenate([e['points'] for e in entities if e['role']==r]) for r in ['cut','fill'] if any(e['role']==r for e in entities)}
-    trees={r:cKDTree(p) for r,p in samples.items()}
-    for e in entities:
-        if e['role']=='earth_pending':
-            if trees:e['role']=min(trees,key=lambda r:float(np.median(trees[r].query(e['points'][::max(1,len(e['points'])//40)])[0])))
-            else:e['role']='earthwork'
-    entities=[e for e in entities if e['role']!='earth_pending']
+    resolve_earthworks(entities,warnings,getattr(settings,'auto_earthworks',True))
+    # Classificar antes do material impede que talude verde receba o solo padrão do asset genérico.
+    for entity in entities:
+        overrides=getattr(settings,'layer_materials',{})
+        if entity['role'] in ('cut','fill') and entity['layer'] not in overrides:continue
+        material=material_for(entity['role'],entity['layer'],overrides)
+        if material:entity['asset_material']=material
     # 1.40.8: KMZ é input técnico rastreável. Nunca é ignorado silenciosamente.
     kmz_status={
         'present':kmz.exists(), 'read_ok':False, 'used':False, 'required':False,

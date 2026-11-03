@@ -135,13 +135,14 @@ def shade_realistic(im,surface,s2w,m_per_px,valid,lut=None,earth_grass=False):
     if cr.any() and m_per_px<.25:F-=cr*np.clip(cracks().sample(A,shape,m_per_px),0,1)*float(np.clip((.25-m_per_px)/.15,0,1))
     F+=_R_SHIFT[S]
     roi=im[y0:y1,x0:x1];out=roi.astype(np.float32)*F[:,:,None]
-    cut=S==6;fil=S==7
-    if cut.any():
+    cut=S==6;fil=S==7;has_cut=cut.any();has_fill=fil.any()
+    grass_noise=grass().sample(A,shape,m_per_px) if has_fill or has_cut and earth_grass else None
+    if has_cut:
         n=soil().sample(A,shape,m_per_px);out*=(1+.10*n*cut)[:,:,None];out[:,:,0]+=cut*4*n
         if earth_grass:                                   # 1.42.40: talude de corte vermelho com grama
-            gt=np.clip(grass().sample(A,shape,m_per_px)*2.2,0,1)*cut;out[:,:,1]+=gt*22;out[:,:,0]-=gt*10;out[:,:,2]-=gt*6
-    if fil.any():
-        n=grass().sample(A,shape,m_per_px)*fil;out*=(1+.14*n)[:,:,None];out[:,:,1]+=fil*(5+5*n)
+            gt=np.clip(grass_noise*2.2,0,1)*cut;out[:,:,1]+=gt*22;out[:,:,0]-=gt*10;out[:,:,2]-=gt*6
+    if has_fill:
+        n=grass_noise*fil;out*=(1+.14*n)[:,:,None];out[:,:,1]+=fil*(5+5*n)
     roi[:]=np.clip(out,0,255).astype(np.uint8)
 
 _LUT_GRAIN=np.zeros(256,np.float32);_LUT_GRAIN[[1,2,4]]=(.11,.05,.05)   # 2.28: CBUQ novo com micro/macrotextura mais nítida

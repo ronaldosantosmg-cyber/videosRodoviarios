@@ -15,6 +15,7 @@ import cv2
 from scipy.spatial import cKDTree
 from scipy.ndimage import median_filter
 from shapely.geometry import Polygon,LineString,Point,MultiPolygon
+from shapely.strtree import STRtree
 from shapely.ops import unary_union
 from shapely import contains_xy
 
@@ -208,6 +209,7 @@ def zebra(poly,angle,color,spacing=2.6,bar=.45,world_aligned=False):
     for part in geoms(g):
         ring=np.asarray(part.exterior.coords)
         if len(ring)>=4:lines.extend(chain_line(ring))
+        for hole in part.interiors:lines.extend(chain_line(np.asarray(hole.coords)))
         c=np.asarray(part.centroid.coords[0]);u=np.array([math.cos(angle),math.sin(angle)]);v=np.array([-u[1],u[0]])
         R=float(np.max(np.linalg.norm(ring-c,axis=1)))+1
         if 2*R/spacing>5000:raise ValueError('Zebrado muito extenso: divida a área em partes menores.')
@@ -588,7 +590,7 @@ def _cobertura_dxf(paint,lines,raio=.6):
         except Exception:pass
     return unary_union(parts) if parts else Polygon()
 
-def completar_dxf(net,paint,signs,auto_arrows,dxf_v):
+def completar_dxf(net,paint,signs,auto_arrows,dxf_v,controlled=None):
     """3.1: no modo 'DXF substitui a gerada', o DXF continua mandando nas linhas; o que ele NÃO traz é completado automaticamente
     (zebrados de gore, setas, retenções/PARE e placas), sem sobrepor nada que o DXF já pinta."""
     s=net.s;cover=_cobertura_dxf(paint,[(m[0],m[1]) for m in net.markings])
@@ -596,6 +598,7 @@ def completar_dxf(net,paint,signs,auto_arrows,dxf_v):
     novos=0
     if getattr(s,'gore_hatch',True):
         for g in gores(net):
+            if controlled is not None and not controlled.is_empty:g=g.difference(controlled)
             r=g if cover.is_empty else g.difference(cover.buffer(.8))
             for x in geoms(r):
                 if x.area<8 or x.buffer(-.4).is_empty:continue
@@ -618,13 +621,48 @@ def completar_dxf(net,paint,signs,auto_arrows,dxf_v):
         net.arrows=[arrows[i] for i in keep];net.arrow_kinds=[ak[i] for i in keep];net.arrow_anchors=[anch[i] for i in keep];novos+=len(keep)
     net.__dict__['signage_completed']=novos
 
+def clip_automatic_markings(net, areas):
+    """Recorta segmentos inteiros, preservando bordos/linhas DXF e furos.
+
+    STRtree restringe a diferença geométrica às áreas cuja caixa intercepta o
+    segmento; o ponto médio sozinho perde cruzamentos longos e tangenciais.
+    """
+    areas=[g for g in areas if g.is_valid and not g.is_empty and g.area>.01]
+    if not areas or not net.markings:return
+    tree=STRtree(areas);markings=[];sources=[]
+    for mark,src in zip(net.markings,net.mark_src):
+        if src in (-2,-4,-5):
+            markings.append(mark);sources.append(src);continue
+        a,b,color=mark;line=LineString([a,b]);hits=tree.query(line,predicate='intersects')
+        if not len(hits):
+            markings.append(mark);sources.append(src);continue
+        cut=line.difference(unary_union([areas[int(i)] for i in hits]))
+        for piece in getattr(cut,'geoms',[cut]):
+            if piece.geom_type!='LineString' or piece.length<1e-7:continue
+            points=np.asarray(piece.coords)
+            for x,y in zip(points[:-1],points[1:]):
+                markings.append((x,y,color));sources.append(src)
+    net.markings=markings;net.mark_src=sources
+
+
 def build(net,dxf_h=(),dxf_v=()):
     """Etapa final do modo completo (chamada em finalize_signage, antes das áreas sem sinalização)."""
     s=net.s;paint=[];signs=[]
     from .zebrados import is_source,resolve
+    dxf_h=list(dxf_h)
+    zebra_sources=[e for e in dxf_h if is_source(e)]
+    controlled=[]
+    for e in zebra_sources:
+        if e.get('virtual'):continue
+        try:
+            area=Polygon(e['points'],holes=e.get('holes',[]))
+            if area.is_valid and not area.is_empty and area.area>.01:controlled.append(area)
+        except (ValueError,TypeError):continue
+    controlled_mask=unary_union(controlled) if controlled else Polygon()
     zebra_areas=resolve(net,dxf_h)
+    has_dxf=bool(dxf_h)
     dxf_h=[e for e in dxf_h if not is_source(e)]
-    replace=bool(dxf_h) and getattr(s,'dxf_signage','replace')=='replace'
+    replace=has_dxf and getattr(s,'dxf_signage','replace')=='replace'
     auto_arrows=list(net.arrows) if replace else []
     if dxf_h and getattr(s,'dxf_signage','replace')=='replace':
         net.markings=[];net.mark_src=[];net.arrows=[];net.arrow_kinds=[];net.arrow_anchors=[]
@@ -637,7 +675,7 @@ def build(net,dxf_h=(),dxf_v=()):
     else:net.arrow_kinds=['S']*len(net.arrows);net.arrow_anchors=[p for p,_ in net.arrows]
     if not (dxf_h and getattr(s,'dxf_signage','replace')=='replace'):
         if getattr(s,'gore_hatch',True):
-            G=gores(net)
+            G=[piece for g in gores(net) for piece in geoms(g.difference(controlled_mask))]
             if G and net.markings:
                 gu=unary_union([g.buffer(.3) for g in G]);M=np.array([(m[0]+m[1])/2 for m in net.markings]);ins=contains_xy(gu,M[:,0],M[:,1])
                 keep=[i for i,k in enumerate(ins) if not k or net.mark_src[i]==-2]
@@ -656,8 +694,8 @@ def build(net,dxf_h=(),dxf_v=()):
         ang=math.radians(h.angle_deg) if h.angle_deg is not None else main_angle(net,np.asarray(poly.centroid.coords[0]))+math.radians(45)
         pp,ll=zebra(poly,ang,YELLOW if h.color=='yellow' else WHITE,h.spacing_m,h.stripe_width_m,h.world_aligned)
         paint+=pp;net.markings+=[(a,b,YELLOW if h.color=='yellow' else WHITE) for a,b in ll];net.mark_src+=[-5]*len(ll)
-    if replace and getattr(s,'dxf_complete',True):
-        try:completar_dxf(net,paint,signs,auto_arrows,dxf_v)
+    if replace and dxf_h and getattr(s,'dxf_complete',True):
+        try:completar_dxf(net,paint,signs,auto_arrows,dxf_v,controlled_mask)
         except Exception as exc:net.__dict__.setdefault('signage_warnings',[]).append('Complemento automático da sinalização ignorado: '+str(exc)[:120])
     for cw in getattr(s,'crosswalks',[]) or []:
         if cw.show:paint+=crosswalk(net,cw)
@@ -674,6 +712,7 @@ def build(net,dxf_h=(),dxf_v=()):
                 if tr is not None and tr.query((a_+b_)/2)[0]<.6:continue
                 net.markings.append((np.asarray(a_,float),np.asarray(b_,float),YELLOW));net.mark_src.append(-7)
     except Exception:pass
+    clip_automatic_markings(net,controlled)
     net.fills=paint;net.signs=signs
 
 def clean(net,area):
