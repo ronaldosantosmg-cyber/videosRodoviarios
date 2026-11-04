@@ -1,0 +1,24 @@
+[
+  {
+    "zip": "RodoviaStudio_3_22_index_html_teste.zip",
+    "zip_bytes": 20510,
+    "zip_sha256": "94952a3adb78b4eca305296be35e25d8c7107ff044205948258418b652c86713",
+    "only_member": "index.html",
+    "html_bytes": 69107,
+    "html_sha256": "2059adbf81bc6be81eaae0d3536f96fa0f19c7f21b1bd8ff1ee355de24cf3ae4",
+    "identical_to_full_3_22": true,
+    "zip_crc_ok": true,
+    "antivirus_status": "aguarda teste do usuario"
+  },
+  {
+    "zip": "RodoviaStudio_3_22_ajuda_html_teste.zip",
+    "zip_bytes": 23395,
+    "zip_sha256": "637c06aea296b616f6fb999d89bd9a0ca54765e07e130c1c6c5523ba187fa424",
+    "only_member": "ajuda.html",
+    "html_bytes": 62010,
+    "html_sha256": "1114c60dd755e46fafeba2d2440662935002a0a6431687e14a2032aedf7d42c2",
+    "identical_to_full_3_22": true,
+    "zip_crc_ok": true,
+    "antivirus_status": "aguarda teste do usuario"
+  }
+]
