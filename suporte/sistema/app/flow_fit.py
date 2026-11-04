@@ -30,7 +30,9 @@ def crosses_transversally(line,axes,min_deg=TRANSVERSE_MIN_DEG):
 def physical_obstacles(items,axes=None):
     """Obstáculos físicos. Linhas ABERTAS transversais ao eixo só valem se forem canteiro; as demais são ignoradas."""
     result=[]
+    from .marking_policy import nonblocking
     for e in items:
+        if nonblocking(e):continue
         if e.get('role') not in ('barrier','median'):continue
         p=np.asarray(e.get('points',[]),float)
         if p.ndim!=2 or p.shape[1]!=2 or not np.isfinite(p).all():continue

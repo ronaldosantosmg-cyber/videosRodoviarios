@@ -68,6 +68,18 @@ async def lifespan(app):
     prune_orphan_temps(max_age_seconds=0);session_temp()
     with store.connect() as c:c.execute("UPDATE jobs SET state='interrupted',message='Aplicação reiniciada. Inicie a tarefa novamente.' WHERE state IN ('running','cancel_requested')")
     thread=threading.Thread(target=dispatcher,daemon=True);thread.start()
+    def retention_loop():
+        while not stop.is_set():
+            try:
+                from .quarantine import purge
+                purge(store.ROOT/'_quarentena',execute=True)
+                if store.INSTALL is not None:
+                    from .higiene import esvaziar_quarentena
+                    esvaziar_quarentena(store.INSTALL,30,True)
+            except Exception as exc:_falha(__name__,exc)
+            stop.wait(12*3600)
+    retention=threading.Thread(target=retention_loop,daemon=True);retention.start()
+
     try:
         started=float(os.environ.get('RODOVIA_BOOT_MONOTONIC',time.monotonic()))
         elapsed=time.monotonic()-started
@@ -85,7 +97,7 @@ async def lifespan(app):
         from .small_ai import cancel as cancel_ai
         cancel_ai()
         from .capture3d import abort_all
-        abort_all();thread.join(timeout=5)
+        abort_all();thread.join(timeout=5);retention.join(timeout=2)
         # Workers já foram encerrados. Agora temporários de projeto e da sessão podem sair com segurança.
         try:
             from .maintenance import clean_categories

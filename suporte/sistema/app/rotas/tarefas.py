@@ -13,6 +13,9 @@ from .comum import *
 from .comum import _config,_save_config,_receive,_files_meta,_files_info,_img_type,_project_wgs84
 router=APIRouter()
 
+@router.post('/api/projects/{pid}/prepare',status_code=202)
+def prepare_job(pid):return enqueue(pid,'prepare')
+
 @router.post('/api/projects/{pid}/analyze',status_code=202)
 def analyze_job(pid):return enqueue(pid,'analyze')
 @router.post('/api/projects/{pid}/rebuild',status_code=202)

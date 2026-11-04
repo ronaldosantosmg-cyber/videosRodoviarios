@@ -61,6 +61,10 @@ async function applyLighting(mode){
  return true;
 }
 
+async function openLighting(){
+ requireProject();if(window.RodoviaPanels?.opened&&!await RodoviaPanels.close())return;
+ let d;d=RodoviaModelDialog.open({id:'rsDayNight',title:'Dia e noite',html:`<p>Iluminação do projeto, aplicada à próxima preparação/prévia e ao vídeo. Sincroniza o 3D aberto.</p><label>Modo<select data-mode><option value="off">Dia</option><option value="night">Noite</option><option value="transition">Transição dia → noite</option></select></label><p>O início e a duração da transição continuam disponíveis em Configuração → Aparência → Dia e noite.</p>`,save:async()=>{if(!d.rsContext())throw Error('O projeto mudou.');return applyLighting(d.querySelector('[data-mode]').value)}});d.querySelector('[data-mode]').value=cfg.day_night||'off';return d;
+}
 for(const [name,mode] of Object.entries(LIGHT_MODES))if(!COMANDOS.has(name))comando([name],()=>applyLighting(mode),name==='ANOITECER'?'Salva a transição dia/noite; se o início estiver fora do vídeo, posiciona-o na metade da duração. Limita a transição ao tempo restante do vídeo. Ajuste os valores em Iluminação.':'Salva o modo '+(name==='DIA'?'dia':'noite')+' no projeto e sincroniza a vista 3D aberta. Gere uma prévia para conferir o MP4.');
 if(!COMANDOS.has('AJUDAVERSAO'))comando(['AJUDAVERSAO'],openHelp,'Abre a ajuda da versão em execução e a instrução dos comandos registrados. F1 faz o mesmo.');
 
@@ -75,5 +79,5 @@ function install(){
 document.addEventListener('keydown',e=>{if(e.key==='F1'){e.preventDefault();e.stopImmediatePropagation();void guard(openHelp,'Ajuda desta versão')()}},true);
 queueMicrotask(install);
 window.RodoviaHelp=Object.freeze({open:openHelp,commands:commandCatalog});
-window.RodoviaLighting=Object.freeze({apply:applyLighting,sync3D});
+window.RodoviaLighting=Object.freeze({apply:applyLighting,open:openLighting,sync3D});
 })();

@@ -733,16 +733,25 @@ class TrafficSim:
             planned=[]
             for v,a in zip(V,acc):
                 nv=max(0.,v['v']+a*DT);ds=max(0.,(v['v']+nv)/2*DT)
-                gap,lv=self.leader(v,occ,look=max(30.,ds+10.))
+                gap,lv,lead=self.leader_state(v,occ,look=max(60.,ds+2.*nv+v['L']+15.))
                 if v.get('lc'):
-                    target=v['lc']['to'];target_gap,_=self.leader(v,occ,path_i=target,s=self.map_s(v['p'],target,v['s']));gap=min(gap,target_gap)
+                    target=v['lc']['to'];target_gap,target_speed,target_lead=self.leader_state(v,occ,path_i=target,s=self.map_s(v['p'],target,v['s']))
+                    if target_gap<gap:gap,lv,lead=target_gap,target_speed,target_lead
+                if v.get('_merge_gap',math.inf)<gap:
+                    gap,lv=v['_merge_gap'],v.get('_merge_speed',0.)
+                    lead=None  # Uma fila em outro líder não autoriza compactar a confluência.
                 control=min(self.transport.stop_gap(v,t,gap,lv),self.transport.stop_gap(v,t+DT,gap,lv),self.alternating.stop_gap(v),self.pedestrians.stop_gap(v))
                 if control<math.inf:
                     if ds>max(0.,control-self.HARD_GAP):self.control_stops+=1
                     gap=min(gap,control)
                 if math.isfinite(gap):
-                    safe=max(0.,gap-self.HARD_GAP)
+                    # Reserva antes de avançar: a separação física de 2,5 m não
+                    # satisfaz a regra de apresentação fora das filas permitidas.
+                    permitted=any(w is not None and w.get('_control_cause') in ('semaforo','pedestres','rotatoria') and t<=w.get('_control_until',-math.inf) for w in (v,lead))
+                    reserve=self.HARD_GAP if permitted else max(self.HARD_GAP,12.5,2.*nv+.5)
+                    safe=max(0.,gap-reserve)
                     if ds>safe+1e-9:
+                        if reserve>self.HARD_GAP:self.spacing_interventions=getattr(self,'spacing_interventions',0)+1
                         ds=safe;nv=min(nv,ds/DT if DT>0 else 0.);self.safety_interventions+=1
                 # O portal é um sumidouro, não uma parede para o centro.
                 ds=min(ds,max(0.,self.exit_station(v['p'],v.get('t','car'))-v['s']))
@@ -899,6 +908,7 @@ class TrafficSim:
             T=max(T,2.05 if not TYPE_DYN.get(v.get('t'),TYPE_DYN['car'])['heavy'] else 2.35);s0=max(s0,3.2)
         if stop<gap:gap,vl=stop,0.
         mg,mv=self.merge_conflict(v,occ)
+        v['_merge_gap']=mg;v['_merge_speed']=mv
         if mg<gap:
             gap,vl=mg,mv
             if getattr(self,'_merge_roundabout',False):v['_why']='rotatoria'
@@ -1046,8 +1056,12 @@ class TrafficSim:
         except Exception as exc:return [{'erro':str(exc)}]
     def report(self):
         r=self._relatorio_base()
-        r['initialization']={'mode':'seeded' if self.s.traffic_semear else 'entries','warmup_seconds':self.warmup_seconds,'seeded_vehicles':getattr(self,'semeados',0),'simulation_seconds':round(self.simulation_seconds,3),'requested_seed_vehicles':getattr(self,'seed_requested',0),'spaced_seed_capacity':getattr(self,'seed_spaced_capacity',0),'shared_spacing_rejected':getattr(self,'seed_shared_spacing_rejected',0),'scope':'População inicial pode ser menor que a demanda para manter espaçamento; chegadas continuam na taxa solicitada, aguardando entrada segura.'}
+        r['initialization']={'mode':'seeded' if getattr(self.s,'traffic_semear',True) else 'entries','warmup_seconds':self.warmup_seconds,'seeded_vehicles':getattr(self,'semeados',0),'simulation_seconds':round(self.simulation_seconds,3),'requested_seed_vehicles':getattr(self,'seed_requested',0),'spaced_seed_capacity':getattr(self,'seed_spaced_capacity',0),'shared_spacing_rejected':getattr(self,'seed_shared_spacing_rejected',0),'scope':'População inicial pode ser menor que a demanda para manter espaçamento; chegadas continuam na taxa solicitada, aguardando entrada segura.'}
         r['gold_rule']=self.fleet_audit
+        r['spacing_reservations']={'interventions':getattr(self,'spacing_interventions',0),'free_gap_m':12.5,'headway_s':2.,'applied_before_motion':True}
+        if getattr(self.s,'traffic_export_scope','strict')=='validated_only' and getattr(self,'simulation_complete',False):
+            from .fleet_policy import presentation_scope
+            r['presentation_scope']=presentation_scope(self)
         r['terminal_outflow']={'policy':'front_reaches_sink','internal_links_preserved':True,'exited_by_path':list(self.exited_by_path)}
         try:
             from .desempenho_corredor import analisar as _desempenho

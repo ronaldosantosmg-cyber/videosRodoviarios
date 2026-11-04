@@ -2,6 +2,18 @@
 <p><b>Ajuda da revisão em execução.</b> F1 ou AJUDAVERSAO abre este manual com a versão recebida do servidor. O catálogo no fim da página contém os comandos carregados nesta sessão e suas instruções.</p>
 <p class="muted">Passo a passo do projeto ao vídeo. Passe o mouse (ou toque) nos <span class="help">?</span> ao lado dos campos para ver a explicação de cada um.</p>
 
+<h3>Revisão 3.18 — preparação e proteções</h3>
+<ul>
+<li><b>PREPARARSTUDIO / Preparar Rodovia Studio</b> é a ação principal em Cenas e Vídeo: atualiza geometria, editor e valida a frota na duração inteira. <b>Gerar vídeo</b> usa a simulação preparada quando o projeto e o motor permanecem iguais. Uma falha de frota deixa a geometria editável para correção.</li>
+<li><b>Faixa final sem veículos</b> (Veículos e fluxo): padrão 25 m. A frente do veículo desaparece suavemente antes dessa faixa no fim do itinerário completo. Não cria parada nem interrompe conexões internas. Zero desliga o recorte.</li>
+<li><b>Tratamento de trechos reprovados</b>: o padrão bloqueia a exportação. A opção explícita Operação parcial valida toda a simulação e exclui do vídeo os veículos dos itinerários reprovados durante toda a duração, com identificação no resultado. Colisões físicas continuam impedindo a exportação; a auditoria não é apagada.</li>
+<li><b>AUDITARMEDIDAS</b>: compara travessia livre, distância entre eixos dos apoios e altura separadamente. Para FreeFlow informe 12 m e para Sacrifício 18 m quando forem os pórticos deste projeto. Aplicar ajusta os apoios nas coordenadas, conservando centro e orientação; confira sua implantação. Campos vazios preservam o elemento. O DXF original permanece intacto.</li>
+<li><b>EIXOCONDUCAO</b>: desenhe um alinhamento local até a outra pista ou retorno; ele não redefine o eixo principal. Depois use <b>ANCORARFLUXO</b> para selecionar os fluxos de origem e destino. O limite de distância não dispensa tangência, pavimento, nível e segurança. Configure seções por trecho; reabrir uma seção preserva os sentidos salvos.</li>
+<li><b>Dia e noite</b>: ícone de lua em Cenas e Vídeo. Escolha Dia, Noite ou Transição e aplique. A configuração é salva e sincroniza o 3D aberto; início e duração da transição ficam em Aparência. Clima é outro comando.</li>
+<li><b>SANITIZAR</b>: confere o inventário da instalação e orienta a limpeza com o aplicativo fechado. <b>LIMPAR</b> permite colocar temporários e duplicatas selecionadas em quarentena. <b>QUARENTENA</b> restaura sem sobrescrever destinos. A exclusão definitiva só ocorre após 30 dias desde a entrada, na próxima abertura ou verificação periódica enquanto aberto. Vídeos referenciados e arquivos únicos são preservados; duplicatas são comparadas por conteúdo completo.</li>
+<li><b>Materiais</b>: artístico é o padrão, realista é uma opção separada. Pavimento rígido usa juntas transversais ao eixo e longitudinais delimitando placas; OAE acrescenta juntas e barreiras laterais de apresentação. Taludes identificados como TALUDE/TERRAPLENO são reclassificados como terreno e não recebem textura de pista. Confira camadas ambíguas.</li>
+<li><b>Sinalização pintada</b>: eixo seccionado, setas e zebrados não constituem obstáculos físicos. Bordos indicados, pavimento permitido, canteiros e barreiras reais continuam verificados. As janelas ficam sobrepostas e oferecem Aplicar, Cancelar e Fechar com tratamento do rascunho.</li>
+</ul>
 <h3>1. Projeto e arquivos</h3>
 <p>Projetos com tráfego anterior ou clássico são migrados para o motor simulado ao carregar/exportar. Os fluxos cadastrados são preservados e as verificações de colisão e sinalização ficam ativas nessa migração. A exportação não é liberada por ignorar conflitos.</p>
 <ol>

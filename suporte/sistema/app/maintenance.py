@@ -28,8 +28,8 @@ def clean(root,execute=False):
         try:
             n=size(p)
             if execute:
-                if p.is_dir():caminhos.rmtree(p)
-                else:caminhos.unlink(p)
+                from .quarantine import move
+                move(p,Path(root)/'_quarentena','cache')
             total+=n;count+=1
         except OSError as exc:errors.append(p.name+': '+str(exc))
     return {'bytes':total,'items':count,'executed':execute,'errors':errors}
@@ -41,6 +41,7 @@ import re,time
 from pathlib import Path as _P
 
 CATEGORIAS={
+ 'duplicados':('Vídeos duplicados por conteúdo','Compara SHA-256 completo. Preserva vídeos únicos e os referenciados pelo projeto; cópias excedentes vão para quarentena por 30 dias.',False),
  'caches':('Caches regeneráveis','Ladrilhos de imagem, geometria, detalhe, hidrografia e mosaicos locais. São refeitos quando precisar (a próxima prévia/vídeo demora mais).',True),
  'temporarios':('Arquivos temporários','Vídeos interrompidos, envios incompletos, quadros de montagem e arquivos .tmp.',True),
  'registros':('Registros antigos','Registros de execução e erros com mais de 30 dias e logs de vídeo (ffmpeg) dos projetos.',True),
@@ -62,7 +63,9 @@ def _projects(root):
 def _items(cat,root,install=None,videos=None,now=None):
     """Itens (arquivo ou pasta) de uma categoria."""
     root=_P(root);now=now or time.time();out=[]
-    if cat=='caches':
+    if cat=='duplicados' and videos is not None:
+        out=duplicate_videos(root,videos)
+    elif cat=='caches':
         out+=[p for p in candidates(root) if (p.name in CACHE_DIRS and p.name!='render_tmp') or p.name=='_ladrilhos']
     elif cat=='temporarios':
         for pr in _projects(root):
@@ -146,15 +149,46 @@ def survey(root,install=None,videos=None):
 def clean_categories(root,cats,install=None,videos=None):
     bad=[c for c in cats if c not in CATEGORIAS]
     if bad or not cats:raise ValueError('Escolha ao menos uma categoria válida.')
-    total=0;count=0;errors=[];by={}
+    total=0;count=0;errors=[];by={};batches=[]
     for c in cats:
         b=0
         for p in _items(c,root,install,videos):
             try:
                 n=size(p)
-                if p.is_dir() and not p.is_symlink():caminhos.rmtree(p)
-                else:caminhos.unlink(p)
+                from .quarantine import move
+                batches.append(move(p,_P(root)/'_quarentena',c))
                 total+=n;b+=n;count+=1
             except OSError as exc:errors.append(p.name+': '+str(exc)[:120])
         by[c]=b
-    return {'bytes':total,'items':count,'por_categoria':by,'errors':errors}
+    return {'bytes':total,'items':count,'por_categoria':by,'errors':errors,'quarantine':batches,'retention_days':30}
+
+
+def duplicate_videos(root,videos):
+    """Somente cópias binariamente idênticas; preserva todos os resultados em uso."""
+    import json,hashlib,collections
+    videos=_P(videos).absolute();protected=set();groups=collections.defaultdict(list)
+    for project in _projects(root):
+        try:
+            info=json.loads((project/'video.json').read_text(encoding='utf-8'))
+            p=_P(info['pasta_videos'])/info['arquivo']
+            if _safe_cleanup_path(p,[videos]):protected.add(p.absolute())
+        except (OSError,ValueError,KeyError):pass
+    if not videos.is_dir() or videos.is_symlink():return []
+    for p in videos.rglob('*.mp4'):
+        if any(v.startswith('_') for v in p.relative_to(videos).parts[:-1]) or not _safe_cleanup_path(p,[videos]):continue
+        try:groups[p.stat().st_size].append(p)
+        except OSError:continue
+    duplicates=[]
+    for files in groups.values():
+        if len(files)<2:continue
+        seen={}
+        for p in sorted(files,key=lambda p:(p.absolute() not in protected,str(p))):
+            try:
+                before=p.stat()
+                with p.open('rb') as stream:digest=hashlib.file_digest(stream,'sha256').hexdigest()
+                after=p.stat()
+                if (before.st_size,before.st_mtime_ns)!=(after.st_size,after.st_mtime_ns):continue
+                if digest in seen and p.absolute() not in protected:duplicates.append(p)
+                else:seen.setdefault(digest,p)
+            except OSError:continue
+    return duplicates

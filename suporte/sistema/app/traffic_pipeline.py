@@ -30,6 +30,8 @@ def _prepare(scene,duration,status):
 
 def cached_simulation(scene,status=lambda *a:None,duration=None):
     """Caminho completo para prévias, câmera com antecipação e vista 3D."""
+    if getattr(scene.s,'traffic_export_scope','strict')=='validated_only':
+        duration=max(float(duration or 0),float(scene.s.duration_s));scene.sim_window=None
     duration=float(duration if duration is not None else getattr(scene,'sim_duration',None) or scene.s.duration_s)
     directory=Path(scene.directory)/'cache_trafego';window=getattr(scene,'sim_window',None)
     key=cache_key(scene.network,scene.s,duration,window=window)

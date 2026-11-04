@@ -72,6 +72,11 @@ function menuDefinitions(){
  B('Tráfego').forEach(i=>place(i,'eng'));
  B('Cena').forEach(i=>/Sinaliza|Pavimento/i.test(i.t||'')?out.eng.push(i):place(i,'cen'));
  B('Vídeo').forEach(i=>out.cen.push(i));
+ out.cen.unshift(leaf('Preparar Rodovia Studio',()=>guard(()=>start('prepare'))()),leaf('Gerar vídeo',()=>$('render')?.click()),leaf('Dia e noite',()=>guard(()=>window.RodoviaLighting.open())()),{sep:true});
+ out.arq.push(leaf('Sanitizar instalação',()=>runCommand('SANITIZAR')),leaf('Quarentena e restauração',()=>runCommand('QUARENTENA')));
+ out.cal.push(leaf('Auditar medidas',()=>runCommand('AUDITARMEDIDAS')));
+ out.eng.push(leaf('Eixo de condução até pista ou retorno',()=>runCommand('EIXOCONDUCAO')),leaf('Ancorar fluxo entre faixas',()=>runCommand('ANCORARFLUXO')));
+
  out.edi.push({t:'Exibir e painéis',sub:B('Exibir')});
  B('Ajuda').forEach(i=>place(i,'aju'));
  const upd=out.aju.filter(i=>/^Atualizar/i.test(i.t||''));out.aju=out.aju.filter(i=>!/^Atualizar/i.test(i.t||''));out.aju.push({sep:true},leaf('Sobre o Rodovia Studio e novidades da versão',()=>openAbout()),leaf('Autor: Ronaldo Santos — GeoRas',()=>openAbout()),...(upd.length?upd:[leaf('Atualizar o Rodovia Studio…',()=>guard(openUpdate)())]),leaf('Reverter para a versão anterior…',()=>guard(openUpdate)()));
@@ -188,6 +193,7 @@ function commandRibbon(rail){
  if($('rsToolRibbon'))return;
  const ribbon=document.createElement('div');ribbon.id='rsToolRibbon';ribbon.setAttribute('aria-label','Ferramentas de edição');
  const tabs=document.createElement('div');tabs.id='rsToolTabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Grupos de comandos');ribbon.appendChild(tabs);
+ if(!COMANDOS.has('PREPARARSTUDIO'))comando(['PREPARARSTUDIO'],()=>start('prepare'),'Salva e prepara geometria, materiais e fluxos; valida a frota completa antes de gerar vídeo');
  if(!COMANDOS.has('CALCULARFLUXOS'))comando(['CALCULARFLUXOS'],()=>start('analyze'),'Recalcula geometria, fluxos e sinalização sem gerar vídeo');
  const groups=[
  {label:'Todas',tools:[],commands:[]},

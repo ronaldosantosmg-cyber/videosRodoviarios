@@ -7,7 +7,7 @@ from shapely.geometry import Polygon,Point,LineString
 from shapely.ops import unary_union,substring,linemerge
 
 SURF_ROLES=('pavement','existing_pavement','shoulder')
-LABEL={'pavement':'pista nova','existing_pavement':'pista existente','shoulder':'acostamento'}
+LABEL={'terrain':'Terrapleno','cut':'Corte','fill':'Aterro','oae':'OAE','pavement':'pista nova','existing_pavement':'pista existente','shoulder':'acostamento'}
 
 TEX_CODE0=32   # 1.27: códigos de superfície 32.. = áreas com textura própria
 
@@ -87,9 +87,9 @@ def items(settings,entities,warnings):
         for p in ps:
             q=p.difference(later) if later is not None else p
             for x in _polys(q):
-                ent={'layer':f'{LABEL[role].upper()} · {name}','role':role,'closed':True,'points':np.asarray(x.exterior.coords),'holes':[np.asarray(h.coords) for h in x.interiors],'mark':mid,'material':mat if mat!='auto' else default_material(settings,role)}
+                ent={'layer':f'{LABEL[role].upper()} · {name}','role':role,'closed':True,'points':np.asarray(x.exterior.coords),'holes':[np.asarray(h.coords) for h in x.interiors],'mark':mid,'material':mat if mat!='auto' else (default_material(settings,role) if role in SURF_ROLES else 'auto')}
                 if mat=='auto':ent['material_source']='project_default'
-                if mid in codes:ent['tex_code']=codes[mid];ent['tex_base']=3 if ent['material']=='rigido' else {'pavement':1,'existing_pavement':2,'shoulder':4}[role];ent['tex_p']=tex
+                if mid in codes:ent['tex_code']=codes[mid];ent['tex_base']=3 if ent['material']=='rigido' else {'pavement':1,'existing_pavement':2,'shoulder':4,'terrain':5,'cut':6,'fill':7,'oae':3}[role];ent['tex_p']=tex
                 out.append(ent)
         u=unary_union(ps) if ps else None
         later=u if later is None else (later.union(u) if u is not None else later)

@@ -83,3 +83,33 @@ def cleanup_run(body:Limpeza):
         inst,vid=_paths()
         try:return clean_categories(store.ROOT,body.categorias,inst,vid)
         except ValueError as e:raise HTTPException(422,str(e))
+
+
+@router.get('/api/limpeza/quarentena')
+def quarantine_list():
+    import json
+    from ..quarantine import TOKEN
+    base=store.ROOT/'_quarentena';items=[]
+    if base.is_dir() and not base.is_symlink():
+        for folder in base.iterdir():
+            if folder.is_symlink() or not TOKEN.fullmatch(folder.name):continue
+            try:
+                index=folder/'quarantine.json'
+                if index.is_symlink():continue
+                data=json.loads(index.read_text(encoding='utf-8'))
+                if data.get('state')=='quarantined':items.append({'id':folder.name,'name':data['name'],'category':data['category'],'created':data['created_epoch'],'expires':data['created_epoch']+30*86400})
+            except (OSError,ValueError,KeyError):continue
+    return {'items':items,'retention_days':30}
+
+class RestoreQuarantine(_BM):
+    token:str=Field(pattern=r'^\d{8}_\d{6}_[a-f0-9]{8}$')
+
+@router.post('/api/limpeza/quarentena/restaurar')
+def quarantine_restore(body:RestoreQuarantine):
+    from ..quarantine import restore
+    with dispatch_lock:
+        with store.connect() as c:busy=c.execute("SELECT id FROM jobs WHERE state IN ('queued','running','cancel_requested') LIMIT 1").fetchone()
+        if busy:raise HTTPException(409,'Aguarde o processamento antes de restaurar arquivos.')
+        inst,vid=_paths()
+        try:return {'restored':restore(store.ROOT/'_quarentena',body.token,[store.ROOT,inst,vid])}
+        except (ValueError,OSError) as error:raise HTTPException(422,str(error))

@@ -26,6 +26,22 @@ with tempfile.TemporaryDirectory() as tmp:
     page.on('request',lambda q:requests.append(q.url))
     page.goto(base);page.wait_for_function('typeof load === "function" && window.Rodovia3D')
     assert page.evaluate('(id)=>load(id)',project) is not False
+    assert page.evaluate("RodoviaMenus.definitions().find(m=>m.t==='Cenas e Vídeo').sub.slice(0,3).map(i=>i.t)")==['Preparar Rodovia Studio','Gerar vídeo','Dia e noite']
+    assert 'Preparar Rodovia Studio' in page.locator('#analyze').inner_text(),page.locator('#analyze').inner_text()
+    assert 'primary' not in (page.locator('#render').get_attribute('class') or '').split()
+    page.evaluate("async()=>{M.gantries=[{id:'f',name:'FreeFlow',kind:'portico',a:{x:0,y:0},b:{x:30,y:0},height_m:6,beam_width_m:.8},{id:'s',name:'Sacrifício',kind:'portico',a:{x:0,y:50},b:{x:40,y:50},height_m:6,beam_width_m:.8}];await save();await load(pid);await COMANDOS.get('AUDITARMEDIDAS')()}")
+    page.locator('#rsDimensionAudit [data-span="0"]').fill('12')
+    page.locator('#rsDimensionAudit [data-span="1"]').fill('18')
+    page.locator('#rsDimensionAudit [data-save]').click()
+    page.locator('#rsDimensionAudit').wait_for(state='detached')
+    dimensions=page.evaluate("async()=>await api(`/api/projects/${pid}/dimension-audit`)")
+    assert [round(g['crossing_m'],6) for g in dimensions['gantries']]==[12,18]
+    assert [round(g['support_axis_distance_m'],6) for g in dimensions['gantries']]==[12.9,18.9]
+    page.evaluate('RodoviaLighting.open()')
+    page.locator('#rsDayNight [data-mode]').select_option('night')
+    page.locator('#rsDayNight [data-save]').click()
+    page.locator('#rsDayNight').wait_for(state='detached')
+    assert page.evaluate('cfg.day_night')=='night'
     def bounds():
      return page.locator('#canvas').bounding_box()
     def same(before):
@@ -88,7 +104,8 @@ write_vectors(folder,scene.items,scene.axis,s.crs);finish(folder,ticket)
     page.evaluate('(id)=>load(id,{resultsOnly:true,syncConfig:true})',project)
     before_cfg=page.request.get(base+'/api/projects/'+project).json()
     client_cfg=page.evaluate('collect()')
-    assert not [k for k in client_cfg if client_cfg[k]!=before_cfg['config'].get(k)]
+    differences={k:[client_cfg[k],before_cfg['config'].get(k)] for k in client_cfg if client_cfg[k]!=before_cfg['config'].get(k)}
+    assert not differences,differences
     requests.clear()
     page.evaluate('(id)=>load(id)',project)
     assert not any(url.endswith('/refresh') or url.endswith('/analyze') for url in requests),requests

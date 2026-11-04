@@ -191,7 +191,7 @@ class Detail:
                     if getattr(sc,'joint_field_net',None) is None:
                         net=getattr(sc,'network',None);f=JointField.from_network(net) if net is not None else None
                         sc.joint_field_net=f if f is not None and f.ok else JointField(sc.axes)
-                    color=paint_rigid(color,rmask>127,role,x0,y1,self.R,sc.joint_field_net,float(getattr(sc.s,'joint_spacing_m',5)),getattr(sc.s,'style_profile','padrao')=='tecnico',artistic=sc.s.texture_style=='artistico')
+                    color=paint_rigid(color,rmask>127,role,x0,y1,self.R,sc.joint_field_net,float(getattr(sc.s,'joint_spacing_m',5)),getattr(sc.s,'style_profile','padrao')=='tecnico',artistic=sc.s.texture_style=='artistico',slab_width=sc.s.lane_width_m)
                 from .pavement import chosen,paint_style
                 st=chosen(sc.s,role) if role in ('pavement','existing_pavement','shoulder') else None
                 if st is not None and st.pattern=='placas' and getattr(sc,'joint_field_net',None) is None:

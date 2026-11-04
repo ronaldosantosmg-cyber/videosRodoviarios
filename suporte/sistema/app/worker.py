@@ -58,7 +58,7 @@ def run(jid):
         elif j['kind']=='scene3d':
             from .scene3d import build
             build(d,s,status,cancel);end_message='Cena 3D pronta'
-        elif j['kind']=='analyze':
+        elif j['kind'] in ('analyze','prepare'):
             status(.02,'Lendo DXF e preparando camadas e hachuras')
             unmapped=[];hp={};geometry=analyze(d,s,preview=unmapped,hatch_preview=hp)
             items,axis,_,_,r=geometry;status(.35,'Geometria lida; preparando o editor');store.write_json(d/'analysis.json',r)
@@ -70,15 +70,32 @@ def run(jid):
             except Exception as exc:r['warnings'].append('Prévia das camadas não gerada: '+str(exc)[:120])
             from .webmap import write_vectors
             try:write_vectors(d,items,axis,s.crs)
-            except Exception as exc:r['warnings'].append('Vetores do editor não gerados: '+str(exc)[:160])
+            except Exception as exc:
+                if j['kind']=='prepare':raise
+                r['warnings'].append('Vetores do editor não gerados: '+str(exc)[:160])
             # 1.11: fluxos, sentidos e sinalização para o editor, sem precisar da prévia.
             try:
                 status(.4,'Calculando fluxos e sinalização para o editor')
                 lt=Scene.light(d,s,lambda p,m:status(.4+.55*p,m),_geometry=geometry);store.write_json(d/'editor.json',lt.editor_data())
             except InterruptedError:raise
-            except Exception as exc:r['warnings'].append('Fluxos do editor não calculados: '+str(exc)[:160])
+            except Exception as exc:
+                if j['kind']=='prepare':raise
+                r['warnings'].append('Fluxos do editor não calculados: '+str(exc)[:160])
             store.write_json(d/'analysis.json',r)
-            status(1,'Análise concluída')
+            if j['kind']=='prepare':
+                # A geometria válida fica editável mesmo se a auditoria da frota reprovar.
+                finish(d,ticket);ticket=None
+                try:
+                    status(.95,'Validando toda a frota antes da geração do vídeo')
+                    if s.traffic and not lt.network.paths:raise ValueError('Sem itinerário válido: confira as seções e as ancoragens.')
+                    sim=lt.traffic(lambda p,m:status(.95+.04*max(0.,min(1.,p)),m)) if s.traffic else None
+                    from .fleet_policy import require_export
+                    require_export(sim,s)
+                    store.write_json(d/'traffic_preparation.json',{'state':'validated','simulation':sim.report() if sim else None})
+                except Exception as exc:
+                    store.write_json(d/'traffic_preparation.json',{'state':'failed','error':str(exc)});raise
+                end_message='Modelo preparado e frota validada; pronto para gerar vídeo'
+            status(1,end_message if j['kind']=='prepare' else 'Análise concluída')
         elif j['kind'] in ('preview','refresh','rebuild'):
             sc=Scene(d,s,status);s=sc.s
             from .progress_pulse import Pulse

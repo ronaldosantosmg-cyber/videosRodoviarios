@@ -404,6 +404,15 @@ def analyze(directory,settings,preview=None,hatch_preview=None):
         for a in settings.pavement_areas:
             if a.enabled and 'DESAPROP' in norm(a.name):warnings.append('Área “'+a.name+'” está como pista/acostamento, mas indica desapropriação. Use REVISARCONTORNOS para conferir; os dados foram preservados.')
     if settings.overlays:entities.extend(read_overlays(directory,settings,warnings))
+    from .marking_policy import paint_only_layer
+    corrected_markings=set()
+    for entity in entities:
+        if entity.get('role') in ('edge_line','barrier','median') and paint_only_layer(entity.get('layer','')):
+            corrected_markings.add(entity.get('layer',''));entity['role']='sign_h';entity['nonblocking_paint']=True
+        if entity.get('role') in ('pavement','existing_pavement','shoulder') and ('TALUD' in norm(entity.get('layer','')) or 'TERRAPLEN' in norm(entity.get('layer',''))):
+            entity['role']='terrain';entity.pop('material',None);entity.pop('tex_p',None);entity.pop('tex_code',None)
+            warnings.append('Superfície de talude reclassificada como terrapleno: '+entity.get('layer',''))
+    if corrected_markings:warnings.append('Defesa de sinalização: '+str(len(corrected_markings))+' camada(s) de pintura foram retiradas dos impedimentos físicos: '+', '.join(sorted(corrected_markings)))
     resolve_earthworks(entities,warnings,getattr(settings,'auto_earthworks',True))
     # Classificar antes do material impede que talude verde receba o solo padrão do asset genérico.
     for entity in entities:

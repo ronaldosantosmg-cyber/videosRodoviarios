@@ -1,5 +1,5 @@
 {
-  "version": "3.17",
+  "version": "3.18",
   "schema_version": 31,
   "reference_video_sha256": "1d8cc8267015132a80ec4363bb1e5a66f39361d2a7e897ba509c7974f97e488b",
   "reference_note": "O vídeo TH57 aprovado foi substituído pela ficha técnica assets/th57/referencia_ficha.json (dados do arquivo e métricas de imagem para comparação). SHA-256 histórico mantido.",
@@ -129,7 +129,8 @@
     "2.62": "Tela nao balanca mais ao abrir/fechar paineis (zoom/posicao preservados), cliques logo apos mudanca de layout ignorados, zona morta de 5 px no arrasto. Sem validação completa.",
     "3.15": "Pintura legível após redução do vídeo; sentidos das seções preservados na limpeza de fontes.",
     "3.16": "Alinhamentos secundários locais; referência principal somente por escolha explícita.",
-    "3.17": "Materiais das hachuras e áreas no editor; janelas sobrepostas com aplicar; segurança de tráfego verificada."
+    "3.17": "Materiais das hachuras e áreas no editor; janelas sobrepostas com aplicar; segurança de tráfego verificada.",
+    "3.18": "Reserva de espaçamento nas confluências, validação antes do vídeo, saída livre de 25 m, auditoria dimensional, ancoragens locais, materiais e quarentena restaurável."
   },
   "windows_launcher_executed": false,
   "new_dependencies": {
@@ -470,7 +471,7 @@
     "cabin_view_gantry": false
   },
   "components": {
-    "app": "3.17",
+    "app": "3.18",
     "schema": 31,
     "launcher": "1.5"
   },
@@ -600,7 +601,7 @@
     "oda_converter_real_tested": false,
     "windows_tested": false
   },
-  "notes": "3.14: espaçamento inicial entre itinerários compartilhados, admissão segura em baixa velocidade e orientação específica da regra de ouro.",
+  "notes": "3.18: consulte ATUALIZACAO_3_18.md e VALIDACAO_3_18.md para escopo e limitações.",
   "v1_40_7_validation": {
     "technical_tests": 28,
     "workflow_tests": 7,

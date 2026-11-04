@@ -243,13 +243,20 @@ def unbacked_skips(p,closed,U,tol=.8,min_backed=.2):
     if (_sdiv(float(L[ok&near].sum()), float(L[ok].sum())))<min_backed:return []
     return [int(i) for i in np.flatnonzero(ok&~near)]
 
-def vectors(items,axis,kmz_lines=(),tol=.25,derived_contours=False):
+def vectors(items,axis,kmz_lines=(),tol=.25,derived_contours=False,joint_spacing=5.,slab_width=3.5):
     """Contornos simplificados por classe (CRS do projeto), para desenhar rápido sobre a imagem web."""
     out={r:[] for r in STYLE_ORDER};count=0;lnames={}
+    from .pavement import JointField,surface_details
+    field=JointField([e for e in items if e.get('role')=='axis'] or [axis])
     try:backing=backing_lines(items)
     except Exception:backing=None
     for e in items:
         role=e['role'];role=role if role in out else 'overlay'
+        details=None
+        if e.get('closed') and (e.get('material')=='rigido' or role=='oae'):
+            from shapely.geometry import Polygon
+            shape=Polygon(e['points'],holes=e.get('holes',[])).buffer(0)
+            if not shape.is_empty:details=surface_details(shape,field,30. if role=='oae' else joint_spacing,slab_width,role=='oae')
         rings=[e['points']]+list(e.get('holes',[]))
         for ring_index,r in enumerate(rings):
             r=np.asarray(r)
@@ -258,7 +265,8 @@ def vectors(items,axis,kmz_lines=(),tol=.25,derived_contours=False):
             p=np.round(np.asarray(g.coords),2)
             if len(p)>=2:
                 from .presentation import is_existing
-                rec={'material':e.get('material','auto'),'asset_material':e.get('asset_material'),'existing':is_existing(e),'p':p.tolist(),'c':bool(e.get('closed')),'l':lnames.setdefault(str(e.get('layer','')),len(lnames))}
+                rec={'mark':e.get('mark'),'material':e.get('material','auto'),'asset_material':e.get('asset_material'),'existing':is_existing(e),'p':p.tolist(),'c':bool(e.get('closed')),'l':lnames.setdefault(str(e.get('layer','')),len(lnames))}
+                if ring_index==0 and details:rec.update(details)
                 from .dxf_trim import source_id,vector_stations
                 try:
                     stations,length=vector_stations(r,np.asarray(g.coords),bool(e.get('closed')))
@@ -294,7 +302,7 @@ def write_vectors(directory,items,axis,crs):
     lines=read_kmz(kmz,CRS.from_user_input(crs))[0] if kmz.exists() else []
     from .models import Settings
     f=Path(directory)/'config.json';settings=Settings.model_validate_json(f.read_text(encoding='utf-8-sig')) if f.exists() else Settings()
-    data=vectors(items,axis,lines,derived_contours=settings.derived_contours)
+    data=vectors(items,axis,lines,derived_contours=settings.derived_contours,joint_spacing=settings.joint_spacing_m,slab_width=settings.lane_width_m)
     f=Path(directory)/'vectors.json';tmp=f.with_suffix('.tmp');tmp.write_text(json.dumps(data,separators=(',',':')),encoding='utf-8');tmp.replace(f)
     write_snap(directory,items)
     write_lines(directory,items)

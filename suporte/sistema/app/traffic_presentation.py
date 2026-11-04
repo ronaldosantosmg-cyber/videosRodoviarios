@@ -42,7 +42,7 @@ def route_problem(scene):
 
 def visible(scene,t,cam,width,progress):
     stats={'time_s':round(float(t),3),'width_m':round(float(width),3),'enabled':bool(scene.s.traffic),'active':0,'drawn':0,'outside_view':0,'outside_revealed_section':0,'body_outside_allowed':0,'subpixel':0,'reveal_pending':float(getattr(scene,'reveal_opacity',1))<=.9}
-    items=[]
+    items=[];scene._vehicle_alphas={}
     if not scene.s.traffic:return items,stats
     # Prévia em vista geral: um carro (≈4,5 m) fica com menos de 1 px; simular ~1000 veículos só para não desenhar nada custava dezenas de minutos.
     if getattr(scene,'preview_fast',False) and 4.5*scene.W/max(float(width),1e-9)<1.0:
@@ -58,6 +58,7 @@ def visible(scene,t,cam,width,progress):
         vt=visual.vehicle_type(scene.network.paths[identity[0]]['kinds'],identity,getattr(scene.s,'vehicle_mix','classico'))
         if not scene.fits(identity[0],j,pt,tan,vt):stats['body_outside_allowed']+=1;continue
         if ((visual.TYPES[vt]['L']*scene.W) / (width))<2:stats['subpixel']+=1
+        scene._vehicle_alphas[id(pt)]=getattr(getattr(scene,'_sim',None),'_presentation_alpha',{}).get(int(vid),1.)
         items.append((pt,tan,vt,visual.vehicle_color(identity,vt)))
     if stats['reveal_pending']:items=[]
     stats['drawn']=len(items)

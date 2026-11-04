@@ -178,3 +178,9 @@ def check_traffic_report(pid):return current_traffic_check(pid)[1]
 def check_traffic_image(pid):
     from fastapi.responses import FileResponse
     d,_=current_traffic_check(pid);return FileResponse(d/'traffic_check.png',media_type='image/png',headers={'Cache-Control':'no-store'})
+
+@router.get('/api/projects/{pid}/dimension-audit')
+def dimension_audit(pid):
+    from ..dimension_audit import audit
+    _,settings=_config(pid)
+    return audit(settings)

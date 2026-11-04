@@ -71,6 +71,14 @@ def test_varias_secoes_no_mesmo_eixo_sem_erro(junction,tmp_path,monkeypatch):
             esp=['f','r'],['f'],['f','r'],['r']
             ok=[(l[2]==list(x)) for l,x in zip(lista,esp)]
             if not all(ok):falhas.append(('sentidos por trecho',lista,esp))
+            # Reabrir a seção oposta não pode convertê-la em dois sentidos.
+            page.evaluate("()=>RodoviaSections.open(0)")
+            page.wait_for_selector('dialog[open] [data-edit-section]')
+            page.locator('dialog[open] [data-edit-section]').last.click()
+            assert page.locator('dialog[open] [name=axisMode]').input_value()=='bordo_dir'
+            assert page.locator('dialog[open] [name=flowDir]').input_value()=='oposto'
+            page.click('dialog[open] [data-save]');page.wait_for_timeout(600)
+            assert page.evaluate("M.route_alignments[0].cross_sections.at(-1).right_dir")=='contrario'
             b.close()
     finally:
         server.should_exit=True;server_thread.join(timeout=15);assert not server_thread.is_alive()

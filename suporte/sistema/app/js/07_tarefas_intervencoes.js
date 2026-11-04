@@ -23,7 +23,7 @@ $('new').onclick=guard(async()=>{const r=await api('/api/projects',json('POST',{
 $('projects').onchange=guard(async()=>{if($('projects').value){await load($('projects').value);announce({t:'project'})}});
 $('upload').onclick=guard(async()=>{requireProject();if(!$('files').files.length)throw Error('Selecione DXF e/ou KMZ.');for(const f of $('files').files){const d=new FormData();d.append('file',f);await api('/api/projects/'+pid+'/files',{method:'POST',body:d})}await load(pid);msg('Arquivos recebidos. Analise o projeto.')});
 $('save').onclick=guard(async()=>{await save();msg('Configuração salva.')});
-for(const k of ['analyze','preview','render'])$(k).onclick=guard(()=>start(k));
+for(const k of ['analyze','preview','render'])$(k).onclick=guard(()=>start(k==='analyze'?'prepare':k));
 $('openAtTime').onclick=guard(async()=>{$('preview_mode').value='video';await start('preview')});
 $('preview_time_s').oninput=()=>{$('timeLabel').textContent=tempo($('preview_time_s').value)};
 $('renderView').onclick=guard(async()=>{if(!ready())throw Error('Analise os arquivos ou gere uma prévia primeiro.');const c=C2W(canvas.width/2,canvas.height/2);const a=C2W(0,canvas.height/2),b=C2W(canvas.width,canvas.height/2);cfg.preview_center=c;cfg.preview_width_m=Math.max(5,Math.min(50000,Math.hypot(b.x-a.x,b.y-a.y)));$('preview_mode').value='custom';await start('preview')});

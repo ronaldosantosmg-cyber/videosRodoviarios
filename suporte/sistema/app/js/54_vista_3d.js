@@ -4,7 +4,7 @@
 let viewer=null,active=false,pending=false,currentPid='',token=0,selection=null,stale=false;
 const state={context:'ready'};let exporting=null,exportPreparing=false;
 const q=id=>document.getElementById(id);
-function modeLabel(){return viewer?.data?.simulation_mode==='ensaio'?'ENSAIO · ':''}
+function modeLabel(){return viewer?.data?.simulation_mode==='parcial'?'OPERAÇÃO PARCIAL · ':viewer?.data?.simulation_mode==='ensaio'?'ENSAIO · ':''}
 function say(text,error=false){q('rs3dState').textContent=modeLabel()+text;msg(modeLabel()+text,error)}
 function button(id,name,help,action){const b=document.createElement('button');b.type='button';b.dataset.rs3d=id;b.setAttribute('aria-label',name);b.title=name+' — '+help;b.setAttribute('aria-describedby','rsToolHelp');const show=()=>{const tip=q('rsToolHelp');tip.textContent=b.title;tip.hidden=false;const r=b.getBoundingClientRect();tip.style.left=Math.max(5,Math.min(innerWidth-tip.offsetWidth-5,r.left))+'px';tip.style.top=(r.bottom+5)+'px'};b.addEventListener('pointerenter',show);b.addEventListener('focus',show);for(const event of ['pointerleave','blur','click'])b.addEventListener(event,()=>q('rsToolHelp').hidden=true);b.innerHTML=RodoviaInfraRail.forTool(id)||RodoviaIcons[id]||RodoviaIcons.view3d;b.onclick=guard(action,name);return b}
 function sync(){document.querySelectorAll('[data-rs3d=view3d]').forEach(b=>{b.classList.toggle('on',active);b.setAttribute('aria-pressed',String(active))});q('rs3dControls').hidden=!active;q('rs3dTime').disabled=!viewer||stale||!!exporting;document.querySelectorAll('#rs3dControls button').forEach(b=>b.disabled=!!exporting||pending||(state.context==='lost'&&b.dataset.rs3d!=='view2d')||(!viewer&&b.dataset.rs3d!=='rebuild3d'));}

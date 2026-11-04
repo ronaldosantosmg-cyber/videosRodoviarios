@@ -72,9 +72,11 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
     from .image_context import meshes as context_geometry
     context_meshes=context_geometry(context_items,local)
     buffers=defaultdict(list);labels={};total=0
+    from .pavement import JointField,surface_details
+    detail_field=JointField(scene.axes)
     for index,e in enumerate(scene.items):
         if index%100==0:progress(.3,'Construindo superfícies 3D')
-        if not e.get('closed') or e['role'] not in ('pavement','existing_pavement','shoulder','median','oae','water','cut','fill'):continue
+        if not e.get('closed') or e['role'] not in ('pavement','existing_pavement','shoulder','median','oae','water','cut','fill','terrain'):continue
         p=np.asarray(e['points'],float)
         if len(p)<3 or not np.isfinite(p).all():continue
         geom=shapely.make_valid(Polygon(p,holes=e.get('holes',[])))
@@ -94,12 +96,33 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
             from .pavement import rigid_palette
             labels[key_mesh]['color']='#%02x%02x%02x'%rigid_palette(settings)[e['role']]
         if material=='rock':labels[key_mesh]['color']=settings.role_colors.get(e['role']) or CATALOG['rock']['color']
+        lift={'pavement':.06,'existing_pavement':.05,'shoulder':.04,'oae':.085,'water':-.1}.get(e['role'],.02)
+        lift+=0. if state=='existing' else .12
         for triangle in shapely.constrained_delaunay_triangles(geom).geoms:
             q=np.asarray(triangle.exterior.coords)[:3,:2];total+=3
             if total>MAX_VERTICES:raise ValueError('Cena 3D muito detalhada. Divida o desenho em trechos menores.')
-            lift={'pavement':.06,'existing_pavement':.05,'shoulder':.04,'oae':.085,'water':-.1}.get(e['role'],.02)
-            lift+=0. if state=='existing' else .12
             buffers[key_mesh].extend(local(q,lift).ravel().tolist())
+        if material=='concrete':
+            from shapely.geometry import LineString
+            details=surface_details(geom,detail_field,30. if e['role']=='oae' else settings.joint_spacing_m,settings.lane_width_m,e['role']=='oae')
+            key=key_mesh+'|joints';labels[key]={'presentation_state':state,'role':'surface_joint','name':'Juntas · '+str(e.get('layer','')),'color':'#777a75'}
+            for line in details['joints']:
+                strip=LineString(line).buffer(.02,cap_style=2).intersection(geom)
+                for triangle in shapely.constrained_delaunay_triangles(strip).geoms:
+                    buffers[key].extend(local(np.asarray(triangle.exterior.coords)[:3,:2],lift+.004).ravel().tolist())
+            if details['rails']:
+                key=key_mesh+'|barriers';labels[key]={'presentation_state':state,'role':'barrier','name':'Barreiras New Jersey · '+str(e.get('layer','')),'color':'#c2c4be','asset_material':'concrete','texture_pattern':'grain'}
+                # Perfil de apresentação da barreira: base larga e topo estreito.
+                profile=[(-.3,0),(.3,0),(.3,.2),(.12,.52),(.1,.82),(-.1,.82),(-.12,.52),(-.3,.2)]
+                for line in details['rails']:
+                    for a,b in zip(np.asarray(line)[:-1],np.asarray(line)[1:]):
+                        v=b-a;length=np.linalg.norm(v)
+                        if length<.1:continue
+                        normal=np.array([-v[1],v[0]])/length
+                        A=np.array([local(np.array([a+normal*offset]),lift+height)[0] for offset,height in profile]);B=np.array([local(np.array([b+normal*offset]),lift+height)[0] for offset,height in profile])
+                        for k in range(len(profile)):
+                            j=(k+1)%len(profile);buffers[key].extend(np.array([A[k],B[k],B[j],A[k],B[j],A[j]]).ravel().tolist())
+
     meshes=[dict(labels[k],id=f'surface-{i}',positions=p) for i,(k,p) in enumerate(buffers.items())]
     from .engineering_assets import asset_meshes
     from .dxf_trim import display_items
@@ -140,18 +163,19 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
         from .classic_traffic import ClassicTraffic as TrafficSim
     if settings.traffic and scene.network.paths and not settings.traffic_classic:
         from .traffic_pipeline import cached_simulation
-        sim=cached_simulation(scene,status=lambda p,m:progress(.55+.25*p,m),duration=duration)
+        sim=cached_simulation(scene,status=lambda p,m:progress(.55+.25*p,m),duration=max(duration,settings.duration_s) if settings.traffic_export_scope=='validated_only' else duration)
     else:
         sim=TrafficSim(scene.network,settings,partial(visual.vehicle_type,mix=settings.vehicle_mix),duration=duration,status=lambda p,m:progress(.55+.25*p,m)) if settings.traffic and scene.network.paths else None
     scene._sim=sim
     from .fleet_policy import require_export
     require_export(sim,settings)
+    from .fleet_policy import presentation_vehicles
     tracks={};samples=0;ghost_hidden={};ghost_segment={}
     if sim:
         for t in np.r_[np.arange(0,duration,.2),duration]:
             progress(.82,'Preparando animação de veículos 3D')
             indicators=sim.indicators(float(t))
-            for pos,heading,vid,identity,_ in sim.vehicles_ex(float(t)):
+            for pos,heading,vid,identity,_ in presentation_vehicles(sim,float(t)):
                 ghost=getattr(sim.net,'is_ghost',None)
                 vt=sim.info[vid][1]
                 if (ghost is not None and ghost(pos)) or not scene.fits(vid,identity,pos,heading,vt):
@@ -166,6 +190,8 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
                 if samples>MAX_TRAFFIC_SAMPLES:raise ValueError('Tráfego excede o orçamento da prévia 3D. Reduza a densidade ou a duração.')
                 tracks[key]['samples'].append([round(float(t),4),*q.tolist(),float(heading[0]),0.,-float(heading[1])])
                 tracks[key]['indicators'].append([round(float(t),4),int(indicators.get(int(vid),0))])
+                fades=tracks[key].setdefault('fades',[]);opacity=float(getattr(sim,'_presentation_alpha',{}).get(int(vid),1.))
+                if not fades or opacity!=fades[-1][1]:fades.append([round(float(t),4),opacity])
     from .rail_smoke import seed as smoke_seed
     from .transport import Transport,timings,AMBER,CLEARANCE,at
     from .transport_render import geometry as transport_geometry
@@ -261,7 +287,7 @@ def build(directory,settings,status=lambda *a:None,cancel=lambda:False):
     fractions=np.clip(scene.ch[scene.tree.query(points)[1]]/max(scene.length,1e-9),0,1)
     reveal={'size':n_reveal,'bounds':rb,'stations':np.rint(fractions*65534).astype(np.uint16).tolist(),'existing':settings.existing_visibility}
     for mesh in context_meshes+meshes:mesh.setdefault('presentation_state','existing' if is_existing(mesh) else 'projected')
-    data={'reveal':reveal,'simulation_mode':'protegido' if not settings.traffic_classic and settings.traffic_prevent_collisions and settings.traffic_respect_signals and not settings.heavy_shoulder_overtake else 'ensaio','format':'rodovia-scene3d-1','realism_profile':settings.realism_profile,'texture_style':settings.texture_style,'revision':rev0,'origin_crs':origin.tolist(),'crs':settings.crs,'coordinates_confirmed':settings.coordinates_confirmed,'span_m':span,'meshes':context_meshes+meshes,'terrain':terrain,'markings':markings,'marking_width_m':marking_width_m,'diagnostics':diagnostics,'vehicles':list(tracks.values())+list(train_tracks.values()),'pedestrians':list(person_tracks.values()),'pedestrian_report':people.report(),'rail_smoke':settings.rail_smoke,'transport':transport_data,'duration_s':duration,'source_duration_s':settings.duration_s,'simulation_report':sim.report() if sim else None,'warnings':warnings[-25:],'scope':'Visualização de projeto e tráfego. Diagnósticos técnicos não integram a captura de apresentação.'}
+    data={'reveal':reveal,'simulation_mode':'parcial' if settings.traffic_export_scope=='validated_only' else 'protegido' if not settings.traffic_classic and settings.traffic_prevent_collisions and settings.traffic_respect_signals and not settings.heavy_shoulder_overtake else 'ensaio','format':'rodovia-scene3d-1','realism_profile':settings.realism_profile,'texture_style':settings.texture_style,'revision':rev0,'origin_crs':origin.tolist(),'crs':settings.crs,'coordinates_confirmed':settings.coordinates_confirmed,'span_m':span,'meshes':context_meshes+meshes,'terrain':terrain,'markings':markings,'marking_width_m':marking_width_m,'diagnostics':diagnostics,'vehicles':list(tracks.values())+list(train_tracks.values()),'pedestrians':list(person_tracks.values()),'pedestrian_report':people.report(),'rail_smoke':settings.rail_smoke,'transport':transport_data,'duration_s':duration,'source_duration_s':settings.duration_s,'simulation_report':sim.report() if sim else None,'warnings':warnings[-25:],'scope':'Visualização de projeto e tráfego. Diagnósticos técnicos não integram a captura de apresentação.'}
     if not np.isfinite(origin).all():raise ValueError('Origem 3D inválida.')
     if rev0!=revision(d):raise ValueError('O projeto mudou durante o processamento. Reconstrua o 3D.')
     encoded=json.dumps(data,ensure_ascii=False,allow_nan=False,separators=(',',':')).encode()

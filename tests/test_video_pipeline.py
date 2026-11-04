@@ -28,7 +28,7 @@ def test_streaming_and_complete_replay_encode_identical_frames_with_two_workers(
     assert output.is_file()
 
 
-def test_late_failure_does_not_replace_previous_video_or_leave_partial(tmp_path,monkeypatch):
+def test_late_physics_failure_is_caught_before_drawing_or_replacing_video(tmp_path,monkeypatch):
     settings=project(tmp_path);settings.duration_s=8.
     old=tmp_path/'video.mp4';old.write_bytes(b'video anterior preservado')
     original=TrafficSim.run_blocks
@@ -44,6 +44,6 @@ def test_late_failure_does_not_replace_previous_video_or_leave_partial(tmp_path,
         return np.zeros((self.H,self.W,3),np.uint8),{}
     monkeypatch.setattr(renderer.Scene,'frame',fast_frame)
     with pytest.raises(ValueError,match='Falha tardia'):renderer.render(tmp_path,settings)
-    assert drawn
+    assert not drawn  # A auditoria integral agora antecede qualquer quadro/codificação.
     assert old.read_bytes()==b'video anterior preservado'
     assert not (tmp_path/'video.partial.mp4').exists()

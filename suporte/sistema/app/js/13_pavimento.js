@@ -1,6 +1,6 @@
 // ---------------- 1.20: áreas de pista e acostamentos ----------------
-const PAV_LABEL={pavement:'Pista nova',existing_pavement:'Pista existente',shoulder:'Acostamento'};
-const PAV_STYLE={pavement:['#3a414355','#d8b45acc',9],existing_pavement:['#8fa3b455','#9fb4c8cc',9],shoulder:['#85898355','#e8dcaacc',6]};
+const PAV_LABEL={terrain:'Terrapleno',cut:'Corte',fill:'Aterro',oae:'OAE',pavement:'Pista nova',existing_pavement:'Pista existente',shoulder:'Acostamento'};
+const PAV_STYLE={terrain:['#9cbd7555','#77a05acc',9],cut:['#b7695455','#9a654acc',9],fill:['#9cbd7555','#77a05acc',9],oae:['#c2c2bb55','#8b8e89cc',9],pavement:['#3a414355','#d8b45acc',9],existing_pavement:['#8fa3b455','#9fb4c8cc',9],shoulder:['#85898355','#e8dcaacc',6]};
 let pavKind='pavement',pavMat='auto';
 const MAT_LABEL={auto:'Material padrão do projeto',flexivel:'Flexível (asfalto)',rigido:'Rígido (concreto)'};
 function pickRing(w){if(!vec||!vec.layers)return null;let best=null;

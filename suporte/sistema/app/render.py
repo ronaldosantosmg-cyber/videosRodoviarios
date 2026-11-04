@@ -379,7 +379,7 @@ class Scene:
                     color=(base_c*(1-hm[:,:,None]*.85)+hc*hm[:,:,None]*.85).astype(np.uint8);del hm
                 if rmask is not None:
                     if getattr(self,'joint_field',None) is None:self.joint_field=JointField(self.axes)
-                    color=paint_rigid(color,rmask>0,role,self.box[0],self.box[3],self.px,self.joint_field,float(getattr(self.s,'joint_spacing_m',5)),getattr(self.s,'style_profile','padrao')=='tecnico',artistic=self.s.texture_style=='artistico')
+                    color=paint_rigid(color,rmask>0,role,self.box[0],self.box[3],self.px,self.joint_field,float(getattr(self.s,'joint_spacing_m',5)),getattr(self.s,'style_profile','padrao')=='tecnico',artistic=self.s.texture_style=='artistico',slab_width=self.s.lane_width_m)
                 from .pavement import chosen,paint_style
                 st=chosen(self.s,role) if role in ('pavement','existing_pavement','shoulder') else None
                 if st is not None:color=paint_style(color,mask>0,role,self.box[0],self.box[3],self.px,st,getattr(self,'joint_field',None) or JointField(self.axes),float(getattr(self.s,'joint_spacing_m',5)))  # 1.21: representação escolhida pelo usuário
@@ -473,6 +473,8 @@ class Scene:
         roads.extend(poly(e) for e in self.items if e['closed'] and e['role']=='existing_pavement')
         from .flow_fit import physical_obstacles
         obstacles=physical_obstacles(self.items,getattr(self,'axes',None))
+        from .marking_policy import nonblocking
+        self.report['marking_defense']={'paint_is_obstacle':False,'axis_is_obstacle':False,'guarded_markings':sum(nonblocking(e) for e in self.items),'scope':'Pintura não bloqueia por si só; pavimento, canteiros e barreiras físicas permanecem validados.'}
         decks=[o['deck'] for o in self.oae]
         roads.extend(decks)
         from .markup import oae_direction_marks,deck_geometry
@@ -483,7 +485,7 @@ class Scene:
                 deck,line,_,_,_=deck_geometry(item['points']);oae_info.append({'id':item.get('layer','OAE'),'deck':deck,'line':line,'level_m':float(item.get('elevation_m') or 0),'elevation_valid':item.get('elevation_valid',True),'grade_confirmed':False})
             except ValueError:continue
         from .dxf_trim import runs
-        self.network=TrafficNetwork(roads,obstacles,self.axes,self.axis,self.ds,self.s,[poly(e) for e in self.items if e['closed'] and e['role']=='oae']+decks,oae_direction_marks(self.oae,self.stationing),[e['points'] for e in self.items if e['role']=='edge_line' and len(e['points'])>=2],[e for e in self.items if e['role']=='sign_h'],[e for e in self.items if e['role']=='sign_v'],directory=self.directory,oae_info=oae_info,median_obstacles=[poly(e) for e in self.items if e['closed'] and e['role']=='median'],virtual_chords=[c for e in self.items for c in (e.get('virtual') or []) if e['role'] in ('pavement','existing_pavement','shoulder')],display_edge_lines=[p for e in self.items if e['role']=='edge_line' for p in runs(e)])
+        self.network=TrafficNetwork(roads,obstacles,self.axes,self.axis,self.ds,self.s,[poly(e) for e in self.items if e['closed'] and e['role']=='oae']+decks,oae_direction_marks(self.oae,self.stationing),[e['points'] for e in self.items if e['role']=='edge_line' and len(e['points'])>=2 and not nonblocking(e)],[e for e in self.items if e['role']=='sign_h'],[e for e in self.items if e['role']=='sign_v'],directory=self.directory,oae_info=oae_info,median_obstacles=[poly(e) for e in self.items if e['closed'] and e['role']=='median'],virtual_chords=[c for e in self.items for c in (e.get('virtual') or []) if e['role'] in ('pavement','existing_pavement','shoulder')],display_edge_lines=[p for e in self.items if e['role']=='edge_line' and not nonblocking(e) for p in runs(e)])
         self.allowed=self.network.allowed
         self.save_editor_geometry(roads,obstacles)
         self.routes=[(e['p'],e['t'],np.ones(len(e['p']),bool),e['length'],i) for i,e in enumerate(self.network.edges)]
@@ -1027,7 +1029,8 @@ class Scene:
         if sim is None:
             import functools
             return self.network.vehicles_ex(t,self.s.traffic_speed_kmh/3.6,functools.partial(visual.vehicle_type,mix=getattr(self.s,'vehicle_mix','classico')))
-        return sim.vehicles_ex(t)
+        from .fleet_policy import presentation_vehicles
+        return presentation_vehicles(sim,t)
     def presentation_area(self,area=None):
         """Só a apresentação é recortada; não altera os nós/fluxos calculados."""
         area=self.allowed if area is None else area
@@ -1055,18 +1058,27 @@ class Scene:
         m=width/self.W;scr=lambda p:self.screen(p,cam,width)
         items,self._vehicle_visibility=visible(self,t,cam,width,progress)
         if not items:return
+        alphas=getattr(self,'_vehicle_alphas',{})
+        def paint_vehicle(pt,tan,vt,c):
+            alpha=alphas.get(id(pt),1.)
+            if alpha<.999:
+                T=visual.TYPES[vt];q=scr(visual.body(pt,tan,T['L'],T['B']));lo=np.maximum(np.floor(q.min(0)).astype(int)-5,0);hi=np.minimum(np.ceil(q.max(0)).astype(int)+6,[im.shape[1],im.shape[0]])
+                x0,y0=lo;x1,y1=hi;before=im[y0:y1,x0:x1].copy()
+                visual.draw_vehicle(im,pt,tan,vt,c,scr,m,shadow_layer=np.zeros((1,1),np.uint8))
+                if before.size:im[y0:y1,x0:x1]=cv2.addWeighted(before,1-alpha,im[y0:y1,x0:x1],alpha,0)
+            else:visual.draw_vehicle(im,pt,tan,vt,c,scr,m,shadow_layer=np.zeros((1,1),np.uint8))
         shadow=np.zeros(im.shape[:2],np.uint8)
         for pt,tan,vt,c in items:
-            T=visual.TYPES[vt];cv2.fillPoly(shadow,[scr(visual.body(pt+self.sombra_veiculo*T['H'],tan,T['L']*1.02,T['B']*1.05)).astype(np.int32)],255,cv2.LINE_AA)
+            T=visual.TYPES[vt];cv2.fillPoly(shadow,[scr(visual.body(pt+self.sombra_veiculo*T['H'],tan,T['L']*1.02,T['B']*1.05)).astype(np.int32)],round(255*alphas.get(id(pt),1.)),cv2.LINE_AA)
         shadow=cv2.GaussianBlur(shadow,(0,0),max(.6,.25/m));f=(1-.42*shadow.astype(np.float32)/255)[:,:,None];im[:]=(im*f).astype(np.uint8)
         if getattr(self,'_night',0)>0:
             # À noite os faróis entram depois do escurecimento (apply_night).
-            for pt,tan,vt,c in items:visual.draw_vehicle(im,pt,tan,vt,c,scr,m,shadow_layer=np.zeros((1,1),np.uint8))
-            self._night_items=items;return
+            for pt,tan,vt,c in items:paint_vehicle(pt,tan,vt,c)
+            self._night_items=[item for item in items if alphas.get(id(item[0]),1.)>=.999];return
         beams=np.zeros_like(im) if self.s.headlights else None;lamps=[]
         for pt,tan,vt,c in items:
-            visual.draw_vehicle(im,pt,tan,vt,c,scr,m,shadow_layer=np.zeros((1,1),np.uint8))
-            if beams is not None:lamps+=visual.headlight_beam(beams,pt,tan,vt,scr)
+            paint_vehicle(pt,tan,vt,c)
+            if beams is not None and alphas.get(id(pt),1.)>=.999:lamps+=visual.headlight_beam(beams,pt,tan,vt,scr)
         if beams is not None:
             beams=cv2.GaussianBlur(beams,(0,0),max(1.,.8/m));cv2.add(im,(beams.astype(np.float32)*.28).astype(np.uint8),dst=im)
             for p in lamps:
@@ -1096,6 +1108,7 @@ class Scene:
             fields=[('KM INICIAL',km(self.s.km_start_m)),('KM FINAL',km(self.s.km_end_m)),('EXTENSÃO',f'{self.s.reference_length_m/1000:.3f}'.replace('.',',')+' km'),('OBRA',self.s.work_year)]
             for x,(label,value) in zip([58,690,1320,1950],fields):
                 dr.text((x*sc,24*sc),label,font=font(19*sc),fill='#b4cbd6');tx,ft=fit(dr,value,32*sc,560*sc,True);dr.text((x*sc,65*sc),tx,font=ft,fill='white')
+            if self.s.traffic_export_scope=='validated_only':dr.text((58*sc,105*sc),'OPERAÇÃO PARCIAL · frota limitada aos itinerários aprovados',font=font(12*sc),fill='#f2cb78')
             self._footer=np.array(image)
         im[:header+1]=self.headers[key];im[self.H-footer:]=self._footer
     def draw_progress(self,im,progress):
@@ -1384,6 +1397,8 @@ def _render(directory,s,status,cancel,resources):
         pipeline=TrafficPipeline(scene,status,cancel,duration=max(s.duration_s,cabin.c.duration_s if cabin else s.duration_s))
         resources.callback(pipeline.close)
         pipeline.ensure(0.)
+        status(.25,'Validando toda a frota antes de codificar o vídeo')
+        pipeline.finish();pipeline.info['full_simulation_reason']='safety_preflight_before_encoding'
         if s.camera_mode=='trafego':pipeline.info['full_simulation_reason']='camera_requires_future'
     traffic_finished=time.monotonic()
     from .fleet_policy import require_export

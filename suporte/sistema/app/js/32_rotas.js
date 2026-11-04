@@ -103,3 +103,5 @@ itemFaixa('Fluxos','Rotas',['Rota de veículos','🛣',()=>setTool('route'),1]);
 comando(['ROTA','RT','ROUTE'],()=>setTool('route'),'Rota de veículos (pista simples, dupla ou sentido único)');
 comando(['TRECHO','TR'],()=>setTool('routesec'),'Trecho da rota com outro tipo de pista');
 estender('load',anterior=>async (id,options={})=>{if(!options.resultsOnly){routeSig='';routeLanes=[];rsDraft=null}const loaded=await anterior(id,options);if(loaded===false||pid!==id)return false;refreshRouteLanes(true);return loaded},'rotas: faixas recalculadas ao abrir');
+
+comando(['EIXOCONDUCAO'],()=>{routeMode='cliques';Object.assign(routeOpt,{type:'unico',lanes:1,median_m:0});setTool('route');msg('Desenhe o eixo local até a outra pista ou retorno e confirme com Enter. Use ANCORARFLUXO para ligar a chegada e a saída às faixas desejadas. O principal não será alterado.');},'Cria eixo local de condução para transição até outra pista ou retorno');

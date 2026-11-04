@@ -341,6 +341,7 @@ class ConnectionRule(BaseModel):
     a: Point            # ponto no trecho de chegada (perto do fim)
     b: Point            # ponto no trecho de saída (perto do início)
     action: Literal['deny','force'] = 'deny'
+    max_gap_m: float = Field(default=30,ge=2,le=300)  # Somente ligação explícita; automáticas continuam limitadas.
     share_pct: float | None = Field(default=None,ge=0,le=100)
     enabled: bool = True
 
@@ -521,6 +522,8 @@ class Gantry(BaseModel):
     a: Point
     b: Point
     image: str = Field(default='',max_length=60,pattern=r'^([0-9a-f]{16,40}\.(png|jpg))?$')
+    crossing_a: Point | None = None  # Limites medidos da travessia; independentes dos apoios.
+    crossing_b: Point | None = None
     beam_width_m: float = Field(default=1.0,ge=.3,le=4)
     height_m: float = Field(default=7,ge=4,le=15)
     color: str = Field(default='',pattern=r'^(#[0-9a-fA-F]{6})?$')
@@ -533,6 +536,8 @@ class Gantry(BaseModel):
     @model_validator(mode='after')
     def span(self):
         d=((self.a.x-self.b.x)**2+(self.a.y-self.b.y)**2)**.5
+        if (self.crossing_a is None)!=(self.crossing_b is None):raise ValueError('Pórtico: indique os dois limites da travessia.')
+        if self.crossing_a is not None and ((self.crossing_a.x-self.crossing_b.x)**2+(self.crossing_a.y-self.crossing_b.y)**2)**.5<.1:raise ValueError('Pórtico: limites da travessia coincidentes.')
         if d<2:raise ValueError(f'Pórtico “{self.name}”: os dois apoios estão a {d:.2f} m (mínimo 2 m).')
         if d>120:raise ValueError(f'Pórtico “{self.name}”: vão de {d:.0f} m (máximo 120 m).')
         if self.start_s is not None and self.end_s is not None and self.end_s<=self.start_s:raise ValueError('Pórtico: o fim da exibição deve ser depois do início.')
@@ -661,12 +666,20 @@ class PavementArea(BaseModel):
     model_config=ConfigDict(allow_inf_nan=False)
     id: str = ''
     name: str = Field(default='Área',min_length=1,max_length=80)
-    kind: Literal['pavement','existing_pavement','shoulder'] = 'pavement'
+    kind: Literal['pavement','existing_pavement','shoulder','terrain','cut','fill','oae'] = 'pavement'
     points: list[Point] = Field(min_length=3,max_length=5000)
     source: Literal['drawn','picked'] = 'drawn'
     material: Literal['auto','flexivel','rigido'] = 'auto'   # 1.21: auto = padrão do projeto para o tipo
     enabled: bool = True
     texture: 'TextureParam | None' = None   # 1.27: textura própria desta área (vazio = a do tipo)
+    @model_validator(mode='after')
+    def slope_is_not_pavement(self):
+        # Regra explícita do projeto: áreas identificadas como talude são terraplenos.
+        if ('TALUD' in self.name.upper() or 'TERRAPLEN' in self.name.upper()) and self.kind in ('pavement','existing_pavement','shoulder'):
+            self.kind='terrain';self.texture=None
+        if self.kind in ('terrain','cut','fill'):self.material='auto'
+        return self
+
 
 class ShoulderMark(BaseModel):
     """1.20: acostamento ao longo do bordo da pista, entre um ponto de início e um de fim, com largura."""
@@ -887,6 +900,7 @@ class Settings(BaseModel):
     opposite_overtake_share: float = Field(default=.25,ge=0,le=1)   # fração dos veículos (sorteio determinístico) com perfil de ultrapassador
     shoulder_vehicles: Literal['pesados','todos'] = 'pesados'   # 1.42.40: 'todos' estende o uso do acostamento (com retorno à faixa) a qualquer veículo
     traffic_entry_inset_m: float = Field(default=5,ge=0,le=30)
+    traffic_exit_hidden_m: float = Field(default=25,ge=0,le=1000)
     traffic_branch_share_pct: float = Field(default=20,ge=0,le=100)
     traffic_vdm: float | None = Field(default=None,gt=0,le=1000000)
     traffic_peak_hour_fraction: float = Field(default=.1,gt=0,le=1)
@@ -898,6 +912,7 @@ class Settings(BaseModel):
     traffic_conflict_guard: bool = True
     traffic_stability: bool = True
     traffic_semear: bool = True          # corredor já povoado em toda a extensão no 1º quadro
+    traffic_export_scope: Literal['strict','validated_only'] = 'strict'
     traffic_sem_comboio: bool = True     # faixa sem ultrapassagem: velocidades quase iguais (sem pelotão); pelotões só em parada controlada
     traffic_warmup_s: float = Field(default=0.,ge=0,le=10)
     signal_amber_auto: bool = True   # 1.42.43: amarelo = reação + v/(2a), entre 3 e 6 s

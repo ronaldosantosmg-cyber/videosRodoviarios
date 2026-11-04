@@ -187,11 +187,11 @@ def limpar(raiz,executar=False,categorias=None,force=False,**opcoes):
         res['itens']=sel;res['liberado_bytes']=sum(i['bytes'] for i in sel);return res
     from atualizador import app_running
     if not force and app_running():raise RuntimeError('O Rodovia Studio está aberto. Feche-o antes de limpar.')
-    stamp=time.strftime('%Y%m%d_%H%M%S');q=sistema_dir(raiz)/'_quarentena'/stamp;indice=[]
+    stamp=time.strftime('%Y%m%d_%H%M%S')+'_'+__import__('uuid').uuid4().hex[:8];q=sistema_dir(raiz)/'_quarentena'/stamp;indice=[]
     for i in sel:
         p=_seguro(raiz,i['caminho'])
         if p is None:res['erros'].append(i['caminho']+': protegido');continue
-        dst=q/i['categoria']/p.name
+        dst=q/i['categoria']/p.relative_to(raiz)
         try:
             dst.parent.mkdir(parents=True,exist_ok=True)
             if i['categoria']=='logs_grandes':
@@ -201,7 +201,7 @@ def limpar(raiz,executar=False,categorias=None,force=False,**opcoes):
             res['itens'].append(i);res['liberado_bytes']+=i['bytes']
         except OSError as e:res['erros'].append(i['caminho']+': '+str(e)[:160])
     if indice:
-        q.mkdir(parents=True,exist_ok=True);(q/'quarentena.json').write_text(json.dumps({'criado':stamp,'itens':indice},ensure_ascii=False,indent=1),encoding='utf-8');res['quarentena']=str(q)
+        q.mkdir(parents=True,exist_ok=True);(q/'quarentena.json').write_text(json.dumps({'criado':stamp,'created_epoch':time.time(),'retention_days':30,'itens':indice},ensure_ascii=False,indent=1),encoding='utf-8');res['quarentena']=str(q)
     return res
 
 def restaurar(raiz,stamp):
@@ -220,10 +220,17 @@ def restaurar(raiz,stamp):
 
 def esvaziar_quarentena(raiz,dias=30,executar=False,agora=None):
     """único ponto que apaga de verdade: pastas de quarentena com mais de `dias` dias."""
-    raiz=_raiz(raiz);agora=agora or time.time();base=sistema_dir(raiz)/'_quarentena';out=[]
-    if not base.is_dir():return {'removidas':[],'bytes':0}
+    raiz=_raiz(raiz);agora=agora or time.time();dias=max(30,dias);base=sistema_dir(raiz)/'_quarentena';out=[]
+    if base.is_symlink() or not base.is_dir() or not base.resolve().is_relative_to(raiz.resolve()):return {'removidas':[],'bytes':0}
     for d in sorted(base.iterdir()):
-        if d.is_dir() and not d.is_symlink() and agora-d.stat().st_mtime>dias*DIA:out.append((d,_tam(d)))
+        if not d.is_dir() or d.is_symlink():continue
+        created=d.stat().st_mtime
+        try:
+            manifest=d/'quarentena.json'
+            if manifest.is_symlink():continue
+            if manifest.exists():created=float(json.loads(manifest.read_text(encoding='utf-8')).get('created_epoch',created))
+        except (ValueError,OSError,TypeError):continue
+        if agora-created>=dias*DIA:out.append((d,_tam(d)))
     if executar:
         for d,_ in out:shutil.rmtree(d,ignore_errors=True)
     return {'removidas':[d.name for d,_ in out],'bytes':sum(b for _,b in out),'executado':bool(executar)}
@@ -253,7 +260,8 @@ def main(argv=None):
         for i in r['itens']:print(' -',i['categoria'],i['caminho'],_fmt(i['bytes']),'|',i['motivo'])
         for e in r['erros']:print(' ! ',e)
         if not o.executar:print('Nada foi alterado. Use --executar (com o aplicativo fechado).')
-        else:print('Quarentena:',r['quarentena'])
+        else:
+            print('Quarentena:',r['quarentena']);exp=esvaziar_quarentena(o.raiz,30,True);print('Quarentenas com retenção concluída removidas:',len(exp['removidas']))
         return 0
     except (RuntimeError,ValueError) as e:print('ERRO:',e);return 2
 

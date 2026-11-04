@@ -614,7 +614,7 @@ def draw_gantry(im,g,scr,m,sc):
     a=g['a'];b=g['b'];u=b-a;L=float(np.linalg.norm(u));u=(_sdiv(u, L));n=np.array([-u[1],u[0]]);bw=g['beam_width_m'];H=g['height_m']
     beam=np.array([a-n*bw/2,b-n*bw/2,b+n*bw/2,a+n*bw/2])
     posts=[a] if g['kind']!='portico' else [a,b];ps=.45
-    post_rings=[np.array([p+(-ps,-ps),p+(ps,-ps),p+(ps,ps),p+(-ps,ps)]) for p in posts]
+    post_rings=[np.array([p-u*ps-n*ps,p+u*ps-n*ps,p+u*ps+n*ps,p-u*ps+n*ps]) for p in posts]
     # Sombra no chão (sol fixo a noroeste, como a das OAE), deslocada pela altura.
     shift=np.array([.35,-.55])*H*.6;q=scr(beam+shift).astype(np.int32);q2=[scr(r+shift*.5).astype(np.int32) for r in post_rings]
     allp=np.vstack([q,scr(beam).astype(np.int32)]+q2);x0,y0=np.maximum(allp.min(0)-4,0);x1,y1=allp.max(0)+5

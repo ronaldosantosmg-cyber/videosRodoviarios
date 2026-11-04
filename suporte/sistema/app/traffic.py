@@ -786,7 +786,7 @@ class TrafficNetwork:
                 self.arrows=[a for a,k in zip(self.arrows,inside) if not k]
             signage.clean(self,g)
         self.report_signage={'markings':len(self.markings),'arrows':len(self.arrows),'mode':self.arrow_mode,'clean':self.clean,'full':self.full,'edge_origin':'DXF' if self.dxf_edges else 'contorno do pavimento (calculado)' if getattr(self.s,'derived_contours',False) else 'sem bordo ilustrativo; geometria de cálculo preservada','paint':len(self.fills),'signs':len(self.signs),'arrow_kinds':dict(collections.Counter(self.arrow_kinds))}
-    def connector(self,a,b,force=False):
+    def connector(self,a,b,force=False,max_gap_m=30.):
         if 'end' not in a or 'start' not in b:
             self.rejected_connectors['ponta_incompleta']+=1
             return None
@@ -800,7 +800,7 @@ class TrafficNetwork:
         node=self.nodes[a['end']][0]
         if force:
             pa=a['p'][-1];pb=b['p'][0];gap=np.linalg.norm(pb-pa)
-            if gap>30 or cos<-.85:return None
+            if gap>max_gap_m or cos<-.85:return None
         if not self.no_connect.is_empty and self.no_connect.covers(Point(node)):
             # Dentro do cruzamento sem conexão só existe continuidade da mesma via.
             if a.get('origin')!=b.get('origin') or cos<.9:return None
@@ -810,7 +810,7 @@ class TrafficNetwork:
         if a.get('route') is not None and a.get('route')==b.get('route') and a.get('route_dir')!=b.get('route_dir'):
             self.rejected_connectors['contramao_rota']+=1;self.rejected_nodes.update((a['end'],b['start']));return None
         pa=a['p'][-1];pb=b['p'][0];gap=np.linalg.norm(pb-pa)
-        if gap>(30 if force else 18):return None
+        if gap>(max_gap_m if force else 18):return None
         lateral=abs(float(ta[0]*(pb-pa)[1]-ta[1]*(pb-pa)[0]))
         explicit=force or a.get('route') is not None or b.get('route') is not None
         if 1e-6<=gap<6 and (cos<.9 or explicit and lateral>.02):
@@ -882,19 +882,19 @@ class TrafficNetwork:
                     for j in outs:
                         if i==j or self.edges[i]['base']==self.edges[j]['base'] or j in self.connections.get(i,[]) or any(x==i and y==j for x,y,_,_ in self.denied):continue
                         g=float(np.linalg.norm(self.edges[j]['p'][0]-self.edges[i]['p'][-1]))
-                        if g>30:continue
+                        if g>r.max_gap_m:continue
                         sc=dA[i]+dB[j]+g*.2
                         if best is None or sc<best[0]:best=(sc,i,j)
                 if best is None and any(j in outs for i in ins for j in self.connections.get(i,[])):
                     i,j=min(((i,j) for i in ins for j in self.connections.get(i,[]) if j in outs),key=lambda ij:dA[ij[0]]+dB[ij[1]])
                     self.rule_report.append({'rule':r.id or r.name,'action':'force','applied':True,'existing':True,'from_edge':i,'to_edge':j,'share_pct':r.share_pct});continue
-                c=self.connector(self.edges[best[1]],self.edges[best[2]],force=True) if best else None
+                c=self.connector(self.edges[best[1]],self.edges[best[2]],force=True,max_gap_m=r.max_gap_m) if best else None
                 if c is not None:
                     _,i,j=best;self.connections[i].append(j);self.connectors[(i,j)]=c;self.forced.add((i,j))
                     self.rule_report.append({'rule':r.id or r.name,'action':'force','applied':True,'from_edge':i,'to_edge':j,'share_pct':r.share_pct})
                 else:
                     self.rule_report.append({'rule':r.id or r.name,'action':'force','applied':False})
-                    self.warnings.append(f'Regra de ligação “{r.name}”: não foi possível ligar os trechos (pontas a mais de 30 m, retorno de 180° ou a ligação sairia da pista).')
+                    self.warnings.append(f'Regra de ligação “{r.name}”: não foi possível ligar os trechos (pontas além do alcance configurado, retorno de 180° ou a ligação sairia da pista).')
     def bfs(self,start,targets,adj):
         queue=collections.deque([(start,[start])]);seen={start}
         while queue:

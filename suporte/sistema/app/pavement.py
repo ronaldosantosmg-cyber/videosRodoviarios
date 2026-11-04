@@ -57,7 +57,7 @@ class JointField:
     def from_network(cls,net,step=1.):
         """Centros de cada pista/ramo da rede (direção local correta em trevos, alças e acessos). Nas pistas
         paralelas ao eixo, a estaca é a do eixo do projeto: as juntas das duas pistas ficam alinhadas."""
-        f=cls([]);Q=[];T=[];S=[];A=[]
+        f=cls([]);f.lane_centers=True;Q=[];T=[];S=[];A=[]
         for k,r in enumerate(getattr(net,'raw_info',[]) or []):
             p=np.asarray(r['points'],float)
             if len(p)<3:continue
@@ -75,9 +75,13 @@ class JointField:
         f.ok=bool(Q)
         if f.ok:f.Q=np.concatenate(Q);f.T=np.concatenate(T);f.S=np.concatenate(S);f.A=np.concatenate(A);f.tree=cKDTree(f.Q)
         return f
+    def coordinates(self,X,Y):
+        P=np.column_stack([X,Y]);_,i=self.tree.query(P,workers=-1);delta=P-self.Q[i]
+        normal=np.column_stack([-self.T[i,1],self.T[i,0]])
+        return self.S[i]+np.einsum('ij,ij->i',delta,self.T[i]),self.A[i],np.einsum('ij,ij->i',delta,normal)
     def station(self,X,Y):
-        P=np.column_stack([X,Y]);_,i=self.tree.query(P,workers=-1)
-        return self.S[i]+np.einsum('ij,ij->i',P-self.Q[i],self.T[i]),self.A[i]
+        s,a,_=self.coordinates(X,Y);return s,a
+
 
 TECH_RIGID={'pavement':((190,192,186),(60,66,70)),'existing_pavement':((168,182,194),(62,74,86)),'shoulder':((182,178,164),(70,68,60))}
 ART_RIGID={'pavement':(176,177,172),'existing_pavement':(160,162,158),'shoulder':(170,169,162)}
@@ -92,19 +96,19 @@ ART_RIGID['oae']=(182,183,178)
 def _hash(a,b):
     h=(a.astype(np.int64)*73856093)^(b.astype(np.int64)*19349663);return ((h%1000+1000)%1000)/1000.
 
-def paint_rigid(color,rmask,role,x0,y1,px,field,spacing=5.,tech=False,artistic=False):
+def paint_rigid(color,rmask,role,x0,y1,px,field,spacing=5.,tech=False,artistic=False,slab_width=3.5):
     """Pinta as placas de concreto em `color` (H,W,3 uint8/float) onde rmask (bool) — mosaico ou ladrilho.
     x0,y1: canto superior esquerdo (m); px: metros por pixel. Retorna o novo array uint8."""
     out=np.array(color,np.float32,copy=True)
     if out.ndim==1:out=np.broadcast_to(out,rmask.shape+(3,)).copy()
     if not rmask.any():return out.astype(np.uint8)
     if role not in TECH_RIGID or role not in ART_RIGID:return np.clip(out,0,255).astype(np.uint8)
-    if not np.isfinite([px,spacing,x0,y1]).all() or px<=0 or spacing<=0:raise ValueError('Escala e espaçamento das juntas devem ser positivos e finitos.')
+    if not np.isfinite([px,spacing,x0,y1,slab_width]).all() or px<=0 or spacing<=0 or slab_width<=0:raise ValueError('Escala e espaçamento das juntas devem ser positivos e finitos.')
     base=np.array(TECH_RIGID[role][0] if tech else (ART_RIGID_CLEAN[role] if artistic else ART_RIGID[role]),np.float32)
     ys,xs=np.nonzero(rmask)
     vals=np.broadcast_to(base,(len(ys),3)).copy()
     if field is not None and field.ok and px<=1.2:
-        X=x0+(xs+.5)*px;Y=y1-(ys+.5)*px;s,ax=field.station(X,Y)
+        X=x0+(xs+.5)*px;Y=y1-(ys+.5)*px;s,ax,lateral=field.coordinates(X,Y)
         slab=np.floor(s/spacing)
         if not tech:
             # Variação de tom por placa (concreto real não é uniforme) e grão leve.
@@ -113,6 +117,8 @@ def paint_rigid(color,rmask,role,x0,y1,px,field,spacing=5.,tech=False,artistic=F
         r=np.mod(s,spacing);dj=np.minimum(r,spacing-r)
         # Técnico: traço de desenho (≥10 cm); artístico: junta selada (~3 cm), com no mínimo meio pixel para aparecer.
         width=max(.10,.9*px) if tech else max(.025,.5*px) if artistic else max(.04,.6*px)
+        phase=slab_width/2 if getattr(field,'lane_centers',False) else 0.
+        rlong=np.mod(lateral+phase,slab_width);dj=np.minimum(dj,np.minimum(rlong,slab_width-rlong))
         cover=np.clip((width/2-dj)/max(px,1e-6)+.5,0,1)
         joint=np.array(TECH_RIGID[role][1] if tech else ((102,104,100) if artistic else (62,64,64)),np.float32);k=.95 if tech else (.6 if artistic else .8)
         vals=vals*(1-cover[:,None]*k)+joint*cover[:,None]*k
@@ -156,7 +162,7 @@ def paint_style(color,mask,role,x0,y1,px,st,field=None,spacing=5.):
         C=st.spacing_m/2;gx=np.floor(Xr/C);gy=np.floor(Yr/C);cx=(gx+.5)*C;cy=(gy+.5)*C
         r=max(st.line_m,.55*px);cov=np.clip((r-np.hypot(Xr-cx,Yr-cy))/max(px,1e-6)+.5,0,1)
     elif st.pattern=='placas' and field is not None and field.ok:
-        s,_=field.station(X,Y);rr=np.mod(s,spacing);d=np.minimum(rr,spacing-rr)
+        s,_,offset=field.coordinates(X,Y);rr=np.mod(s,spacing);rside=np.mod(offset,3.5);d=np.minimum(np.minimum(rr,spacing-rr),np.minimum(rside,3.5-rside))
         cov=np.clip((w/2-d)/max(px,1e-6)+.5,0,1)
     if cov is not None:vals=vals*(1-cov[:,None])+hc*cov[:,None]
     out[ys,xs]=vals
@@ -167,3 +173,43 @@ def chosen(settings,role):
     if st is not None and getattr(settings,'natural_materials_only',False) and getattr(settings,'texture_style','')=='artistico' and getattr(settings,'style_profile','padrao')=='padrao' and st.pattern in ('diagonal','cruzada','pontilhado'):
         return None  # Representação técnica preservada no projeto, fora da maquete natural.
     return st if st is not None and st.pattern!='auto' else None
+
+
+def surface_details(polygon,field,spacing=5.,slab_width=3.5,oae=False):
+    """Juntas e bordos de apresentação recortados pelos vazios e contorno CAD."""
+    from shapely.geometry import LineString,Point
+    if not field.ok:return {'joints':[],'rails':[]}
+    center=polygon.representative_point();_,idx=field.tree.query([center.x,center.y]);owner=field.A[idx]
+    mask=field.A==owner;q=field.Q[mask];t=field.T[mask];s=field.S[mask]
+    joints=[];rails=[]
+    def clipped(line):
+        result=line.intersection(polygon)
+        return [np.asarray(g.simplify(.03).coords).tolist() for g in (getattr(result,'geoms',None) or [result]) if g.geom_type=='LineString' and g.length>.1]
+    # Uma tangente local por junta; não usa grade fixa X/Y.
+    crossing=np.flatnonzero(np.diff(np.floor(s/spacing))!=0)+1
+    x0,y0,x1,y1=polygon.bounds
+    for i in crossing:
+        if not x0-80<=q[i,0]<=x1+80 or not y0-80<=q[i,1]<=y1+80:continue
+        station=round(s[i]/spacing)*spacing;c=q[i]+t[i]*(station-s[i]);n=np.array([-t[i,1],t[i,0]])
+        joints.extend(clipped(LineString([c-n*80,c+n*80])))
+    axis=LineString(q).intersection(polygon.envelope.buffer(80))
+    if not oae:
+        phase=.5 if getattr(field,'lane_centers',False) else 0.
+        for k in range(-16,17):
+            offset=(k+phase)*slab_width
+            line=axis if abs(offset)<1e-6 else __import__('shapely').offset_curve(axis,offset)
+            joints.extend(clipped(line))
+    else:
+        # Somente os lados longitudinais recebem barreira; não fecha as entradas.
+        for polygon_part in (getattr(polygon,'geoms',None) or [polygon]):
+            if polygon_part.geom_type!='Polygon':continue
+            inset=polygon_part.buffer(-.3)
+            for part in (getattr(inset,'geoms',None) or [inset]):
+                if part.geom_type!='Polygon':continue
+                ring=np.asarray(part.exterior.coords)
+                for a,b in zip(ring[:-1],ring[1:]):
+                    d=b-a;length=np.linalg.norm(d)
+                    if length<.2:continue
+                    _,j=field.tree.query((a+b)/2)
+                    if abs(np.dot(d/length,field.T[j]))>.75:rails.append([a.tolist(),b.tolist()])
+    return {'joints':joints,'rails':rails}
