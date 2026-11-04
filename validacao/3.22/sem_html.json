@@ -1,0 +1,30 @@
+{
+  "archive": "RodoviaStudio_3_22_sem_html.zip",
+  "sha256": "294704f6179941982809087e9808c3b25e30cf87e81e8fd9a51059f002f2f7a5",
+  "html_in_archive": 0,
+  "other_payload_identical_to_complete_package": true,
+  "fresh_install_rejected": true,
+  "cases": [
+    {
+      "base": "3.18",
+      "updated_version": "3.22",
+      "html_files_preserved": true,
+      "server_and_browser_ok": true,
+      "lighting_saved": true,
+      "convoy_does_not_block": true,
+      "collisions_block": true,
+      "rollback_ok": true
+    },
+    {
+      "base": "3.21",
+      "updated_version": "3.22",
+      "html_files_preserved": true,
+      "server_and_browser_ok": true,
+      "lighting_saved": true,
+      "convoy_does_not_block": true,
+      "collisions_block": true,
+      "rollback_ok": true
+    }
+  ],
+  "defender_scan": "not_available_in_linux"
+}

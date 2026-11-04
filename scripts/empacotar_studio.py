@@ -26,7 +26,7 @@ def production_files(names):
                   and name not in DEVELOPMENT_FILES)
 
 
-def empacotar(output):
+def empacotar(output, *, sem_html=False):
     origem = json.loads((ROOT / "proveniencia/studio-3.5.json").read_text(encoding="utf-8"))
     versao = json.loads((ROOT / "suporte/sistema/VERSAO.json").read_text(encoding="utf-8"))["version"]
     nomes = sorted(set(origem["files"]) | {"CORRECOES_3_5.md", "ATUALIZACAO_3_6.md", "ATUALIZACAO_3_7.md", "VALIDACAO_3_7.md", "ATUALIZACAO_3_8.md", "VALIDACAO_3_8.md", "ATUALIZACAO_3_9.md", "VALIDACAO_3_9.md", "ATUALIZACAO_3_10.md", "VALIDACAO_3_10.md", "ATUALIZACAO_3_11.md", "VALIDACAO_3_11.md", "ATUALIZACAO_3_12.md", "VALIDACAO_3_12.md", "ATUALIZACAO_3_13.md", "VALIDACAO_3_13.md", "ATUALIZACAO_3_14.md", "VALIDACAO_3_14.md", "ATUALIZACAO_3_15.md", "VALIDACAO_3_15.md", "ATUALIZACAO_3_16.md", "VALIDACAO_3_16.md", "ATUALIZACAO_3_17.md", "VALIDACAO_3_17.md", "ATUALIZACAO_3_18.md", "VALIDACAO_3_18.md", "ATUALIZACAO_3_19.md", "VALIDACAO_3_19.md", "ATUALIZACAO_3_20.md", "VALIDACAO_3_20.md", "ATUALIZACAO_3_21.md", "VALIDACAO_3_21.md", "ATUALIZACAO_3_22.md", "VALIDACAO_3_22.md", "suporte/sistema/app/dimension_audit.py", "suporte/sistema/app/quarantine.py", "suporte/sistema/app/marking_policy.py", "suporte/sistema/app/traffic_cache.py", "suporte/sistema/app/traffic_history.py", "suporte/sistema/app/traffic_pipeline.py", "suporte/sistema/app/fleet_policy.py", "suporte/sistema/app/js/99_frota_iluminacao.js"})
@@ -34,6 +34,8 @@ def empacotar(output):
         pacote = Path(tmp) / "pacote"
         hashes = {}
         for nome in production_files(nomes):
+            if sem_html and Path(nome).suffix.lower() in {'.html', '.htm'}:
+                continue
             rel = nome if nome.startswith("suporte/") or nome.startswith(("ATUALIZACAO_", "CORRECOES_", "VALIDACAO_")) else "raiz/" + nome
             data = (ROOT / nome).read_bytes()
             target = pacote / rel
@@ -43,6 +45,10 @@ def empacotar(output):
         manifest = {"app": "Rodovia Studio", "version": versao,
                     "description": "Studio 3.22: comboio como aviso sem bloqueio e juntas pela largura cadastrada. Homologação antivírus pendente. Requer Python 3.12.",
                     "files": hashes}
+        if sem_html:
+            manifest['base_version'] = '3.18'
+            manifest['description'] = ('Complemento 3.22 sem HTML. Requer instalação funcional 3.18 ou posterior; '
+                                       'preserva index.html e ajuda.html existentes. Homologação antivírus pendente.')
         (pacote / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         validate_package(pacote)
         output = Path(output).resolve()
@@ -62,4 +68,6 @@ def empacotar(output):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, default=ROOT / "dist/RodoviaStudio_3_22_atualizacao.zip")
-    empacotar(parser.parse_args().output)
+    parser.add_argument('--sem-html', action='store_true', help='Complemento para instalação 3.18+; preserva os HTML existentes.')
+    args=parser.parse_args()
+    empacotar(args.output,sem_html=args.sem_html)
