@@ -198,7 +198,7 @@ class Detail:
                     from .pavement import JointField
                     net=getattr(sc,'network',None);f=JointField.from_network(net) if net is not None else None
                     sc.joint_field_net=f if f is not None and f.ok else JointField(sc.axes)
-                if st is not None:color=paint_style(color,mask>127,role,x0,y1,self.R,st,getattr(sc,'joint_field_net',None),float(getattr(sc.s,'joint_spacing_m',5)))  # 1.21: representação escolhida pelo usuário
+                if st is not None:color=paint_style(color,mask>127,role,x0,y1,self.R,st,getattr(sc,'joint_field_net',None),float(getattr(sc.s,'joint_spacing_m',5)),slab_width=sc.s.lane_width_m)  # 1.21: representação escolhida pelo usuário
                 if getattr(sc.s,'texture_relief',True) and getattr(sc.s,'texture_style','artistico')=='realistic' and getattr(sc.s,'style_profile','padrao')!='tecnico' :
                     from . import relevo   # 2.48/2.49: relevo iluminado por material (flexível/rígido; novo/existente)
                     if role in relevo.MATERIAIS or role in relevo.RIGIDOS:color=relevo.acabar_misto(color,mask>127,rmask,role,x0,y1,self.R,quality=sc.s.realism_profile)

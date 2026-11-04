@@ -29,7 +29,7 @@ def guidance(kind,message,point=None):
         if any(term in text for term in ('modelo de tráfego simulado','microssimulação validada','modo clássico')):
             matches=[('Conferir o motor protegido de tráfego',['Use o motor simulado com prevenção de colisões e respeito à sinalização.','Preserve os fluxos cadastrados e confira a versão instalada antes de repetir a geração.'])]
         else:
-            matches=[('Conferir espaçamento e retenção da frota',['Localize o percurso, a posição e o instante indicados na auditoria.','No instante zero, confira a distribuição inicial entre itinerários que compartilham a mesma pista.','Nos demais instantes, confira aproximações, mudanças de faixa, confluências e demanda; mantenha a regra de ouro ativa.'])]
+            matches=[('Conferir espaçamento e retenção da frota',['Localize o percurso, a posição e o instante indicados na auditoria.','No instante zero, confira a distribuição inicial entre itinerários que compartilham a mesma pista.','Nas versões anteriores à 3.22, esta mensagem bloqueava o vídeo. Na 3.22, aproximações ficam como avisos; confira a versão instalada e os registros. Colisões físicas continuam bloqueando.'])]
     else:
         matches=[(title,steps) for terms,title,steps in RULES if any(term in text for term in terms)]
     if not matches:matches=[('Conferir entradas e relatório do cálculo',['Confira os arquivos, as configurações e a mensagem original do processamento.','Corrija a causa indicada, salve e repita uma prévia curta; preserve o projeto e o histórico.'])]

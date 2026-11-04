@@ -22,7 +22,9 @@ def test_partial_scope_preserves_audit_and_excludes_entire_vehicle_tracks():
     for t in (0.,2.,4.,6.):
         assert all(sim.info[v[2]][0]!=path for v in presentation_vehicles(sim,t))
     sim.s=sim.s.model_copy(update={'traffic_export_scope':'strict'})
-    with pytest.raises(ValueError,match='Regra de ouro'):require_export(sim,sim.s)
+    require_export(sim,sim.s)
+    # No modo normal, a ocorrência não oculta os veículos do itinerário.
+    assert any(sim.info[v[2]][0]==path for v in presentation_vehicles(sim,2.))
 
 
 def test_partial_scope_never_releases_collisions_or_unfinished_simulation():

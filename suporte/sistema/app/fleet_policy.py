@@ -1,4 +1,4 @@
-"""Regra de apresentação da frota. Não substitui as reservas físicas de segurança."""
+"""Diagnóstico de espaçamento e controles físicos para exportação da frota."""
 import math
 
 ALLOWED = {'semaforo', 'pedestres', 'rotatoria'}
@@ -60,12 +60,10 @@ def require_export(sim, settings=None, *, allow_partial=False):
         raise ValueError('Ative prevenção de colisões e respeito à sinalização para exportar a frota.')
     if sim.collisions or sim.side_collisions:
         raise ValueError('Conflito veicular detectado; exportação bloqueada.')
+    # Aproximação/ comboio é diagnóstico, não falha de exportação. Não altera
+    # os veículos, não apaga ocorrências e não libera colisões físicas.
     if sim.fleet_audit['violations'] and getattr(settings,'traffic_export_scope','strict')=='validated_only':
         if getattr(sim,'simulation_complete',True):presentation_scope(sim)
-        return
-    if sim.fleet_audit['violations']:
-        row = sim.fleet_audit['violations'][0]
-        raise ValueError(f"Regra de ouro: comboio sem semáforo, pedestre ou preferência de rotatória no percurso {row['path']}, posição {row['station_m']} m. Instante {row['time_s']} s; causa {row['reason']}; folga {row.get('gap_m','?')} m; restante até saída {row.get('remaining_to_exit_m','?')} m. Vídeo bloqueado.")
 
 
 def presentation_scope(sim):

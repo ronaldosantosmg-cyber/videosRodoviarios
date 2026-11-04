@@ -145,12 +145,14 @@ def _lines(X,Y,ang,S,w,px):
     r=np.mod(u,P);d=np.minimum(r,P-r)
     return np.clip((w/2-d)/max(px,1e-6)+.5,0,1)
 
-def paint_style(color,mask,role,x0,y1,px,st,field=None,spacing=5.):
+def paint_style(color,mask,role,x0,y1,px,st,field=None,spacing=5.,slab_width=3.5):
     """Pinta a superfície (mask) com a representação escolhida: sólido, hachura diagonal, cruzada, pontilhado
     ou placas de concreto com juntas. Ancorado nas coordenadas do projeto."""
     out=np.array(color,np.float32,copy=True)
     if out.ndim==1:out=np.broadcast_to(out,mask.shape+(3,)).copy()
     if not mask.any() or st is None or st.pattern=='auto':return np.clip(out,0,255).astype(np.uint8)
+    if st.pattern=='placas' and (not np.isfinite([px,spacing,slab_width]).all() or min(px,spacing,slab_width)<=0):
+        raise ValueError('Escala e dimensões das placas devem ser positivas e finitas.')
     fill=_hex(st.fill,PRESET_FILL[role]);hc=_hex(st.hatch,PRESET_HATCH[role])
     ys,xs=np.nonzero(mask);vals=np.broadcast_to(fill,(len(ys),3)).copy()
     # Coordenadas reduzidas ao período (precisão em float64 com UTM).
@@ -162,7 +164,9 @@ def paint_style(color,mask,role,x0,y1,px,st,field=None,spacing=5.):
         C=st.spacing_m/2;gx=np.floor(Xr/C);gy=np.floor(Yr/C);cx=(gx+.5)*C;cy=(gy+.5)*C
         r=max(st.line_m,.55*px);cov=np.clip((r-np.hypot(Xr-cx,Yr-cy))/max(px,1e-6)+.5,0,1)
     elif st.pattern=='placas' and field is not None and field.ok:
-        s,_,offset=field.coordinates(X,Y);rr=np.mod(s,spacing);rside=np.mod(offset,3.5);d=np.minimum(np.minimum(rr,spacing-rr),np.minimum(rside,3.5-rside))
+        s,_,offset=field.coordinates(X,Y);rr=np.mod(s,spacing)
+        phase=slab_width/2 if getattr(field,'lane_centers',False) else 0.
+        rside=np.mod(offset+phase,slab_width);d=np.minimum(np.minimum(rr,spacing-rr),np.minimum(rside,slab_width-rside))
         cov=np.clip((w/2-d)/max(px,1e-6)+.5,0,1)
     if cov is not None:vals=vals*(1-cov[:,None])+hc*cov[:,None]
     out[ys,xs]=vals

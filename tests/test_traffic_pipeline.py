@@ -129,7 +129,7 @@ def test_auto_camera_and_callout_pixels_match_full_before_and_after_block_bounda
         pipeline.close()
 
 
-def test_late_invalid_fleet_cannot_be_accepted_as_final(tmp_path,monkeypatch):
+def test_late_spacing_warning_is_preserved_without_blocking_final_export(tmp_path,monkeypatch):
     settings=project(tmp_path);scene=Scene(tmp_path,settings)
     original=TrafficSim.run_blocks
     def invalid_later(self,*args,**kwargs):
@@ -143,10 +143,10 @@ def test_late_invalid_fleet_cannot_be_accepted_as_final(tmp_path,monkeypatch):
     pipeline=TrafficPipeline(scene)
     try:
         pipeline.ensure(0.)
-        with pytest.raises(ValueError,match='Regra de ouro'):pipeline.finish()
-        assert not pipeline.complete
-        assert not (pipeline.directory/(pipeline.key+'.ready')).exists()
-        with pytest.raises(ValueError):require_export(scene._sim,settings)
+        result=pipeline.finish()
+        assert pipeline.complete and result.simulation_complete
+        assert any(row['reason']=='teste_tardio' for row in result.fleet_audit['violations'])
+        require_export(scene._sim,settings)
     finally:pipeline.close()
 
 

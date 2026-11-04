@@ -382,7 +382,7 @@ class Scene:
                     color=paint_rigid(color,rmask>0,role,self.box[0],self.box[3],self.px,self.joint_field,float(getattr(self.s,'joint_spacing_m',5)),getattr(self.s,'style_profile','padrao')=='tecnico',artistic=self.s.texture_style=='artistico',slab_width=self.s.lane_width_m)
                 from .pavement import chosen,paint_style
                 st=chosen(self.s,role) if role in ('pavement','existing_pavement','shoulder') else None
-                if st is not None:color=paint_style(color,mask>0,role,self.box[0],self.box[3],self.px,st,getattr(self,'joint_field',None) or JointField(self.axes),float(getattr(self.s,'joint_spacing_m',5)))  # 1.21: representação escolhida pelo usuário
+                if st is not None:color=paint_style(color,mask>0,role,self.box[0],self.box[3],self.px,st,getattr(self,'joint_field',None) or JointField(self.axes),float(getattr(self.s,'joint_spacing_m',5)),slab_width=self.s.lane_width_m)  # 1.21: representação escolhida pelo usuário
                 if getattr(self.s,'texture_relief',True) and getattr(self.s,'texture_style','artistico')=='realistic' and getattr(self.s,'style_profile','padrao')!='tecnico' :
                     from . import relevo   # 2.48/2.49: relevo iluminado por material (flexível/rígido; novo/existente)
                     if role in relevo.MATERIAIS or role in relevo.RIGIDOS:color=relevo.acabar_misto(color,mask>0,rmask,role,self.box[0],self.box[3],self.px,quality=self.s.realism_profile)
