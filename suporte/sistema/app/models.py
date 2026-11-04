@@ -703,7 +703,7 @@ TextureArea.model_rebuild()
 class HatchRole(BaseModel):
     """1.24: tipo atribuído a uma assinatura de hachura do DXF (camada | padrão | cor)."""
     model_config=ConfigDict(allow_inf_nan=False)
-    role: Literal['pavement','existing_pavement','shoulder','median','terrain','barrier','oae','cut','fill','water','domain','ignore']
+    role: Literal['','pavement','existing_pavement','shoulder','median','terrain','barrier','oae','cut','fill','water','domain','ignore'] = ''
     material: Literal['auto','flexivel','rigido'] = 'auto'
     oae_kind: Literal['auto','nova','existente','alargada'] = 'auto'   # 1.42.40: textura própria da OAE nova, existente ou alargada
 

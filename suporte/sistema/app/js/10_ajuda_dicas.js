@@ -1,5 +1,7 @@
 /* ---------- 1.8: Como usar e dicas nos campos ---------- */
 const HELP={
+ hatchList:'Defina tipo e material das hachuras. Pela camada conserva a classificação da camada e permite escolher somente o material. Salve e use Analisar/Atualizar para reconstruir os vetores e a prévia. Alterar o nome da área não muda seu tipo.',
+ texViva:'Mostra os materiais no editor, inclusive em áreas cadastradas manualmente. Desligado ou no modo técnico, a hachura indica a área editável. Não altera o DXF.',
  alUseReference:'Desmarcado: conserva o alinhamento local sem substituir o eixo principal. Marque somente para usar explicitamente esse alinhamento como referência de km, câmera e sentidos de todo o projeto. Sem eixo CAD disponível, um alinhamento habilitado pode servir de referência de emergência.',
  signage_emphasis:'Realça a pintura na apresentação: mantém cobertura mínima proporcional à resolução para as linhas sobreviverem à redução do vídeo. Não altera o traçado do DXF. Desgaste e transparência definidos em pintura continuam valendo.',
  projects:'Projetos já criados neste computador. Cada projeto guarda arquivos, configuração, marcações e vídeos na pasta “projetos”.',

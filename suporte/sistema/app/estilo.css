@@ -742,3 +742,6 @@ body.studio142 #rsStudyFooter #dwCommandDrawer{position:fixed!important;left:var
 #rsPanelPopup>header button{cursor:pointer}
 #rsPanelBody{overscroll-behavior:contain}
 body.studio142 #rsStudyFooter #dwCommandDrawer{width:auto!important;max-width:calc(100vw - var(--rsOverlayLeft,76px) - 12px)!important;box-sizing:border-box}
+
+/* Paletas e comandos nunca participam do dimensionamento da área gráfica. */
+dialog.winDlg[open],dialog.rsPaleta[open]{position:fixed;max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px)}

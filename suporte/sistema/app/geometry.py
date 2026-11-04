@@ -353,7 +353,9 @@ def analyze(directory,settings,preview=None,hatch_preview=None):
                 if role in ASSET_ROLES:
                     rec['suggested_layer_role']=role;rec['suggested_role']=None;rec['suggested_material']=None
                 if sig in hroles:
-                    hr=hroles[sig];r_=hr.role if hasattr(hr,'role') else hr.get('role')
+                    hr=hroles[sig];r_=(hr.role if hasattr(hr,'role') else hr.get('role')) or role
+                    if r_ is None:
+                        warnings.append('Material da hachura '+sig+' salvo, mas sem tipo de superfície definido na camada. Defina o tipo para aplicar.');continue
                     if r_=='ignore':continue
                     mat=hr.material if hasattr(hr,'material') else hr.get('material')
                     ok_=hr.oae_kind if hasattr(hr,'oae_kind') else hr.get('oae_kind')

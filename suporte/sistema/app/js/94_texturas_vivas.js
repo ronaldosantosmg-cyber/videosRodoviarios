@@ -54,9 +54,10 @@
   const d=gerar(sup,rigido?{grao:.7,tom:1,remendos:.4,fissuras:.2,brilho:0}:p,32);let r=0,g=0,b=0;const n=d.length/4;for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2]}
   let m=[r/n,g/n,b/n];if(rigido){const o=BASE[sup]||[100,100,100];const C=p?.artistic?[194,194,187]:CONCRETO;m=[C[0]+(m[0]-o[0]),C[1]+(m[1]-o[1]),C[2]+(m[2]-o[2])]}
   const css='rgb('+m.map(x=>Math.max(0,Math.min(255,Math.round(x)))).join(',')+')';cache.set(ch,css);return css}
- function pintarRole(c,role,v){
+ function pintarRole(c,role,v,overrides={}){
   if(!ligado||!SUP[role]||!v||!v.fill||typeof geo==='undefined'||!geo)return;
-  const A=(typeof window!=='undefined'&&window.RodoviaAparencia)?window.RodoviaAparencia.leitura():{};
+  const A={...((typeof window!=='undefined'&&window.RodoviaAparencia)?window.RodoviaAparencia.leitura():{}),...overrides};
+  if(['flexivel','rigido'].includes(v.material)&&MATERIAL_DE[role])A[MATERIAL_DE[role]]=v.material;
   if(A.style_profile==='tecnico'||A.texture_style==='anterior')return;   // perfil técnico / texturas anteriores: sem textura procedural
   const mpx=geo.R0/geo.k;if(!mpx)return;
   const projected=role==='pavement'&&v.existing===false;
@@ -77,6 +78,19 @@
 const pt=rigido?ladrilho(SUP[role],'rigido',A.joint_spacing_m||5,A.texture_style==='artistico'):padrao(SUP[role],tp[SUP[role]]);if(!pt)return;
   const k=rigido?Math.max(.5,Number(A.joint_spacing_m)||5)/mpx/LADO:TILE_M/mpx/LADO;if(pt.setTransform&&typeof DOMMatrix!=='undefined')pt.setTransform(new DOMMatrix().scale(k,k));
   c.save();c.globalAlpha=Math.min(1,projected?1:(typeof vecAlpha==='number'?vecAlpha:1)*forca);c.fillStyle=pt;c.fill(v.fill,'evenodd');c.restore()}
+ // Áreas editáveis usam os mesmos materiais e a mesma escala métrica dos vetores.
+ function pintarArea(c,a){
+  if(!ligado||!geo||a.enabled===false||!a.points||a.points.length<3)return false;
+  const A=window.RodoviaAparencia?.leitura()||{};
+  if(A.style_profile==='tecnico'||A.texture_style==='anterior')return false;
+  const role=a.kind||'pavement',field=MATERIAL_DE[role];if(!field)return false;
+  const path=new Path2D();
+  for(const ring of [a.points,...(a.holes||[])]){if(ring.length<3)continue;ring.forEach((p,i)=>{const q=worldToImg(p);if(i)path.lineTo(...q);else path.moveTo(...q)});path.closePath()}
+  const overrides={};if(['rigido','flexivel'].includes(a.material))overrides[field]=a.material;
+  if(a.texture)overrides.tp={...(A.tp||{}),[SUP[role]]:{...((A.tp||{})[SUP[role]]||{}),...a.texture}};
+  c.save();try{c.setTransform(view.s,0,0,view.s,view.ox,view.oy);const params={...((overrides.tp||A.tp||{})[SUP[role]]||{}),artistic:A.texture_style==='artistico'};if(role==='existing_pavement'&&params.artistic)params.baseColor=[86,91,96];c.globalAlpha=1;c.fillStyle=A.ps?.[role]?.fill||corMedia(SUP[role],params,(overrides[field]||A[field])==='rigido');c.fill(path,'evenodd');pintarRole(c,role,{fill:path,existing:role==='existing_pavement'},overrides)}finally{c.restore()}
+  return true;
+ }
  function pintar(){return}
  function pintar_antigo(){
   if(!ligado||typeof vecPaths==='undefined'||!vecPaths||typeof ctx==='undefined'||!ctx)return;
@@ -94,7 +108,7 @@ const pt=rigido?ladrilho(SUP[role],'rigido',A.joint_spacing_m||5,A.texture_style
   box.parentNode.insertBefore(l,box);l.querySelector('input').addEventListener('change',e=>{ligado=e.target.checked;try{draw()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('texturas_vivas',_e)}})}
  if(typeof draw==='function'){const antigo=draw;draw=function(...a){const r=antigo(...a);try{pintar()}catch(e){(window.RodoviaErros||{avisar(){}}).avisar('texturas ao vivo',e)}return r}}
  if(typeof document!=='undefined')document.addEventListener('DOMContentLoaded',()=>{try{botao()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('texturas_vivas',_e)}});
- const api={gerar,SUP,BASE,pintar,pintarRole,corMedia,ligar(v){ligado=!!v}};
+ const api={gerar,SUP,BASE,pintar,pintarRole,pintarArea,corMedia,ligar(v){ligado=!!v}};
  if(typeof window!=='undefined')window.RodoviaTexturasVivas=api;
  if(typeof globalThis!=='undefined')globalThis.RodoviaTexturasVivas=api;
 })();

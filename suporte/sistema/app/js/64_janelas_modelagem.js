@@ -19,7 +19,7 @@ window.RodoviaDialogDecision=Object.freeze({ask});
 })();
 // Edição em rascunho, com salvar/descartar/continuar e erros visíveis.
 (()=>{'use strict';
-function open({id,title,html,save,calculate=false,applyable=false}){
+function open({id,title,html,save,calculate=false,applyable=true}){
  requireProject();const project=pid,context=projectSession.context;if(document.getElementById(id))return document.getElementById(id);
  const d=document.createElement('dialog');d.id=id;d.className='winDlg rsModelDialog';d.innerHTML=`<header><h2>${esc(title)}</h2><button type="button" data-close aria-label="Fechar">×</button></header><section>${html}<p data-error role="alert"></p></section><footer><button type="button" data-close>Cancelar</button>${applyable?'<button type="button" data-apply title="Confirma os valores válidos, grava e mantém esta janela aberta">Aplicar</button>':''}${calculate?'<button type="button" data-calculate title="Salva, fecha esta janela e atualiza os resultados">Salvar e atualizar</button>':''}<button type="button" data-save title="Confirma os dados e fecha esta janela; a atualização segue o modo Manual ou Automático">Salvar e fechar</button></footer>`;document.body.appendChild(d);
  let dirty=false,busy=false;d.addEventListener('input',()=>dirty=true);d.addEventListener('change',()=>dirty=true);
