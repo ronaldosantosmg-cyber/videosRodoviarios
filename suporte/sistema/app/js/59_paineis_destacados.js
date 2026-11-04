@@ -3,7 +3,8 @@
 let active=null,committing=false,closing=false,decision=null,closePending=null,resultsLoading=0;
 const clone=x=>JSON.parse(JSON.stringify(x));
 const originalSave=save,originalSchedule=scheduleSave,originalStart=start,originalLoad=load;
-function anchorOverlays(){const r=canvas.getBoundingClientRect();document.documentElement.style.setProperty('--rsOverlayLeft',Math.max(8,r.left+12)+'px');document.documentElement.style.setProperty('--rsOverlayTop',Math.max(8,r.top+12)+'px')}
+function panelTop(){return Math.max(8,($('menuBar')?.getBoundingClientRect().bottom||0)+8)}
+function anchorOverlays(){const r=canvas.getBoundingClientRect();document.documentElement.style.setProperty('--rsOverlayLeft',Math.max(8,r.left+12)+'px');document.documentElement.style.setProperty('--rsOverlayTop',Math.max(8,r.top+12)+'px');const top=panelTop();document.documentElement.style.setProperty('--rsPanelTop',top+'px');const d=$('rsPanelPopup');if(d?.open){d.style.maxHeight=Math.max(120,innerHeight-top-12)+'px';const box=d.getBoundingClientRect();if(box.top<top||box.bottom>innerHeight-8){d.style.transform='none';d.style.left=Math.max(0,Math.min(innerWidth-d.offsetWidth,box.left))+'px';d.style.top=Math.max(top,Math.min(innerHeight-d.offsetHeight-8,box.top))+'px'}}}
 window.addEventListener('resize',()=>requestAnimationFrame(anchorOverlays));
 queueMicrotask(()=>requestAnimationFrame(anchorOverlays));
 function surface(){return active?.surface||dialog()}
@@ -29,7 +30,7 @@ function dialog(){
  d.addEventListener('cancel',e=>{e.preventDefault();void requestClose()});
  const header=d.querySelector('header');let drag=null;
  header.addEventListener('pointerdown',e=>{if(e.button!==0||e.target.closest('button'))return;const r=d.getBoundingClientRect();drag={x:e.clientX-r.left,y:e.clientY-r.top};d.style.transform='none';d.style.left=r.left+'px';d.style.top=r.top+'px';header.setPointerCapture(e.pointerId);e.preventDefault()});
- header.addEventListener('pointermove',e=>{if(!drag)return;d.style.left=Math.max(0,Math.min(innerWidth-d.offsetWidth,e.clientX-drag.x))+'px';d.style.top=Math.max(0,Math.min(innerHeight-d.offsetHeight,e.clientY-drag.y))+'px'});
+ header.addEventListener('pointermove',e=>{if(!drag)return;d.style.left=Math.max(0,Math.min(innerWidth-d.offsetWidth,e.clientX-drag.x))+'px';d.style.top=Math.max(panelTop(),Math.min(innerHeight-d.offsetHeight-8,e.clientY-drag.y))+'px'});
  header.addEventListener('pointerup',()=>{drag=null});header.addEventListener('lostpointercapture',()=>{drag=null});
  d.addEventListener('input',e=>{if(e.target.matches('[data-rs-transient]'))return;scheduleSave();panelStatus('Alterações pendentes — salve ou descarte antes de fechar.')});return d;
 }
@@ -41,7 +42,7 @@ function open(node,title,key){
  active={...base,node,parent:placeholder.parentNode,placeholder,key,title,classes:node.className,hidden:node.hidden,project:pid};
  node.classList.remove('pnOculta','vazia');node.hidden=false;$('rsPanelBody')||dialog();$('rsPanelBody').appendChild(node);$('rsPanelTitle').textContent=title;
  panelStatus('Alterações de configuração serão confirmadas ao salvar.');
- dialog().show();document.body.classList.add('rsPanelOpen');
+ dialog().show();anchorOverlays();document.body.classList.add('rsPanelOpen');
  // 1.42.40: o conteúdo mudou para a janela; a casca vazia do painel/aba não pode ficar ocupando a área do desenho.
  try{if(key.startsWith('dock:'))recolherDock(true);else document.body.classList.remove('pnAberto')}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('paineis_destacados',_e)}
  setTimeout(()=>{try{resizeCanvas()}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('paineis_destacados',_e)}},60);
@@ -158,6 +159,9 @@ document.addEventListener('pointerdown',e=>{if(!active||e.target.closest('#rsPan
 // Resolva a edição e execute o botão original uma única vez, já com os dados gravados.
 document.addEventListener('click',e=>{
  if(!active||committing||e.target.closest('#rsPanelPopup,#rsPanelDecision,#atividades,.dockHead,dialog'))return;
+ // Abrir/navegar um menu não aplica nem descarta o rascunho. A escolha de
+ // um comando continua passando pela confirmação transacional abaixo.
+ if(e.target.closest('[data-rs-menu],.rsCascade button[aria-haspopup="menu"]'))return;
  const button=e.target.closest('button,a,[role=button]');if(!button||button.disabled)return;
  e.preventDefault();e.stopImmediatePropagation();const project=pid;
  void requestClose().then(ok=>{if(ok&&pid===project&&button.isConnected&&!button.disabled)button.click()}).catch(err=>msg(err.message,true));

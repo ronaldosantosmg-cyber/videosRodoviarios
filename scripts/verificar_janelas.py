@@ -37,11 +37,38 @@ with tempfile.TemporaryDirectory() as tmp:
     dimensions=page.evaluate("async()=>await api(`/api/projects/${pid}/dimension-audit`)")
     assert [round(g['crossing_m'],6) for g in dimensions['gantries']]==[12,18]
     assert [round(g['support_axis_distance_m'],6) for g in dimensions['gantries']]==[12.9,18.9]
+    for mode in ['off','transition','night']:
+     page.evaluate('RodoviaLighting.open()')
+     page.locator('#rsDayNight [data-mode]').select_option(mode)
+     page.locator('#rsDayNight [data-apply]').click()
+     page.wait_for_function('(mode)=>cfg.day_night===mode && !document.querySelector("#rsDayNight[aria-busy]")',arg=mode)
+     assert page.request.get(base+'/api/projects/'+project).json()['config']['day_night']==mode
+     assert page.locator('#rsDayNight').is_visible()
+     page.locator('#rsDayNight [data-save]').click()
+     page.locator('#rsDayNight').wait_for(state='detached')
+     page.evaluate('(id)=>load(id)',project)
+     assert page.evaluate('cfg.day_night')==mode
+    # Cancelar uma escolha diferente não modifica o modo já confirmado.
     page.evaluate('RodoviaLighting.open()')
-    page.locator('#rsDayNight [data-mode]').select_option('night')
-    page.locator('#rsDayNight [data-save]').click()
+    page.locator('#rsDayNight [data-mode]').select_option('off')
+    page.locator('#rsDayNight footer [data-close]').click()
+    page.locator('[data-draft-choice="discard"]').click()
     page.locator('#rsDayNight').wait_for(state='detached')
-    assert page.evaluate('cfg.day_night')=='night'
+    assert page.request.get(base+'/api/projects/'+project).json()['config']['day_night']=='night'
+    # Um comando com conteúdo extenso mantém cabeçalho/rodapé abaixo dos menus.
+    page.set_viewport_size({'width':760,'height':620})
+    page.evaluate('RodoviaLighting.open()')
+    page.evaluate("()=>{const tall=document.createElement('div');tall.style.height='2000px';document.querySelector('#rsDayNight>section').append(tall)}")
+    model=page.locator('#rsDayNight').bounding_box();bar=page.locator('#menuBar').bounding_box()
+    assert model['y']>=bar['y']+bar['height'] and model['y']+model['height']<=620-8,(model,bar)
+    page.locator('#rsDayNight footer [data-close]').click()
+    page.locator('#rsDayNight').wait_for(state='detached')
+    def menus_visible():
+     result=page.evaluate('''()=>[...document.querySelectorAll('[data-rs-menu]')].map(b=>{
+      const r=b.getBoundingClientRect(),e=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+      return {name:b.textContent.trim(),visible:r.width>0&&r.height>0&&r.x>=0&&r.right<=innerWidth&&r.y>=0&&r.bottom<=innerHeight,clickable:!!e&&(e===b||b.contains(e))};
+     })''')
+     assert len(result)==7 and all(m['visible'] and m['clickable'] for m in result),result
     def bounds():
      return page.locator('#canvas').bounding_box()
     def same(before):
@@ -50,11 +77,16 @@ with tempfile.TemporaryDirectory() as tmp:
      assert max(abs(before[k]-after[k]) for k in before)<1, (before,after)
     for w,h in [(1920,1080),(1366,768),(1024,768),(760,620)]:
      page.set_viewport_size({'width':w,'height':h});page.wait_for_timeout(150)
+     menus_visible()
      baseline=bounds();view=page.evaluate('JSON.stringify(view)')
      titles=page.evaluate('pnItens.map(x=>x.t)')
      for title in titles:
       page.evaluate('(title)=>openSection(title)',title)
       page.locator('#rsPanelPopup').wait_for(state='visible');same(baseline)
+      menus_visible()
+      page.locator('[data-rs-menu="4"]').click()
+      assert page.get_by_role('menuitem',name='Dia e noite',exact=True).is_visible()
+      page.evaluate('RodoviaMenus.close()')
       page.locator('#rsPanelClose').click();page.locator('#rsPanelPopup').wait_for(state='hidden');same(baseline)
      assert page.evaluate('JSON.stringify(view)')==view
      page.evaluate("setTool('oae')");same(baseline)
@@ -70,11 +102,28 @@ with tempfile.TemporaryDirectory() as tmp:
     assert page.locator('#rsPanelPopup').is_visible();same(baseline)
     assert page.request.get(base+'/api/projects/'+project).json()['config']['name']=='Aplicado sem deslocar'
     page.locator('#name').fill('Alteração descartada')
+    page.locator('[data-rs-menu="4"]').click()
+    assert page.locator('#rsPanelPopup').is_visible()
+    assert page.locator('#rsPanelDecision').count()==0
+    page.get_by_role('menuitem',name='Dia e noite',exact=True).click()
+    page.locator('#rsPanelDecision [data-choice="continue"]').click()
+    assert page.locator('#rsPanelPopup').is_visible()
+    assert page.locator('#name').input_value()=='Alteração descartada'
+    assert page.locator('#rsDayNight').count()==0
+    page.evaluate('RodoviaMenus.close()')
     page.locator('#rsPanelDiscard').click();page.locator('#rsPanelPopup').wait_for(state='hidden');same(baseline)
     assert page.request.get(base+'/api/projects/'+project).json()['config']['name']=='Aplicado sem deslocar'
     page.evaluate("openSection('Configuração')")
     header=page.locator('#rsPanelPopup>header').bounding_box()
     page.mouse.move(header['x']+40,header['y']+15);page.mouse.down();page.mouse.move(header['x']+75,header['y']+35);page.mouse.up();same(baseline)
+    header=page.locator('#rsPanelPopup>header').bounding_box()
+    page.mouse.move(header['x']+40,header['y']+15);page.mouse.down();page.mouse.move(header['x']+40,0);page.mouse.up();same(baseline)
+    menus_visible()
+    page.set_viewport_size({'width':760,'height':620});page.wait_for_timeout(150)
+    menus_visible()
+    popup=page.locator('#rsPanelPopup').bounding_box()
+    assert popup['y']+popup['height']<=620-7,popup
+    page.set_viewport_size({'width':1366,'height':768});page.wait_for_timeout(150)
     page.locator('#rsPanelCancel').click();page.locator('#rsPanelPopup').wait_for(state='hidden');same(baseline)
     assert not errors,errors
     # Cria resultados válidos em um projeto temporário para conferir a reabertura sem novo trabalho.
