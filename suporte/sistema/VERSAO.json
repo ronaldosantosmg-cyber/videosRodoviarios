@@ -1,5 +1,5 @@
 {
-  "version": "3.20",
+  "version": "3.21",
   "schema_version": 31,
   "reference_video_sha256": "1d8cc8267015132a80ec4363bb1e5a66f39361d2a7e897ba509c7974f97e488b",
   "reference_note": "O vídeo TH57 aprovado foi substituído pela ficha técnica assets/th57/referencia_ficha.json (dados do arquivo e métricas de imagem para comparação). SHA-256 histórico mantido.",
@@ -132,7 +132,8 @@
     "3.17": "Materiais das hachuras e áreas no editor; janelas sobrepostas com aplicar; segurança de tráfego verificada.",
     "3.18": "Reserva de espaçamento nas confluências, validação antes do vídeo, saída livre de 25 m, auditoria dimensional, ancoragens locais, materiais e quarentena restaurável.",
     "3.19": "Admissão local nas confluências, reserva para acesso lateral parado, retentativas espaçadas e testes de desempenho sem aquecimento adicional.",
-    "3.20": "Menus acessíveis com painéis abertos; limites de arrasto/altura e persistência dos modos de iluminação verificados."
+    "3.20": "Menus acessíveis com painéis abertos; limites de arrasto/altura e persistência dos modos de iluminação verificados.",
+    "3.21": "Distribuição de produção sem testes e ferramentas de desenvolvimento; revisão do pacote. Homologação Defender pendente."
   },
   "windows_launcher_executed": false,
   "new_dependencies": {
@@ -473,7 +474,7 @@
     "cabin_view_gantry": false
   },
   "components": {
-    "app": "3.20",
+    "app": "3.21",
     "schema": 31,
     "launcher": "1.5"
   },
@@ -603,7 +604,7 @@
     "oda_converter_real_tested": false,
     "windows_tested": false
   },
-  "notes": "3.20: menus desobstruídos e revisão de iluminação. Consulte ATUALIZACAO_3_20.md e VALIDACAO_3_20.md.",
+  "notes": "3.21: pacote de produção. Consulte ATUALIZACAO_3_21.md e VALIDACAO_3_21.md; detecção antimalware não declarada resolvida.",
   "v1_40_7_validation": {
     "technical_tests": 28,
     "workflow_tests": 7,

@@ -1,9 +1,9 @@
-Rodovia Studio 3.20
+Rodovia Studio 3.21
 
 Esta distribuição usa o código Studio 3.5, com taludes em grama conforme a classificação DXF, zebrados corrigidos e otimizações de imagem/tráfego.
 
 Para abrir no Windows:
-1. Instale Python 3.14 x64 (comando py -3.14).
+1. Instale Python 3.12 x64 (comando py -3.12).
 2. Extraia para uma pasta curta, por exemplo C:\RodoviaStudio.
 3. Abra ABRIR RODOVIA STUDIO.cmd; a preparação cria o ambiente local.
 4. A interface abre em http://127.0.0.1:8765. Mantenha o processo aberto.
@@ -18,4 +18,4 @@ O cancelamento precisa terminar antes de aplicar a atualização.
 Para atualizar, coloque o ZIP em atualizacoes\ e use a opção Atualizar.
 A atualização preserva os projetos existentes.
 
-Consulte README.md e ATUALIZACAO_3_20.md para instruções e limites de validação.
+Consulte README.md e ATUALIZACAO_3_21.md para instruções e limites de validação.
