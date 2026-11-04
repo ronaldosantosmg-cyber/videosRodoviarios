@@ -43,5 +43,5 @@ $('cacheSize').onclick=guard(async()=>{const r=await api('/api/maintenance');$('
 $('cacheClean').onclick=guard(async()=>{const r=await api('/api/maintenance/cleanup',{method:'POST'});$('cacheInfo').textContent=(r.bytes/1024/1024).toFixed(1)+' MB liberados.'+(r.errors.length?' Alguns itens estavam em uso: '+r.errors.join('; '):'');msg('Limpeza concluída. Projetos e vídeos preservados.')});
 new ResizeObserver(scheduleCanvasResize).observe(canvas);
 buildToolbar();updateUndo();
-(async()=>{try{const h=await api('/api/health');$('health').textContent=(h.ffmpeg?'Ambiente pronto · FFmpeg disponível':'FFmpeg indisponível')+' · v'+h.version;await list();const old=localStorage.getItem('rodovia_project');if(old)try{await load(old)}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('tarefas_intervencoes',_e)}const jid=localStorage.getItem('rodovia_job');if(jid)await poll(jid)}catch(e){msg(e.message,true)}})();
+(async()=>{try{const h=await api('/api/health');$('health').textContent=window.RodoviaRuntime?RodoviaRuntime.status(h):'Verificando instalação · v'+h.version;await list();const old=localStorage.getItem('rodovia_project');if(old)try{await load(old)}catch(_e){window.RodoviaErros&&RodoviaErros.avisar('tarefas_intervencoes',_e)}const jid=localStorage.getItem('rodovia_job');if(jid)await poll(jid)}catch(e){msg(e.message,true)}})();
 

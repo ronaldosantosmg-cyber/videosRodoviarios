@@ -26,6 +26,13 @@ with tempfile.TemporaryDirectory() as tmp:
     page.on('request',lambda q:requests.append(q.url))
     page.goto(base);page.wait_for_function('typeof load === "function" && window.Rodovia3D')
     assert page.evaluate('(id)=>load(id)',project) is not False
+    page.wait_for_function('window.RodoviaRuntime && document.getElementById("health").textContent.includes("política de exportação conferida")')
+    page.evaluate('RodoviaRuntime.open()')
+    page.locator('#rsRuntimeIdentity').wait_for(state='visible')
+    assert 'loaded_code_sha256' in page.locator('#rsRuntimeIdentity').inner_text()
+    page.locator('#rsRuntimeIdentity footer button').click()
+    assert 'Verificar instalação' in page.evaluate("RodoviaRuntime.status({version:'3.23',ffmpeg:true})")
+    assert 'Verificar instalação' in page.evaluate("RodoviaRuntime.status({version:'3.23',ffmpeg:true,runtime:{disk_changed:null,policy:{probe:{ok:true}}}})")
     assert page.evaluate("RodoviaMenus.definitions().find(m=>m.t==='Cenas e Vídeo').sub.slice(0,3).map(i=>i.t)")==['Preparar Rodovia Studio','Gerar vídeo','Dia e noite']
     assert 'Preparar Rodovia Studio' in page.locator('#analyze').inner_text(),page.locator('#analyze').inner_text()
     assert 'primary' not in (page.locator('#render').get_attribute('class') or '').split()

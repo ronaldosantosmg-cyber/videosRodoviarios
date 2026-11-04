@@ -72,6 +72,7 @@ function menuDefinitions(){
  B('Tráfego').forEach(i=>place(i,'eng'));
  B('Cena').forEach(i=>/Sinaliza|Pavimento/i.test(i.t||'')?out.eng.push(i):place(i,'cen'));
  B('Vídeo').forEach(i=>out.cen.push(i));
+ out.aju.unshift(leaf('Diagnóstico da instalação',()=>window.RodoviaRuntime.open()));
  out.cen.unshift(leaf('Preparar Rodovia Studio',()=>guard(()=>start('prepare'))()),leaf('Gerar vídeo',()=>$('render')?.click()),leaf('Dia e noite',()=>guard(()=>window.RodoviaLighting.open())()),{sep:true});
  out.arq.push(leaf('Sanitizar instalação',()=>runCommand('SANITIZAR')),leaf('Quarentena e restauração',()=>runCommand('QUARENTENA')));
  out.cal.push(leaf('Auditar medidas',()=>runCommand('AUDITARMEDIDAS')));

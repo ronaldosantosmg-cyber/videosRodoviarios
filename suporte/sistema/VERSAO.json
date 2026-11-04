@@ -1,5 +1,5 @@
 {
-  "version": "3.22",
+  "version": "3.23",
   "schema_version": 31,
   "reference_video_sha256": "1d8cc8267015132a80ec4363bb1e5a66f39361d2a7e897ba509c7974f97e488b",
   "reference_note": "O vídeo TH57 aprovado foi substituído pela ficha técnica assets/th57/referencia_ficha.json (dados do arquivo e métricas de imagem para comparação). SHA-256 histórico mantido.",
@@ -134,7 +134,8 @@
     "3.19": "Admissão local nas confluências, reserva para acesso lateral parado, retentativas espaçadas e testes de desempenho sem aquecimento adicional.",
     "3.20": "Menus acessíveis com painéis abertos; limites de arrasto/altura e persistência dos modos de iluminação verificados.",
     "3.21": "Distribuição de produção sem testes e ferramentas de desenvolvimento; revisão do pacote. Homologação Defender pendente.",
-    "3.22": "Comboio registrado como aviso, sem bloquear exportação; colisões físicas continuam bloqueando. Juntas de placas seguem largura da faixa."
+    "3.22": "Comboio registrado como aviso, sem bloquear exportação; colisões físicas continuam bloqueando. Juntas de placas seguem largura da faixa.",
+    "3.23": "Reparação verificada em versão igual, identidade de código/processo, cache Python por hash e limpeza dirigida em quarentena."
   },
   "windows_launcher_executed": false,
   "new_dependencies": {
@@ -475,7 +476,7 @@
     "cabin_view_gantry": false
   },
   "components": {
-    "app": "3.22",
+    "app": "3.23",
     "schema": 31,
     "launcher": "1.5"
   },
@@ -605,7 +606,7 @@
     "oda_converter_real_tested": false,
     "windows_tested": false
   },
-  "notes": "3.22: retirada do bloqueio por comboio e ajuste das juntas. Consulte ATUALIZACAO_3_22.md e VALIDACAO_3_22.md.",
+  "notes": "3.23: reparação e identidade ativa. Consulte ATUALIZACAO_3_23.md e VALIDACAO_3_23.md.",
   "v1_40_7_validation": {
     "technical_tests": 28,
     "workflow_tests": 7,

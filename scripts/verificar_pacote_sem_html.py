@@ -1,9 +1,11 @@
 """Aplica o complemento em bases reais e verifica HTML preservado, UI e reversão."""
-import hashlib,json,os,socket,subprocess,sys,tempfile,time,urllib.request,zipfile
+import hashlib,json,os,socket,subprocess,sys,tempfile,time,urllib.request,zipfile,shutil
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 ROOT=Path(__file__).resolve().parents[1]
+VERSION=json.loads((ROOT/'suporte/sistema/VERSAO.json').read_text())['version']
+SLUG=VERSION.replace('.','_')
 sys.path.insert(0,str(ROOT/'suporte/sistema'))
 import atualizador
 from portao import _install_sintetico
@@ -20,8 +22,8 @@ def digest(file):return hashlib.sha256(file.read_bytes()).hexdigest()
 
 
 def verify():
-    rows=[];file=ROOT/'atualizacoes/RodoviaStudio_3_22_sem_html.zip'
-    with zipfile.ZipFile(file) as patch,zipfile.ZipFile(ROOT/'atualizacoes/RodoviaStudio_3_22_atualizacao.zip') as complete:
+    rows=[];file=ROOT/f'atualizacoes/RodoviaStudio_{SLUG}_atualizacao_sem_html.zip'
+    with zipfile.ZipFile(file) as patch,zipfile.ZipFile(ROOT/f'atualizacoes/RodoviaStudio_{SLUG}_atualizacao.zip') as complete:
         expected={n for n in complete.namelist() if Path(n).suffix.lower() not in ('.html','.htm')}
         assert set(patch.namelist())==expected
         for name in expected-{'pacote/manifest.json'}:assert patch.read(name)==complete.read(name),name
@@ -52,7 +54,7 @@ def verify():
                             health=json.load(urllib.request.urlopen(url+'/api/health',timeout=1));break
                         except OSError:time.sleep(.1)
                     else:raise AssertionError('Servidor não iniciou: '+(case/'server.log').read_text())
-                    assert health['version']=='3.22'
+                    assert health['version']==VERSION
                     req=urllib.request.Request(url+'/api/projects',data=b'{}',headers={'Content-Type':'application/json'})
                     pid=json.load(urllib.request.urlopen(req))['id']
                     with sync_playwright() as p:
@@ -71,7 +73,10 @@ def verify():
                     code="""from types import SimpleNamespace as S
 from app.models import Settings
 from app.fleet_policy import require_export
-s=S(s=Settings(),simulation_complete=True,collisions=0,side_collisions=0,fleet_audit={'violations':[{'path':1,'station_m':135.37,'time_s':202.,'gap_m':8.088}]})
+s=S(s=Settings(),simulation_complete=True,collisions=0,side_collisions=0,fleet_audit={'violations':[{'vehicle':1,'path':1,'station_m':135.37,'time_s':202.2,'gap_m':8.088,'reason':'lider','remaining_to_exit_m':432.1}]})
+s.simulation_complete=False
+require_export(s,s.s,allow_partial=True)
+s.simulation_complete=True
 require_export(s,s.s)
 s.collisions=1
 try:require_export(s,s.s)
@@ -84,7 +89,19 @@ print('Comboio não bloqueia; colisão continua bloqueando.')
             atualizador.restore_previous(install,None,lambda *_:None,check_running=False)
             assert json.loads((program/'VERSAO.json').read_text())['version']==version
             assert htmls=={name:digest(program/'app'/name) for name in htmls}
-            rows.append({'base':version,'updated_version':'3.22','html_files_preserved':True,'server_and_browser_ok':True,'lighting_saved':True,'convoy_does_not_block':True,'collisions_block':True,'rollback_ok':True})
+            # Reproduz metadado novo com política real antiga, depois repara a MESMA versão.
+            atualizador.apply(package,install,lambda *_:None,check_running=False)
+            policy=program/'app/fleet_policy.py'
+            policy.write_bytes((base/'suporte/sistema/app/fleet_policy.py').read_bytes())
+            old_case=code.split('s.simulation_complete=False')[0]+"\ntry:require_export(s,s.s)\nexcept ValueError as e:assert 'comboio' in str(e)\nelse:raise AssertionError('Não reproduziu política antiga')\n"
+            subprocess.run([sys.executable,'-c',old_case],cwd=program,env=env,check=True,capture_output=True,text=True)
+            pending=install/'atualizacoes'/file.name;shutil.copyfile(file,pending)
+            repair=subprocess.run([sys.executable,str(program/'atualizador.py'),'--raiz',str(install),'--procurar','--sem-verificar-aberto'],cwd=program,env=env,check=True,capture_output=True,text=True)
+            assert 'Reparando' in repair.stdout,repair.stdout
+            assert policy.read_bytes()==(package/'suporte/sistema/app/fleet_policy.py').read_bytes()
+            subprocess.run([sys.executable,'-c',code],cwd=program,env=env,check=True,capture_output=True,text=True)
+            assert htmls=={name:digest(program/'app'/name) for name in htmls}
+            rows.append({'base':version,'updated_version':VERSION,'html_files_preserved':True,'server_and_browser_ok':True,'lighting_saved':True,'convoy_does_not_block':True,'collisions_block':True,'rollback_ok':True,'real_old_policy_error_reproduced':True,'same_version_mixed_source_repaired':True})
     return {'archive':file.name,'sha256':digest(file),'html_in_archive':0,'other_payload_identical_to_complete_package':True,'fresh_install_rejected':True,'cases':rows,'defender_scan':'not_available_in_linux'}
 
 

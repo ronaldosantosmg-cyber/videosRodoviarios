@@ -5,7 +5,7 @@ Princípios
   Só `esvaziar_quarentena` apaga de verdade, e somente o que já está na quarentena há N dias.
 - Nunca toca: projetos/, videos/, dados/, ZIPs de atualização ainda NÃO aplicados (atualizacoes/*.zip), o programa em uso
   (sistema/programa), os backups de atualização mais recentes (necessários para "Restaurar versão anterior") nem links simbólicos.
-- Só executa com o aplicativo FECHADO (ou com force=True).
+- Só executa com o aplicativo FECHADO (force=True não libera ferramentas de desenvolvimento).
 - Modo padrão = prévia (executar=False): lista o que sairia, quanto espaço libera e por quê.
 A verificação (`verificar`) acusa: pastas/arquivos obrigatórios ausentes, módulos Python importados que não existem, arquivos .py com erro de sintaxe,
 scripts/estilos referenciados pela interface que não existem e JSON de versão inválido."""
@@ -14,6 +14,7 @@ from pathlib import Path
 
 DIA=86400
 CATEGORIAS={
+ 'desenvolvimento':('Ferramentas de desenvolvimento e testes','Somente ferramentas conhecidas; podem ser restauradas da quarentena.','baixo'),
  'backups_atualizacao':('Cópias de segurança de atualizações antigas','Ficam as mais recentes (restaurar versão anterior continua funcionando).','baixo'),
  'backups_legado':('Cópias de organizações antigas (legado)','Sobras de migrações de versões 1.x; ficam as mais recentes.','baixo'),
  'zips_aplicados':('ZIPs de atualização já aplicados','Ficam os mais recentes; os pendentes (na pasta atualizacoes) nunca são tocados.','baixo'),
@@ -28,6 +29,19 @@ CATEGORIAS={
 OBRIGATORIOS_PROGRAMA=['app/server.py','app/index.html','app/__init__.py','app/js','assets','run.py','iniciar.ps1','preparar.py','VERSAO.json','requirements.txt','atualizador.py','rodovia.ico','app/georas_logo.png','app/icone.png']
 OBRIGATORIOS_RAIZ=['projetos','videos','atualizacoes']
 PROTEGIDOS=('projetos','videos','dados')
+DESENVOLVIMENTO=('tests','requirements-dev.txt','executar_testes_visuais.py','portao.py','TESTAR INTERFACE.cmd')
+
+def _caminho_livre(raiz,p):
+    """Não mova links, pastas com links ou o próprio script que está executando."""
+    raiz=Path(raiz).resolve();p=Path(p)
+    try:
+        p.relative_to(raiz)
+        if any(part.is_symlink() for part in (p,*p.parents) if part!=raiz and part.is_relative_to(raiz)):return False
+        if p.is_dir() and any(child.is_symlink() for child in p.rglob('*')):return False
+        for script in (Path(__file__).resolve(),Path(sys.argv[0]).resolve()):
+            if script==p.resolve() or script.is_relative_to(p.resolve()):return False
+    except (OSError,ValueError):return False
+    return True
 
 def _tam(p):
     p=Path(p)
@@ -114,7 +128,7 @@ def inventario(raiz,manter_backups=3,manter_legado=1,manter_zips=2,log_max_mb=5,
     raiz=_raiz(raiz);agora=agora or time.time();prog=programa_dir(raiz);sis=sistema_dir(raiz);itens=[]
     def add(cat,p,motivo):
         p=Path(p)
-        if p.is_symlink() or not p.exists():return
+        if not p.exists() or not _caminho_livre(raiz,p):return
         itens.append({'categoria':cat,'caminho':str(p.relative_to(raiz)),'bytes':_tam(p),'motivo':motivo})
     def recentes(pastas,n):return sorted(pastas,key=lambda p:p.stat().st_mtime,reverse=True)
     bk=sis/'backups'
@@ -137,6 +151,8 @@ def inventario(raiz,manter_backups=3,manter_legado=1,manter_zips=2,log_max_mb=5,
             if p.is_dir() and not any(x in ('runtime','webview2','webview2_dados') for x in p.relative_to(base).parts):add('caches_python',p,'cache regenerável')
     rt=prog/'resultados_testes_visuais'
     if rt.is_dir() and any(rt.iterdir()):add('resultados_testes',rt,'imagens de testes anteriores')
+    for nome in DESENVOLVIMENTO:
+        add('desenvolvimento',prog/nome,'ferramenta de desenvolvimento conhecida; desnecessária para operar o programa')
     logs=sis/'logs'
     if logs.is_dir():
         for f in logs.glob('*.log'):
@@ -171,7 +187,7 @@ def _seguro(raiz,rel):
     r=Path(raiz).resolve()
     try:rp=p.resolve(strict=False);rp.relative_to(r)
     except ValueError:return None
-    if p.is_symlink():return None
+    if not _caminho_livre(r,p):return None
     partes=Path(rel).parts
     if not partes or partes[0] in PROTEGIDOS:return None
     if Path(rel).as_posix().startswith('atualizacoes/') and Path(rel).parent.as_posix()=='atualizacoes':return None   # ZIP pendente
@@ -186,7 +202,7 @@ def limpar(raiz,executar=False,categorias=None,force=False,**opcoes):
     if not executar:
         res['itens']=sel;res['liberado_bytes']=sum(i['bytes'] for i in sel);return res
     from atualizador import app_running
-    if not force and app_running():raise RuntimeError('O Rodovia Studio está aberto. Feche-o antes de limpar.')
+    if (not force or any(i['categoria']=='desenvolvimento' for i in sel)) and app_running():raise RuntimeError('O Rodovia Studio está aberto. Feche-o antes de limpar.')
     stamp=time.strftime('%Y%m%d_%H%M%S')+'_'+__import__('uuid').uuid4().hex[:8];q=sistema_dir(raiz)/'_quarentena'/stamp;indice=[]
     for i in sel:
         p=_seguro(raiz,i['caminho'])

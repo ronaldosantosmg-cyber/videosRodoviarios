@@ -4,6 +4,7 @@ from . import caminhos
 import numpy as np
 from pathlib import Path
 from . import store
+from .runtime_identity import IDENTITY as RUNTIME_IDENTITY
 from .models import Settings
 from .geometry import analyze
 from .render import Scene,render,ASSETS

@@ -60,7 +60,8 @@ def estilo_css():
 @router.get('/api/health')
 def health(request:Request):
     import imageio_ffmpeg
-    return {'status':'ok','version':VERSION,'ffmpeg':Path(imageio_ffmpeg.get_ffmpeg_exe()).is_file(),'data':str(store.ROOT),'startup_seconds':getattr(request.app.state,'startup_seconds',None),'caminhos':caminhos.situacao(store.ROOT)}
+    from ..runtime_identity import report
+    return {'status':'ok','version':VERSION,'ffmpeg':Path(imageio_ffmpeg.get_ffmpeg_exe()).is_file(),'data':str(store.ROOT),'startup_seconds':getattr(request.app.state,'startup_seconds',None),'caminhos':caminhos.situacao(store.ROOT),'runtime':report()}
 
 @router.get('/marca/icone.png',include_in_schema=False)
 def app_icon():

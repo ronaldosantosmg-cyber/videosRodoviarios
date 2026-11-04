@@ -37,16 +37,16 @@ namespace RodoviaStudioLauncher
 #endif
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            bool created;
-            using (Mutex mutex = new Mutex(true, "RodoviaStudio_Iniciador_v1", out created))
+            Launcher l = new Launcher();
+            if (!l.FindRoot())
             {
-                Launcher l = new Launcher();
-                if (!l.FindRoot())
-                {
-                    MessageBox.Show("Não encontrei a pasta sistema\\programa do Rodovia Studio.\n\nO arquivo \"Rodovia Studio.exe\" deve ficar na pasta principal do aplicativo (a que tem as pastas projetos, videos e sistema).",
-                        "Rodovia Studio", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
+                MessageBox.Show("Não encontrei a pasta sistema\\programa do Rodovia Studio.\n\nO arquivo \"Rodovia Studio.exe\" deve ficar na pasta principal do aplicativo (a que tem as pastas projetos, videos e sistema).",
+                    "Rodovia Studio", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            bool created;
+            using (Mutex mutex = new Mutex(true, l.MutexName(), out created))
+            {
                 if (!created)
                 {
                     // Já aberto: só mostra a janela.
@@ -552,6 +552,26 @@ namespace RodoviaStudioLauncher
             return false;
         }
 
+        public string MutexName()
+        {
+            string root = Path.GetFullPath(Sys).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar).ToUpperInvariant();
+            using (SHA256 h = SHA256.Create())
+                return "RodoviaStudio_Iniciador_" + BitConverter.ToString(h.ComputeHash(Encoding.UTF8.GetBytes(root))).Replace("-", "");
+        }
+
+        // Campos de identidade têm nomes únicos. Ausência/duplicação nunca confirma uma sessão.
+        static string JsonString(string json, string key)
+        {
+            MatchCollection matches = Regex.Matches(json, @"""" + Regex.Escape(key) + @"""\s*:\s*""((?:\\.|[^""\\])*)""");
+            return matches.Count == 1 ? Regex.Unescape(matches[0].Groups[1].Value) : null;
+        }
+
+        static bool JsonBoolean(string json, string key, bool expected)
+        {
+            MatchCollection matches = Regex.Matches(json, @"""" + Regex.Escape(key) + @"""\s*:\s*(true|false)(?=\s*[,}])");
+            return matches.Count == 1 && matches[0].Groups[1].Value == (expected ? "true" : "false");
+        }
+
         bool Healthy()
         {
             try
@@ -560,7 +580,22 @@ namespace RodoviaStudioLauncher
                 r.Timeout = 1500; r.Proxy = null;
                 using (HttpWebResponse resp = (HttpWebResponse)r.GetResponse())
                 using (StreamReader sr = new StreamReader(resp.GetResponseStream()))
-                    return sr.ReadToEnd().Contains("ok");
+                {
+                    string json = sr.ReadToEnd();
+                    string root = JsonString(json, "program_root");
+                    string version = JsonString(json, "version_at_start");
+                    string digest = JsonString(json, "source_fingerprint_at_start");
+                    string installed = InstalledAppVersion();
+                    if (String.IsNullOrEmpty(root) || String.IsNullOrEmpty(version) || String.IsNullOrEmpty(digest) || String.IsNullOrEmpty(installed)) return false;
+                    string actualRoot = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                    string expectedRoot = Path.GetFullPath(Sys).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                    return JsonString(json, "status") == "ok"
+                        && String.Equals(actualRoot, expectedRoot, StringComparison.OrdinalIgnoreCase)
+                        && version == installed
+                        && String.Equals(digest, Sha256Upper(Path.Combine(Sys, "app", "fleet_policy.py")), StringComparison.OrdinalIgnoreCase)
+                        && JsonBoolean(json, "disk_changed", false)
+                        && JsonBoolean(json, "export_policy_probe_ok", true);
+                }
             }
             catch { return false; }
         }

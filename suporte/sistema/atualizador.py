@@ -31,7 +31,7 @@ from pathlib import Path
 SYSTEM_ITEMS=['app','assets','runtime','tests','run.py','diagnostico.py','requirements.txt','requirements-dev.txt','iniciar.ps1','iniciar.sh','VERSAO.json','atualizador.py']
 LOG_ITEMS=['instalacao.log','servidor_erro.log']
 LEGACY_ITEMS=['INICIAR.cmd','ATUALIZAR.cmd','atualizar.ps1','LEIA-ME.txt','arquivos','PREPARAR_AMBIENTE_TESTE.cmd','_wheels_linux','_wheels_linux.log']
-ZIP_RE=re.compile(r'RodoviaStudio_.*atualiza.*\.zip$',re.I)
+ZIP_RE=re.compile(r'^RodoviaStudio_(?:.*atualiza.*|\d+(?:[._]\d+){1,2}_sem_html)\.zip$',re.I)
 MAIN_CMD='ABRIR RODOVIA STUDIO.cmd';MAIN_EXE='Rodovia Studio.exe'
 # Arquivos auxiliares que antes ficavam na raiz e agora ficam em sistema/.
 AUX_ROOT=['ATUALIZAR RODOVIA STUDIO.cmd','COMPILAR INICIADOR.cmd','LEIA-ME.txt']
@@ -521,6 +521,19 @@ def _apply(pacote,raiz,say=print,check_running=True):
                 if tmp.exists():tmp.unlink()
         for target,expected in residuals:
             if target.exists() and _sha(target)==expected:target.unlink()
+        # Tamanho/mtime iguais após cópia manual não podem reutilizar bytecode antigo.
+        # CHECKED_HASH também invalida este cache se o rollback restaurar a fonte.
+        import importlib.util,py_compile
+        for _,target in plan:
+            if target.suffix=='.py':
+                cache=Path(importlib.util.cache_from_source(str(target)))
+                cache=_safe_target(raiz,cache.relative_to(raiz).as_posix())
+                py_compile.compile(L(target),cfile=L(cache),dfile=str(target),doraise=True,
+                                   invalidation_mode=py_compile.PycInvalidationMode.CHECKED_HASH)
+        # Antivírus, falhas de disco ou alterações concorrentes não podem virar sucesso.
+        for source,target,_ in _targets(pacote,raiz):
+            if not target.is_file() or _sha(target)!=_sha(source):
+                raise RuntimeError('Verificação final divergente: '+str(target))
         journal['archived_residuals']=len(residuals)
         journal['state']='applied';_write_manifest(manifest,journal)
     except Exception as exc:
@@ -590,7 +603,7 @@ def search_and_apply(raiz,say=print,check_running=True):
         else:say('Nenhum ZIP de atualização pendente em "atualizacoes".')
         return None
     ver,z,name,package_prefix=found[0]
-    if ver<=cur:
+    if ver<cur:
         dest=raiz/'atualizacoes'/'aplicadas';dest.mkdir(parents=True,exist_ok=True)
         dst=dest/z.name
         if dst.exists():dst=dest/(z.stem+'_'+time.strftime('%Y%m%d_%H%M%S')+z.suffix)
@@ -614,6 +627,14 @@ def search_and_apply(raiz,say=print,check_running=True):
                 with zf.open(m) as src,open(L(out),'wb') as dst:shutil.copyfileobj(src,dst)
         pacote=tmp/Path(package_prefix) if package_prefix else tmp
         validate_package(pacote,say)
+        repaired=ver==cur
+        if repaired:
+            targets=list(_targets(pacote,raiz))
+            if all(target.is_file() and _sha(target)==_sha(source) for source,target,_ in targets):
+                _archive_zip(z,raiz/'atualizacoes'/'aplicadas')
+                say('Já está atualizado: todos os arquivos do pacote foram conferidos e estão íntegros.')
+                return None
+            say('A versão é a mesma, mas há arquivos divergentes ou ausentes. Reparando com cópia de segurança.')
         newer=pacote/'suporte/sistema/atualizador.py'
         if newer.exists() and newer.read_bytes()!=Path(__file__).read_bytes() and not os.environ.get('RODOVIA_ATUALIZADOR_INTERNO'):
             # Usa o atualizador que veio no pacote (pode conter reorganizações novas).
@@ -622,6 +643,7 @@ def search_and_apply(raiz,say=print,check_running=True):
             if r.returncode:raise RuntimeError('O atualizador do pacote informou erro (veja acima).')
             res={'version':'.'.join(map(str,ver)),'delegated':True}
         else:res=apply(pacote,raiz,say,check_running)
+        if repaired:res['repaired']=True
         dest=raiz/'atualizacoes'/'aplicadas';dest.mkdir(parents=True,exist_ok=True)
         try:
             if z.parent==raiz/'atualizacoes':_archive_zip(z,dest)

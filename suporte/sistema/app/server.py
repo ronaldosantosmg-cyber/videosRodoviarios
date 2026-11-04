@@ -13,6 +13,7 @@ from pydantic import BaseModel as _BM,ConfigDict,Field
 from fastapi.responses import HTMLResponse,FileResponse,JSONResponse
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from . import store
+from .runtime_identity import IDENTITY as RUNTIME_IDENTITY
 from .models import Settings
 from .imagery import ASSETS
 from .rotas.comum import BASE,VERSION,idle,enqueue,stop,dispatch_lock,maintenance_pending

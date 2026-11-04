@@ -1,0 +1,19 @@
+{
+  "zip": "RodoviaStudio_3_22_correcao_comboio.zip",
+  "zip_sha256": "72a966fc729b86330160d5a06668277c6e8d697125e60c86d4dda8752c4040eb",
+  "file": "fleet_policy.py",
+  "file_sha256": "b736d57b814fc718e80d869825c6cc7d4ee884c285429171f7a51f0e950db3f2",
+  "identical_to_complete_and_no_html_packages": true,
+  "html_files": 0,
+  "exact_case_tested": {
+    "path": 1,
+    "station_m": 135.37,
+    "time_s": 202.2,
+    "reason": "lider",
+    "gap_m": 8.088,
+    "remaining_to_exit_m": 432.1
+  },
+  "checkpoint_warning_passed": true,
+  "completed_export_warning_passed": true,
+  "antimalware_scan": "not_available_in_linux"
+}

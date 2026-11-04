@@ -9,6 +9,7 @@ from .falhas import registrar as _falha
 from .tempo import tempo
 import json,time,platform,sys,hashlib,os,threading,zipfile,io
 from pathlib import Path
+from .runtime_identity import IDENTITY,report as runtime_report
 
 MAX_BYTES=2*1024*1024
 _lock=threading.Lock()
@@ -62,7 +63,7 @@ class JobLog:
     def __init__(self,project_dir,jid,kind,settings=None):
         self.d=project_dir;self.jid=jid;self.kind=kind;self.t0=time.monotonic();self.last=None;self.stage_start=self.t0
         if settings is not None:self.capture(settings)
-        write(project_dir,'execucao','inicio',tarefa=jid,tipo=kind,versao=app_version(),config_sha=config_hash(settings) if settings is not None else None)
+        write(project_dir,'execucao','inicio',tarefa=jid,tipo=kind,versao=app_version(),runtime=runtime_report(),config_sha=config_hash(settings) if settings is not None else None)
     def capture(self,settings):
         try:
             from .store import write_json
@@ -71,7 +72,7 @@ class JobLog:
             import re
             if not re.fullmatch(r'[A-Za-z0-9_-]{1,80}',str(self.jid)):return
             snapshot=Path(self.d)/'logs'/'execucoes';snapshot.mkdir(parents=True,exist_ok=True)
-            write_json(snapshot/(str(self.jid)+'.json'),{'tarefa':self.jid,'tipo':self.kind,'versao':app_version(),'config':data,'entradas':_inputs(Path(self.d)) if self.kind in ('render','video','render3d') else [],'ambiente':environment() if self.kind in ('render','video','render3d') else None,'config_sha256':hashlib.sha256(json.dumps(data,sort_keys=True,ensure_ascii=False,allow_nan=False).encode()).hexdigest()})
+            write_json(snapshot/(str(self.jid)+'.json'),{'tarefa':self.jid,'tipo':self.kind,'versao':app_version(),'runtime':runtime_report(),'config':data,'entradas':_inputs(Path(self.d)) if self.kind in ('render','video','render3d') else [],'ambiente':environment() if self.kind in ('render','video','render3d') else None,'config_sha256':hashlib.sha256(json.dumps(data,sort_keys=True,ensure_ascii=False,allow_nan=False).encode()).hexdigest()})
             write(self.d,'execucao','configuracao',tarefa=self.jid,tipo=self.kind,config_sha=config_hash(settings))
         except Exception as exc:write(self.d,'erros','snapshot_nao_criado',erro=type(exc).__name__,mensagem=str(exc)[:400])
     def finish_stage(self):
@@ -97,8 +98,7 @@ class JobLog:
         write(self.d,'erros','falha_tarefa',tarefa=self.jid,tipo=self.kind,erro=type(exc).__name__,mensagem=str(exc)[:2000],rastreamento=tb[-12000:])
 
 def app_version():
-    try:return json.loads((Path(__file__).resolve().parents[1]/'VERSAO.json').read_text(encoding='utf-8')).get('version')
-    except Exception:return None
+    return IDENTITY.snapshot['version_at_import']
 
 def config_hash(settings):
     try:
@@ -107,7 +107,7 @@ def config_hash(settings):
     except Exception:return None
 
 def environment():
-    env={'sistema':platform.platform(),'python':sys.version.split()[0],'processador':platform.processor() or platform.machine(),'nucleos':os.cpu_count(),'versao_app':app_version()}
+    env={'sistema':platform.platform(),'python':sys.version.split()[0],'processador':platform.processor() or platform.machine(),'nucleos':os.cpu_count(),'versao_app':app_version(),'runtime':runtime_report()}
     for mod in ('numpy','cv2','ezdxf','shapely','pyproj','PIL','fastapi','scipy','pydantic','rasterio','tifffile','imageio_ffmpeg'):
         try:
             m=__import__(mod);env[mod]=getattr(m,'__version__',None) or getattr(m,'VERSION',None)

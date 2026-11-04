@@ -1,0 +1,34 @@
+{
+  "archive": "RodoviaStudio_3_23_atualizacao_sem_html.zip",
+  "sha256": "39cea56467e103fe007a59e8ae9848f776795adab54eb3e5d2551c7319cb797d",
+  "html_in_archive": 0,
+  "other_payload_identical_to_complete_package": true,
+  "fresh_install_rejected": true,
+  "cases": [
+    {
+      "base": "3.18",
+      "updated_version": "3.23",
+      "html_files_preserved": true,
+      "server_and_browser_ok": true,
+      "lighting_saved": true,
+      "convoy_does_not_block": true,
+      "collisions_block": true,
+      "rollback_ok": true,
+      "real_old_policy_error_reproduced": true,
+      "same_version_mixed_source_repaired": true
+    },
+    {
+      "base": "3.21",
+      "updated_version": "3.23",
+      "html_files_preserved": true,
+      "server_and_browser_ok": true,
+      "lighting_saved": true,
+      "convoy_does_not_block": true,
+      "collisions_block": true,
+      "rollback_ok": true,
+      "real_old_policy_error_reproduced": true,
+      "same_version_mixed_source_repaired": true
+    }
+  ],
+  "defender_scan": "not_available_in_linux"
+}

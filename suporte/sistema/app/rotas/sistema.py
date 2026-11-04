@@ -20,9 +20,9 @@ def update_info():
     root=store.INSTALL;found=[]
     if root is not None:
         cur=U.version_tuple(VERSION)
-        for ver,z,_,_ in U.candidates(root):found.append({'arquivo':z.name,'pasta':str(z.parent),'versao':'.'.join(map(str,ver)),'mais_nova':ver>cur})
+        for ver,z,_,_ in U.candidates(root):found.append({'arquivo':z.name,'pasta':str(z.parent),'versao':'.'.join(map(str,ver)),'mais_nova':ver>cur,'reparo_disponivel':ver==cur})
     rollbacks=U.rollback_candidates(root) if root is not None else []
-    return {'instalada':VERSION,'modo':_modo(),'encontradas':found,'pode_atualizar':any(f['mais_nova'] for f in found),'pasta_atualizacoes':str((root or store.ROOT)/'atualizacoes'),'rollback':next((r for r in rollbacks if not r['restored']),None)}
+    return {'instalada':VERSION,'modo':_modo(),'encontradas':found,'pode_atualizar':any(f['mais_nova'] or f['reparo_disponivel'] for f in found),'pasta_atualizacoes':str((root or store.ROOT)/'atualizacoes'),'rollback':next((r for r in rollbacks if not r['restored']),None)}
 
 def _ensure_idle():
     if maintenance_pending.is_set():raise HTTPException(409,'Uma atualização já está sendo preparada.')
@@ -61,7 +61,7 @@ def _launch_operation(request,restore=False):
     if info['modo']=='desenvolvimento' or os.name!='nt':
         raise HTTPException(409,'Atualização automática disponível na instalação Windows.')
     if restore and not info.get('rollback'):raise HTTPException(409,'Nenhuma versão anterior disponível para restabelecer.')
-    if not restore and not info['pode_atualizar']:raise HTTPException(409,'Nenhuma atualização mais nova encontrada.')
+    if not restore and not info['pode_atualizar']:raise HTTPException(409,'Nenhuma atualização ou pacote de reparo encontrado.')
     root=store.INSTALL
     with dispatch_lock:
         _ensure_idle()

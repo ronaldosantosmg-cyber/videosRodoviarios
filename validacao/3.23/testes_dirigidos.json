@@ -1,0 +1,8 @@
+{
+  "root_tests": 31,
+  "backend_tests": 20,
+  "total": 51,
+  "full_historical_suite": false,
+  "platform": "Linux/Python 3.12/Chromium",
+  "windows_defender": "not_available"
+}
