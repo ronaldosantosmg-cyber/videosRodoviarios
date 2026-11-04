@@ -1,0 +1,98 @@
+{
+  "version": "3.19",
+  "method": "Mediana de 3 execuções; tempo de física, não codificação MP4; mesmo ambiente Linux.",
+  "TH53": [
+    {
+      "project": "TH53_recente",
+      "density": 1,
+      "paths": 2,
+      "duration_s": 220.0,
+      "before_s": 1.2248661379999248,
+      "after_s": 1.1558489510061918,
+      "change_percent": -5.634671810458469,
+      "entered": 46,
+      "exits": 45,
+      "violations": 0,
+      "collisions": 0,
+      "gate_checks": 0
+    },
+    {
+      "project": "TH53_recente",
+      "density": 4,
+      "paths": 2,
+      "duration_s": 220.0,
+      "before_s": 1.6664222219988005,
+      "after_s": 1.635332263991586,
+      "change_percent": -1.8656711124461323,
+      "entered": 78,
+      "exits": 74,
+      "violations": 0,
+      "collisions": 0,
+      "gate_checks": 0
+    },
+    {
+      "project": "TH53_anterior",
+      "density": 1,
+      "paths": 9,
+      "duration_s": 220.0,
+      "before_s": 14.054098560998682,
+      "after_s": 14.277197735995287,
+      "change_percent": 1.5874314103341058,
+      "entered": 118,
+      "exits": 54,
+      "violations": 0,
+      "collisions": 0,
+      "gate_checks": 0
+    }
+  ],
+  "synthetic": [
+    {
+      "enabled": false,
+      "warmup_s": 0,
+      "duration_s": 80,
+      "median_s": 0.3940930389944697,
+      "violations": 2,
+      "collisions": 0,
+      "entered": 14,
+      "exits": 12,
+      "holds": 0,
+      "probes": 0
+    },
+    {
+      "enabled": false,
+      "warmup_s": 10,
+      "duration_s": 80,
+      "median_s": 0.49369323400605936,
+      "violations": 2,
+      "collisions": 0,
+      "entered": 14,
+      "exits": 12,
+      "holds": 0,
+      "probes": 0
+    },
+    {
+      "enabled": true,
+      "warmup_s": 0,
+      "duration_s": 80,
+      "median_s": 0.27683426899602637,
+      "violations": 0,
+      "collisions": 0,
+      "entered": 17,
+      "exits": 13,
+      "holds": 58,
+      "probes": 132
+    },
+    {
+      "enabled": true,
+      "warmup_s": 10,
+      "duration_s": 80,
+      "median_s": 0.3313257900008466,
+      "violations": 0,
+      "collisions": 0,
+      "entered": 19,
+      "exits": 16,
+      "holds": 67,
+      "probes": 152
+    }
+  ]
+}

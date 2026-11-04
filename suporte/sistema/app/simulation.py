@@ -100,6 +100,18 @@ class TrafficSim:
         self.blocks=[Block(b) for b in getattr(s,'lane_blocks',[]) if len(b.points)>=3]
         self.stability=bool(getattr(settings,'traffic_stability',True));self.stop_seconds={};self.stop_by_path={};self.stop_samples=[];self._stop_seen=set();self.profile_counts={'convencional':0,'lento':0,'rapido':0};self.lc_blocked_hysteresis=0;self.lc_blocked_window=0;self.forced_merges=0
         self.prepare();
+        # Índice estático só para confluências próximas da entrada. Não varre
+        # a rede nem a frota a cada tentativa de admissão.
+        self.entry_confluences=[]
+        for path_i,links in enumerate(self.link_of):
+            nodes=[]
+            for k in range(1,len(links)):
+                if links[k][1]>120.:break
+                lid=links[k][0]
+                if len(self.feeders.get(lid,()))>1:
+                    nodes.append((k,lid,links[k][1],self.link_offsets[path_i][k],tuple(sorted(self.feeders[lid]-{links[k-1][0]}))))
+            self.entry_confluences.append(tuple(nodes))
+        self.entry_retry_at={};self.entry_gate_checks=0;self.entry_gate_holds=0;self.entry_gate_probes=0
         from .transport import Transport
         self.transport=Transport(settings,network);self.control_stops=0;self.node_routing=any(e.get('flow_role','automatico')!='automatico' for e in network.edges);self.dynamic_reroutes=0
         from .alternating_traffic import AlternatingTraffic
@@ -694,6 +706,7 @@ class TrafficSim:
             for i in self.admission_order(pending,rng):
                 if not pending[i]:continue
                 j=self.choose_path(i,t,rng)
+                if t<self.entry_retry_at.get(j,-math.inf):continue
                 if j!=i:self.rerouted+=1
                 ident=(j,vid,0);vt=self.vtype(self.paths[j]['kinds'],ident)
                 if not self.motion_valid(j,vt):
@@ -719,6 +732,7 @@ class TrafficSim:
                 behind=[w for o,w,wp,ws in occ.get(self.link_of[j][0][0],[]) if o<Lv+IDM['s0']]
                 if gap<max(14.,3.*new['v0']) or behind:continue
                 new['v']=min(.9*new['v0'],math.sqrt(max(0.,2*IDM['b']*(gap-IDM['s0'])))+vl*.5) if gap<math.inf else .9*new['v0']
+                if not self.entry_confluence_ready(new,occ,t):continue
                 V.append(new)
                 if entry_centers is not None:entry_centers.add(new)
                 self.profile_counts[_prof or 'convencional']+=1;self.polygon_safety.admitted(new);self.info[vid]=(j,vt,ident);vid+=1;pending[i]-=1;self.spawned+=1;self.spawned_by_path[j]+=1;self._entry_choices.pop(self.entry[i],None);last_admit[self.entry[j]]=t;queue_discharged[j]+=1;occ=self.occupancy(V)
@@ -845,6 +859,52 @@ class TrafficSim:
         for m in range(k-1,-1,-1):
             if links[m][0][0]=='e':return self.priority(links[m][0])
         return 0
+    def entry_confluence_ready(self,new,occ,t):
+        """Retém demanda fora do modelo, sem parar/recuar veículos existentes.
+
+        Consulta dois vizinhos a jusante por busca binária e o primeiro veículo
+        de cada acesso concorrente. O IDM e a auditoria continuam independentes.
+        """
+        path_i=new['p'];nodes=self.entry_confluences[path_i]
+        if not nodes:return True
+        self.entry_gate_checks+=1
+        for k,lid,station,offset,feeders in nodes:
+            if station<new['s']:continue
+            distance=station-new['s'];speed=max(.5,new['v']);eta=distance/speed
+            reserve=max(12.5,2.*new['v']+.5)
+            rows=occ.get(lid,())
+            first=bisect.bisect_left(rows,offset,key=lambda row:row[0])
+            # Inclui o vizinho que pode estar com a carroceria sobre a entrada.
+            for index in range(max(0,first-1),min(len(rows),first+1)):
+                o,other,_,_=rows[index];self.entry_gate_probes+=1
+                if o+other['L']/2<offset:continue
+                available=o-offset+max(0.,other['v'])*min(eta,5.)-(other['L']+new['L'])/2
+                if available<reserve:
+                    self.entry_gate_holds+=1;self.entry_retry_at[path_i]=t+.6;return False
+            mine=self.approach_priority(self.link_of[path_i],k)
+            for feeder in feeders:
+                approaching=occ.get(feeder,())
+                if not approaching:continue
+                _,other,other_path,other_station=approaching[-1];self.entry_gate_probes+=1
+                links=self.link_of[other_path];current=self.locate(other_path,other_station)[0]
+                for q in range(current+1,min(len(links),current+4)):
+                    if links[q][0]!=lid:continue
+                    gap=links[q][1]-other_station
+                    if not 0<=gap<=120.:break
+                    remaining=gap-max(0.,other['v'])*min(eta,5.)
+                    rear_reserve=max(12.5,2.*max(0.,other['v'])+.5)
+                    if 0<=remaining<rear_reserve+(other['L']+new['L'])/2:
+                        # Um veículo parado no outro acesso não desaparece
+                        # por ter ETA alto: também precisa de folga traseira.
+                        self.entry_gate_holds+=1;self.entry_retry_at[path_i]=t+.6;return False
+                    priority=self.approach_priority(links,q);other_eta=gap/max(.5,other['v'])
+                    yields=priority>mine or (priority==mine and (other_eta<eta or (other_eta==eta and other['id']<new['id'])))
+                    separation=2.5+(other['L']+new['L'])/(2*max(2.,speed,other['v']))
+                    if yields and abs(eta-other_eta)<separation:
+                        self.entry_gate_holds+=1;self.entry_retry_at[path_i]=t+.6;return False
+                    break
+        self.entry_retry_at.pop(path_i,None)
+        return True
     def merge_conflict(self,v,occ,look=70.):
         self._merge_roundabout=False
         L=self.link_of[v['p']];j=v['li'];best=(math.inf,0.)
@@ -1059,6 +1119,7 @@ class TrafficSim:
         r['initialization']={'mode':'seeded' if getattr(self.s,'traffic_semear',True) else 'entries','warmup_seconds':self.warmup_seconds,'seeded_vehicles':getattr(self,'semeados',0),'simulation_seconds':round(self.simulation_seconds,3),'requested_seed_vehicles':getattr(self,'seed_requested',0),'spaced_seed_capacity':getattr(self,'seed_spaced_capacity',0),'shared_spacing_rejected':getattr(self,'seed_shared_spacing_rejected',0),'scope':'População inicial pode ser menor que a demanda para manter espaçamento; chegadas continuam na taxa solicitada, aguardando entrada segura.'}
         r['gold_rule']=self.fleet_audit
         r['spacing_reservations']={'interventions':getattr(self,'spacing_interventions',0),'free_gap_m':12.5,'headway_s':2.,'applied_before_motion':True}
+        r['confluence_admission']={'checks':self.entry_gate_checks,'holds':self.entry_gate_holds,'neighbor_probes':self.entry_gate_probes,'lookahead_m':120.,'retry_interval_s':.6,'extra_warmup_s':0.,'scope':'Somente novas entradas; demanda retida, sem alterar posições, sentidos ou auditoria.'}
         if getattr(self.s,'traffic_export_scope','strict')=='validated_only' and getattr(self,'simulation_complete',False):
             from .fleet_policy import presentation_scope
             r['presentation_scope']=presentation_scope(self)

@@ -2,7 +2,8 @@
 <p><b>Ajuda da revisão em execução.</b> F1 ou AJUDAVERSAO abre este manual com a versão recebida do servidor. O catálogo no fim da página contém os comandos carregados nesta sessão e suas instruções.</p>
 <p class="muted">Passo a passo do projeto ao vídeo. Passe o mouse (ou toque) nos <span class="help">?</span> ao lado dos campos para ver a explicação de cada um.</p>
 
-<h3>Revisão 3.18 — preparação e proteções</h3>
+<h3>Revisão 3.19 — preparação e proteções</h3>
+<p><b>Controle automático nas confluências:</b> novas entradas aguardam quando falta espaço no destino ou folga para os acessos concorrentes, inclusive um veículo parado. A demanda fica pendente fora do modelo. O controle usa vizinhos locais e retenta após 0,6 s de tempo simulado, sem pausa real ou aumento de aquecimento. Não modifica os veículos existentes nem dispensa a regra de ouro. Consulte confluence_admission no diagnóstico para verificar retenções. Preparar Rodovia Studio recebe a proteção automaticamente.</p>
 <ul>
 <li><b>PREPARARSTUDIO / Preparar Rodovia Studio</b> é a ação principal em Cenas e Vídeo: atualiza geometria, editor e valida a frota na duração inteira. <b>Gerar vídeo</b> usa a simulação preparada quando o projeto e o motor permanecem iguais. Uma falha de frota deixa a geometria editável para correção.</li>
 <li><b>Faixa final sem veículos</b> (Veículos e fluxo): padrão 25 m. A frente do veículo desaparece suavemente antes dessa faixa no fim do itinerário completo. Não cria parada nem interrompe conexões internas. Zero desliga o recorte.</li>
